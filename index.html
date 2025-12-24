@@ -19,16 +19,26 @@
             },
             colors: {
               gov: {
-                emerald: '#1B3D35', // Deep Official Green
-                emeraldLight: '#2C5E52',
-                gold: '#C8AA6E',   // Metallic Gold
-                accent: '#C8AA6E', // Gold for accents
-                charcoal: '#1A1A1A', // Darker text
-                beige: '#F5F7F6'   // Cool light grey-beige background
+                forest: '#094239',      // Emerald Shadow - Primary Brand / Dark Bg
+                emerald: '#094239',     // Emerald Shadow
+                emeraldLight: '#115E59', // Lighter shade for interactions
+                teal: '#428177',        // Mountain Teal - CTA
+                gold: '#b9a779',        // Golden Wheat - Accent
+                sand: '#988561',        // Antique Sand
+                beige: '#edebe0',       // Ivory Mist - Light Bg
+                umber: '#260f14',       // Deep Umber
+                cherry: '#4a151e',      // Black Cherry
+                red: '#6b1f2a',         // Damask Red - Error
+                charcoal: '#161616',    // Charcoal - Text
+                stone: '#3d3a3b'        // Stone - Secondary Text
               }
+            },
+            backgroundImage: {
+              'pattern-islamic': "url('https://www.transparenttextures.com/patterns/arabesque.png')",
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },
             keyframes: {
               fadeIn: {
@@ -42,23 +52,25 @@
     </script>
     <style>
       body {
-        background-color: #F5F7F6;
+        background-color: #edebe0; /* Ivory Mist */
+        color: #161616; /* Charcoal */
       }
       .glass-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(27, 61, 53, 0.1);
+        background: rgba(237, 235, 224, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(185, 167, 121, 0.2);
       }
       /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 8px;
+        width: 10px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+        background: #edebe0; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #1B3D35; 
-        border-radius: 4px;
+        background: #094239; 
+        border-radius: 5px;
+        border: 2px solid #edebe0;
       }
       /* Hide scrollbar for ticker */
       .no-scrollbar::-webkit-scrollbar {
@@ -85,7 +97,7 @@
 }
 </script>
   </head>
-  <body class="bg-gov-beige text-gov-charcoal font-sans antialiased overflow-x-hidden selection:bg-gov-gold selection:text-gov-emerald">
+  <body class="bg-gov-beige text-gov-charcoal font-sans antialiased overflow-x-hidden selection:bg-gov-gold selection:text-gov-forest">
     <div id="root"></div>
   </body>
 </html>

@@ -85,11 +85,11 @@ const ComplaintPortal: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-12">
       
       {/* Tabs */}
-      <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-200 mb-8 max-w-md mx-auto">
+      <div className="flex bg-white dark:bg-gov-emerald/10 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-gold/20 mb-8 max-w-md mx-auto">
         <button
           onClick={() => setActiveTab('submit')}
           className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'submit' ? 'bg-gov-emerald text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
+            activeTab === 'submit' ? 'bg-gov-teal text-white shadow-md' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
           }`}
         >
           تقديم شكوى جديدة
@@ -97,42 +97,42 @@ const ComplaintPortal: React.FC = () => {
         <button
           onClick={() => setActiveTab('track')}
           className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'track' ? 'bg-gov-emerald text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
+            activeTab === 'track' ? 'bg-gov-teal text-white shadow-md' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
           }`}
         >
           متابعة حالة الطلب
         </button>
       </div>
 
-      <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gov-emerald/5 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-gold/20 overflow-hidden">
         
         {/* SUBMIT TAB */}
         {activeTab === 'submit' && !submittedTicket && (
           <div className="p-8 md:p-12 animate-fade-in">
              <div className="text-center mb-10">
-               <h2 className="text-2xl font-bold text-gov-charcoal mb-2">نموذج الشكاوى الموحد</h2>
-               <p className="text-gray-500">سيتم التعامل مع بياناتك بسرية تامة وتوجيهها للجهة المعنية.</p>
+               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-2">نموذج الشكاوى الموحد</h2>
+               <p className="text-gray-500 dark:text-gray-400">سيتم التعامل مع بياناتك بسرية تامة وتوجيهها للجهة المعنية.</p>
              </div>
 
              <form onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* Description with AI */}
                 <div>
-                   <label className="block text-sm font-bold text-gov-charcoal mb-2">تفاصيل الشكوى <span className="text-red-500">*</span></label>
+                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">تفاصيل الشكوى <span className="text-gov-red">*</span></label>
                    <div className="relative">
                      <textarea 
                        required
                        value={formData.details}
                        onChange={(e) => setFormData({...formData, details: e.target.value})}
                        rows={5}
-                       className="w-full p-4 rounded-xl bg-gov-beige border border-gray-200 focus:border-gov-emerald focus:ring-2 focus:ring-gov-emerald/20 transition-all outline-none resize-none"
+                       className="w-full p-4 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all outline-none resize-none"
                        placeholder="اشرح المشكلة بالتفصيل..."
                      />
                      <button
                         type="button" 
                         onClick={handleAIAnalyze}
                         disabled={isAnalyzing || formData.details.length < 10}
-                        className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-white border border-gov-gold/30 text-gov-charcoal text-xs font-bold shadow-sm flex items-center gap-2 hover:bg-gov-gold/10 disabled:opacity-50 transition-colors"
+                        className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-white dark:bg-gov-emerald border border-gov-gold/30 text-gov-charcoal dark:text-white text-xs font-bold shadow-sm flex items-center gap-2 hover:bg-gov-gold/10 disabled:opacity-50 transition-colors"
                      >
                         {isAnalyzing ? <Loader2 size={14} className="animate-spin"/> : <Sparkles size={14} className="text-gov-gold"/>}
                         {isAnalyzing ? 'جاري التحليل...' : 'تحليل ذكي'}
@@ -145,11 +145,11 @@ const ComplaintPortal: React.FC = () => {
                    <div className="p-4 rounded-xl bg-gov-gold/5 border border-gov-gold/20 flex gap-4 animate-fade-in">
                       <div className="mt-1"><Sparkles className="text-gov-gold" size={20} /></div>
                       <div>
-                         <h4 className="font-bold text-gov-charcoal text-sm mb-1">نتيجة التحليل الذكي</h4>
-                         <p className="text-xs text-gray-600 mb-2">{aiSuggestion.summary}</p>
+                         <h4 className="font-bold text-gov-charcoal dark:text-white text-sm mb-1">نتيجة التحليل الذكي</h4>
+                         <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">{aiSuggestion.summary}</p>
                          <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 rounded-md bg-white border border-gray-200 text-xs text-gray-500">الأولوية: <span className="font-bold text-gov-emerald">{aiSuggestion.priority}</span></span>
-                            <span className="px-2 py-1 rounded-md bg-white border border-gray-200 text-xs text-gray-500">التصنيف: <span className="font-bold text-gov-emerald">{aiSuggestion.category}</span></span>
+                            <span className="px-2 py-1 rounded-md bg-white dark:bg-gov-emerald/20 border border-gray-200 dark:border-gov-gold/20 text-xs text-gray-500 dark:text-gray-300">الأولوية: <span className="font-bold text-gov-teal">{aiSuggestion.priority}</span></span>
+                            <span className="px-2 py-1 rounded-md bg-white dark:bg-gov-emerald/20 border border-gray-200 dark:border-gov-gold/20 text-xs text-gray-500 dark:text-gray-300">التصنيف: <span className="font-bold text-gov-teal">{aiSuggestion.category}</span></span>
                          </div>
                       </div>
                    </div>
@@ -157,21 +157,21 @@ const ComplaintPortal: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal mb-2">رقم الهاتف <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">رقم الهاتف <span className="text-gov-red">*</span></label>
                     <input 
                       type="tel" 
                       required
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full p-3 rounded-xl bg-gov-beige border border-gray-200 focus:border-gov-emerald focus:ring-2 focus:ring-gov-emerald/20 transition-all outline-none"
+                      className="w-full p-3 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal mb-2">الجهة (اختياري)</label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">الجهة (اختياري)</label>
                     <select 
                       value={formData.directorate}
                       onChange={(e) => setFormData({...formData, directorate: e.target.value})}
-                      className="w-full p-3 rounded-xl bg-gov-beige border border-gray-200 focus:border-gov-emerald focus:ring-2 focus:ring-gov-emerald/20 transition-all outline-none"
+                      className="w-full p-3 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all outline-none"
                     >
                       <option value="">-- اختر الجهة --</option>
                       {DIRECTORATES.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
@@ -180,7 +180,7 @@ const ComplaintPortal: React.FC = () => {
                 </div>
 
                 <div className="pt-4">
-                  <button type="submit" className="w-full py-4 rounded-xl bg-gov-emerald text-white font-bold shadow-lg hover:bg-gov-emerald/90 transition-all flex items-center justify-center gap-2">
+                  <button type="submit" className="w-full py-4 rounded-xl bg-gov-teal text-white font-bold shadow-lg hover:bg-gov-emerald transition-all flex items-center justify-center gap-2">
                     <Send size={20} />
                     إرسال الشكوى
                   </button>
@@ -195,15 +195,15 @@ const ComplaintPortal: React.FC = () => {
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600">
                  <CheckCircle size={40} />
               </div>
-              <h2 className="text-2xl font-bold text-gov-charcoal mb-2">تم استلام طلبك بنجاح</h2>
-              <p className="text-gray-500 mb-8 max-w-md">يرجى الاحتفاظ برقم التذكرة أدناه لمتابعة حالة الطلب. تم إرسال رسالة تأكيد لرقم هاتفك.</p>
+              <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-2">تم استلام طلبك بنجاح</h2>
+              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">يرجى الاحتفاظ برقم التذكرة أدناه لمتابعة حالة الطلب. تم إرسال رسالة تأكيد لرقم هاتفك.</p>
               
-              <div className="bg-gov-beige border-2 border-dashed border-gov-emerald/30 p-6 rounded-xl mb-8 w-full max-w-sm">
-                 <span className="block text-xs text-gray-500 mb-1">رقم التذكرة</span>
-                 <span className="block text-3xl font-display font-bold text-gov-emerald tracking-wider">{submittedTicket}</span>
+              <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-teal/30 p-6 rounded-xl mb-8 w-full max-w-sm">
+                 <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">رقم التذكرة</span>
+                 <span className="block text-3xl font-display font-bold text-gov-teal tracking-wider">{submittedTicket}</span>
               </div>
 
-              <button onClick={() => {setSubmittedTicket(null); setActiveTab('track');}} className="text-gov-emerald font-bold hover:underline">
+              <button onClick={() => {setSubmittedTicket(null); setActiveTab('track');}} className="text-gov-teal font-bold hover:underline">
                 متابعة الطلب الآن
               </button>
            </div>
@@ -213,8 +213,8 @@ const ComplaintPortal: React.FC = () => {
         {activeTab === 'track' && (
            <div className="p-8 md:p-12 animate-fade-in">
               <div className="text-center mb-10">
-                 <h2 className="text-2xl font-bold text-gov-charcoal mb-2">متابعة الطلبات</h2>
-                 <p className="text-gray-500">أدخل رقم التذكرة للاستعلام عن آخر المستجدات.</p>
+                 <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-2">متابعة الطلبات</h2>
+                 <p className="text-gray-500 dark:text-gray-400">أدخل رقم التذكرة للاستعلام عن آخر المستجدات.</p>
               </div>
 
               <form onSubmit={handleTrack} className="max-w-md mx-auto mb-10">
@@ -224,18 +224,18 @@ const ComplaintPortal: React.FC = () => {
                       placeholder="مثال: GOV-12345"
                       value={trackId}
                       onChange={(e) => setTrackId(e.target.value)}
-                      className="flex-1 p-3 rounded-xl bg-gov-beige border border-gray-200 focus:border-gov-emerald outline-none"
+                      className="flex-1 p-3 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal outline-none"
                     />
-                    <button type="submit" className="bg-gov-charcoal text-white px-6 rounded-xl font-bold hover:bg-black transition-colors">
+                    <button type="submit" className="bg-gov-teal text-white px-6 rounded-xl font-bold hover:bg-gov-emerald transition-colors">
                        {isTracking ? <Loader2 className="animate-spin"/> : <Search />}
                     </button>
                  </div>
               </form>
 
               {trackingResult && (
-                 <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                       <span className="font-bold text-gov-charcoal">تذكرة #{trackingResult.id}</span>
+                 <div className="bg-white dark:bg-gov-emerald/10 border border-gray-100 dark:border-gov-gold/20 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-white/10">
+                       <span className="font-bold text-gov-charcoal dark:text-white">تذكرة #{trackingResult.id}</span>
                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
                          {getStatusLabel(trackingResult.status)}
                        </span>
@@ -244,16 +244,16 @@ const ComplaintPortal: React.FC = () => {
                        <div className="flex items-start gap-3">
                           <div className="mt-1 text-gray-400"><AlertCircle size={18}/></div>
                           <div>
-                             <span className="block text-xs text-gray-500 mb-1">آخر تحديث</span>
-                             <span className="text-sm font-medium text-gov-charcoal">{trackingResult.lastUpdate}</span>
+                             <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">آخر تحديث</span>
+                             <span className="text-sm font-medium text-gov-charcoal dark:text-white">{trackingResult.lastUpdate}</span>
                           </div>
                        </div>
                        {trackingResult.notes && (
-                         <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg">
+                         <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-lg">
                             <div className="mt-1 text-gray-400"><FileText size={18}/></div>
                             <div>
-                               <span className="block text-xs text-gray-500 mb-1">ملاحظات</span>
-                               <span className="text-sm text-gray-700">{trackingResult.notes}</span>
+                               <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">ملاحظات</span>
+                               <span className="text-sm text-gray-700 dark:text-gray-300">{trackingResult.notes}</span>
                             </div>
                          </div>
                        )}

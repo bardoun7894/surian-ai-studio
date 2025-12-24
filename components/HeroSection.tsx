@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { Building2, Activity, ShieldCheck, Cpu, Sparkles, BrainCircuit } from 'lucide-react';
+import { Building2, FileText, Scale, ArrowRight, ShieldCheck, Landmark } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface HeroSectionProps {
@@ -9,148 +9,229 @@ interface HeroSectionProps {
 
 const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
+  const eagleRef = useRef<HTMLDivElement>(null);
+  const textContainerRef = useRef<HTMLDivElement>(null);
+  const bgPatternRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
 
-    tl.fromTo(textRef.current?.children || [], 
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, stagger: 0.2 }
-    )
-    .fromTo(imageRef.current,
-      { x: 50, opacity: 0, scale: 0.9 },
-      { x: 0, opacity: 1, scale: 1, duration: 1.2 },
-      "-=0.8"
-    );
+      // 1. Initial State Setup
+      gsap.set(bgPatternRef.current, { scale: 1.1, opacity: 0 });
+      
+      // 2. Background Reveal
+      tl.to(bgPatternRef.current, {
+        opacity: 0.1,
+        scale: 1,
+        duration: 2,
+        ease: "power2.out"
+      });
 
+      // 3. Eagle Majestic Entrance (Scale + Blur removal)
+      tl.fromTo(eagleRef.current,
+        { scale: 0.6, opacity: 0, filter: 'blur(15px)', y: 30 },
+        { scale: 1, opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.8, ease: "expo.out" },
+        "-=1.5"
+      );
+
+      // 4. Glow Pulse behind Eagle
+      tl.fromTo(glowRef.current,
+        { opacity: 0, scale: 0.5 },
+        { opacity: 0.6, scale: 1, duration: 1.5, ease: "sine.out" },
+        "-=1.2"
+      );
+
+      // 5. Text Cascade Animation
+      const textElements = textContainerRef.current?.querySelectorAll('.animate-text');
+      if (textElements && textElements.length > 0) {
+         tl.fromTo(textElements, 
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, stagger: 0.15, ease: "back.out(1.2)" },
+          "-=1.0"
+        );
+      }
+
+      // 6. Buttons Entry
+      const buttons = textContainerRef.current?.querySelectorAll('.animate-btn');
+      if (buttons && buttons.length > 0) {
+        tl.fromTo(buttons,
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power2.out" },
+          "-=0.5"
+        );
+      }
+
+      // 7. Stats Pillars Entry
+      const stats = containerRef.current?.querySelectorAll('.animate-stat');
+      if(stats && stats.length > 0) {
+        tl.fromTo(stats,
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power2.out" },
+          "-=0.2"
+        );
+      }
+
+      // --- Continuous Animations ---
+
+      // Floating Eagle
+      gsap.to(eagleRef.current, {
+        y: -15,
+        duration: 4,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        delay: 0
+      });
+
+      // Rotating Glow
+      gsap.to(glowRef.current, {
+        rotation: 360,
+        duration: 120,
+        repeat: -1,
+        ease: "linear"
+      });
+
+      // Subtle Background Movement
+      gsap.to(bgPatternRef.current, {
+        y: -20,
+        x: 10,
+        duration: 10,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
-  const stats = [
-    { label: 'خدمة ذكية', value: '1,250+', icon: <BrainCircuit size={20}/> },
-    { label: 'جهة حكومية', value: '45', icon: <Building2 size={20}/> },
-    { label: 'دقة معالجة', value: '99%', icon: <Activity size={20}/> },
-  ];
-
   return (
-    <section ref={containerRef} className="relative pt-12 pb-20 overflow-hidden bg-gov-beige">
-      {/* Background Decor - Official Colors */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
-         <div className="absolute -top-[30%] -right-[10%] w-[70%] h-[70%] bg-gov-emerald/15 rounded-full blur-3xl"></div>
-         <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] bg-gov-gold/10 rounded-full blur-3xl"></div>
-         {/* Abstract Grid Lines */}
-         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gov-emerald/10"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-         </svg>
-      </div>
+    <section ref={containerRef} className="relative pt-24 pb-16 md:pt-32 md:pb-20 overflow-hidden bg-gov-beige dark:bg-gov-forest min-h-[60vh] md:min-h-[70vh] flex items-center justify-center transition-colors duration-700">
+      
+      {/* Dynamic Background Pattern */}
+      <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-5 pointer-events-none mix-blend-overlay scale-110"></div>
+      
+      {/* Deep Atmospheric Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-forest/80 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
+      
+      {/* Rotating Glow behind Eagle */}
+      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(185,167,121,0.2)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-          
-          {/* Text Content */}
-          <div ref={textRef} className="flex-1 text-center lg:text-right space-y-8 opacity-0">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gov-emerald text-white text-sm font-bold shadow-lg shadow-gov-emerald/20">
-              <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
-              الجمهورية العربية السورية
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center">
+        
+        {/* The Golden Hawk - Centerpiece with Futuristic Assistant Circle UI */}
+        <div ref={eagleRef} className="mb-10 relative z-20 flex justify-center items-center">
+            <div className="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
+                
+                {/* Ambient Back Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gov-gold/10 rounded-full blur-3xl dark:bg-gov-gold/5"></div>
+                
+                {/* Outer Ring - Thin & Elegant */}
+                <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/10"></div>
+                
+                {/* Spinning Segment Ring - Futuristic Feel */}
+                <div className="absolute inset-4 rounded-full border-t border-l border-gov-teal/30 dark:border-gov-teal/20 animate-[spin_8s_linear_infinite]"></div>
+                
+                {/* Inner Ring - Static */}
+                <div className="absolute inset-16 rounded-full border border-gov-gold/10"></div>
+                
+                {/* Central Orb/Glass Container */}
+                <div className="absolute inset-8 rounded-full bg-gradient-to-br from-white/80 via-white/40 to-white/20 dark:from-white/10 dark:via-white/5 dark:to-transparent backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex items-center justify-center overflow-hidden">
+                    
+                    {/* Glossy Reflection */}
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent pointer-events-none"></div>
+                    
+                    {/* The Logo */}
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/5/5b/Emblem_of_Syria_%282025%E2%80%93present%29.svg" 
+                      alt="شعار الجمهورية العربية السورية" 
+                      className="w-32 md:w-44 h-auto object-contain drop-shadow-lg relative z-10"
+                    />
+                </div>
             </div>
+        </div>
+
+        <div ref={textContainerRef} className="space-y-6 relative z-20">
             
-            <h1 className="text-4xl md:text-6xl font-display font-bold text-gov-charcoal leading-tight">
-              منصة الحكومة الذكية <br/>
-              <span className="text-gov-emerald relative">
-                بقيادة الذكاء الاصطناعي
-                <svg className="absolute w-full h-3 -bottom-1 right-0 text-gov-gold/60" viewBox="0 0 100 10" preserveAspectRatio="none">
-                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="6" fill="none" />
-                </svg>
-              </span>
-            </h1>
+            {/* Titles Group */}
+            <div className="flex flex-col items-center">
+                <h2 className="animate-text text-gov-forest/80 dark:text-gov-gold/90 font-sans font-medium tracking-[0.4em] uppercase text-xs md:text-sm mb-3 border-b border-gov-gold/30 pb-2">
+                  Syrian Arab Republic
+                </h2>
+                
+                <h1 className="animate-text text-4xl md:text-6xl lg:text-7xl font-display font-extrabold text-gov-forest dark:text-white leading-[1.1] mb-2 drop-shadow-sm dark:drop-shadow-lg transition-colors">
+                  الجمهورية العربية السورية
+                </h1>
+                
+                <div className="animate-text flex items-center justify-center gap-6 mt-2 mb-6 w-full">
+                   <div className="h-[1px] w-12 md:w-24 bg-gradient-to-l from-transparent to-gov-gold"></div>
+                   <span className="text-xl md:text-3xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
+                     رئاسة مجلس الوزراء
+                   </span>
+                   <div className="h-[1px] w-12 md:w-24 bg-gradient-to-r from-transparent to-gov-gold"></div>
+                </div>
 
-            <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              رؤية جديدة لمستقبل الخدمات الحكومية في سوريا. نُسخّر تقنيات الذكاء الاصطناعي لتحليل البيانات، تسريع المعاملات، والاستجابة لاحتياجات المواطنين بدقة وشفافية غير مسبوقة.
-            </p>
+                <p className="animate-text text-base md:text-lg text-gov-stone dark:text-gov-beige/80 leading-relaxed max-w-3xl mx-auto font-medium dark:font-light border-r-2 border-gov-gold/50 pr-4 mr-auto ml-auto transition-colors">
+                   المنصة الوطنية الموحدة للخدمات الحكومية الإلكترونية
+                   <br/>
+                   <span className="text-sm md:text-base text-gov-stone/70 dark:text-gov-beige/60 mt-1 block">بوابة آمنة، خدمات متكاملة، ومستقبل رقمي</span>
+                </p>
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center pt-6">
               <button 
                 onClick={() => onNavigate('DIRECTORATES')}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gov-emerald text-white font-bold hover:bg-gov-emeraldLight transition-all shadow-lg shadow-gov-emerald/20 flex items-center justify-center gap-2 group"
+                className="animate-btn relative overflow-hidden min-w-[200px] px-8 py-4 bg-gov-teal text-white font-bold text-lg hover:bg-gov-emerald transition-all shadow-[0_5px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_30px_rgba(66,129,119,0.3)] flex items-center justify-center gap-3 group"
+                style={{ clipPath: 'polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)' }}
               >
-                <Cpu size={20} className="text-gov-gold" />
-                الخدمات الذكية
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                <Landmark size={20} className="relative z-10" />
+                <span className="relative z-10">دليل الخدمات</span>
+                <ArrowRight className="relative z-10 group-hover:-translate-x-2 transition-transform duration-300" size={18} />
               </button>
+              
               <button 
-                onClick={() => onNavigate('COMPLAINTS')}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-gov-emerald font-bold border border-gray-200 hover:border-gov-emerald hover:shadow-md transition-all flex items-center justify-center gap-2"
+                onClick={() => onNavigate('DECREES')}
+                className="animate-btn min-w-[200px] px-8 py-4 bg-transparent border border-gov-teal text-gov-teal dark:text-gov-gold dark:border-gov-gold font-bold text-lg hover:bg-gov-teal/10 dark:hover:bg-gov-gold/10 transition-all flex items-center justify-center gap-3"
+                style={{ clipPath: 'polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)' }}
               >
-                <ShieldCheck size={20} />
-                نظام الشكاوى
+                <Scale size={20} />
+                <span>الجريدة الرسمية</span>
               </button>
             </div>
 
-            {/* Stats Row */}
-            <div className="pt-8 flex items-center justify-center lg:justify-start gap-8 border-t border-gray-200/60">
-               {stats.map((stat, idx) => (
-                 <div key={idx} className="flex flex-col items-center lg:items-start">
-                   <span className="text-2xl font-bold text-gov-charcoal flex items-center gap-2">
-                     {stat.value}
-                     <span className="text-gov-gold">{stat.icon}</span>
-                   </span>
-                   <span className="text-xs text-gray-500 font-medium">{stat.label}</span>
-                 </div>
-               ))}
-            </div>
-          </div>
-
-          {/* Hero Image/Card Visual */}
-          <div ref={imageRef} className="flex-1 w-full lg:w-auto relative opacity-0">
-             <div className="relative w-full aspect-square max-w-[500px] mx-auto">
-                {/* Decorative circles */}
-                <div className="absolute inset-0 border border-gov-emerald/20 rounded-full animate-[spin_20s_linear_infinite]"></div>
-                <div className="absolute inset-8 border border-gov-gold/30 rounded-full animate-[spin_25s_linear_infinite_reverse]"></div>
-                
-                {/* Main Image */}
-                <div className="absolute inset-4 rounded-full overflow-hidden border-4 border-white shadow-2xl relative">
-                   <img src="https://images.unsplash.com/photo-1558494949-ef526b0042a0?auto=format&fit=crop&q=80&w=1000" alt="Syria Future Technology" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 filter brightness-90 saturate-50" />
-                   
-                   {/* Overlay Digital Effect */}
-                   <div className="absolute inset-0 bg-gradient-to-t from-gov-emerald/90 via-gov-emerald/20 to-transparent"></div>
-                   
-                   {/* Coat of Arms Watermark */}
-                   <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none mix-blend-overlay">
-                       <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Coat_of_arms_of_Syria.svg/200px-Coat_of_arms_of_Syria.svg.png" 
-                          alt="Syrian Eagle" 
-                          className="w-2/3 h-auto grayscale contrast-150"
-                        />
-                   </div>
-
-                   <div className="absolute bottom-10 left-0 right-0 text-center text-white p-4">
-                      <p className="font-display font-bold text-xl mb-1 text-gov-gold">الجمهورية العربية السورية</p>
-                      <p className="text-xs font-light tracking-wider uppercase opacity-90">Unified Digital Platform</p>
-                   </div>
-                </div>
-
-                {/* Floating Cards - AI Processing */}
-                <div className="absolute top-10 -right-4 bg-white/95 backdrop-blur p-4 rounded-xl shadow-xl border border-gov-emerald/10 animate-bounce delay-700">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gov-emerald/10 flex items-center justify-center text-gov-emerald">
-                      <Sparkles size={20} />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">المساعد الذكي</div>
-                      <div className="text-sm font-bold text-gov-charcoal">متصل الآن</div>
-                    </div>
+            {/* Official Pillars / Stats */}
+            <div className="grid grid-cols-3 gap-4 md:gap-12 max-w-3xl mx-auto mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-8 px-4">
+               <div className="animate-stat text-center group cursor-default">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <Building2 size={20} />
                   </div>
-                </div>
-
-             </div>
-          </div>
+                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">1,500+</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">خدمة إلكترونية</div>
+               </div>
+               
+               <div className="animate-stat text-center border-r border-l border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">24/7</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">بوابة آمنة</div>
+               </div>
+               
+               <div className="animate-stat text-center group cursor-default">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <FileText size={20} />
+                  </div>
+                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">شفافية البيانات</div>
+               </div>
+            </div>
 
         </div>
       </div>

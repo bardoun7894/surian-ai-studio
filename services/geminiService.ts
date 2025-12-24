@@ -19,8 +19,8 @@ export interface AIAnalysisResult {
 export const analyzeComplaint = async (text: string): Promise<AIAnalysisResult | null> => {
   const ai = getAIClient();
   
-  // Fallback simulation
   if (!ai) {
+    // Simulation fallback
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -36,16 +36,10 @@ export const analyzeComplaint = async (text: string): Promise<AIAnalysisResult |
   try {
     const model = 'gemini-3-flash-preview';
     const prompt = `
-      أنت نظام ذكي لفرز الشكاوى الحكومية. قم بتحليل نص الشكوى التالي واستخرج المعلومات بتنسيق JSON فقط.
+      أنت نظام ذكي لفرز الشكاوى الحكومية في سوريا. قم بتحليل نص الشكوى التالي واستخرج المعلومات بتنسيق JSON فقط.
       
       الشكوى: "${text}"
       
-      المطلوب:
-      1. التصنيف (مثال: بنية تحتية، تأخر إداري، فساد، صحة، تعليم)
-      2. الأولوية (منخفضة، متوسطة، عالية، طارئة)
-      3. الجهة المقترحة للمعالجة (مثال: وزارة الصحة، البلدية، الشرطة)
-      4. ملخص موجز جداً للمشكلة (أقل من 15 كلمة)
-
       Response Format (JSON):
       {
         "category": "string",
@@ -74,15 +68,34 @@ export const analyzeComplaint = async (text: string): Promise<AIAnalysisResult |
   }
 };
 
+export const chatWithAssistant = async (message: string, history: {role: string, parts: {text: string}[]}[]): Promise<string> => {
+    const ai = getAIClient();
+    if (!ai) return "عذراً، نظام الذكاء الاصطناعي غير متصل حالياً. يرجى المحاولة لاحقاً.";
+
+    try {
+        const chat = ai.chats.create({
+            model: 'gemini-3-flash-preview',
+            config: {
+                systemInstruction: "أنت المساعد الذكي الرسمي للبوابة الإلكترونية للحكومة السورية. أجب بمهنية، ودقة، ورسمية. ساعد المواطنين في العثور على الخدمات، فهم الإجراءات، وتوجيههم للوزارات الصحيحة. لا تستخدم الرموز التعبيرية (الإيموجي). استخدم اللغة العربية الفصحى."
+            },
+            history: history
+        });
+
+        const result = await chat.sendMessage({ message });
+        return result.text || "عذراً، لم أتمكن من فهم طلبك.";
+    } catch (error) {
+        console.error("Chat Error:", error);
+        return "حدث خطأ فني في النظام.";
+    }
+};
+
 export const summarizeArticle = async (text: string, title?: string): Promise<string | null> => {
   const ai = getAIClient();
-  if (!ai) {
-    return new Promise((resolve) => setTimeout(() => resolve("ملخص تلقائي (محاكاة): يتناول هذا المقال أهمية التحول الرقمي في تحسين الخدمات الحكومية وتسريع الإجراءات للمواطنين."), 1000));
-  }
+  if (!ai) return null;
 
   try {
     const model = 'gemini-3-flash-preview';
-    const prompt = `لخص المقال التالي في فقرة واحدة موجزة وذكية باللغة العربية:\n\nالعنوان: ${title || 'بدون عنوان'}\n\nالنص:\n${text}`;
+    const prompt = `لخص الخبر الحكومي التالي في فقرة واحدة رسمية:\n\nالعنوان: ${title || 'بدون عنوان'}\n\nالنص:\n${text}`;
     
     const response = await ai.models.generateContent({
       model: model,
@@ -91,7 +104,6 @@ export const summarizeArticle = async (text: string, title?: string): Promise<st
     
     return response.text || null;
   } catch (error) {
-    console.error("Gemini Summary Error:", error);
     return null;
   }
 };

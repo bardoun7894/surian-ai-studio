@@ -1,13 +1,30 @@
 import React, { useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import ComplaintPortal from './components/ComplaintPortal';
 import DirectoratesList from './components/DirectoratesList';
+import DirectorateDetail from './components/DirectorateDetail';
+import DecreesArchive from './components/DecreesArchive';
 import Footer from './components/Footer';
+import NewsTicker from './components/NewsTicker';
+import NewsSection from './components/NewsSection';
+import ChatBot from './components/ChatBot';
 import { ViewState } from './types';
+
+// Register GSAP plugins globally
+gsap.registerPlugin(ScrollTrigger);
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('HOME');
+  const [selectedDirectorateId, setSelectedDirectorateId] = useState<string | null>(null);
+
+  const handleDirectorateSelect = (id: string) => {
+    setSelectedDirectorateId(id);
+    setCurrentView('DIRECTORATE_DETAIL');
+    window.scrollTo(0, 0);
+  };
 
   const renderContent = () => {
     switch (currentView) {
@@ -22,23 +39,40 @@ function App() {
         );
       case 'DIRECTORATES':
         return (
-          <div className="animate-fade-in">
-             <DirectoratesList />
+          <div className="animate-fade-in pt-12">
+             <DirectoratesList onSelectDirectorate={handleDirectorateSelect} />
           </div>
+        );
+      case 'DIRECTORATE_DETAIL':
+        return selectedDirectorateId ? (
+           <DirectorateDetail 
+             directorateId={selectedDirectorateId} 
+             onBack={() => setCurrentView('DIRECTORATES')} 
+           />
+        ) : (
+          <div className="p-20 text-center">Ministry ID missing</div>
+        );
+      case 'DECREES':
+        return (
+           <div className="animate-fade-in pt-12">
+             <DecreesArchive />
+           </div>
         );
       case 'HOME':
       default:
         return (
           <>
             <HeroSection onNavigate={setCurrentView} />
-            <div className="py-20 bg-white">
+            <NewsTicker />
+            <NewsSection />
+            <div className="py-20 bg-white border-t border-gray-100">
                <div className="max-w-7xl mx-auto px-4 text-center">
                   <h2 className="text-3xl font-display font-bold text-gov-charcoal mb-12">لماذا المنصة الموحدة؟</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                      {[
-                       { title: 'سهولة الوصول', desc: 'كافة الخدمات الحكومية في مكان واحد بضغطة زر.' },
-                       { title: 'سرعة الإنجاز', desc: 'تقنيات ذكاء اصطناعي لتسريع معالجة الطلبات والشكاوى.' },
-                       { title: 'شفافية كاملة', desc: 'تتبع حالة طلباتك لحظة بلحظة مع إشعارات فورية.' }
+                       { title: 'سهولة الوصول', desc: 'كافة الخدمات الحكومية في مكان واحد.' },
+                       { title: 'سرعة الإنجاز', desc: 'تقنيات ذكاء اصطناعي لتسريع المعالجة.' },
+                       { title: 'شفافية كاملة', desc: 'تتبع حالة طلباتك لحظة بلحظة.' }
                      ].map((feat, i) => (
                        <div key={i} className="p-8 rounded-2xl bg-gov-beige border border-gray-100 hover:border-gov-gold/30 transition-colors">
                           <h3 className="text-xl font-bold text-gov-emerald mb-4">{feat.title}</h3>
@@ -51,7 +85,7 @@ function App() {
             
             {/* Quick Access to Directorates */}
             <div className="bg-gray-50 py-16">
-              <DirectoratesList />
+              <DirectoratesList onSelectDirectorate={handleDirectorateSelect} />
             </div>
           </>
         );
@@ -67,6 +101,7 @@ function App() {
       </main>
 
       <Footer />
+      <ChatBot />
     </div>
   );
 }

@@ -38,4 +38,31 @@ export interface Article {
   imageUrl: string;
 }
 
-export type ViewState = 'HOME' | 'COMPLAINTS' | 'DIRECTORATES';
+export interface NewsItem {
+  id: string;
+  title: string;
+  date: string;
+  category: string; // e.g., 'مرسوم', 'قرار', 'أخبار الوزارة'
+  summary: string;
+  imageUrl?: string;
+  isUrgent?: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+}
+
+export interface Decree {
+  id: string;
+  number: string;
+  year: string;
+  title: string;
+  type: 'مرسوم تشريعي' | 'قانون' | 'قرار رئاسي' | 'تعميم';
+  date: string;
+  description: string;
+}
+
+export type ViewState = 'HOME' | 'COMPLAINTS' | 'DIRECTORATES' | 'DIRECTORATE_DETAIL' | 'DECREES';

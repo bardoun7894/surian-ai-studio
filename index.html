@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>البوابة الحكومية الرقمية الموحدة</title>
+    <title>الجمهورية العربية السورية - البوابة الإلكترونية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,25 +19,21 @@
             },
             colors: {
               gov: {
-                emerald: '#064e3b', // Primary: Emerald Shadow
-                emeraldLight: '#10b981',
-                gold: '#d4af37',   // Accent: Golden Wheat
-                charcoal: '#1f2937', // Neutral
-                beige: '#fcfbf9'   // Background
+                emerald: '#1B3D35', // Deep Official Green
+                emeraldLight: '#2C5E52',
+                gold: '#C8AA6E',   // Metallic Gold
+                accent: '#C8AA6E', // Gold for accents
+                charcoal: '#1A1A1A', // Darker text
+                beige: '#F5F7F6'   // Cool light grey-beige background
               }
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out forwards',
-              'slide-up': 'slideUp 0.5s ease-out forwards',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: '0' },
                 '100%': { opacity: '1' },
-              },
-              slideUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
               }
             }
           }
@@ -46,12 +42,12 @@
     </script>
     <style>
       body {
-        background-color: #fcfbf9;
+        background-color: #F5F7F6;
       }
       .glass-card {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(6, 78, 59, 0.1);
+        border: 1px solid rgba(27, 61, 53, 0.1);
       }
       /* Custom scrollbar */
       ::-webkit-scrollbar {
@@ -61,8 +57,16 @@
         background: #f1f1f1; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #064e3b; 
+        background: #1B3D35; 
         border-radius: 4px;
+      }
+      /* Hide scrollbar for ticker */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
     </style>
     <script type="importmap">
@@ -73,12 +77,15 @@
     "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "gsap": "https://esm.sh/gsap@3.12.5",
+    "gsap/ScrollTrigger": "https://esm.sh/gsap@3.12.5/ScrollTrigger",
+    "gsap/": "https://esm.sh/gsap@^3.14.2/"
   }
 }
 </script>
   </head>
-  <body class="bg-gov-beige text-gov-charcoal font-sans antialiased overflow-x-hidden selection:bg-gov-emerald selection:text-white">
+  <body class="bg-gov-beige text-gov-charcoal font-sans antialiased overflow-x-hidden selection:bg-gov-gold selection:text-gov-emerald">
     <div id="root"></div>
   </body>
 </html>

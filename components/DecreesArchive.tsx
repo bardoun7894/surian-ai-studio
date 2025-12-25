@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
-import { Search, FileText, Download, Calendar, Filter, Scale } from 'lucide-react';
-import { DECREES } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { Search, FileText, Download, Calendar, Scale, Loader2 } from 'lucide-react';
+import { API } from '../services/repository';
+import { Decree } from '../types';
 
 const DecreesArchive: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [decrees, setDecrees] = useState<Decree[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDecrees = DECREES.filter(d => {
-    const matchesSearch = d.title.includes(searchTerm) || d.number.includes(searchTerm);
-    const matchesType = filterType === 'all' || d.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  // Debounce search effect could be added here, but for now we fetch on filter change
+  useEffect(() => {
+    const fetchDecrees = async () => {
+        setLoading(true);
+        try {
+            const data = await API.decrees.search(searchTerm, filterType);
+            setDecrees(data);
+        } catch (e) {
+            console.error("Failed to fetch decrees", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Use a timeout to debounce search input typing
+    const timeoutId = setTimeout(() => {
+        fetchDecrees();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, filterType]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in min-h-screen">
@@ -64,13 +83,17 @@ const DecreesArchive: React.FC = () => {
 
       {/* Results */}
       <div className="space-y-4">
-         {filteredDecrees.length === 0 ? (
+         {loading ? (
+             <div className="flex justify-center py-12">
+                 <Loader2 className="animate-spin text-gov-teal" size={32} />
+             </div>
+         ) : decrees.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
                <FileText size={48} className="mx-auto text-gray-300 mb-4" />
                <p className="text-gray-500">لا توجد وثائق مطابقة للبحث</p>
             </div>
          ) : (
-            filteredDecrees.map((decree) => (
+            decrees.map((decree) => (
               <div key={decree.id} className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 group">
                  <div className="flex flex-col md:flex-row gap-6 items-start">
                     

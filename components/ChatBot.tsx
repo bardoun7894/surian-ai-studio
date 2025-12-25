@@ -1,52 +1,136 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
 import { chatWithAssistant } from '../services/geminiService';
 import { ChatMessage } from '../types';
+
+interface Attachment {
+    name: string;
+    data: string;
+    mimeType: string;
+}
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load History from LocalStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('gov_chat_history');
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory);
+        // Restore Date objects from strings
+        const restored = parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        setMessages(restored);
+      } catch (e) {
+        console.error("Failed to load chat history", e);
+        resetChat();
+      }
+    } else {
+      resetChat();
+    }
+  }, []);
+
+  // Save History to LocalStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('gov_chat_history', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  const resetChat = () => {
+    const welcomeMsg: ChatMessage = {
       id: 'welcome',
       text: 'مرحباً بك في البوابة الإلكترونية للحكومة السورية. أنا المساعد الذكي، كيف يمكنني مساعدتك اليوم؟',
       sender: 'bot',
       timestamp: new Date()
-    }
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+    };
+    setMessages([welcomeMsg]);
+    setAttachment(null);
+    localStorage.removeItem('gov_chat_history');
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isOpen]);
+    if (isOpen) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [messages, isOpen, attachment]);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Limit file size (e.g., 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+          alert("حجم الملف كبير جداً. يرجى اختيار ملف أقل من 5 ميغابايت.");
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          const base64String = reader.result as string;
+          const base64Data = base64String.split(',')[1];
+          setAttachment({
+              name: file.name,
+              mimeType: file.type,
+              data: base64Data
+          });
+      };
+      reader.readAsDataURL(file);
+      
+      // Reset input so same file can be selected again if needed
+      if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachment = () => {
+      setAttachment(null);
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !attachment) return;
 
+    const attachmentLabel = attachment ? ` [مرفق: ${attachment.name}]` : '';
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
-      text: input,
+      text: input + attachmentLabel,
       sender: 'user',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMsg]);
+    const currentAttachment = attachment; // Capture current state
     setInput('');
+    setAttachment(null);
     setIsLoading(true);
 
     // Format history for API
-    const history = messages.map(m => ({
-        role: m.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: m.text }]
-    }));
+    // IMPORTANT: Filter out the 'welcome' message from history sent to API
+    // because API history cannot start with a 'model' turn.
+    const history = messages
+        .filter(m => m.id !== 'welcome')
+        .map(m => ({
+            role: m.sender === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+        }));
 
-    const responseText = await chatWithAssistant(userMsg.text, history);
+    const responseText = await chatWithAssistant(
+        input || (currentAttachment ? "قم بتحليل هذا الملف المرفق." : "."), 
+        history, 
+        currentAttachment ? { data: currentAttachment.data, mimeType: currentAttachment.mimeType } : undefined
+    );
 
     const botMsg: ChatMessage = {
       id: (Date.now() + 1).toString(),
@@ -89,13 +173,22 @@ const ChatBot: React.FC = () => {
                     <h3 className="font-bold text-sm">المساعد الحكومي الذكي</h3>
                     <div className="flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                        <span className="text-[10px] opacity-80">متصل الآن</span>
+                        <span className="text-[10px] opacity-80">متصل الآن - يحتفظ بالسياق</span>
                     </div>
                 </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition-colors">
-                <X size={20} />
-            </button>
+            <div className="flex items-center gap-1">
+                <button 
+                  onClick={resetChat} 
+                  title="مسح المحادثة والبدء من جديد"
+                  className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/80 hover:text-white"
+                >
+                    <Trash2 size={18} />
+                </button>
+                <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1.5 rounded transition-colors">
+                    <X size={20} />
+                </button>
+            </div>
         </div>
 
         {/* Messages Area */}
@@ -127,9 +220,42 @@ const ChatBot: React.FC = () => {
             <div ref={messagesEndRef} />
         </div>
 
+        {/* Attachment Preview */}
+        {attachment && (
+            <div className="bg-gray-50 border-t border-gray-100 p-2 px-4 flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gov-teal/10 rounded-lg flex items-center justify-center text-gov-teal">
+                        {attachment.mimeType.includes('pdf') ? <FileText size={16} /> : <ImageIcon size={16} />}
+                    </div>
+                    <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-gray-700 truncate max-w-[200px]">{attachment.name}</p>
+                        <p className="text-[10px] text-gray-400">جاهز للإرسال (OCR)</p>
+                    </div>
+                </div>
+                <button onClick={removeAttachment} className="p-1 hover:bg-gray-200 rounded-full text-gray-500">
+                    <X size={14} />
+                </button>
+            </div>
+        )}
+
         {/* Input Area */}
         <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100">
             <div className="flex items-center gap-2">
+                <input 
+                    type="file"
+                    accept="image/*,application/pdf"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileSelect}
+                />
+                <button 
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gov-teal border border-gray-200 transition-colors"
+                    title="إرفاق صورة أو مستند"
+                >
+                    <Paperclip size={18} />
+                </button>
                 <input 
                     type="text"
                     value={input}
@@ -139,14 +265,14 @@ const ChatBot: React.FC = () => {
                 />
                 <button 
                     type="submit" 
-                    disabled={!input.trim() || isLoading}
+                    disabled={(!input.trim() && !attachment) || isLoading}
                     className="bg-gov-emerald text-white p-3 rounded-xl hover:bg-gov-emeraldLight disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     <Send size={18} />
                 </button>
             </div>
             <div className="text-center mt-2">
-                <p className="text-[10px] text-gray-400">هذا النظام مدعوم بالذكاء الاصطناعي وقد يرتكب أخطاء.</p>
+                <p className="text-[10px] text-gray-400">هذا النظام مدعوم بالذكاء الاصطناعي ويتذكر محادثاتك السابقة.</p>
             </div>
         </form>
       </div>

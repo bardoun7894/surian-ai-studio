@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { DIRECTORATES, KEY_SERVICES } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { API } from '../services/repository';
+import { Directorate, Service } from '../types';
 import { 
   Building2, 
   ArrowRight, 
@@ -18,7 +19,8 @@ import {
   Factory,
   Landmark,
   LayoutGrid,
-  ChevronLeft
+  ChevronLeft,
+  Loader2
 } from 'lucide-react';
 
 interface DirectoratesListProps {
@@ -33,6 +35,39 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
   onViewAll 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [directorates, setDirectorates] = useState<Directorate[]>([]);
+  const [servicesMap, setServicesMap] = useState<Record<string, Service[]>>({});
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const dirs = await API.directorates.getAll();
+        setDirectorates(dirs);
+        
+        // Fetch services for each directorate (Optimized: in real app, might want to fetch on demand or include in getAll response)
+        const servicesPromises = dirs.map(async (d) => {
+            const services = await API.directorates.getServicesByDirectorate(d.id);
+            return { id: d.id, services };
+        });
+        
+        const servicesResults = await Promise.all(servicesPromises);
+        const sMap: Record<string, Service[]> = {};
+        servicesResults.forEach(item => {
+            sMap[item.id] = item.services;
+        });
+        setServicesMap(sMap);
+
+      } catch (error) {
+        console.error("Failed to fetch directorates", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Icon mapping helper
   const getIcon = (iconName: string) => {
@@ -55,8 +90,16 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
   };
 
   const filteredDirectorates = variant === 'full' 
-    ? DIRECTORATES.filter(dir => dir.name.includes(searchTerm) || dir.description.includes(searchTerm))
-    : DIRECTORATES.slice(0, 6); // Show only top 6 in compact mode
+    ? directorates.filter(dir => dir.name.includes(searchTerm) || dir.description.includes(searchTerm))
+    : directorates.slice(0, 6); // Show only top 6 in compact mode
+
+  if (loading) {
+      return (
+          <div className="flex justify-center items-center py-20">
+              <Loader2 className="animate-spin text-gov-teal" size={40} />
+          </div>
+      );
+  }
 
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${variant === 'full' ? 'py-16 min-h-screen' : 'py-12'}`}>
@@ -98,7 +141,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredDirectorates.map((dir) => {
-                const dirServices = KEY_SERVICES.filter(s => s.directorateId === dir.id);
+                const dirServices = servicesMap[dir.id] || [];
                 return (
                   <div key={dir.id} className="group flex flex-col h-full bg-white dark:bg-gov-forest/50 rounded-2xl border border-gray-100 dark:border-white/10 p-6 shadow-sm hover:shadow-xl hover:border-gov-teal/30 dark:hover:border-gov-gold/30 transition-all duration-300 relative overflow-hidden backdrop-blur-sm">
                       

@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   MapPin, 
   Phone, 
   Mail, 
   Globe, 
-  Building2, 
-  Newspaper, 
   FileCheck,
+  Newspaper,
+  ExternalLink,
   ShieldAlert,
   Scale,
   HeartPulse,
@@ -21,10 +21,10 @@ import {
   Map,
   Factory,
   Landmark,
-  ExternalLink
+  Loader2
 } from 'lucide-react';
-import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS } from '../constants';
-import { ViewState } from '../types';
+import { API } from '../services/repository';
+import { Directorate, Service, NewsItem } from '../types';
 
 interface DirectorateDetailProps {
   directorateId: string;
@@ -32,13 +32,30 @@ interface DirectorateDetailProps {
 }
 
 const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId, onBack }) => {
-  const directorate = DIRECTORATES.find(d => d.id === directorateId);
-  const services = KEY_SERVICES.filter(s => s.directorateId === directorateId);
-  
-  // Mock recent news for this directorate (simply taking first 2 or generic if none match logic in real app)
-  const relatedNews = OFFICIAL_NEWS.slice(0, 2); 
+  const [directorate, setDirectorate] = useState<Directorate | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [relatedNews, setRelatedNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!directorate) return <div>Ministry not found</div>;
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const [dir, servs, news] = await Promise.all([
+                API.directorates.getById(directorateId),
+                API.directorates.getServicesByDirectorate(directorateId),
+                API.news.getOfficialNews() // Optimally filter by directorate in a real API
+            ]);
+            setDirectorate(dir);
+            setServices(servs);
+            setRelatedNews(news.slice(0, 2)); // Mock related news logic
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+  }, [directorateId]);
 
   // Icon mapping helper (duplicate from list, ideally utility)
   const getIcon = (iconName: string) => {
@@ -59,6 +76,9 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId, on
       default: return <Landmark {...props} />;
     }
   };
+
+  if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-gov-teal" size={40} /></div>;
+  if (!directorate) return <div className="p-20 text-center">Ministry not found</div>;
 
   return (
     <div className="animate-fade-in min-h-screen bg-gray-50 pb-20">

@@ -1,33 +1,51 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { OFFICIAL_NEWS } from '../constants';
-import { Calendar, ChevronLeft } from 'lucide-react';
+import { API } from '../services/repository';
+import { NewsItem } from '../types';
+import { Calendar, ChevronLeft, Loader2 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const NewsSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const fetchNews = async () => {
+      try {
+        const data = await API.news.getOfficialNews();
+        setNews(data);
+        setLoading(false);
+        
+        // Trigger Animation after render
+        setTimeout(() => {
+            if (!containerRef.current) return;
+            const cards = containerRef.current.querySelectorAll('.news-card');
+            gsap.fromTo(cards, 
+              { y: 50, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: containerRef.current,
+                  start: "top 80%",
+                }
+              }
+            );
+        }, 100);
 
-    const cards = containerRef.current.querySelectorAll('.news-card');
-
-    gsap.fromTo(cards, 
-      { y: 50, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 80%",
-        }
+      } catch (e) {
+        console.error("Failed to load news", e);
+        setLoading(false);
       }
-    );
+    };
+
+    fetchNews();
   }, []);
 
   return (
@@ -44,42 +62,48 @@ const NewsSection: React.FC = () => {
            </button>
         </div>
 
-        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-           {OFFICIAL_NEWS.map((item) => (
-             <article key={item.id} className="news-card group bg-gov-beige rounded-xl overflow-hidden border border-gray-100 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 flex flex-col h-full">
-                {item.imageUrl && (
-                  <div className="h-48 overflow-hidden relative">
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-                    />
-                    <div className="absolute top-3 right-3">
-                       <span className="px-3 py-1 bg-gov-emerald/90 text-white text-xs font-bold rounded-full backdrop-blur-sm">
-                         {item.category}
-                       </span>
+        {loading ? (
+            <div className="flex justify-center py-12">
+                <Loader2 className="animate-spin text-gov-teal" size={32} />
+            </div>
+        ) : (
+            <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {news.map((item) => (
+                <article key={item.id} className="news-card group bg-gov-beige rounded-xl overflow-hidden border border-gray-100 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+                    {item.imageUrl && (
+                    <div className="h-48 overflow-hidden relative">
+                        <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
+                        />
+                        <div className="absolute top-3 right-3">
+                        <span className="px-3 py-1 bg-gov-emerald/90 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+                            {item.category}
+                        </span>
+                        </div>
                     </div>
-                  </div>
-                )}
-                <div className="p-6 flex-1 flex flex-col">
-                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                      <Calendar size={14} />
-                      {item.date}
-                   </div>
-                   <h3 className="font-bold text-gov-charcoal text-lg mb-3 leading-snug group-hover:text-gov-emerald transition-colors">
-                     {item.title}
-                   </h3>
-                   <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
-                     {item.summary}
-                   </p>
-                   <a href="#" className="inline-flex items-center text-xs font-bold text-gov-emerald hover:underline mt-auto">
-                     اقرأ المزيد
-                     <ChevronLeft size={14} className="mr-1" />
-                   </a>
-                </div>
-             </article>
-           ))}
-        </div>
+                    )}
+                    <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                        <Calendar size={14} />
+                        {item.date}
+                    </div>
+                    <h3 className="font-bold text-gov-charcoal text-lg mb-3 leading-snug group-hover:text-gov-emerald transition-colors">
+                        {item.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
+                        {item.summary}
+                    </p>
+                    <a href="#" className="inline-flex items-center text-xs font-bold text-gov-emerald hover:underline mt-auto">
+                        اقرأ المزيد
+                        <ChevronLeft size={14} className="mr-1" />
+                    </a>
+                    </div>
+                </article>
+            ))}
+            </div>
+        )}
         
         <div className="mt-8 text-center md:hidden">
             <button className="px-6 py-3 border border-gov-emerald text-gov-emerald rounded-lg font-bold w-full">

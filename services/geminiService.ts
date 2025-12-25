@@ -68,7 +68,11 @@ export const analyzeComplaint = async (text: string): Promise<AIAnalysisResult |
   }
 };
 
-export const chatWithAssistant = async (message: string, history: {role: string, parts: {text: string}[]}[]): Promise<string> => {
+export const chatWithAssistant = async (
+  message: string, 
+  history: {role: string, parts: {text: string}[]}[],
+  attachment?: { data: string; mimeType: string }
+): Promise<string> => {
     const ai = getAIClient();
     if (!ai) return "عذراً، نظام الذكاء الاصطناعي غير متصل حالياً. يرجى المحاولة لاحقاً.";
 
@@ -76,16 +80,45 @@ export const chatWithAssistant = async (message: string, history: {role: string,
         const chat = ai.chats.create({
             model: 'gemini-3-flash-preview',
             config: {
-                systemInstruction: "أنت المساعد الذكي الرسمي للبوابة الإلكترونية للحكومة السورية. أجب بمهنية، ودقة، ورسمية. ساعد المواطنين في العثور على الخدمات، فهم الإجراءات، وتوجيههم للوزارات الصحيحة. لا تستخدم الرموز التعبيرية (الإيموجي). استخدم اللغة العربية الفصحى."
+                systemInstruction: "أنت المساعد الذكي الرسمي للبوابة الإلكترونية للحكومة السورية. هدفك هو مساعدة المواطنين وتسهيل معاملاتهم.\n\n" +
+                "توجيهات التفاعل:\n" +
+                "1. ابدأ بالترحيب والتعريف بنفسك إذا كانت بداية المحادثة.\n" +
+                "2. كن تفاعلياً: إذا كان استفسار المستخدم يتطلب تقديم شكوى أو معاملة رسمية، اطلب منه بلطف تزويدك باسمه، رقم هاتفه، أو أي تفاصيل ضرورية لمساعدته بشكل أفضل.\n" +
+                "3. إذا رفع المستخدم صورة أو ملف PDF، قم بتحليل محتواه بدقة (OCR) واستخدم المعلومات الموجودة فيه للإجابة.\n" +
+                "4. تحدث باللغة العربية الفصحى المبسطة والرسمية.\n" +
+                "5. إذا سأل عن خدمة معينة، وجهه للجهة المسؤولة أو الرابط المباشر في البوابة.\n" +
+                "6. لا تتردد في طرح أسئلة استيضاحية للتأكد من فهمك لحاجة المواطن."
             },
             history: history
         });
 
-        const result = await chat.sendMessage({ message });
+        let result;
+
+        if (attachment) {
+            // Multimodal Request
+            const msgParts: any[] = [
+                { text: message || " " }, // Ensure text is not empty if only image is sent
+                {
+                    inlineData: {
+                        mimeType: attachment.mimeType,
+                        data: attachment.data
+                    }
+                }
+            ];
+            
+            // Correctly structuring for SDK v1
+            result = await chat.sendMessage({ 
+              message: { parts: msgParts } 
+            });
+        } else {
+            // Text-only Request
+            result = await chat.sendMessage({ message: message });
+        }
+
         return result.text || "عذراً، لم أتمكن من فهم طلبك.";
-    } catch (error) {
+    } catch (error: any) {
         console.error("Chat Error:", error);
-        return "حدث خطأ فني في النظام.";
+        return "حدث خطأ فني في النظام أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.";
     }
 };
 
@@ -104,6 +137,37 @@ export const summarizeArticle = async (text: string, title?: string): Promise<st
     
     return response.text || null;
   } catch (error) {
+    return null;
+  }
+};
+
+export const analyzeDocument = async (base64Image: string, mimeType: string): Promise<string | null> => {
+  const ai = getAIClient();
+  if (!ai) return null;
+
+  try {
+    const model = 'gemini-3-flash-preview';
+    
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: base64Image
+            }
+          },
+          {
+            text: "قم باستخراج النص الموجود في هذه الصورة بدقة. إذا كان النص عبارة عن شكوى رسمية أو طلب، قم بتلخيصه واستخراج التفاصيل المهمة باللغة العربية. اجعل النص المستخرج جاهزاً لملء استمارة."
+          }
+        ]
+      }
+    });
+
+    return response.text || null;
+  } catch (error) {
+    console.error("OCR Error:", error);
     return null;
   }
 };

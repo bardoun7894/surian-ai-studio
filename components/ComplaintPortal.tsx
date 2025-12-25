@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Send, Search, AlertCircle, CheckCircle, Sparkles, FileText, Loader2 } from 'lucide-react';
-import { COMPLAINT_CATEGORIES, DIRECTORATES } from '../constants';
-import { analyzeComplaint, AIAnalysisResult } from '../services/geminiService';
+import React, { useState, useRef } from 'react';
+import { Send, Search, AlertCircle, CheckCircle, Sparkles, FileText, Loader2, Upload, X } from 'lucide-react';
+import { DIRECTORATES } from '../constants'; // Keeping this for the dropdown options only
+import { API } from '../services/repository';
+import { analyzeComplaint, analyzeDocument, AIAnalysisResult } from '../services/geminiService';
 import { Ticket } from '../types';
 
 const ComplaintPortal: React.FC = () => {
@@ -15,13 +16,20 @@ const ComplaintPortal: React.FC = () => {
     directorate: ''
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AIAnalysisResult | null>(null);
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
+
+  // OCR State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Tracking State
   const [trackId, setTrackId] = useState('');
   const [trackingResult, setTrackingResult] = useState<Ticket | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [trackError, setTrackError] = useState<string | null>(null);
 
   // Handlers
   const handleAIAnalyze = async () => {
@@ -40,25 +48,70 @@ const ComplaintPortal: React.FC = () => {
     setIsAnalyzing(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Mock submission
-    const fakeTicketId = 'GOV-' + Math.floor(Math.random() * 100000);
-    setSubmittedTicket(fakeTicketId);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+    setIsOcrProcessing(true);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+      const base64Data = base64String.split(',')[1];
+      
+      const extractedText = await analyzeDocument(base64Data, file.type);
+      
+      if (extractedText) {
+        setFormData(prev => ({
+          ...prev,
+          details: (prev.details ? prev.details + '\n\n' : '') + `[تم استخراج النص تلقائياً من المستند المرفق]:\n${extractedText}`
+        }));
+      }
+      setIsOcrProcessing(false);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleTrack = (e: React.FormEvent) => {
+  const removeFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+        const ticketId = await API.complaints.submit(formData);
+        setSubmittedTicket(ticketId);
+    } catch (e) {
+        console.error("Submission failed", e);
+        // Handle error (show alert)
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsTracking(true);
-    setTimeout(() => {
-      setTrackingResult({
-        id: trackId,
-        status: 'in_progress',
-        lastUpdate: '2024-05-20 10:30 AM',
-        notes: 'الطلب قيد المراجعة من قبل القسم الفني.'
-      });
-      setIsTracking(false);
-    }, 1000);
+    setTrackError(null);
+    setTrackingResult(null);
+    
+    try {
+        const result = await API.complaints.track(trackId);
+        if (result) {
+            setTrackingResult(result);
+        } else {
+            setTrackError("لم يتم العثور على تذكرة بهذا الرقم.");
+        }
+    } catch (e) {
+        setTrackError("حدث خطأ أثناء الاتصال بالنظام.");
+    } finally {
+        setIsTracking(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -116,6 +169,51 @@ const ComplaintPortal: React.FC = () => {
 
              <form onSubmit={handleSubmit} className="space-y-6">
                 
+                {/* Document Upload / OCR */}
+                <div className="bg-gov-beige/50 dark:bg-white/5 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
+                   <input 
+                     type="file" 
+                     accept="image/*"
+                     className="hidden" 
+                     ref={fileInputRef}
+                     onChange={handleFileChange}
+                   />
+                   {!selectedFile ? (
+                     <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-teal shadow-sm">
+                           <Upload size={24} />
+                        </div>
+                        <div>
+                           <span className="block font-bold text-gov-charcoal dark:text-white text-sm">أرفق صورة للشكوى المكتوبة (OCR)</span>
+                           <span className="text-xs text-gray-500 dark:text-gray-400">سيتم استخراج النص تلقائياً من الصورة</span>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="flex items-center justify-between bg-white dark:bg-gov-emerald/10 p-3 rounded-lg border border-gov-gold/20">
+                        <div className="flex items-center gap-3">
+                           <FileText size={20} className="text-gov-teal" />
+                           <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate max-w-[200px]">{selectedFile.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                           {isOcrProcessing ? (
+                             <span className="flex items-center gap-1 text-xs text-gov-gold font-bold">
+                               <Loader2 size={12} className="animate-spin" />
+                               جاري المعالجة...
+                             </span>
+                           ) : (
+                             <span className="text-xs text-green-600 font-bold flex items-center gap-1">
+                               <CheckCircle size={12} />
+                               تم الاستخراج
+                             </span>
+                           )}
+                           <button type="button" onClick={removeFile} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                              <X size={16} />
+                           </button>
+                        </div>
+                     </div>
+                   )}
+                </div>
+
                 {/* Description with AI */}
                 <div>
                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">تفاصيل الشكوى <span className="text-gov-red">*</span></label>
@@ -124,9 +222,9 @@ const ComplaintPortal: React.FC = () => {
                        required
                        value={formData.details}
                        onChange={(e) => setFormData({...formData, details: e.target.value})}
-                       rows={5}
+                       rows={6}
                        className="w-full p-4 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all outline-none resize-none"
-                       placeholder="اشرح المشكلة بالتفصيل..."
+                       placeholder="اشرح المشكلة بالتفصيل أو قم برفع صورة المستند..."
                      />
                      <button
                         type="button" 
@@ -180,9 +278,13 @@ const ComplaintPortal: React.FC = () => {
                 </div>
 
                 <div className="pt-4">
-                  <button type="submit" className="w-full py-4 rounded-xl bg-gov-teal text-white font-bold shadow-lg hover:bg-gov-emerald transition-all flex items-center justify-center gap-2">
-                    <Send size={20} />
-                    إرسال الشكوى
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-xl bg-gov-teal text-white font-bold shadow-lg hover:bg-gov-emerald transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                    {isSubmitting ? 'جاري الإرسال...' : 'إرسال الشكوى'}
                   </button>
                 </div>
              </form>
@@ -230,6 +332,7 @@ const ComplaintPortal: React.FC = () => {
                        {isTracking ? <Loader2 className="animate-spin"/> : <Search />}
                     </button>
                  </div>
+                 {trackError && <p className="text-red-500 text-sm mt-2 text-center">{trackError}</p>}
               </form>
 
               {trackingResult && (

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2 } from 'lucide-react';
 import { chatWithAssistant } from '../services/geminiService';
 import { ChatMessage } from '../types';
 
@@ -65,7 +65,14 @@ const ChatBot: React.FC = () => {
   useEffect(() => {
     if (isOpen) {
       setTimeout(scrollToBottom, 100);
+      // Prevent body scroll on mobile when chat is open
+      document.body.style.overflow = window.innerWidth < 640 ? 'hidden' : 'auto';
+    } else {
+      document.body.style.overflow = 'auto';
     }
+    return () => {
+        document.body.style.overflow = 'auto';
+    };
   }, [messages, isOpen, attachment]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +155,7 @@ const ChatBot: React.FC = () => {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 bg-gov-emerald text-white p-4 rounded-full shadow-2xl hover:bg-gov-emeraldLight hover:scale-105 transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'}`}
+        className={`fixed bottom-6 right-6 z-40 bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest p-4 rounded-full shadow-2xl hover:bg-gov-emeraldLight dark:hover:bg-white hover:scale-105 transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'}`}
       >
         <MessageSquare size={24} />
         <span className="absolute right-full mr-3 bg-gov-charcoal text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
@@ -156,15 +163,15 @@ const ChatBot: React.FC = () => {
         </span>
       </button>
 
-      {/* Chat Window */}
+      {/* Chat Window Container */}
       <div 
-        className={`fixed bottom-6 right-6 z-50 w-full sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-gov-gold/20 flex flex-col overflow-hidden transition-all duration-300 transform origin-bottom-right ${
-            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-        }`}
-        style={{ height: '550px', maxHeight: '80vh' }}
+        className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
+            ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
+            inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[600px] sm:max-h-[80vh]
+        `}
       >
         {/* Header */}
-        <div className="bg-gov-emerald p-4 flex justify-between items-center text-white">
+        <div className="bg-gov-emerald p-4 flex justify-between items-center text-white shrink-0">
             <div className="flex items-center gap-3">
                 <div className="bg-white/10 p-2 rounded-full">
                     <Bot size={20} />
@@ -186,7 +193,7 @@ const ChatBot: React.FC = () => {
                     <Trash2 size={18} />
                 </button>
                 <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1.5 rounded transition-colors">
-                    <X size={20} />
+                    {window.innerWidth < 640 ? <X size={20} /> : <Minimize2 size={20} />}
                 </button>
             </div>
         </div>
@@ -198,7 +205,7 @@ const ChatBot: React.FC = () => {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-gov-charcoal text-white' : 'bg-gov-emerald text-white'}`}>
                         {msg.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
                     </div>
-                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${
+                    <div className={`max-w-[85%] sm:max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${
                         msg.sender === 'user' 
                         ? 'bg-gov-charcoal text-white rounded-tl-none' 
                         : 'bg-white text-gray-800 border border-gray-200 rounded-tr-none shadow-sm'
@@ -222,7 +229,7 @@ const ChatBot: React.FC = () => {
 
         {/* Attachment Preview */}
         {attachment && (
-            <div className="bg-gray-50 border-t border-gray-100 p-2 px-4 flex items-center justify-between animate-fade-in">
+            <div className="bg-gray-50 border-t border-gray-100 p-2 px-4 flex items-center justify-between animate-fade-in shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gov-teal/10 rounded-lg flex items-center justify-center text-gov-teal">
                         {attachment.mimeType.includes('pdf') ? <FileText size={16} /> : <ImageIcon size={16} />}
@@ -239,7 +246,7 @@ const ChatBot: React.FC = () => {
         )}
 
         {/* Input Area */}
-        <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100">
+        <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100 shrink-0 safe-area-bottom">
             <div className="flex items-center gap-2">
                 <input 
                     type="file"
@@ -271,7 +278,7 @@ const ChatBot: React.FC = () => {
                     <Send size={18} />
                 </button>
             </div>
-            <div className="text-center mt-2">
+            <div className="text-center mt-2 hidden sm:block">
                 <p className="text-[10px] text-gray-400">هذا النظام مدعوم بالذكاء الاصطناعي ويتذكر محادثاتك السابقة.</p>
             </div>
         </form>

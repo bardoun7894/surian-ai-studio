@@ -14,8 +14,9 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['"Noto Sans Arabic"', 'sans-serif'],
-              display: ['"Noto Kufi Arabic"', 'sans-serif'],
+              // Updated to include standard system fonts as requested (Arial, Tahoma)
+              sans: ['"Noto Sans Arabic"', 'Arial', 'Tahoma', 'sans-serif'],
+              display: ['"Noto Kufi Arabic"', 'Arial', 'Tahoma', 'sans-serif'],
             },
             colors: {
               gov: {
@@ -54,6 +55,7 @@
       body {
         background-color: #edebe0; /* Ivory Mist */
         color: #161616; /* Charcoal */
+        transition: background-color 0.3s, color 0.3s;
       }
       .glass-card {
         background: rgba(237, 235, 224, 0.9);
@@ -79,6 +81,51 @@
       .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+      }
+
+      /* --- High Contrast Mode Styles --- */
+      html.high-contrast {
+        filter: contrast(120%);
+      }
+      
+      body.high-contrast {
+        background-color: #000000 !important;
+        color: #FFFF00 !important;
+      }
+
+      /* Force overrides for High Contrast */
+      .high-contrast * {
+        background-color: #000000 !important;
+        color: #FFFF00 !important;
+        border-color: #FFFFFF !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        background-image: none !important;
+      }
+
+      .high-contrast img, 
+      .high-contrast video {
+        filter: grayscale(100%);
+        border: 2px solid #FFFFFF !important;
+      }
+
+      .high-contrast a, 
+      .high-contrast button {
+        color: #00FFFF !important; /* Cyan for actionable items */
+        text-decoration: underline !important;
+        font-weight: bold !important;
+      }
+
+      .high-contrast input,
+      .high-contrast textarea,
+      .high-contrast select {
+        border: 2px solid #FFFFFF !important;
+        color: #FFFFFF !important;
+        background-color: #000000 !important;
+      }
+
+      .high-contrast ::placeholder {
+        color: #AAAAAA !important;
       }
     </style>
     <script type="importmap">

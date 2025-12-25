@@ -1,3 +1,4 @@
+
 export interface Directorate {
   id: string;
   name: string;
@@ -65,4 +66,4 @@ export interface Decree {
   description: string;
 }
 
-export type ViewState = 'HOME' | 'COMPLAINTS' | 'DIRECTORATES' | 'DIRECTORATE_DETAIL' | 'DECREES';
+export type ViewState = 'HOME' | 'COMPLAINTS' | 'DIRECTORATES' | 'DIRECTORATE_DETAIL' | 'DECREES' | 'ABOUT' | 'OPEN_DATA' | 'NEWS_ARCHIVE';

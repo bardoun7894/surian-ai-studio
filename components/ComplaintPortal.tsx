@@ -271,8 +271,8 @@ const ComplaintPortal: React.FC = () => {
                       onChange={(e) => setFormData({...formData, directorate: e.target.value})}
                       className="w-full p-3 rounded-xl bg-gov-beige dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all outline-none"
                     >
-                      <option value="">-- اختر الجهة --</option>
-                      {DIRECTORATES.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                      <option value="" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">-- اختر الجهة --</option>
+                      {DIRECTORATES.map(d => <option key={d.id} value={d.name} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{d.name}</option>)}
                     </select>
                   </div>
                 </div>

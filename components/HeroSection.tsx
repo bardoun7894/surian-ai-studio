@@ -186,30 +186,30 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
               </button>
             </div>
 
-            {/* Official Pillars */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-12 max-w-xs sm:max-w-3xl mx-auto mt-8 md:mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-8 px-4">
+            {/* Official Pillars - Horizontal on Mobile */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-6 md:gap-12 w-full max-w-3xl mx-auto mt-8 md:mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-8 px-2 md:px-4">
                <div className="animate-stat text-center group cursor-default">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                    <Building2 size={20} />
+                  <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <Building2 size={16} className="md:w-[20px] md:h-[20px]" />
                   </div>
-                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">1,500+</div>
-                  <div className="text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_services')}</div>
+                  <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">1,500+</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_services')}</div>
                </div>
                
-               <div className="animate-stat text-center sm:border-r sm:border-l border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                    <ShieldCheck size={20} />
+               <div className="animate-stat text-center border-x border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default px-1">
+                  <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <ShieldCheck size={16} className="md:w-[20px] md:h-[20px]" />
                   </div>
-                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">24/7</div>
-                  <div className="text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
+                  <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">24/7</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
                </div>
                
                <div className="animate-stat text-center group cursor-default">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                    <FileText size={20} />
+                  <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                    <FileText size={16} className="md:w-[20px] md:h-[20px]" />
                   </div>
-                  <div className="text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
-                  <div className="text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
+                  <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
+                  <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
                </div>
             </div>
 

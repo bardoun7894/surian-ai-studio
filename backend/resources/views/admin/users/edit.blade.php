@@ -1,0 +1,110 @@
+@extends('admin.layouts.app')
+
+@section('title', 'تعديل بيانات المستخدم')
+
+@section('content')
+<div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">تعديل بيانات المستخدم</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">تحديث معلومات والتحكم بمسؤوليات #{{ $user->id }}</p>
+        </div>
+        <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm font-medium text-sm">
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            العودة للقائمة
+        </a>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <form action="{{ route('admin.users.update', $user) }}" method="POST" class="p-6">
+            @csrf
+            @method('PUT')
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Name -->
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم المستخدم</label>
+                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required 
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400">
+                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Email -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">البريد الإلكتروني</label>
+                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required 
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400">
+                    @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Role -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الصلاحية (الدور)</label>
+                    <div class="relative">
+                        <select name="role" required class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary appearance-none">
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}" {{ (old('role') ?? ($user->role ? $user->role->name : '')) == $role->name ? 'selected' : '' }}>
+                                    {{ $role->name == 'admin' ? 'مدير نظام' : ($role->name == 'staff' ? 'موظف' : $role->name) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+                    </div>
+                    @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Password -->
+                <div class="col-span-2">
+                    <div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-lg p-4 mb-2">
+                        <div class="flex gap-2">
+                            <span class="material-symbols-outlined text-amber-600 text-[20px]">lock_reset</span>
+                            <span class="text-xs font-bold text-amber-800 dark:text-amber-500">تغيير كلمة المرور (اختياري)</span>
+                        </div>
+                        <p class="text-xs text-amber-600/80 mt-1 mr-7">اترك الحقول فارغة إذا كنت لا تريد تغيير كلمة المرور الحالية.</p>
+                    </div>
+                </div>
+
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">كلمة المرور الجديدة</label>
+                    <input type="password" name="password" 
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                        placeholder="********">
+                    @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">تأكيد كلمة المرور</label>
+                    <input type="password" name="password_confirmation" 
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                        placeholder="********">
+                </div>
+
+                <!-- Directorate (Optional) -->
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المديرية التابعة</label>
+                    <div class="relative">
+                        <select name="directorate_id" class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary appearance-none">
+                            <option value="">لا يوجد (مدير عام / غير محدد)</option>
+                            @foreach($directorates as $dir)
+                                <option value="{{ $dir->id }}" {{ (old('directorate_id') ?? $user->directorate_id) == $dir->id ? 'selected' : '' }}>{{ $dir->name }}</option>
+                            @endforeach
+                        </select>
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+                    </div>
+                    @error('directorate_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-700 mt-6">
+                <a href="{{ route('admin.users.index') }}" class="px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">إلغاء</a>
+                <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary-dark shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">save</span>
+                    حفظ التغييرات
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

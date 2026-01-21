@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ministry Complaints Kanban Board</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#266c73",
+                        "primary-dark": "#1d5257",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#21262c",
+                        "accent-wheat": "#dcb75f",
+                        "surface": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "mono": ["Noto Sans Mono", "monospace"] // Fallback for ID numbers
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>/* Custom scrollbar for horizontal scrolling */
+.kanban-container::-webkit-scrollbar {
+    height: 12px
+    }
+.kanban-container::-webkit-scrollbar-track {
+    background: #eaf0f1;
+    border-radius: 6px
+    }
+.kanban-container::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 6px;
+    border: 3px solid #eaf0f1
+    }
+/* Surian Geometric Pattern Background */
+.surian-pattern {
+    background-color: #266c73;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDlzObTzOvwCSBzSmvNISy6UvKIWqMKRDBCXb6opJgq_gi4W5_PRKGw-ct2Kzj1SLLozJPZ3TeD6XS7nlsK4ivNg2VTM5fFkElJ1xrbz2Au4q1ls3bPlUExdbkE2cs0P_muEME72OzzOYBTnTt6xi77Gjxj4md_MC1ynfDd74vaxI4d2f9xPh56vseaUk6IoqO7GE33Do68o6N8OI4TOi9jAXZzoVb9yhaFSsEsLbrspOHdIEoi10HnTfkhgPP2CbRLv3X7CmcoC0zO)
+    }</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#101818] h-screen flex flex-col overflow-hidden">
+<!-- Global Navigation Bar -->
+<header class="surian-pattern relative z-20 flex items-center justify-between px-6 py-3 shadow-md border-b border-[#1d5257]">
+<div class="flex items-center gap-4 text-white">
+<div class="size-8 bg-white/10 rounded-full flex items-center justify-center border border-accent-wheat/30">
+<span class="material-symbols-outlined text-accent-wheat" style="font-size: 20px;">account_balance</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-tight tracking-wide text-white">MINISTRY OF PUBLIC AFFAIRS</h1>
+<p class="text-xs text-accent-wheat uppercase tracking-wider font-medium opacity-90">Official Complaints Portal</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search -->
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-[20px]">search</span>
+<input class="pl-10 pr-4 py-1.5 w-64 bg-[#1d5257]/50 border border-white/20 rounded-sm text-sm text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-accent-wheat focus:border-accent-wheat transition-all" placeholder="Search case ID, citizen..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<button class="relative p-2 text-white/80 hover:text-white transition-colors rounded-sm hover:bg-white/10">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 size-2 bg-red-500 rounded-full border border-[#266c73]"></span>
+</button>
+<button class="p-2 text-white/80 hover:text-white transition-colors rounded-sm hover:bg-white/10">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="h-8 w-[1px] bg-white/20 mx-1"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-medium text-white group-hover:text-accent-wheat transition-colors">Officer K. Thorne</p>
+<p class="text-xs text-white/60">Level 4 Admin</p>
+</div>
+<div class="h-9 w-9 rounded bg-cover bg-center border border-white/20" data-alt="User profile avatar showing a professional officer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDSy4bM5tGU6XusmyEr3uNq4ausrWnvBe2XqWTc81N4ruKyFMuKsgry-wy_ZfAZ5HLbn303aBqtrnR_Z9kxunlDT3uWx6XgIeACyctTtlutB06w0i8vSEZ4D17EN2LGVptj7EqBDD9BGgUAOIraLsuKK-Jmw5N9_RVFCmL4XN2hrynFZaoub2rKe3i-fi6kQ3b3rCSEgckRLjmJANJIR-iNI1PDEWyjIc0VNhTzgcIWJMum2OTzlp2jchFFyLg32oXObCT10AhdClEZ");'></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Subheader: Filters & Controls -->
+<div class="bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-4 z-10 shadow-sm flex-shrink-0">
+<!-- Top Row: Breadcrumbs & Primary Action -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-sm text-gray-500">
+<a class="hover:text-primary transition-colors" href="#">Dashboard</a>
+<span class="text-gray-300">/</span>
+<span class="text-gray-900 font-medium">Complaints Board</span>
+</div>
+<h2 class="text-2xl font-bold text-gray-900 tracking-tight">Case Resolution Center</h2>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2.5 rounded-sm shadow-sm transition-all font-medium text-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                New Complaint
+            </button>
+</div>
+<!-- Bottom Row: Filters -->
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-sm px-3 py-1.5">
+<span class="material-symbols-outlined text-gray-500 text-[18px]">filter_list</span>
+<span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Filters:</span>
+</div>
+<button class="group flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5 transition-all">
+<span class="text-sm text-gray-700 font-medium">Department: <span class="text-primary">All</span></span>
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">expand_more</span>
+</button>
+<button class="group flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5 transition-all">
+<span class="text-sm text-gray-700 font-medium">Priority: <span class="text-primary">High &amp; Critical</span></span>
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">expand_more</span>
+</button>
+<button class="group flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5 transition-all">
+<span class="text-sm text-gray-700 font-medium">Date: <span class="text-primary">This Month</span></span>
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">calendar_today</span>
+</button>
+<div class="h-6 w-[1px] bg-gray-200 mx-1"></div>
+<button class="text-sm text-gray-500 hover:text-primary underline decoration-dotted">Clear all</button>
+</div>
+</div>
+<!-- Kanban Board Area -->
+<main class="flex-1 overflow-hidden relative bg-background-light">
+<!-- Background decorative element -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#266c73 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="kanban-container h-full overflow-x-auto overflow-y-hidden">
+<div class="flex h-full min-w-full px-6 py-6 gap-6">
+<!-- Column 1: Received -->
+<div class="flex flex-col w-[340px] flex-shrink-0 h-full">
+<div class="flex items-center justify-between mb-4 px-1">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-gray-700 uppercase tracking-wider text-sm">Received</h3>
+<span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">12</span>
+</div>
+<button class="text-gray-400 hover:text-primary"><span class="material-symbols-outlined text-[20px]">more_horiz</span></button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 pb-4">
+<!-- Card 1 (Emergency) -->
+<div class="bg-white p-4 rounded-sm border-l-4 border-l-red-500 border-y border-r border-gray-200 shadow-card hover:shadow-card-hover transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Elena Vance</h4>
+<span class="text-xs font-mono text-gray-400">ID: 992-A</span>
+</div>
+<span class="px-2 py-1 rounded bg-red-50 text-red-700 text-[10px] font-bold uppercase tracking-wide border border-red-100">Emergency</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">Water supply disruption in District 4 lasting over 48 hours. Multiple households affected.</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="text-xs font-medium">2h ago</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-gray-200 border border-white flex items-center justify-center text-[10px] font-bold text-gray-500">?</div>
+</div>
+</div>
+<!-- Card 2 (Normal) -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-card hover:shadow-card-hover transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Marcus Thorne</h4>
+<span class="text-xs font-mono text-gray-400">ID: 841-C</span>
+</div>
+<span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide border border-blue-100">Normal</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">Request for permit renewal regarding small business license in Sector 7.</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="text-xs font-medium">5h ago</span>
+</div>
+<div class="flex -space-x-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center border border-white" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYJvk4ZPAW_fkkePsEw8nwhIU_QGyTOgWGzjhOolGkECmyvZw0daPggDGiFR6TZO_IwZJY_lxHuTOVEfG6i6CNqBISigP4aRdaAGOSv2LTcEwK8Sww1Z1WGfQSxKoCD6fRbvCL_zhlfxUxoUGBVV9Pcbt6JHrY4uvBgWFcMdJQArhu0xk0tavgF-iaL3LcXtemUnaaoypt8dOT5eTGsxpvHQ98K8j5AhqN7JW_kZBGh4xdOTSAwIXiwwH-aLU81TpXy5RgrLQmrPdf");'></div>
+</div>
+</div>
+</div>
+<!-- Card 3 (Low) -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-card hover:shadow-card-hover transition-all cursor-pointer group opacity-80 hover:opacity-100">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Julia P.</h4>
+<span class="text-xs font-mono text-gray-400">ID: 772-B</span>
+</div>
+<span class="px-2 py-1 rounded bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wide border border-gray-200">Low</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">Noise complaint regarding construction work outside of allowed hours.</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="text-xs font-medium">1d ago</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-gray-100 border border-white flex items-center justify-center text-[10px] font-bold text-gray-500">?</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column 2: Processing -->
+<div class="flex flex-col w-[340px] flex-shrink-0 h-full">
+<div class="flex items-center justify-between mb-4 px-1 border-b-2 border-accent-wheat pb-1">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-primary-dark uppercase tracking-wider text-sm">Processing</h3>
+<span class="bg-primary/10 text-primary-dark px-2 py-0.5 rounded-full text-xs font-bold">5</span>
+</div>
+<button class="text-gray-400 hover:text-primary"><span class="material-symbols-outlined text-[20px]">more_horiz</span></button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 pb-4">
+<!-- Card 1 (High) -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-card hover:shadow-card-hover transition-all cursor-pointer group relative overflow-hidden">
+<!-- Accent strip -->
+<div class="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
+<div class="flex justify-between items-start mb-2 pl-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Sector 9 Council</h4>
+<span class="text-xs font-mono text-gray-400">ID: 551-X</span>
+</div>
+<span class="px-2 py-1 rounded bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wide border border-orange-100">High</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 pl-2 line-clamp-2 leading-relaxed">Structural integrity report pending for West Bridge. Immediate review required by engineering.</p>
+<!-- Progress Bar -->
+<div class="pl-2 mb-3">
+<div class="flex justify-between text-[10px] text-gray-500 mb-1">
+<span>Investigation</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1 pl-2">
+<div class="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-0.5 rounded-sm">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span class="text-xs font-bold">Due in 4h</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-cover bg-center border border-white" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCInkV0NrGv-ectvWbzsQDtiRNvPf0Lb59RR0uv9alja_JFhIePiqlFbM_sLaBseT3MOBkG5dAKigJb9qqulG5ioqmhUSO5qvfCaB9ggr3PylSn4a9PtU-Ik_Qzi0ep0ERxEY8ps2dYBirzq7Q7gNPKoeNt8k5pZx5GZrBCp2QYDWESYP734TKCw2Pmtl89vfN8bXn7ziS1LyKy6ld_qBvnB0kJTzf9iuFhU85ebeWPg_zN8W69kRZlN22skR57vK-SI-TjnyDCc5Ok");'></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-card hover:shadow-card-hover transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Dr. Aris V.</h4>
+<span class="text-xs font-mono text-gray-400">ID: 392-L</span>
+</div>
+<span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide border border-blue-100">Normal</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">Medical supply chain delay reported at Central Hospital.</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">calendar_month</span>
+<span class="text-xs font-medium">Oct 24</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-cover bg-center border border-white" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIc1l6158ByEQj_F3bvP-83E4YMei9gHsrZk-VPXhVdOzADbrUHo8LUuWbY-r2BF6Uo0YmlJ726dAti1QAqH5jBy1jkoojzi-h_7faByxwrn37Pfh9pg6TrtuQJIfO8EaEae4bs4cawM20eviFJD7Q89pZjS0rczx84A5KbolY65Byp2u7aKiOIngbmkyJEk2FBmQNOEZfaWb39di468p1o8tFfHELUCIyGHO0cA8TwnTSQXLZiTcqIm6D6qDjRhsZuxGxw6dzZXLQ");'></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column 3: Responded -->
+<div class="flex flex-col w-[340px] flex-shrink-0 h-full opacity-90">
+<div class="flex items-center justify-between mb-4 px-1">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-gray-700 uppercase tracking-wider text-sm">Responded</h3>
+<span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">8</span>
+</div>
+<button class="text-gray-400 hover:text-primary"><span class="material-symbols-outlined text-[20px]">more_horiz</span></button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 pb-4">
+<!-- Card 1 -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group border-l-4 border-l-teal-500">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Community Center</h4>
+<span class="text-xs font-mono text-gray-400">ID: 112-Q</span>
+</div>
+<span class="flex items-center gap-1 text-teal-600 text-[10px] font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Waiting
+                                </span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed italic">"Official response sent. Awaiting citizen confirmation regarding the proposed schedule..."</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span class="text-xs font-medium">Replied 1d ago</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-cover bg-center border border-white" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCMLF-abbMB-iTMzgEt3VJmeOqvj066gPamwYMtvdxwyMaIg97S7LBwN9JVCco2p0yaA1_Dv5nq3yeOWbdJfbnKEJblOrEO0WkAI6UVcW3STsavci5f6i5f3gAgLEg2K_ncNHbDtk2DrVqHR2vBZjXw5N1xwUwPcAsp7mSoeG3viU0TAtbPDMC9L-TS26LPs7wUsiXTJQY6IwtXbeodZm9LESTsoyKlwTtr98l5AgwTSFiZRo-r2cFC2yMZ8RQigBmavrnaFEl__AZo");'></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-4 rounded-sm border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">Transit Auth.</h4>
+<span class="text-xs font-mono text-gray-400">ID: 881-M</span>
+</div>
+<span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide border border-blue-100">Normal</span>
+</div>
+<p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">Feedback on route 55 realignment proposal.</p>
+<div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span class="text-xs font-medium">Replied 3d ago</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-cover bg-center border border-white" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDxFy99Ql-UhwWUdqTFJEmKGPup8ztxqElkYIBOVSG2mA9f5y-aQksZlP8di_FlTX-9Ne_EQhsU653ks95zGBdYqamiO2eSDs2itt7oUo5PR0QmJ6XJibdxJPqgrPAfBxfFQHBqempWnEvs26d1VAT8QBzivHE1NKxy9A-zZKhM-88pSO36U3614PZbCR9OF6UAawiuR9rr7lFqLKXQDchy6z9vy0KZtb9-b_k40uQaQz7OprkCqrf0kV4YU8pH6YxPCXHJ44j_b-OB");'></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column 4: Closed -->
+<div class="flex flex-col w-[340px] flex-shrink-0 h-full opacity-70 hover:opacity-100 transition-opacity duration-300">
+<div class="flex items-center justify-between mb-4 px-1">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-gray-500 uppercase tracking-wider text-sm">Closed</h3>
+<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs font-bold">145</span>
+</div>
+<button class="text-gray-400 hover:text-primary"><span class="material-symbols-outlined text-[20px]">more_horiz</span></button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 pb-4">
+<!-- Card 1 -->
+<div class="bg-gray-50 p-4 rounded-sm border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-gray-600 line-through leading-tight">Park Maintenance</h4>
+<span class="text-xs font-mono text-gray-400">ID: 002-Z</span>
+</div>
+<span class="px-2 py-1 rounded bg-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-wide">Resolved</span>
+</div>
+<p class="text-sm text-gray-400 mb-3 line-clamp-2 leading-relaxed">Fallen tree removed from North Gate entrance.</p>
+<div class="flex items-center justify-between border-t border-gray-200 pt-3 mt-1">
+<div class="flex items-center gap-1.5 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span class="text-xs font-medium">Closed Oct 20</span>
+</div>
+<div class="h-6 w-6 rounded-full bg-cover bg-center grayscale opacity-50" data-alt="Assignee avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC7kI6OSnTI9XOPOXhMg31aTPawKM8MAL77DJcg88wb6SULkKmau7e3hbq7nWU6E4yWlMPUxUks-L5gT83axi6xqXdoSNxZn21jxQSXpka7H5BoV9_hawtPRhWfLWmlqd2VAFQNU9SItmC9ONbPiBJ8puQCoXy5cIxEY0DvnqggyLHsw5wOT5HGvX2ouNnleSzm2J_1Cpv2UBKmOyv2i7_1sQ2frcnab1OizZjQzXsAt7WTMkOl3ublnjLBiFVo4q6J22dG2w6txMzC");'></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Column Button -->
+<div class="flex flex-col w-[340px] flex-shrink-0 h-full">
+<button class="flex items-center justify-center gap-2 h-[50px] w-full border-2 border-dashed border-gray-300 rounded-sm text-gray-400 hover:border-primary hover:text-primary hover:bg-white transition-all">
+<span class="material-symbols-outlined">add</span>
+<span class="font-bold text-sm">Add Status Column</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,52 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDEs
+.vscode/
+.idea/
+.fleet/
+.nova/
+.zed/
+.phpactor.json
+
+# Build artifacts
+/vendor/
+/node_modules/
+/public/build
+/public/hot
+/public/storage
+
+# Logs
+*.log
+/storage/*.key
+/storage/pail
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Testing
+.phpunit.cache/
+.phpunit.result.cache
+phpunit.xml
+/tests/
+
+# Documentation
+README.md
+*.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Misc
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+auth.json
+Homestead.json
+Homestead.yaml

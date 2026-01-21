@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ministry Admin Dashboard Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#178282", // Forest Green
+                        "accent": "#D4AF37",  // Golden Wheat
+                        "background-light": "#f9fafa",
+                        "background-dark": "#16181d",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.geometric-pattern {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAbXd2R5hyNiBOzz0tPcA-DJ8xpXwT1NBm02eTnVf4_d19ya_3HIJrb9qsee_dA1RT-O6i-Ezzro51dJ8vlWCBx5ljBYgqGHbTAAUt1qbOkJUqh_e2aeWDHd_6oMP-i_zQmDzsZs8VlBBJngGqmDY8A717c0d0X_QVGU_KOVGBcK4kljc0yVU9NM0N9ZMRvZbjctSd1zE31hkNp_SYqnBLZdCnU50jTzQYuUHZgH-s0nb2S4NXZJKy_jfZWWzSb-q7ZPXBtRrbXoBIM)
+    }</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0f1a1a] dark:text-slate-200 min-h-screen">
+<div class="flex min-h-screen geometric-pattern">
+<!-- Side Navigation -->
+<aside class="w-72 bg-white dark:bg-[#1c1f26] border-r border-[#e8f2f2] dark:border-slate-800 flex flex-col fixed h-full z-20">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-primary dark:text-white text-lg font-bold leading-tight">Surian Ministry</h1>
+<p class="text-[#539393] text-xs font-medium tracking-wider uppercase">Administrative Portal</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary font-semibold">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard Overview</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">manage_accounts</span>
+<span class="text-sm font-medium">Management</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">article</span>
+<span class="text-sm font-medium">Content Management</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">report_problem</span>
+<span class="text-sm font-medium">Complaints</span>
+<span class="ml-auto bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">18</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group border border-accent/20 bg-accent/5">
+<span class="material-symbols-outlined text-accent group-hover:text-accent transition-colors">auto_awesome</span>
+<span class="text-sm font-medium">AI Assistant</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">bar_chart</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+</nav>
+<div class="p-4 border-t border-gray-100 dark:border-slate-800">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-gray-500">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium">Sign Out</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-72 flex flex-col min-w-0">
+<!-- Top Navigation Bar -->
+<header class="h-20 bg-white/80 dark:bg-[#1c1f26]/80 backdrop-blur-md border-b border-[#e8f2f2] dark:border-slate-800 px-8 flex items-center justify-between sticky top-0 z-10">
+<div class="max-w-xl w-full">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full bg-[#f1f5f5] dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all" placeholder="Search for documents, citizens, or reports..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<button class="relative p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-accent rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">chat_bubble_outline</span>
+</button>
+</div>
+<div class="h-8 w-px bg-gray-200 dark:bg-slate-700"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">Dr. Ahmed Salman</p>
+<p class="text-[11px] font-semibold text-accent uppercase tracking-tighter">Senior Administrator</p>
+</div>
+<div class="size-10 rounded-full border-2 border-primary/20 p-0.5">
+<img class="size-full rounded-full object-cover" data-alt="Close up portrait of a senior administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbAMwDV63VlO77I0w-ao0UiXMb2svmD1myV4EXVlk2Xkh_Xb0hHIKbk5nlffiprVErYhtnVgwxT_hAjDGPNVihQ3gFHs7DgHBNwzlt3oGdraRAkjKjXxScJ6M4jPfc3Hui2WCEm8QlS4xaiQxg9sQcv1QebjbEY2X8zIQBFuDE-TqL5GMoINtKYuaMzbBLDYc_98LovKnZfv5ugMB5V0ivLEd_y522iWqVD5Ye56qOGeB3Gxk_dMucr8Bg6ku93e5kZA9JVAAfJzP3"/>
+</div>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto w-full">
+<!-- Page Heading -->
+<div class="mb-8">
+<h2 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight">System Overview</h2>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[#539393] text-lg">Good morning, Ahmed. Here is the operational status for today.</p>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:translate-y-[-1px] transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                                Export Report
+                            </button>
+</div>
+</div>
+</div>
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-[#d1e5e5] dark:border-slate-700 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-125"></div>
+<p class="text-[#539393] text-xs font-bold uppercase tracking-widest mb-1">Total Users</p>
+<h3 class="text-3xl font-black text-gray-900 dark:text-white mb-2">12,450</h3>
+<div class="flex items-center gap-1.5 text-sm">
+<span class="text-green-600 font-bold">+2.4%</span>
+<span class="text-gray-400">vs last month</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-[#d1e5e5] dark:border-slate-700 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-125"></div>
+<p class="text-[#539393] text-xs font-bold uppercase tracking-widest mb-1">Active Complaints</p>
+<h3 class="text-3xl font-black text-gray-900 dark:text-white mb-2">184</h3>
+<div class="flex items-center gap-1.5 text-sm">
+<span class="text-red-500 font-bold">+12%</span>
+<span class="text-gray-400 text-xs">requiring attention</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-[#d1e5e5] dark:border-slate-700 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-125"></div>
+<p class="text-[#539393] text-xs font-bold uppercase tracking-widest mb-1">Avg Response Time</p>
+<h3 class="text-3xl font-black text-gray-900 dark:text-white mb-2">1.4h</h3>
+<div class="flex items-center gap-1.5 text-sm text-green-600 font-bold">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span>8% improved</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-[#d1e5e5] dark:border-slate-700 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full -mr-12 -mt-12 transition-transform group-hover:scale-125"></div>
+<p class="text-[#539393] text-xs font-bold uppercase tracking-widest mb-1">System Health</p>
+<h3 class="text-3xl font-black text-gray-900 dark:text-white mb-2">99.9%</h3>
+<div class="flex items-center gap-1.5 text-sm text-primary font-bold">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Optimal status</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Chart Section -->
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-[#d1e5e5] dark:border-slate-700 p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xl font-bold text-gray-900 dark:text-white">Complaints Trend</h3>
+<div class="flex items-center gap-2 bg-gray-50 dark:bg-slate-900 p-1 rounded-lg border border-gray-100 dark:border-slate-800">
+<button class="px-3 py-1 text-xs font-bold bg-white dark:bg-slate-800 shadow-sm rounded-md text-primary">Monthly</button>
+<button class="px-3 py-1 text-xs font-bold text-gray-500 hover:text-primary">Weekly</button>
+</div>
+</div>
+<!-- Simple SVG Visualization for the Trend -->
+<div class="h-64 w-full relative group">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 400 100">
+<path d="M0,80 Q50,70 100,85 T200,60 T300,75 T400,30" fill="none" stroke="#178282" stroke-linecap="round" stroke-width="3"></path>
+<path d="M0,80 Q50,70 100,85 T200,60 T300,75 T400,30 V100 H0 Z" fill="url(#gradient)" opacity="0.1"></path>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#178282;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#178282;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-[#539393] uppercase tracking-tighter">
+<span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span>
+</div>
+</div>
+</div>
+<!-- Pending Actions List -->
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-[#d1e5e5] dark:border-slate-700 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+<h3 class="text-xl font-bold text-gray-900 dark:text-white">Pending Actions</h3>
+<span class="text-sm font-medium text-primary cursor-pointer hover:underline">View All Tasks</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-gray-50 dark:bg-slate-900/50">
+<tr>
+<th class="px-6 py-4 text-[11px] font-bold text-[#539393] uppercase">Reference ID</th>
+<th class="px-6 py-4 text-[11px] font-bold text-[#539393] uppercase">Subject</th>
+<th class="px-6 py-4 text-[11px] font-bold text-[#539393] uppercase">Priority</th>
+<th class="px-6 py-4 text-[11px] font-bold text-[#539393] uppercase">Status</th>
+<th class="px-6 py-4 text-right"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">#SR-9921</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium text-gray-900 dark:text-white">Infrastructure Permit Rev...</p>
+<p class="text-xs text-gray-500">2 hours ago</p>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-[10px] font-black uppercase rounded bg-red-100 text-red-700">High</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-yellow-400"></div>
+<span class="text-xs font-medium">Pending Review</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary/70">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">#SR-9854</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium text-gray-900 dark:text-white">Internal Policy Update</p>
+<p class="text-xs text-gray-500">5 hours ago</p>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-[10px] font-black uppercase rounded bg-blue-100 text-blue-700">Normal</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-gray-400"></div>
+<span class="text-xs font-medium">Drafting</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary/70">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Sidebar / AI Tools -->
+<div class="space-y-6">
+<!-- AI Assistant Card -->
+<div class="bg-gradient-to-br from-[#178282] to-[#0f5a5a] rounded-xl p-6 text-white shadow-xl relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-accent animate-pulse">auto_awesome</span>
+<h3 class="text-lg font-bold">Surian AI Intelligence</h3>
+</div>
+<p class="text-primary/10 text-xs mb-4 text-white/80 leading-relaxed font-medium">I've analyzed this morning's data. There's a 15% increase in priority complaints from the Central District.</p>
+<button class="w-full bg-accent text-[#0f1a1a] py-3 rounded-lg font-black text-sm hover:bg-white transition-colors mb-3">
+                                    Generate District Report
+                                </button>
+<button class="w-full bg-white/10 text-white py-3 rounded-lg font-bold text-sm hover:bg-white/20 transition-colors">
+                                    Ask Assistant Anything
+                                </button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 text-[160px] select-none pointer-events-none">neurology</span>
+</div>
+<!-- Mini Calendar/Schedule -->
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-[#d1e5e5] dark:border-slate-700 p-6 shadow-sm">
+<h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-6">Today's Schedule</h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-primary">10:00</span>
+<div class="w-px h-full bg-gray-100 dark:bg-slate-700 my-1"></div>
+</div>
+<div class="pb-2">
+<p class="text-sm font-bold text-gray-900 dark:text-white">Cabinet Strategy Briefing</p>
+<p class="text-xs text-gray-500">Conference Hall A</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-gray-400">14:30</span>
+<div class="w-px h-full bg-gray-100 dark:bg-slate-700 my-1"></div>
+</div>
+<div class="pb-2">
+<p class="text-sm font-bold text-gray-900 dark:text-white">System Security Audit</p>
+<p class="text-xs text-gray-500">Virtual Room 4</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-gray-400">16:00</span>
+</div>
+<div class="">
+<p class="text-sm font-bold text-gray-900 dark:text-white">Review User Onboarding</p>
+<p class="text-xs text-gray-500">Internal Review</p>
+</div>
+</div>
+</div>
+</div>
+<!-- System Level Status -->
+<div class="bg-accent/5 border border-accent/20 rounded-xl p-6">
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-black text-accent uppercase tracking-widest">Security Level</span>
+<span class="px-2 py-0.5 bg-accent text-[#0f1a1a] text-[10px] font-black rounded">LEVEL 4</span>
+</div>
+<div class="space-y-2">
+<div class="h-1 w-full bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-accent w-4/5"></div>
+</div>
+<p class="text-[10px] text-[#539393] font-medium italic">Highly Secure - Monitoring 24,000 nodes</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-auto p-8 text-center">
+<p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">© 2024 Surian Ministry - Secure Administrative Environment</p>
+</footer>
+</main>
+</div>
+</body></html>

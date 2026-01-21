@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Complaints Management Kanban Board | Surian Ministry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#178282",
+                        "highlight": "#D4AF37",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#16181d",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: "Public Sans", sans-serif; }
+        .kanban-column { min-width: 320px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0 bg-white dark:bg-background-dark z-20">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary size-10 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-sm font-bold leading-tight">Surian Ministry</h1>
+<p class="text-primary text-xs font-medium">Official Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<div class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg cursor-pointer">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">view_kanban</span>
+<span class="text-sm font-semibold">Complaints Board</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="text-sm font-medium">Departments</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="flex w-full items-center justify-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-sm">logout</span>
+                Logout
+            </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- Header -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-400">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-80 placeholder:text-slate-400" placeholder="Search by Tracking ID, Citizen Name..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+<span class="size-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Live Sync Active
+                </div>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Complaint
+                </button>
+<div class="w-px h-6 bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold leading-none">Admin User</p>
+<p class="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Supervisory Access</p>
+</div>
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-primary/20" data-alt="Official user profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4fgjpyKbgbhRyD7vZskKw6UlK6WmP5eu5-IXtAZRJr_OS8KHCCATGgsz1QEO-jPL_p75ohiQ9dsJ6Y0pyzaUPrCtx-BhjSfAIWzT4EdF0OVu2tcwUCuWhOQehpQhPBxP6i5NzribRsRnKsjl3pGkciI_gdMCgauBBfH5FQ71TkNziATE2Kuz2t5UABJYXH2yV_yBTXX-IeSYZZ0_8iCuwTbaiBeVsI8I3xh0EnV8ZhLnkRUPXiG70HszTbFwxxEUH_XEkb9u427Fr'); background-size: cover;"></div>
+</div>
+</div>
+</header>
+<!-- Board Section -->
+<div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+<!-- Page Title & Filters -->
+<div class="px-8 pt-8 pb-4">
+<div class="flex flex-col gap-1 mb-6">
+<div class="flex items-center gap-2 text-primary mb-1">
+<span class="text-xs font-bold tracking-[0.2em] uppercase">Ministry Workflow</span>
+</div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Citizen Complaints Board</h2>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap items-center gap-3 p-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl w-fit border border-slate-200 dark:border-slate-800">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-900 dark:text-white">
+<span class="material-symbols-outlined text-lg">category</span>
+                        All Departments
+                        <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 transition-all">
+<span class="material-symbols-outlined text-lg text-primary">agriculture</span>
+                        Agriculture
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 transition-all">
+<span class="material-symbols-outlined text-lg text-primary">health_and_safety</span>
+                        Health
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 transition-all">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+                        Last 30 Days
+                        <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<div class="w-px h-6 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-primary hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-lg">tune</span>
+                        More Filters
+                    </button>
+</div>
+</div>
+<!-- Kanban Board -->
+<div class="flex flex-1 gap-6 p-8 overflow-x-auto custom-scrollbar items-start">
+<!-- Column: Received -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
+<h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Received</h3>
+<span class="ml-2 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-xs font-black text-slate-600 dark:text-slate-400">12</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Card 1 (Emergency) -->
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl border-l-4 border-l-highlight shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[11px] font-black text-primary bg-primary/10 px-2 py-1 rounded">#SR-2024-0912</span>
+<span class="bg-yellow-100 text-highlight text-[10px] font-bold px-2 py-0.5 rounded-full border border-highlight/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+                                    EMERGENCY
+                                </span>
+</div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition-colors">Ahmed Al-Farrah</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">Water shortage reported in Block 4 sector C. Irrigation systems non-functional for 48 hours.</p>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-slate-400">agriculture</span>
+<span class="text-[11px] font-semibold text-slate-500">Agriculture</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium italic">2 hours ago</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[11px] font-black text-primary bg-primary/10 px-2 py-1 rounded">#SR-2024-0915</span>
+<span class="bg-slate-100 dark:bg-slate-700 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">NORMAL</span>
+</div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition-colors">Sara Al-Otaibi</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">Inquiry regarding pending subsidy application for seed fertilizers.</p>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-slate-400">inventory</span>
+<span class="text-[11px] font-semibold text-slate-500">Agriculture</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium italic">5 hours ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Processing -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary shadow-[0_0_8px_rgba(23,130,130,0.5)]"></span>
+<h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Processing</h3>
+<span class="ml-2 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-xs font-black text-slate-600 dark:text-slate-400">4</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Processing Card 1 -->
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-primary/20">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[11px] font-black text-primary bg-primary/10 px-2 py-1 rounded">#SR-2024-0889</span>
+<span class="bg-slate-100 dark:bg-slate-700 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">NORMAL</span>
+</div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Omar Khalid</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Request for infrastructure inspection on rural road junction R-22.</p>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">engineering</span>
+<span class="text-[11px] font-bold text-primary">Assigned: Dept-B</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-5 rounded-full bg-slate-200 border border-white dark:border-slate-800" data-alt="Staff avatar 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBFdWdxBt05fXnhocMQGuy6G2y5Zs-QNACNBIxcNxIWzmNF0mAva41zs61viGyHmDaaXhJtwr5---yfkW3nZ_fj_JH_7v2hBZD7BLoNRQsDcEeFGNjje5wbFsWd0ifa5-LkpjjOps1fVw49OeNMXcbFdUDx_wcnEIg264ZTDjRvHwLJAW1KsekXyVV1Ws7cJNZ9zZTJFp_bZyJhUH9dbGcIPW-sAPAvXETmS3a7X37t7aCnE4CubMBs99gNIBQUfZ6lxlkQ2bCeoMxq'); background-size: cover;"></div>
+<div class="size-5 rounded-full bg-slate-300 border border-white dark:border-slate-800 flex items-center justify-center text-[8px] font-bold">+2</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Responded -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]"></span>
+<h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Responded</h3>
+<span class="ml-2 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-xs font-black text-slate-600 dark:text-slate-400">8</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer opacity-80">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[11px] font-black text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">#SR-2024-0755</span>
+<span class="text-green-600 text-[10px] font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">mark_email_read</span>
+                                    SENT
+                                </span>
+</div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Fatima J.</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">Clinic operational hours clarified. Digital appointment system offered as resolution.</p>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-slate-400">health_and_safety</span>
+<span class="text-[11px] font-semibold text-slate-500">Health Dept</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium">1d ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Closed -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-slate-400"></span>
+<h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Closed</h3>
+<span class="ml-2 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-xs font-black text-slate-600 dark:text-slate-400">142</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-slate-100 dark:bg-slate-900/40 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center min-h-[120px] text-center">
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-700 text-3xl mb-2">archive</span>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Archived Records</p>
+<p class="text-[10px] text-slate-400 mt-1">Tap to view all 142 historical cases</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Stats Bar -->
+<footer class="h-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-8 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg. Response Time:</span>
+<span class="text-[11px] font-black text-primary">4.2 Hours</span>
+</div>
+<div class="w-px h-3 bg-slate-300 dark:bg-slate-700"></div>
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Triage Queue:</span>
+<span class="text-[11px] font-black text-highlight">18 Pending</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                    EXPORT REPORT (CSV)
+                </button>
+</div>
+</footer>
+</main>
+</body></html>

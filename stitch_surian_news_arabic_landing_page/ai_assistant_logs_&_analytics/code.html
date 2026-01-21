@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Surian Ministry - AI Assistant Logs</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#266c73",
+                        "primary-dark": "#1d5258",
+                        "secondary": "#D4AF37", // Golden Wheat
+                        "background-light": "#f9fafa",
+                        "background-dark": "#21262c",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2a3038",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "sm": "0.125rem",
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem"
+                    },
+                    backgroundImage: {
+                        'star-pattern': "radial-gradient(#266c73 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .bg-star-pattern {
+            background-image: radial-gradient(rgba(38, 108, 115, 0.15) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        .dark .bg-star-pattern {
+            background-image: radial-gradient(rgba(212, 175, 55, 0.1) 1.5px, transparent 1.5px);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-gray-100 font-display min-h-screen flex flex-col overflow-hidden">
+<div class="flex h-screen w-full bg-background-light dark:bg-background-dark">
+<!-- Side Navigation -->
+<aside class="w-[280px] bg-white dark:bg-[#1a1f24] border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between shrink-0 z-20">
+<div class="flex flex-col gap-6 p-6">
+<!-- Branding -->
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-10 h-10 rounded-sm bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-primary dark:text-white text-lg font-bold leading-none tracking-tight">Surian Ministry</h1>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">Admin Portal</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-500 group-hover:text-primary dark:text-gray-400 dark:group-hover:text-white">dashboard</span>
+<span class="text-gray-700 dark:text-gray-200 text-sm font-medium group-hover:text-primary dark:group-hover:text-white">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded bg-primary/10 border-l-2 border-primary" href="#">
+<span class="material-symbols-outlined text-primary fill-1">smart_toy</span>
+<span class="text-primary text-sm font-bold">AI Monitoring</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-500 group-hover:text-primary dark:text-gray-400 dark:group-hover:text-white">group</span>
+<span class="text-gray-700 dark:text-gray-200 text-sm font-medium group-hover:text-primary dark:group-hover:text-white">User Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-500 group-hover:text-primary dark:text-gray-400 dark:group-hover:text-white">description</span>
+<span class="text-gray-700 dark:text-gray-200 text-sm font-medium group-hover:text-primary dark:group-hover:text-white">System Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-500 group-hover:text-primary dark:text-gray-400 dark:group-hover:text-white">settings</span>
+<span class="text-gray-700 dark:text-gray-200 text-sm font-medium group-hover:text-primary dark:group-hover:text-white">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer / User Profile -->
+<div class="p-4 border-t border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 bg-center bg-cover" data-alt="User avatar profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIqbitAZb0m9PDog4-jeJ3dLB1StaR4Ng4Iq4lleaWU9fZdJ4pvZjzDoPfcTQKpsTZxZULFlVjj21-DU2dLyfGbtvXlaAD8AiRWpa5wdt0WYra5xs6TD5h0tURDCODqnwx_EH13Or-vC_6UNYFXNdGXUbWulUoSf98m_Ny-rfBbwXC7oEY4i_jc1HgqzPEUO3jzkTfb1ZTWKDrDCy0ps-VjxRqbooR9H_xPA6HCnxYZzq3A4ww8jJbrhIp3w1t0cSuU8G4fGIkWvYe");'></div>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Admin User</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate">admin@ministry.gov</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark relative">
+<!-- Background Pattern -->
+<div class="absolute inset-0 pointer-events-none bg-star-pattern opacity-40 z-0"></div>
+<div class="relative z-10 flex flex-col h-full overflow-y-auto">
+<!-- Header Section -->
+<header class="w-full px-8 pt-8 pb-4">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 mb-4 text-sm">
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">Dashboard</a>
+<span class="text-gray-400">/</span>
+<a class="text-gray-500 hover:text-primary transition-colors" href="#">AI Assistant</a>
+<span class="text-gray-400">/</span>
+<span class="text-primary font-semibold">Logs &amp; Analytics</span>
+</div>
+<!-- Page Title & Actions -->
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">AI Assistant Monitoring</h1>
+<p class="text-gray-600 dark:text-gray-400">Track performance metrics and review interaction logs.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 h-10 px-4 bg-white dark:bg-surface-dark border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span>Configure</span>
+</button>
+<button class="flex items-center gap-2 h-10 px-4 bg-primary text-white text-sm font-bold rounded shadow-sm hover:bg-primary-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">download</span>
+<span>Export Report</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Analytics Cards -->
+<section class="px-8 py-4">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-surface-dark p-5 rounded border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary">timer</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">Avg Response Time</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-3xl font-bold text-gray-900 dark:text-white">0.85s</span>
+<span class="text-emerald-600 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-sm mr-0.5">trending_down</span>
+                                    12%
+                                </span>
+</div>
+<p class="text-xs text-gray-400 mt-2">Target: &lt; 1.0s</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-surface-dark p-5 rounded border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-secondary">star</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">Satisfaction Score</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-3xl font-bold text-gray-900 dark:text-white">4.8</span>
+<span class="text-gray-400 text-lg font-normal">/ 5.0</span>
+</div>
+<div class="flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-secondary text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-secondary text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-secondary text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-secondary text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-secondary text-sm fill-1">star_half</span>
+<span class="text-xs text-emerald-600 font-medium ml-2">+2% this week</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white dark:bg-surface-dark p-5 rounded border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary">chat</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">Total Queries Today</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-3xl font-bold text-gray-900 dark:text-white">1,245</span>
+<span class="text-emerald-600 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-sm mr-0.5">trending_up</span>
+                                    5%
+                                </span>
+</div>
+<p class="text-xs text-gray-400 mt-2">Peak time: 10:00 AM - 11:00 AM</p>
+</div>
+</div>
+</section>
+<!-- Filter & Search Bar -->
+<section class="px-8 pb-4">
+<div class="bg-white dark:bg-surface-dark p-3 rounded border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col md:flex-row gap-3 items-center">
+<!-- Search -->
+<div class="relative flex-1 w-full">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#1a1f24] border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="Search by Session ID, keyword, or user..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex gap-2 w-full md:w-auto">
+<div class="relative w-full md:w-48">
+<button class="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-[#1a1f24] border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-gray-500 text-[18px]">calendar_today</span>
+<span>Last 24 Hours</span>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-[18px]">expand_more</span>
+</button>
+</div>
+<div class="relative w-full md:w-48">
+<button class="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-[#1a1f24] border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-gray-500 text-[18px]">filter_list</span>
+<span>All Statuses</span>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-[18px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Data Table -->
+<section class="px-8 pb-8 flex-1 overflow-hidden flex flex-col">
+<div class="bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded shadow-sm flex flex-col flex-1 overflow-hidden">
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left text-sm border-collapse">
+<thead class="bg-gray-50 dark:bg-[#1a1f24] sticky top-0 z-10">
+<tr>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 whitespace-nowrap w-[140px]">Session ID</th>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 whitespace-nowrap w-[180px]">Timestamp</th>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">User Query</th>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">AI Response</th>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 w-[140px]">Status</th>
+<th class="px-6 py-3 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 text-right w-[120px]">Satisfaction</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+<!-- Row 1 -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9928</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 10:42 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            What are the visa requirements for...
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            To apply for a tourist visa, you must submit...
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Resolved
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<span class="text-gray-900 dark:text-white font-bold">5.0</span>
+<span class="material-symbols-outlined text-secondary text-[16px] fill-1">star</span>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9929</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 10:45 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            Can I update my address online?
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            Yes, you can update your residential address by logging...
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Resolved
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<span class="text-gray-900 dark:text-white font-bold">4.0</span>
+<span class="material-symbols-outlined text-secondary text-[16px] fill-1">star</span>
+</div>
+</td>
+</tr>
+<!-- Row 3 (Escalated/Warning) -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer bg-yellow-50/30 dark:bg-yellow-900/10">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9930</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 10:48 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            My application was rejected unfairly!
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            I understand your frustration. I am escalating this...
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary/10 text-yellow-700 dark:text-secondary border border-secondary/20">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                                Escalated
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1 opacity-50">
+<span class="text-gray-400 font-medium">--</span>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9931</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 11:02 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            Office hours for downtown branch?
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            The downtown branch is open from 8:00 AM to 4:00 PM.
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Resolved
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<span class="text-gray-900 dark:text-white font-bold">5.0</span>
+<span class="material-symbols-outlined text-secondary text-[16px] fill-1">star</span>
+</div>
+</td>
+</tr>
+<!-- Row 5 (Unresolved/Failed) -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9932</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 11:15 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            Download form 22B pdf
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            I'm sorry, I cannot find a form named "22B". Did you mean...
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-100 dark:border-red-800">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                                Unresolved
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<span class="text-gray-900 dark:text-white font-bold">1.0</span>
+<span class="material-symbols-outlined text-secondary text-[16px] fill-1">star</span>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer">
+<td class="px-6 py-4 font-mono text-gray-600 dark:text-gray-400">#SID-9933</td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400">Oct 24, 11:20 AM</td>
+<td class="px-6 py-4 text-gray-900 dark:text-gray-200 font-medium max-w-[250px] truncate">
+                                            Tax filing deadline for 2024
+                                        </td>
+<td class="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[250px] truncate">
+                                            The deadline for filing 2024 taxes is April 30th.
+                                        </td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Resolved
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<span class="text-gray-900 dark:text-white font-bold">5.0</span>
+<span class="material-symbols-outlined text-secondary text-[16px] fill-1">star</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-gray-50 dark:bg-[#1a1f24] px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+<p class="text-sm text-gray-500 dark:text-gray-400">
+                                Showing <span class="font-medium text-gray-900 dark:text-white">1</span> to <span class="font-medium text-gray-900 dark:text-white">10</span> of <span class="font-medium text-gray-900 dark:text-white">1,245</span> results
+                            </p>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-white dark:bg-surface-dark border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-500 dark:text-gray-300 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" disabled="">
+                                    Previous
+                                </button>
+<button class="px-3 py-1 bg-white dark:bg-surface-dark border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    Next
+                                </button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,18 @@
+node_modules
+.next
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+out
+build
+.vscode
+.idea
+*.log
+
+# Environment files (use docker-compose env vars instead)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

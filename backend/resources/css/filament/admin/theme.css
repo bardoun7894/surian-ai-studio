@@ -1,0 +1,65 @@
+@import '../../../../public/css/filament/filament/app.css';
+
+@font-face {
+    font-family: 'Qomra';
+    src: url('/fonts/ArbFONTS-Qomra-Bold-1.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Cairo';
+    src: url('https://fonts.gstatic.com/s/cairo/v28/SLXGcQnb6tD1tz4aAw.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --font-heading: 'Qomra', 'Cairo', sans-serif;
+    --font-body: 'Cairo', sans-serif;
+    
+    /* Frontend Colors Override */
+    --gov-forest: #094239;
+    --gov-gold: #b9a779;
+    --gov-teal: #428177;
+    --gov-beige: #edebe0;
+    
+    /* Filament Overrides */
+    --primary-500: var(--gov-teal);
+    --primary-600: var(--gov-forest);
+}
+
+.fi-header-heading, 
+.fi-logo,
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading) !important;
+}
+
+body {
+    font-family: var(--font-body);
+}
+
+/* Sidebar Branding */
+.fi-sidebar-header {
+    background-color: var(--gov-forest);
+    border-bottom: 2px solid var(--gov-gold);
+}
+
+.fi-sidebar-header .fi-logo {
+    color: white !important;
+}
+
+/* Login Page Background */
+.fi-login-page {
+    background-color: var(--gov-beige);
+    background-image: url('/assets/header-bg.png');
+    background-repeat: repeat-x;
+    background-position: top center;
+}
+
+.dark .fi-login-page {
+    background-color: var(--gov-forest);
+    background-blend-mode: overlay;
+}

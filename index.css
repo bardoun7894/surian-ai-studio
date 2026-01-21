@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Qomra Font (Official Government Font) */
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --background: #edebe0; /* gov-beige */
+  --foreground: #161616; /* gov-charcoal */
+}
+
+.dark {
+  --background: #094239; /* gov-forest */
+  --foreground: #edebe0; /* gov-beige */
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Glass Card Effect */
+.glass-card {
+  background: rgba(237, 235, 224, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(185, 167, 121, 0.2);
+}
+
+.dark .glass-card {
+  background: rgba(9, 66, 57, 0.9);
+  border: 1px solid rgba(185, 167, 121, 0.2);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #edebe0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #b9a779;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #988561;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #094239;
+}
+
+/* Selection Colors */
+::selection {
+  background-color: #b9a779;
+  color: #094239;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  /* Button styles */
+  .btn-primary {
+    @apply bg-gov-teal text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply bg-gov-gold text-gov-forest font-bold py-3 px-6 rounded-xl hover:bg-gov-sand transition-all;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gov-gold/20 focus:border-gov-emerald outline-none transition-all;
+  }
+}
+
+/* Hide scrollbar for ticker */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --- High Contrast Mode Styles --- */
+html.high-contrast {
+  filter: contrast(120%);
+}
+
+body.high-contrast {
+  background-color: #000000 !important;
+  color: #FFFF00 !important;
+}
+
+/* Force overrides for High Contrast */
+.high-contrast * {
+  background-color: #000000 !important;
+  color: #FFFF00 !important;
+  border-color: #FFFFFF !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+
+.high-contrast img,
+.high-contrast video {
+  filter: grayscale(100%);
+  border: 2px solid #FFFFFF !important;
+}
+
+.high-contrast a,
+.high-contrast button {
+  color: #00FFFF !important;
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  border: 2px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+  background-color: #000000 !important;
+}
+
+.high-contrast ::placeholder {
+  color: #AAAAAA !important;
+}

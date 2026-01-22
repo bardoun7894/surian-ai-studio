@@ -166,6 +166,30 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-forest/80 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
+
+      {/* Animated Particles Layer */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-gov-gold/20 rounded-full animate-float-particle"
+            style={{
+              width: Math.random() * 6 + 2 + 'px',
+              height: Math.random() * 6 + 2 + 'px',
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+              animationDuration: Math.random() * 10 + 10 + 's',
+              animationDelay: Math.random() * 5 + 's',
+              opacity: Math.random() * 0.5 + 0.1
+            }}
+          ></div>
+        ))}
+        {/* Connection Lines (SVGs) */}
+        <svg className="absolute inset-0 w-full h-full opacity-10 dark:opacity-20">
+          <path d="M0,50 Q200,150 400,50 T800,50" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gov-gold animate-dash-draw" />
+        </svg>
+      </div>
+
       <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">

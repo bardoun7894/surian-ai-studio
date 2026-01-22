@@ -86,7 +86,7 @@ export default function MediaPage() {
       <main className="flex-grow pt-20">
         <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-20">
           {/* Header */}
-          <div className="bg-gov-forest text-white py-16 px-4">
+          <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
                 {language === 'ar' ? 'المركز الإعلامي' : 'Media Center'}

@@ -79,7 +79,7 @@ export default function FAQPage() {
             <Navbar />
 
             <main className="flex-grow pt-20">
-                <div className="bg-gov-forest text-white py-16 px-4">
+                <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
                             {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
@@ -112,8 +112,8 @@ export default function FAQPage() {
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
                                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border font-bold transition-all ${activeCategory === cat.id
-                                        ? 'bg-gov-teal text-white border-gov-teal shadow-lg'
-                                        : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gov-teal'
+                                    ? 'bg-gov-teal text-white border-gov-teal shadow-lg'
+                                    : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gov-teal'
                                     }`}
                             >
                                 {cat.icon}
@@ -128,8 +128,8 @@ export default function FAQPage() {
                             <div
                                 key={index}
                                 className={`bg-white dark:bg-white/5 rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
-                                        ? 'border-gov-gold/50 shadow-md'
-                                        : 'border-gray-100 dark:border-white/10 hover:border-gov-gold/30'
+                                    ? 'border-gov-gold/50 shadow-md'
+                                    : 'border-gray-100 dark:border-white/10 hover:border-gov-gold/30'
                                     }`}
                             >
                                 <button

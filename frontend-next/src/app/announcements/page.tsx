@@ -226,7 +226,7 @@ export default function AnnouncementsPage() {
       <main className="flex-grow pt-20">
         <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-16">
           {/* Hero Header */}
-          <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8">
+          <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/20 rounded-full mb-4">
                 <Megaphone className="text-gov-gold" size={20} />
@@ -301,10 +301,10 @@ export default function AnnouncementsPage() {
             </div>
 
 
-            {/* Announcements List */}
-            <div className="space-y-4">
+            {/* Announcements List - 3x3 Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {loading ? (
-                <div className="flex justify-center py-20">
+                <div className="col-span-full flex justify-center py-20">
                   <Loader2 className="animate-spin text-gov-teal" size={40} />
                 </div>
               ) : filteredAnnouncements.map((announcement) => {
@@ -313,41 +313,39 @@ export default function AnnouncementsPage() {
                   <Link
                     key={announcement.id}
                     href={`/announcements/${announcement.id}`}
-                    className={`${styles.bg} ${styles.border} border rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group block cursor-pointer`}
+                    className={`${styles.bg} ${styles.border} border rounded-2xl p-6 hover:shadow-xl transition-all duration-300 group block cursor-pointer flex flex-col h-full`}
                   >
-                    <div className="flex flex-col md:flex-row md:items-start gap-4">
-                      {/* Content */}
-                      <div className="flex-1">
-                        {/* Header */}
-                        <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <span className={`${styles.badge} px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1`}>
-                            {styles.icon}
-                            {getTypeLabel(announcement.type)}
-                          </span>
-                          <span className="px-3 py-1 bg-gray-200 dark:bg-white/20 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {announcement.category}
-                          </span>
-                          <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-sm">
-                            <Calendar size={14} />
-                            <span>{formatDate(announcement.date)}</span>
-                          </div>
-                        </div>
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <span className={`${styles.badge} px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1`}>
+                        {styles.icon}
+                        {getTypeLabel(announcement.type)}
+                      </span>
+                      <span className="px-2.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 border border-transparent dark:border-white/10">
+                        {announcement.category}
+                      </span>
+                    </div>
 
-                        {/* Title */}
-                        <h3 className="text-xl font-bold text-gov-forest dark:text-white mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
-                          {announcement.title}
-                        </h3>
+                    {/* Title */}
+                    <h3 className="text-lg font-bold text-gov-forest dark:text-white mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 min-h-[3.5rem]">
+                      {announcement.title}
+                    </h3>
 
-                        {/* Description */}
-                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                          {announcement.description}
-                        </p>
+                    {/* Description */}
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                      {announcement.description}
+                    </p>
 
-                        {/* Read More */}
-                        <div className="flex items-center gap-2 text-gov-teal dark:text-gov-gold font-bold text-sm group-hover:gap-3 transition-all">
-                          <span>{language === 'ar' ? 'عرض التفاصيل' : 'View Details'}</span>
-                          <ArrowIcon size={16} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-                        </div>
+                    {/* Footer (Date & CTA) - Push to bottom */}
+                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-xs">
+                        <Calendar size={14} />
+                        <span>{formatDate(announcement.date)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-gov-teal dark:text-gov-gold font-bold text-sm group-hover:gap-2 transition-all">
+                        <span>{language === 'ar' ? 'التفاصيل' : 'Details'}</span>
+                        <ArrowIcon size={14} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </Link>

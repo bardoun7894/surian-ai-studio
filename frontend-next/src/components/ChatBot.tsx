@@ -227,16 +227,31 @@ const ChatBot: React.FC = () => {
 
     return (
         <>
-            {/* Floating Button */}
-            <button
-                onClick={() => setIsOpen(true)}
-                className={`fixed bottom-6 right-6 z-40 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest p-4 rounded-full shadow-2xl hover:bg-gov-teal dark:hover:bg-white hover:scale-105 transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'}`}
-            >
-                <MessageSquare size={24} />
-                <span className="absolute right-full mr-3 bg-gov-charcoal text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                    المساعد الذكي
-                </span>
-            </button>
+            {/* Floating Button with Enhanced UI */}
+            <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3 pointer-events-none">
+                {/* Welcome Balloon - Automatically shown initially or on hover */}
+                <div className={`pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-4 py-2 rounded-2xl rounded-br-none shadow-xl border border-gov-gold/20 mb-1 transform transition-all duration-500 origin-bottom-right flex items-center gap-2 ${isOpen ? 'opacity-0 scale-90' : 'opacity-100 scale-100 animate-bounce-slight'}`}>
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-teal opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-gov-teal"></span>
+                    </span>
+                    <span className="text-sm font-bold whitespace-nowrap">مرحباً بك بالمساعد الذكي 👋</span>
+                </div>
+
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className={`pointer-events-auto bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest p-4 md:p-5 rounded-full shadow-2xl hover:bg-gov-teal dark:hover:bg-white hover:scale-110 transition-all duration-300 group relative ${isOpen ? 'hidden' : 'flex'}`}
+                >
+                    {/* Icon */}
+                    <MessageSquare size={28} className="md:w-8 md:h-8" />
+
+                    {/* Notification Badge */}
+                    <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white dark:border-gov-forest"></span>
+                    </span>
+                </button>
+            </div>
 
             {/* Chat Window Container */}
             <div

@@ -15,11 +15,14 @@ class Directorate extends Model
         'name_en',
         'description',
         'icon',
+        'logo_path',
         'is_active',
+        'featured',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'featured' => 'boolean',
     ];
 
     public function users()
@@ -30,5 +33,18 @@ class Directorate extends Model
     public function complaints()
     {
         return $this->hasMany(Complaint::class);
+    }
+
+    public function subDirectorates()
+    {
+        return $this->hasMany(SubDirectorate::class, 'parent_directorate_id');
+    }
+
+    /**
+     * Scope to get only featured directorates
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('featured', true)->limit(3);
     }
 }

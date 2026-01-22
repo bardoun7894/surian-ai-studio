@@ -37,9 +37,11 @@ Route::prefix('v1')->group(function () {
     Route::prefix('public')->group(function () {
         // Directorates
         Route::get('directorates', [\App\Http\Controllers\Api\PublicApiController::class, 'directorates']);
+        Route::get('directorates/featured', [\App\Http\Controllers\Api\PublicApiController::class, 'featuredDirectorates']); // FR-49-51
         Route::get('directorates/{id}', [\App\Http\Controllers\Api\PublicApiController::class, 'directorate']);
         Route::get('directorates/{id}/services', [\App\Http\Controllers\Api\PublicApiController::class, 'directorateServices']);
         Route::get('directorates/{id}/news', [\App\Http\Controllers\Api\PublicApiController::class, 'directorateNews']); // FR-11
+        Route::get('directorates/{id}/sub-directorates', [\App\Http\Controllers\Api\PublicApiController::class, 'directorateSubDirectorates']); // FR-49-51
 
         // News
         Route::get('news', [\App\Http\Controllers\Api\PublicApiController::class, 'news']);
@@ -73,6 +75,11 @@ Route::prefix('v1')->group(function () {
 
         // FR-42: Public Settings
         Route::get('settings', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettings']);
+    });
+
+    // Suggestions Routes (FR-52 to FR-56)
+    Route::prefix('suggestions')->group(function () {
+        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store']); // Public submission
     });
 
     // Chat Routes (Public - FR-31 to FR-35)
@@ -169,6 +176,14 @@ Route::prefix('v1')->group(function () {
                 Route::post('bulk/approve', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'bulkApprove']);
                 Route::post('bulk/reject', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'bulkReject']);
                 Route::delete('{id}', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'destroy']);
+            });
+
+            // FR-52 to FR-56: Suggestions Management (Admin)
+            Route::prefix('suggestions')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'index']);
+                Route::get('{id}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'show']);
+                Route::patch('{id}/status', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'updateStatus']);
+                Route::delete('{id}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'destroy']);
             });
         });
 

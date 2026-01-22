@@ -15,6 +15,7 @@ class Complaint extends Model
         'tracking_number',
         'user_id',
         'directorate_id',
+        'related_complaint_id',
         'template_id',
         'full_name',
         'national_id',
@@ -57,6 +58,11 @@ class Complaint extends Model
     public function template(): BelongsTo
     {
         return $this->belongsTo(ComplaintTemplate::class);
+    }
+
+    public function relatedComplaint(): BelongsTo
+    {
+        return $this->belongsTo(Complaint::class, 'related_complaint_id');
     }
 
     public function attachments(): HasMany

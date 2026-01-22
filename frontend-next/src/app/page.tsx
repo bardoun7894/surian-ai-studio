@@ -3,6 +3,7 @@
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import NewsTicker from '@/components/NewsTicker';
+import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import Announcements from '@/components/Announcements';
 import NewsSection from '@/components/NewsSection';
@@ -62,6 +63,7 @@ export default function HomePage() {
       <main className="flex-grow pt-20 overflow-hidden">
         <HeroSection hasBreakingNews={hasBreakingNews} />
         <NewsTicker onNewsLoaded={setHasBreakingNews} />
+        <FeaturedDirectorates />
         <HeroGrid />
         <Announcements />
         <NewsSection />

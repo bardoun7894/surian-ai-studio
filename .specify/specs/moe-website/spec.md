@@ -2,8 +2,9 @@
 
 **Feature Branch**: `main`
 **Created**: 2026-01-14
+**Last Updated**: 2026-01-21 (Customer Modifications V2)
 **Status**: Implementation In Progress
-**Source**: SRS Document (مسودة ال SRS النسخة 3.docx.md)
+**Source**: SRS Document (مسودة ال SRS النسخة 3.docx.md) + Customer Requests (2026-01-20)
 
 ## Executive Summary
 
@@ -297,6 +298,82 @@ A user searches for laws or decrees using natural language instead of exact keyw
 - **FR-46**: Admin alerts for suspicious activity
 - **FR-47**: External link warning modal (UI: Global Modal Component)
 - **FR-48**: Citizen notification on status change
+
+#### Customer Modifications V2 (FR-49 to FR-61) - Added 2026-01-21
+**Source**: Customer feedback on v1.0 deployment (2026-01-20)
+**Priority**: High - Required for production launch
+
+##### Featured Directorates Section (FR-49 to FR-51)
+- **FR-49**: Display 3 featured directorates as cards below news ticker
+  - Each card shows ministry eagle logo (centered) + directorate name below
+  - Cards positioned in horizontal layout (responsive to mobile)
+  - Visual design: Government brand colors, consistent with existing cards
+- **FR-50**: Directorate card click reveals sub-directorates list
+  - Display all sub-directorates for selected directorate
+  - Each sub-directorate shows name + navigation link
+  - Links can be internal pages or external websites
+  - Interaction: Dropdown/modal/expand (UX to be determined)
+- **FR-51**: Admin can configure which 3 directorates are featured
+  - Exactly 3 directorates marked as "featured" at any time
+  - Admin can add/edit/reorder sub-directorates per directorate
+  - Sub-directorates include: name (AR/EN), URL, external flag, display order
+
+##### Suggestions Portal (FR-52 to FR-56)
+- **FR-52**: New "Suggestions for the World" (مقترحات للعالم) portal for citizen input
+  - Citizens can submit project suggestions or ministry improvement ideas
+  - Available to both authenticated users and guests
+  - Separate from complaints system (different workflow)
+- **FR-53**: Suggestions submission form fields
+  - Full name (required)
+  - Job title/Position (وظيفته) (required)
+  - Suggestion description (textarea, required, min 50 chars)
+  - File attachments (optional, max 5 files, 10MB each)
+  - Supported file types: PDF, DOC, DOCX, JPG, PNG
+- **FR-54**: Header navigation includes "Suggestions" button
+  - Button labeled "مقترحات للعالم" (Arabic) / "Suggestions" (English)
+  - Links to suggestions portal page
+  - Consistent with existing header button styling
+- **FR-55**: Admin review and manage suggestions
+  - Staff can view all submitted suggestions
+  - Status workflow: Pending → Under Review → Approved/Rejected
+  - Staff can add internal notes
+  - Email notification to admin on new suggestion
+- **FR-56**: Suggestions security & rate limiting
+  - Rate limit: 3 suggestions per day per IP/user
+  - File type validation (whitelist only)
+  - Input sanitization for all text fields
+  - Virus scanning for uploaded files (future enhancement)
+
+##### Complaint Form Enhancement (FR-57)
+- **FR-57**: Add "Previous Complaint" reference field
+  - Checkbox/radio: "Is this related to a previous complaint?"
+  - If YES: Show tracking number input field
+  - System validates tracking number exists
+  - Privacy: If user authenticated, previous complaint must belong to them
+  - Stores relationship between complaints (related_complaint_id foreign key)
+  - Display related complaint info in admin view
+
+##### UI/UX Enhancements (FR-58 to FR-61)
+- **FR-58**: Announcements section layout change
+  - Display 9 announcements in 3×3 grid layout
+  - Previously showed 5 items in horizontal scroll
+  - Responsive: Adjust to 2 columns on tablet, 1 column on mobile
+- **FR-59**: AI Assistant button enhancement
+  - Increase button size (specific dimensions TBD by design)
+  - Add AI indicator icon/badge
+  - Add welcome text beside icon: "مرحبا بك بالمساعد الذكي" (AR) / "Welcome to the AI Assistant" (EN)
+  - Ensure visibility on all screen sizes
+- **FR-60**: Animated hero section background
+  - Add subtle motion/animation to hero section background
+  - Animation type: Moving gradient, particles, or wave effect (TBD by design)
+  - Performance: Maintain 60fps, respect prefers-reduced-motion
+  - Should not distract from hero content
+- **FR-61**: Content quality requirements
+  - No UI element should be missing images (placeholders required)
+  - All text content must be grammatically correct (Arabic & English)
+  - Remove duplicate sections from homepage (specific sections TBD by customer)
+  - Verify all pages load and function correctly
+  - Bilingual support verified for all new components
 
 ### Non-Functional Requirements
 

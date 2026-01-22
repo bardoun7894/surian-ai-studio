@@ -4,6 +4,15 @@ export interface Directorate {
   description: string;
   icon: string;
   servicesCount: number;
+  featured?: boolean;
+  subDirectorates?: SubDirectorate[];
+}
+
+export interface SubDirectorate {
+  id: string;
+  name: string;
+  url?: string;
+  isExternal?: boolean;
 }
 
 export interface Service {
@@ -80,14 +89,39 @@ export interface TicketResponse {
 }
 
 export interface ComplaintData {
-  directorateId: string;
+  directorateId?: string; // or directorate name
+  directorate?: string;
   templateId?: string;
   title?: string;
-  description: string;
+  description?: string;
+  details?: string; // alias for description
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  fatherName?: string;
+  dob?: string;
+  category?: string;
   nationalId?: string;
   phone?: string;
   email?: string;
+  hasPreviousComplaint?: boolean;
+  previousTrackingNumber?: string;
+}
+
+export interface SuggestionData {
+  name: string;
+  jobTitle?: string;
+  email?: string;
+  phone?: string;
+  description: string;
+  files?: File[];
+}
+
+export interface Suggestion {
+  id: string;
+  trackingNumber: string;
+  status: 'received' | 'under_review' | 'accepted' | 'rejected';
+  createdAt: string;
 }
 
 export interface User {

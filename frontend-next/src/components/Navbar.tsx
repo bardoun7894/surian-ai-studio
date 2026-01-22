@@ -37,6 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
     { label: t('nav_decrees'), href: '/decrees' },
     { label: language === 'ar' ? 'الإعلانات' : 'Announcements', href: '/announcements' },
     { label: language === 'ar' ? 'المركز الإعلامي' : 'Media Center', href: '/media' },
+    { label: language === 'ar' ? 'مقترحات للعالم' : 'Suggestions for the World', href: '/suggestions' },
     { label: t('nav_complaints'), href: '/complaints' },
   ];
 
@@ -64,12 +65,12 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             </Link>
 
             {/* Desktop Nav - Centered with Gold Accents */}
-            <div className="hidden lg:flex items-center gap-2 flex-wrap justify-center">
+            <div className="hidden lg:flex items-center gap-1 xl:gap-2 justify-center">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`relative px-5 py-2 text-sm font-bold transition-all duration-300 overflow-hidden group ${isActive(item.href)
+                  className={`relative px-3 py-2 text-sm font-bold transition-all duration-300 overflow-hidden whitespace-nowrap group ${isActive(item.href)
                     ? 'text-gov-gold ring-1 ring-white/10'
                     : 'text-white/80 hover:text-white border-transparent hover:bg-white/10 rounded-lg'
                     }`}

@@ -17,6 +17,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'إدارة الأحوال المدنية، الجوازات، وشؤون الهجرة والمرور.',
                 'icon' => 'ShieldAlert',
                 'is_active' => true,
+                'featured' => true,
+                'logo_path' => '/assets/eagle-logo.svg',
             ],
             [
                 'id' => 'd2',
@@ -25,6 +27,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'الخدمات القضائية، الوكالات، والمحاكم.',
                 'icon' => 'Scale',
                 'is_active' => true,
+                'featured' => true,
+                'logo_path' => '/assets/eagle-logo.svg',
             ],
             [
                 'id' => 'd3',
@@ -33,6 +37,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'الخدمات الطبية، المشافي، والتراخيص الصحية.',
                 'icon' => 'HeartPulse',
                 'is_active' => true,
+                'featured' => true,
+                'logo_path' => '/assets/eagle-logo.svg',
             ],
             [
                 'id' => 'd4',
@@ -41,6 +47,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'شؤون المدارس، المناهج، والامتحانات.',
                 'icon' => 'BookOpen',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd5',
@@ -49,6 +57,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'الجامعات الحكومية، المنح، والبحث العلمي.',
                 'icon' => 'GraduationCap',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd6',
@@ -57,6 +67,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'خدمات المشتركين، الفواتير، والشكاوى الكهربائية.',
                 'icon' => 'Zap',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd7',
@@ -65,6 +77,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'مياه الشرب، الصرف الصحي، والري.',
                 'icon' => 'Droplets',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd8',
@@ -73,6 +87,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'تراخيص المركبات، النقل البري والبحري والجوي.',
                 'icon' => 'Plane',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd9',
@@ -81,6 +97,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'خدمات الإنترنت، البريد، والتوقيع الرقمي.',
                 'icon' => 'Wifi',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd10',
@@ -89,6 +107,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'الضرائب، الرسوم، والخدمات المالية.',
                 'icon' => 'Banknote',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd11',
@@ -97,6 +117,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'تراخيص المنشآت السياحية والترويج.',
                 'icon' => 'Map',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ],
             [
                 'id' => 'd12',
@@ -105,6 +127,8 @@ class DirectoratesSeeder extends Seeder
                 'description' => 'تراخيص المصانع والسجلات الصناعية.',
                 'icon' => 'Factory',
                 'is_active' => true,
+                'featured' => false,
+                'logo_path' => null,
             ]
         ];
 

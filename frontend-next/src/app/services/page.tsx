@@ -100,7 +100,7 @@ export default function ServicesPage() {
 
       <main className="flex-grow pt-20">
         {/* Header */}
-        <div className="bg-gov-forest text-white py-16 px-4">
+        <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               {language === 'ar' ? 'دليل الخدمات الحكومية' : 'Government Services Guide'}

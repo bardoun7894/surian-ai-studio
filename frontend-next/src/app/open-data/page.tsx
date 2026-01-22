@@ -65,7 +65,7 @@ export default function OpenDataPage() {
             <Navbar />
 
             <main className="flex-grow pt-20">
-                <div className="bg-gov-forest text-white py-16 px-4">
+                <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <Database size={32} className="text-gov-gold" />

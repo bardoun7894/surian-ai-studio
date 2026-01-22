@@ -69,7 +69,7 @@ export default function SitemapPage() {
             <Navbar />
 
             <main className="flex-grow pt-20">
-                <div className="bg-gov-forest text-white py-12 px-4 shadow-lg">
+                <div className="bg-gov-forest text-white py-12 px-4 shadow-lg animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                             {language === 'ar' ? 'خريطة الموقع' : 'Site Map'}

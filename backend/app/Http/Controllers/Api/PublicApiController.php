@@ -63,6 +63,69 @@ class PublicApiController extends Controller
     }
 
     /**
+     * Get featured directorates (FR-49 to FR-51)
+     * Returns 3 featured directorates with their sub-directorates
+     */
+    public function featuredDirectorates(): JsonResponse
+    {
+        $directorates = Directorate::featured()
+            ->with(['subDirectorates' => function ($query) {
+                $query->active()->ordered();
+            }])
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'id' => (string) $d->id,
+                    'name' => $d->name_ar ?? $d->name,
+                    'name_ar' => $d->name_ar ?? $d->name,
+                    'name_en' => $d->name_en ?? $d->name,
+                    'description' => $d->description_ar ?? $d->description ?? '',
+                    'icon' => $d->icon ?? 'Building2',
+                    'featured' => true,
+                    'subDirectorates' => $d->subDirectorates->map(function ($sub) {
+                        return [
+                            'id' => $sub->id,
+                            'name' => $sub->name_ar,
+                            'name_ar' => $sub->name_ar,
+                            'name_en' => $sub->name_en,
+                            'url' => $sub->url,
+                            'isExternal' => $sub->is_external,
+                        ];
+                    }),
+                ];
+            });
+
+        return response()->json($directorates);
+    }
+
+    /**
+     * Get sub-directorates for a specific directorate
+     */
+    public function directorateSubDirectorates(string $id): JsonResponse
+    {
+        $directorate = Directorate::with(['subDirectorates' => function ($query) {
+            $query->active()->ordered();
+        }])->find($id);
+
+        if (!$directorate) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $subDirectorates = $directorate->subDirectorates->map(function ($sub) {
+            return [
+                'id' => $sub->id,
+                'name' => $sub->name_ar,
+                'name_ar' => $sub->name_ar,
+                'name_en' => $sub->name_en,
+                'url' => $sub->url,
+                'isExternal' => $sub->is_external,
+            ];
+        });
+
+        return response()->json($subDirectorates);
+    }
+
+    /**
      * Get services by directorate
      */
     public function directorateServices(string $id): JsonResponse

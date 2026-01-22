@@ -54,7 +54,9 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         phone: '',
         category: '',
         details: '',
-        directorate: ''
+        directorate: '',
+        hasPreviousComplaint: false,
+        previousTrackingNumber: ''
     });
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -416,6 +418,48 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         />
                                         <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Previous Complaint Field (Added for V2) */}
+                            <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
+                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">تفاصيل الشكوى السابقة</h3>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="hasPreviousComplaint"
+                                            checked={formData.hasPreviousComplaint || false}
+                                            onChange={(e) => setFormData({ ...formData, hasPreviousComplaint: e.target.checked })}
+                                            className="w-5 h-5 rounded border-gray-300 text-gov-forest focus:ring-gov-gold transition-colors cursor-pointer"
+                                        />
+                                        <label htmlFor="hasPreviousComplaint" className="text-gov-charcoal dark:text-white font-bold cursor-pointer select-none">
+                                            هل هذه الشكوى مرتبطة بشكوى سابقة؟
+                                        </label>
+                                    </div>
+
+                                    {formData.hasPreviousComplaint && (
+                                        <div className="animate-fade-in">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                                رقم تذكرة الشكوى السابقة <span className="text-gov-gold">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    required={formData.hasPreviousComplaint}
+                                                    value={formData.previousTrackingNumber || ''}
+                                                    onChange={(e) => setFormData({ ...formData, previousTrackingNumber: e.target.value })}
+                                                    placeholder="مثال: GOV-123456"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
+                                                />
+                                                <History className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            </div>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                يرجى إدخال رقم التذكرة للشكوى السابقة لربطها بهذه الشكوى وتسريع المعالجة.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

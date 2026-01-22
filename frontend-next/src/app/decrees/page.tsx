@@ -38,7 +38,7 @@ export default function DecreesPage() {
       <Navbar />
 
       <main className="flex-grow pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in-up">
 
           {/* Header */}
           <div className="text-center mb-12">

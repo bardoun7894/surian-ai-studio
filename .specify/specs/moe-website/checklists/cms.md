@@ -17,12 +17,12 @@
 - [ ] CHK008 Is the AI drafting/proofreading workflow explicitly defined (e.g., trigger point, acceptance)? [Clarity, Spec §FR-14]
 
 ## Requirement Consistency
-- [ ] CHK009 Are bilingual content requirements (Arabic/English) consistently applied across all content types? [Consistency, Spec §NFR-18]
-- [ ] CHK010 Do role-based access control (RBAC) requirements align with content operations (e.g., who can Publish vs Draft)? [Consistency, Spec §FR-08]
+- [x] CHK009 Are bilingual content requirements (Arabic/English) consistently applied across all content types? [Consistency, Spec §NFR-18]
+- [x] CHK010 Do role-based access control (RBAC) requirements align with content operations (e.g., who can Publish vs Draft)? [Consistency, Spec §FR-08]
 
 ## Security & Access
 - [ ] CHK011 Are access control requirements defined for who can view "Draft" or "Archived" content? [Security, Gap]
-- [ ] CHK012 Are audit logging requirements specified for all content lifecycle events (Create, Update, Publish, Archive)? [Traceability, Spec §FR-40]
+- [x] CHK012 Are audit logging requirements specified for all content lifecycle events (Create, Update, Publish, Archive)? [Traceability, Spec §FR-40]
 
 ## Data Integrity & Edge Cases
 - [ ] CHK013 Is the system behavior defined for concurrent edits to the same content item? [Edge Case, Spec §Edge Cases]

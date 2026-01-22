@@ -251,11 +251,212 @@ This delivers core citizen value: submit and track complaints.
 | 2026-01-14 | PostgreSQL with pgvector | Semantic search requirement |
 | 2026-01-14 | Phase 1-4 as MVP | Delivers core citizen value |
 
+## Phase 16: Customer UI Modifications V2 (Added: 2026-01-21)
+
+**Customer Request Date**: 2026-01-20
+**Scope**: Backend implementation ONLY - No frontend changes without approval
+**Tasks**: [tasks.md Phase 16](./tasks.md#phase-16-customer-ui-modifications-v2-request-date-2026-01-20)
+
+### New Features Overview
+
+#### 1. Featured Directorates Section
+**Business Need**: Showcase 3 main directorates with sub-departments
+**Backend Tasks**:
+- Sub-directorates data model and relationships
+- Featured directorates flag (exactly 3)
+- API endpoints for featured directorates + sub-directorates
+- Admin panel management (Filament)
+
+**Data Model**:
+```
+Directorate (existing)
+├── id, name_ar, name_en, description
+├── featured (new) - boolean
+└── hasMany SubDirectorate
+
+SubDirectorate (new table)
+├── id, parent_directorate_id
+├── name_ar, name_en
+├── url (internal page or external website)
+├── external_link (boolean)
+└── order, is_active
+```
+
+**API Endpoints**:
+- `GET /api/v1/directorates/featured` - Returns 3 featured directorates with sub-directorates
+- `GET /api/v1/directorates/{id}/sub-directorates` - Returns all sub-directorates
+
+#### 2. Suggestions Portal (مقترحات للعالم)
+**Business Need**: Citizens submit project/ministry suggestions with file attachments
+**Backend Tasks**:
+- Suggestions entity with job title, description
+- Multi-file upload support (max 5 files, 10MB each)
+- Status workflow (pending → reviewed → approved/rejected)
+- Rate limiting (3 suggestions per day)
+- Email notifications to admins
+- Admin review panel (Filament)
+
+**Data Model**:
+```
+Suggestion
+├── id, name, job_title, description
+├── status (pending, reviewed, approved, rejected)
+├── user_id (nullable - allows guest submissions)
+├── created_at, updated_at, deleted_at
+
+SuggestionAttachment
+├── id, suggestion_id
+├── file_path, file_name, file_type, file_size
+└── uploaded_at
+```
+
+**API Endpoints**:
+- `POST /api/v1/suggestions` - Submit new suggestion
+- `GET /api/v1/suggestions` - List suggestions (admin only)
+- `PATCH /api/v1/suggestions/{id}/status` - Update status (admin only)
+- `DELETE /api/v1/suggestions/{id}` - Soft delete (admin only)
+
+**Security**:
+- File type validation (pdf, doc, docx, jpg, png only)
+- Virus scanning integration point (future)
+- Rate limiting per IP/user
+- Input sanitization for text fields
+
+#### 3. Previous Complaint Reference
+**Business Need**: Link new complaints to previous submissions for context
+**Backend Tasks**:
+- Add `related_complaint_id` foreign key to complaints table
+- Validation logic to verify tracking number exists
+- Privacy check: Previous complaint must belong to same user (if authenticated)
+
+**API Changes**:
+- Update `POST /api/v1/complaints` - Add optional `previous_tracking_number` parameter
+- Response includes related complaint details
+
+#### 4. Announcements Grid Configuration
+**Business Need**: Display 9 announcements (3x3 grid) instead of 5
+**Backend Tasks**:
+- Update announcements API pagination (default limit: 9)
+- System settings for configurable display count
+- Ensure seeder creates sufficient announcements data
+
+### Technical Architecture Updates
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    PHASE 16 ADDITIONS                    │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  NEW ENTITIES                                            │
+│  ├── SubDirectorate (child of Directorate)              │
+│  ├── Suggestion (standalone portal)                     │
+│  └── SuggestionAttachment (file storage)                │
+│                                                          │
+│  ENHANCED ENTITIES                                       │
+│  ├── Directorate.featured (boolean flag)                │
+│  └── Complaint.related_complaint_id (self-referencing)  │
+│                                                          │
+│  NEW API ENDPOINTS: 9 endpoints                          │
+│  NEW FILAMENT RESOURCES: 2 resources                     │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Implementation Strategy
+
+**Phase 16 Approach**:
+1. ✅ **Backend First**: Implement all data models, APIs, and business logic
+2. ⏸️ **Frontend Deferred**: NO UI changes until customer approves mockups
+3. 📋 **Testing**: Unit and feature tests for all backend logic
+4. 📖 **Documentation**: API docs for new endpoints
+5. 🎨 **Design Review**: Separate process for UI/UX approval
+
+**Why Backend-Only**:
+- Customer wants to review designs before implementation
+- Backend provides stable API for frontend to consume later
+- Allows parallel design work while backend is being built
+- Reduces rework if design changes
+
+### Frontend Tasks (DEFERRED)
+
+The following UI tasks are explicitly **NOT INCLUDED** in Phase 16 and require separate approval:
+
+| UI Component | Customer Requirement | Status |
+|--------------|---------------------|--------|
+| Directorate Cards Section | 3 cards with eagle logo, sub-directorate dropdown | ⏸️ Pending design approval |
+| Animated Hero Background | Moving/gradient background | ⏸️ Pending design approval |
+| AI Assistant Button | Enlarged with "مرحبا بك" text + AI icon | ⏸️ Pending design approval |
+| Announcements 3x3 Grid | 9 cards in grid layout | ⏸️ Pending design approval |
+| Header Suggestions Button | "مقترحات للعالم" navigation button | ⏸️ Pending design approval |
+| Suggestions Form | Name, job, description, file uploads | ⏸️ Pending design approval |
+| Previous Complaint Field | Checkbox + tracking number input | ⏸️ Pending design approval |
+| Duplicate Section Removal | Identify & remove repeated sections | ⏸️ Needs customer specification |
+
+### Risks & Mitigations
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Design changes after backend built | Rework | Use flexible API design, avoid tight coupling |
+| File upload abuse (suggestions) | Performance/Storage | Rate limiting, file size limits, validation |
+| Eagle logo asset unavailable | Visual inconsistency | Provide fallback SVG, request from customer |
+| Sub-directorate data incomplete | Poor UX | Work with customer to populate all 12 directorates |
+| Previous complaint validation complexity | Development delay | Start with simple lookup, iterate |
+
+### Success Criteria (Backend Only)
+
+- [ ] All 9 new API endpoints functional and documented
+- [ ] 56 backend tasks completed with passing tests
+- [ ] Filament admin panels for suggestions and sub-directorates operational
+- [ ] Database migrations run successfully without data loss
+- [ ] API endpoints return data in expected format (verified via Postman/tests)
+- [ ] Rate limiting prevents suggestion spam
+- [ ] File uploads stored securely with proper validation
+
+### Dependencies
+
+**Before Starting Phase 16**:
+- ✅ Phase 1: Backend Foundation (Complete)
+- ✅ Phase 2: Authentication (Complete)
+- ✅ Phase 3: AI Microservice (Complete)
+- ✅ Database schema & seeders (Complete)
+
+**External Dependencies**:
+- Eagle logo asset (request from customer)
+- Sub-directorate data for all 12 directorates (customer to provide)
+- Suggestions portal content/copy (Arabic & English)
+
+### Estimated Effort
+
+| Category | Tasks | Estimated Days |
+|----------|-------|----------------|
+| Database & Models | 10 | 2 days |
+| API Development | 9 | 3 days |
+| Business Logic & Services | 8 | 2 days |
+| Filament Admin Resources | 5 | 1 day |
+| Validation & Security | 7 | 2 days |
+| Testing | 7 | 2 days |
+| Documentation | 3 | 1 day |
+| Data & Configuration | 7 | 1 day |
+| **Total** | **56** | **~14 days** |
+
+**Note**: Frontend implementation (when approved) estimated at additional 10-12 days.
+
+### Decision Log Updates
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-01-21 | Backend-only for Phase 16 | Customer wants design approval before frontend work |
+| 2026-01-21 | Suggestions portal as new entity | Separate from complaints to avoid confusion |
+| 2026-01-21 | Self-referencing complaints | Simpler than complaint threads/chains |
+| 2026-01-21 | Featured flag on directorates | Flexible - allows changing featured set without code changes |
+| 2026-01-21 | 5 file limit for suggestions | Balance between usability and storage costs |
+
 ## Next Steps
 
-1. Review this plan
-2. Execute Phase 1: Backend Foundation
-3. Execute Phase 2: Authentication
-4. Execute Phase 3: Complaint Submission
-5. Execute Phase 4: Complaint Tracking
-6. Review and iterate
+1. ✅ Review this plan (Phase 16 additions)
+2. ✅ Review tasks.md Phase 16 (56 tasks)
+3. ✅ Customer approval for backend scope
+4. 🔄 Execute Phase 16 Backend tasks (if approved)
+5. ⏸️ Parallel: Customer provides design mockups for frontend
+6. ⏸️ Frontend implementation (after design approval)
+7. 🔄 Review and iterate

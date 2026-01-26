@@ -47,11 +47,13 @@ export interface IStaffRepository {
 }
 
 export interface IContentRepository {
-  getAll(params?: any): Promise<{ data: any[], total: number }>;
+  getAll(params?: any): Promise<{ data: any[], total: number, last_page?: number }>;
   create(data: any): Promise<any>;
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<boolean>;
   getById(id: string): Promise<any>;
+  getVersions(id: string): Promise<any[]>;
+  restoreVersion(id: string, versionNumber: number): Promise<any>;
 }
 
 
@@ -275,6 +277,12 @@ class MockContentRepository implements IContentRepository {
   }
   async getById(id: string): Promise<any> {
     return new Promise(resolve => setTimeout(() => resolve({ id, title_ar: 'Mock Content' }), 500));
+  }
+  async getVersions(id: string): Promise<any[]> {
+    return new Promise(resolve => setTimeout(() => resolve([]), 500));
+  }
+  async restoreVersion(id: string, versionNumber: number): Promise<any> {
+    return new Promise(resolve => setTimeout(() => resolve({ id, versionNumber }), 500));
   }
 }
 
@@ -625,6 +633,19 @@ class ApiContentRepository implements IContentRepository {
   }
   async getById(id: string): Promise<any> {
     const res = await fetch(`${API_BASE_URL}/admin/content/${id}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    return res.json();
+  }
+  async getVersions(id: string): Promise<any[]> {
+    const res = await fetch(`${API_BASE_URL}/admin/content/${id}/versions`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    return res.json();
+  }
+  async restoreVersion(id: string, versionNumber: number): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/admin/content/${id}/versions/${versionNumber}/restore`, {
+      method: 'POST',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     return res.json();

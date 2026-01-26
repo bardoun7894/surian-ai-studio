@@ -19,7 +19,10 @@ import {
   Archive,
   CheckCircle,
   FileIcon,
-  Upload
+  Upload,
+  History,
+  RotateCcw,
+  ArrowRightLeft
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,6 +64,10 @@ export default function ContentManagementPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [compareVersion, setCompareVersion] = useState<any | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -242,6 +249,39 @@ export default function ContentManagementPage() {
     });
     setShowEditModal(true);
   };
+  const handleViewHistory = async (content: ContentItem) => {
+    setSelectedContent(content);
+    setShowHistoryModal(true);
+    setIsLoadingVersions(true);
+    try {
+      const data = await API.content.getVersions(content.id.toString());
+      setVersions(data);
+    } catch (error) {
+      console.error('Error fetching versions:', error);
+    } finally {
+      setIsLoadingVersions(false);
+    }
+  };
+
+  const handleRestoreVersion = async (versionNumber: number) => {
+    if (!selectedContent) return;
+    if (!confirm(language === 'ar' ? 'هل أنت متأكد من استعادة هذا الإصدار؟' : 'Are you sure you want to restore this version?')) {
+      return;
+    }
+
+    try {
+      await API.content.restoreVersion(selectedContent.id.toString(), versionNumber);
+      setShowHistoryModal(false);
+      setShowEditModal(false);
+      // Refresh list
+      const response = await API.content.getAll({ page: currentPage, per_page: 15 });
+      setContents(response.data || []);
+      alert(language === 'ar' ? 'تم استعادة الإصدار بنجاح' : 'Version restored successfully');
+    } catch (error) {
+      console.error('Error restoring version:', error);
+      alert(language === 'ar' ? 'فشل استعادة الإصدار' : 'Failed to restore version');
+    }
+  };
 
   const getCategoryLabel = (category: string) => {
     const cat = categories.find(c => c.value === category);
@@ -411,6 +451,13 @@ export default function ContentManagementPage() {
                               title={language === 'ar' ? 'تعديل' : 'Edit'}
                             >
                               <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleViewHistory(content)}
+                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gov-gold transition-colors"
+                              title={language === 'ar' ? 'تاريخ الإصدارات' : 'Version History'}
+                            >
+                              <History size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteContent(content.id)}
@@ -872,11 +919,131 @@ export default function ContentManagementPage() {
         </div>
       )}
 
-      <Footer
-        onIncreaseFont={() => {}}
-        onDecreaseFont={() => {}}
-        onToggleContrast={() => {}}
-      />
-    </div>
-  );
+      {/* Version History Modal */}
+      {showHistoryModal && selectedContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white flex items-center gap-3">
+                <History size={28} className="text-gov-gold" />
+                {language === 'ar' ? 'تاريخ الإصدارات' : 'Version History'}
+                <span className="text-sm font-normal text-gray-400">
+                  {language === 'ar' ? selectedContent.title_ar : (selectedContent.title_en || selectedContent.title_ar)}
+                </span>
+              </h2>
+              <button
+                onClick={() => {
+                  setShowHistoryModal(false);
+                  setCompareVersion(null);
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex-grow flex gap-6 min-h-0">
+              {/* Versions List */}
+              <div className="w-80 shrink-0 border-r border-gray-100 dark:border-white/10 pr-4 overflow-y-auto ltr:border-r ltr:pr-4 rtl:border-l rtl:pl-4">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
+                  {language === 'ar' ? 'الإصدارات السابقة' : 'Past Versions'}
+                </h3>
+                {isLoadingVersions ? (
+                  <div className="py-8 flex justify-center">
+                    <Loader2 className="animate-spin text-gov-gold" size={32} />
+                  </div>
+                ) : versions.length === 0 ? (
+                  <p className="text-gray-400 text-sm italic py-4">
+                    {language === 'ar' ? 'لا توجد إصدارات سابقة' : 'No previous versions'}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {versions.map((version) => (
+                      <button
+                        key={version.version_number}
+                        onClick={() => setCompareVersion(version)}
+                        className={`w-full text-right rtl:text-right ltr:text-left p-3 rounded-xl transition-all border ${compareVersion?.version_number === version.version_number
+                            ? 'bg-gov-gold/10 border-gov-gold'
+                            : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-gov-charcoal dark:text-white">
+                            {language === 'ar' ? `إصدار #${version.version_number}` : `Version #${version.version_number}`}
+                          </span>
+                          <span className="text-[10px] bg-gov-teal/10 text-gov-teal px-1.5 py-0.5 rounded">
+                            {version.user?.name || 'Admin'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {new Date(version.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Version Detail / Comparison */}
+              <div className="flex-1 overflow-y-auto ltr:pl-4 rtl:pr-4">
+                {compareVersion ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-lg text-gov-charcoal dark:text-white">
+                        {language === 'ar' ? `مقارنة الإصدار #${compareVersion.version_number}` : `Comparing Version #${compareVersion.version_number}`}
+                      </h3>
+                      <button
+                        onClick={() => handleRestoreVersion(compareVersion.version_number)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gov-teal text-white text-sm font-bold rounded-xl hover:bg-gov-emerald transition-colors shadow-md"
+                      >
+                        <RotateCcw size={16} />
+                        {language === 'ar' ? 'استعادة هذا الإصدار' : 'Restore this version'}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Current Content */}
+                      <div className="space-y-3">
+                        <p className="text-xs font-bold text-gray-400 uppercase">
+                          {language === 'ar' ? 'المحتوى الحالي' : 'Current Content'}
+                        </p>
+                        <div className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl text-sm min-h-[200px]">
+                          <h4 className="font-bold mb-2">{selectedContent.title_ar}</h4>
+                          <div className="whitespace-pre-wrap text-gray-600 dark:text-gray-300">
+                            {selectedContent.content_ar}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Selected Version */}
+                      <div className="space-y-3">
+                        <p className="text-xs font-bold text-gov-gold uppercase">
+                          {language === 'ar' ? `إصدار #${compareVersion.version_number}` : `Version #${compareVersion.version_number}`}
+                        </p>
+                        <div className="p-4 bg-gov-gold/5 border border-gov-gold/20 rounded-2xl text-sm min-h-[200px]">
+                          <h4 className="font-bold mb-2">{compareVersion.title_ar}</h4>
+                          <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-200">
+                            {compareVersion.content_ar}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                    <ArrowRightLeft size={48} className="mb-4 opacity-20" />
+                    <p>{language === 'ar' ? 'اختر إصداراً للمقارنة' : 'Select a version to compare'}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Footer
+            onIncreaseFont={() => { }}
+            onDecreaseFont={() => { }}
+            onToggleContrast={() => { }}
+          />
+        </div>
+      );
 }

@@ -41,7 +41,8 @@ const RegisterPage = () => {
         governorate: '',
         password: '',
         confirmPassword: '',
-        agreeTerms: false
+        agreeTerms: false,
+        twoFactorEnabled: false
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -83,7 +84,8 @@ const RegisterPage = () => {
                 national_id: formData.nationalId,
                 phone: formData.phone,
                 birth_date: formData.birthDate,
-                governorate: formData.governorate
+                governorate: formData.governorate,
+                two_factor_enabled: formData.twoFactorEnabled
             });
 
             // Redirect to dashboard
@@ -444,6 +446,34 @@ const RegisterPage = () => {
                                                 <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{language === 'ar' ? 'رقم واحد على الأقل' : 'At least one number'}</span>
                                             </li>
                                         </ul>
+                                    </div>
+
+                                    {/* 2FA Toggle */}
+                                    <div className="p-4 bg-gov-teal/5 dark:bg-gov-teal/10 rounded-xl border border-gov-teal/10 dark:border-gov-teal/20 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gov-teal/20 flex items-center justify-center">
+                                                    <Shield size={20} className="text-gov-teal" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-gov-charcoal dark:text-white">
+                                                        {language === 'ar' ? 'المصادقة الثنائية (2FA)' : 'Two-Factor Authentication (2FA)'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {language === 'ar' ? 'طبقة حماية إضافية لحسابك' : 'Extra layer of security for your account'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.twoFactorEnabled}
+                                                    onChange={(e) => setFormData({ ...formData, twoFactorEnabled: e.target.checked })}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] rtl:after:left-auto rtl:after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {/* Terms Agreement */}

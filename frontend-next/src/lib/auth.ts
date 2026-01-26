@@ -42,6 +42,7 @@ export interface RegisterData {
   phone?: string;
   birth_date?: string;
   governorate?: string;
+  two_factor_enabled?: boolean;
 }
 
 export interface AuthResponse {

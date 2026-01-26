@@ -189,7 +189,7 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        Route::middleware('role:admin.*')->prefix('admin')->group(function () {
+        Route::middleware(['role:admin.*', 'admin.ip'])->prefix('admin')->group(function () {
             // User Management (FR-01 to FR-10)
             Route::get('users', [\App\Http\Controllers\UserController::class, 'index']);
             Route::get('users/{id}', [\App\Http\Controllers\UserController::class, 'show']);

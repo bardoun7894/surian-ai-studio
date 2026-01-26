@@ -36,7 +36,12 @@ class User extends Authenticatable implements FilamentUser
         'directorate_id',
         'national_id',
         'phone',
+        'birth_date',
+        'governorate',
         'is_active',
+        'two_factor_enabled',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
         'otp',
         'otp_expires_at',
         'notification_preferences',
@@ -56,6 +61,8 @@ class User extends Authenticatable implements FilamentUser
         'otp_expires_at',
         'password_reset_token',
         'password_reset_expires_at',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -69,6 +76,8 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'two_factor_enabled' => 'boolean',
+            'birth_date' => 'date',
             'otp_expires_at' => 'datetime',
             'notification_preferences' => 'array',
             'password_reset_expires_at' => 'datetime',

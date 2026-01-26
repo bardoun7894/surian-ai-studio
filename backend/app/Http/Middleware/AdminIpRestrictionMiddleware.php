@@ -19,7 +19,7 @@ class AdminIpRestrictionMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Check if IP restriction is enabled
-        if (!config('services.admin.ip_restriction_enabled', false)) {
+        if (!\App\Models\SystemSetting::get('admin_ip_restriction_enabled', false)) {
             return $next($request);
         }
 
@@ -52,14 +52,18 @@ class AdminIpRestrictionMiddleware
     }
 
     /**
-     * Get list of allowed IPs/ranges from config
+     * Get list of allowed IPs/ranges from settings
      */
     protected function getAllowedIps(): array
     {
-        $ips = config('services.admin.allowed_ips', '');
+        $ips = \App\Models\SystemSetting::get('admin_allowed_ips', '');
 
         if (empty($ips)) {
             return [];
+        }
+
+        if (is_array($ips)) {
+            return $ips;
         }
 
         return array_map('trim', explode(',', $ips));

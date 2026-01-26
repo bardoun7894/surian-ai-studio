@@ -164,19 +164,30 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'birth_date' => 'nullable|date',
+            'governorate' => 'nullable|string|max:255',
+            'password' => 'nullable|min:8|confirmed',
         ]);
         
-        $oldData = $user->only(['name', 'phone', 'email']);
+        $oldData = $user->only(['name', 'phone', 'email', 'birth_date', 'governorate']);
 
-        $user->update([
+        $updateData = [
             'name' => $request->name,
             'phone' => $request->phone,
             'email' => $request->email,
-        ]);
+            'birth_date' => $request->birth_date,
+            'governorate' => $request->governorate,
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
         
         $this->auditService->log($user, 'profile_updated', 'user', $user->id, [
             'old' => $oldData,
-            'new' => $user->only(['name', 'phone', 'email'])
+            'new' => $user->only(['name', 'phone', 'email', 'birth_date', 'governorate'])
         ]);
 
         return response()->json([
@@ -300,7 +311,11 @@ class UserController extends Controller
             'password' => 'required|min:8|confirmed',
             'national_id' => 'required|unique:users,national_id',
             'phone' => 'required|string',
+            'birth_date' => 'nullable|date',
+            'governorate' => 'nullable|string|max:255',
         ]);
+
+        $citizenRole = Role::where('name', 'citizen')->first();
 
         $user = User::create([
             'name' => $request->name,
@@ -308,19 +323,22 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'national_id' => $request->national_id,
             'phone' => $request->phone,
+            'birth_date' => $request->birth_date,
+            'governorate' => $request->governorate,
+            'two_factor_enabled' => $request->boolean('two_factor_enabled'),
             'is_active' => true,
-            // role_id null means Citizen/Guest, or assign a specific Citizen role if exists
+            'role_id' => $citizenRole ? $citizenRole->id : null,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
         
-        // $this->auditService->log($user, 'registered', 'user', $user->id); // Log action?
+        $this->auditService->log($user, 'registered', 'user', $user->id);
 
         return response()->json([
             'message' => 'Account created successfully.',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user->load('role')
         ], 201);
     }
 }

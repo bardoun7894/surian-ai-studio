@@ -89,7 +89,7 @@ const ResetPasswordPage = () => {
                         />
                     </div>
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والتجارة الخارجية' : 'Ministry of Economy & Foreign Trade'}
+                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
                     </h1>
                 </div>
             </div>

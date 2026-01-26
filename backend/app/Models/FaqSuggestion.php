@@ -21,6 +21,9 @@ class FaqSuggestion extends Model
         'reviewed_at',
         'review_notes',
         'created_faq_id',
+        // Snooze feature (FR-58)
+        'snoozed_until',
+        'snoozed_by',
     ];
 
     protected $casts = [
@@ -28,6 +31,7 @@ class FaqSuggestion extends Model
         'confidence_score' => 'float',
         'occurrence_count' => 'integer',
         'reviewed_at' => 'datetime',
+        'snoozed_until' => 'datetime',
     ];
 
     public function reviewer(): BelongsTo
@@ -119,5 +123,72 @@ class FaqSuggestion extends Model
         $this->reviewed_at = now();
         $this->review_notes = $notes;
         $this->save();
+    }
+
+    /**
+     * Get the user who snoozed this suggestion
+     */
+    public function snoozedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'snoozed_by');
+    }
+
+    /**
+     * Scope to exclude snoozed suggestions
+     */
+    public function scopeNotSnoozed($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('snoozed_until')
+              ->orWhere('snoozed_until', '<=', now());
+        });
+    }
+
+    /**
+     * Scope to get only snoozed suggestions
+     */
+    public function scopeSnoozed($query)
+    {
+        return $query->where('snoozed_until', '>', now());
+    }
+
+    /**
+     * Check if suggestion is currently snoozed
+     */
+    public function isSnoozed(): bool
+    {
+        return $this->snoozed_until && $this->snoozed_until->isFuture();
+    }
+
+    /**
+     * Snooze the suggestion (FR-58)
+     * Allowed periods: 1 day, 3 days, 1 week
+     */
+    public function snooze(string $period, int $userId): bool
+    {
+        $days = match($period) {
+            '1_day' => 1,
+            '3_days' => 3,
+            '1_week' => 7,
+            default => null,
+        };
+
+        if ($days === null) {
+            return false;
+        }
+
+        $this->snoozed_until = now()->addDays($days);
+        $this->snoozed_by = $userId;
+        return $this->save();
+    }
+
+    /**
+     * Unsnooze the suggestion
+     */
+    public function unsnooze(): bool
+    {
+        $this->snoozed_until = null;
+        $this->snoozed_by = null;
+        return $this->save();
     }
 }

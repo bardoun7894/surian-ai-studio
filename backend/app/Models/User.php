@@ -40,6 +40,8 @@ class User extends Authenticatable implements FilamentUser
         'otp',
         'otp_expires_at',
         'notification_preferences',
+        'password_reset_token',
+        'password_reset_expires_at',
     ];
 
     /**
@@ -52,6 +54,8 @@ class User extends Authenticatable implements FilamentUser
         'remember_token',
         'otp',
         'otp_expires_at',
+        'password_reset_token',
+        'password_reset_expires_at',
     ];
 
     /**
@@ -67,6 +71,7 @@ class User extends Authenticatable implements FilamentUser
             'is_active' => 'boolean',
             'otp_expires_at' => 'datetime',
             'notification_preferences' => 'array',
+            'password_reset_expires_at' => 'datetime',
         ];
     }
 

@@ -28,6 +28,23 @@ class SettingsController extends Controller
     }
 
     /**
+     * FR-42: Get UI settings (T-MOD-038)
+     */
+    public function getUiSettings(): JsonResponse
+    {
+        $settings = SystemSetting::where('group', 'ui')
+            ->where('is_public', true)
+            ->get()
+            ->mapWithKeys(function ($setting) {
+                return [$setting->key => $setting->getTypedValue()];
+            });
+
+        return response()->json([
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
      * FR-42: Get all settings grouped by category (admin only)
      */
     public function index(): JsonResponse

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'ar' | 'en';
@@ -51,7 +53,7 @@ const translations: Record<string, Record<Language, string>> = {
   'news_breaking': { ar: 'أخبار عاجلة', en: 'Breaking News' },
   // External Link Modal
   'external_link_warning_title': { ar: 'تنبيه مغادرة الموقع', en: 'Leaving Website Warning' },
-  'external_link_warning_desc': { ar: 'أنت على وشك مغادرة موقع وزارة الاقتصاد والتجارة الخارجية. الوزارة ليست مسؤولة عن محتوى الروابط الخارجية.', en: 'You are about to leave Ministry of Economy & Foreign Trade website. The Ministry is not responsible for the content of external links.' },
+  'external_link_warning_desc': { ar: 'أنت على وشك مغادرة موقع وزارة الاقتصاد والصناعة. الوزارة ليست مسؤولة عن محتوى الروابط الخارجية.', en: 'You are about to leave Ministry of Economy and Industry website. The Ministry is not responsible for the content of external links.' },
   'external_link_stay': { ar: 'البقاء في الموقع', en: 'Stay Here' },
   'external_link_continue': { ar: 'متابعة', en: 'Continue' },
   'read_more': { ar: 'اقرأ المزيد', en: 'Read More' },
@@ -69,7 +71,7 @@ const translations: Record<string, Record<Language, string>> = {
   'open_data': { ar: 'البيانات المفتوحة', en: 'Open Data' },
   'site_map': { ar: 'خريطة الموقع (Site Map)', en: 'Site Map' },
   'contact_center': { ar: 'مركز الاتصال الموحد', en: 'Unified Contact Center' },
-  'damascus_address': { ar: 'دمشق - تنظيم كفرسوسة - مبنى رئاسة مجلس الوزراء', en: 'Damascus - Kafr Sousa - Prime Ministry Building' },
+  'damascus_address': { ar: 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة', en: 'Damascus - Governorate Square - Ministry of Economy and Industry Building' },
   'copyright': { ar: '© 2025 الجمهورية العربية السورية - جميع الحقوق محفوظة.', en: '© 2025 Syrian Arab Republic - All Rights Reserved.' },
   'footer_desc': { ar: 'البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة. المصدر الموثوق للمعلومات والخدمات.', en: 'The Official E-Portal for the Ministry of Economy and Industry. The trusted source for information and services.' },
 
@@ -82,21 +84,27 @@ const translations: Record<string, Record<Language, string>> = {
   // Quick Services
   'quick_services_title': { ar: 'الخدمات الأكثر طلباً', en: 'Most Requested Services' },
   'quick_services_subtitle': { ar: 'وصول سريع لأهم الخدمات الحكومية الإلكترونية', en: 'Quick access to the most important e-government services' },
-  'service_passport': { ar: 'جواز السفر الإلكتروني', en: 'E-Passport' },
-  'service_traffic': { ar: 'دفع المخالفات المرورية', en: 'Traffic Fines Payment' },
-  'service_electricity': { ar: 'دفع فاتورة الكهرباء', en: 'Electricity Bill Payment' },
-  'service_exams': { ar: 'نتائج الامتحانات', en: 'Exam Results' },
-  'service_clearance': { ar: 'براءة ذمة مالية', en: 'Financial Clearance' },
-  'service_property': { ar: 'بيان ملكية عقارية', en: 'Property Statement' },
+  'service_industrial_license': { ar: 'ترخيص منشأة صناعية', en: 'Industrial Facility License' },
+  'service_import_license': { ar: 'إجازة استيراد', en: 'Import License' },
+  'service_export_license': { ar: 'إجازة تصدير', en: 'Export License' },
+  'service_sme_financing': { ar: 'تمويل المشاريع الصغيرة', en: 'SME Financing' },
+  'service_consumer_complaint': { ar: 'شكوى حماية المستهلك', en: 'Consumer Protection Complaint' },
+  'service_company_registration': { ar: 'تسجيل شركة تجارية', en: 'Commercial Company Registration' },
   'access_service': { ar: 'الوصول للخدمة', en: 'Access Service' },
 
   // Stats & Achievements
   'stats_title': { ar: 'إنجازاتنا بالأرقام', en: 'Our Achievements in Numbers' },
+  'stats_achievements_title': { ar: 'إنجازات البوابة بالأرقام', en: 'Portal Achievements In Numbers' },
   'stats_subtitle': { ar: 'نعمل على تطوير الخدمات الحكومية لتحقيق رؤية سوريا الرقمية', en: 'Working to develop government services to achieve Syria digital vision' },
   'stat_total_services': { ar: 'خدمة إلكترونية', en: 'E-Services' },
   'stat_transactions': { ar: 'معاملة منجزة', en: 'Completed Transactions' },
   'stat_complaints_resolved': { ar: 'شكوى محلولة', en: 'Resolved Complaints' },
   'stat_satisfaction': { ar: 'نسبة رضا المستخدمين', en: 'User Satisfaction' },
+
+  // Happiness Indicator
+  'happiness_title': { ar: 'كيف كانت تجربتك؟', en: 'How was your experience?' },
+  'happiness_subtitle': { ar: 'رأيك يهمنا لتطوير خدماتنا بشكل مستمر', en: 'Your opinion matters for our continuous development' },
+  'happiness_thanks': { ar: 'شكراً لتقييمك!', en: 'Thank you for your rating!' },
 
   // Partners
   'partners_title': { ar: 'الجهات الحكومية الشريكة', en: 'Government Partners' },
@@ -187,7 +195,7 @@ const translations: Record<string, Record<Language, string>> = {
   // Chat Bot
   'chat_title': { ar: 'المساعد الحكومي الذكي', en: 'Smart Government Assistant' },
   'chat_online': { ar: 'متصل الآن - يحتفظ بالسياق', en: 'Online - Maintains Context' },
-  'chat_welcome': { ar: 'مرحباً بك في البوابة الإلكترونية للحكومة السورية. أنا المساعد الذكي، كيف يمكنني مساعدتك اليوم؟', en: 'Welcome to the Syrian Government E-Portal. I am the smart assistant, how can I help you today?' },
+  'chat_welcome': { ar: 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك في خدمات الصناعة والتجارة والاقتصاد؟', en: 'Welcome to the Ministry of Economy and Industry E-Portal. I am the smart assistant, how can I help you with industry, trade, and economy services today?' },
   'chat_placeholder': { ar: 'اكتب استفسارك هنا...', en: 'Type your inquiry here...' },
   'chat_attach': { ar: 'إرفاق صورة أو مستند', en: 'Attach image or document' },
   'chat_attach_title': { ar: 'إرفاق صورة أو مستند', en: 'Attach image or document' },
@@ -242,8 +250,8 @@ const translations: Record<string, Record<Language, string>> = {
   'faq_a2': { ar: 'نعم، النظام يتيح تقديم الشكاوى بشكل سري، ولكن يفضل تزويدنا بمعلومات الاتصال لنتمكن من متابعة الحل معك.', en: 'Yes, the system allows anonymous complaint submission, but it is preferable to provide contact information so we can follow up with you on the resolution.' },
   'faq_q3': { ar: 'كم تستغرق معالجة طلبات الخدمات الإلكترونية؟', en: 'How long does it take to process e-service requests?' },
   'faq_a3': { ar: 'تختلف المدة حسب نوع الخدمة، ولكن معظم الخدمات الإلكترونية الفورية (مثل استخراج البيانات) تتم خلال دقائق. المعاملات التي تتطلب تدقيقاً قد تستغرق من 1 إلى 3 أيام عمل.', en: 'The duration varies depending on the service type, but most instant e-services (such as data extraction) are completed within minutes. Transactions requiring verification may take 1 to 3 business days.' },
-  'faq_q4': { ar: 'ما هي الوثائق المطلوبة لتجديد جواز السفر؟', en: 'What documents are required for passport renewal?' },
-  'faq_a4': { ar: 'يتطلب تجديد جواز السفر: الهوية الشخصية، صورة شخصية حديثة، ودفع الرسوم الإلكترونية. يمكنك إتمام العملية كاملة عبر قسم "وزارة الداخلية" في البوابة.', en: 'Passport renewal requires: Personal ID, recent photo, and electronic fee payment. You can complete the entire process through the "Ministry of Interior" section on the portal.' },
+  'faq_q4': { ar: 'ما هي الوثائق المطلوبة للحصول على ترخيص منشأة صناعية؟', en: 'What documents are required for an industrial facility license?' },
+  'faq_a4': { ar: 'يتطلب الحصول على ترخيص منشأة صناعية: دراسة جدوى اقتصادية، مخططات الموقع، الوثائق القانونية للشركة، والموافقات البيئية. يمكنك إتمام العملية عبر الإدارة العامة للصناعة.', en: 'Industrial facility license requires: economic feasibility study, site plans, company legal documents, and environmental approvals. You can complete the process through the General Administration for Industry.' },
   'faq_q5': { ar: 'كيف يمكنني دفع الرسوم الحكومية؟', en: 'How can I pay government fees?' },
   'faq_a5': { ar: 'تدعم البوابة الدفع الإلكتروني عبر المصارف العامة والخاصة المرتبطة بشبكة المدفوعات الوطنية، بالإضافة إلى الدفع عبر شركات الهاتف المحمول.', en: 'The portal supports electronic payment through public and private banks connected to the national payment network, in addition to payment through mobile phone companies.' },
 
@@ -324,7 +332,7 @@ const translations: Record<string, Record<Language, string>> = {
   'auth_secure': { ar: 'اتصال آمن ومشفر', en: 'Secure encrypted connection' },
   'auth_verify': { ar: 'تحقق من الهوية', en: 'Identity verification' },
   'auth_protect': { ar: 'حماية بياناتك الشخصية', en: 'Personal data protection' },
-  'auth_ministry_name': { ar: 'وزارة الاقتصاد والتجارة الخارجية', en: 'Ministry of Economy & Foreign Trade' },
+  'auth_ministry_name': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
   'auth_enter_email': { ar: 'أدخل بريدك الإلكتروني', en: 'Enter your email' },
   'auth_enter_phone': { ar: '09xxxxxxxx', en: '09xxxxxxxx' },
   'auth_enter_national_id': { ar: 'أدخل الرقم الوطني', en: 'Enter your national ID' },
@@ -398,7 +406,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Media Center
   'media_center_title': { ar: 'المركز الإعلامي', en: 'Media Center' },
-  'media_center_subtitle': { ar: 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من رئاسة مجلس الوزراء', en: 'Official video, photo, and infographic library from Prime Ministry' },
+  'media_center_subtitle': { ar: 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من وزارة الاقتصاد والصناعة', en: 'Official video, photo, and infographic library from Ministry of Economy and Industry' },
   'media_filter_all': { ar: 'الكل', en: 'All' },
   'media_filter_video': { ar: 'فيديو', en: 'Videos' },
   'media_filter_photo': { ar: 'صور', en: 'Photos' },
@@ -450,11 +458,9 @@ const translations: Record<string, Record<Language, string>> = {
   'sitemap_account': { ar: 'حساب المستخدم', en: 'User Account' },
   'sitemap_sub_pages': { ar: 'صفحة فرعية', en: 'sub-pages' },
   'sitemap_service_categories': { ar: 'فئات الخدمات (14 فئة)', en: 'Service Categories (14)' },
-  'sitemap_ministry_interior': { ar: 'وزارة الداخلية', en: 'Ministry of Interior' },
-  'sitemap_ministry_justice': { ar: 'وزارة العدل', en: 'Ministry of Justice' },
-  'sitemap_ministry_health': { ar: 'وزارة الصحة', en: 'Ministry of Health' },
-  'sitemap_ministry_education': { ar: 'وزارة التربية', en: 'Ministry of Education' },
-  'sitemap_ministry_finance': { ar: 'وزارة المالية', en: 'Ministry of Finance' },
+  'sitemap_industry': { ar: 'الإدارة العامة للصناعة', en: 'General Administration for Industry' },
+  'sitemap_economy': { ar: 'الإدارة العامة للاقتصاد', en: 'General Administration for Economy' },
+  'sitemap_trade': { ar: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', en: 'General Administration for Internal Trade & Consumer Protection' },
   'sitemap_legislative_decrees': { ar: 'المراسيم التشريعية', en: 'Legislative Decrees' },
   'sitemap_laws': { ar: 'القوانين', en: 'Laws' },
   'sitemap_presidential_decisions': { ar: 'القرارات الرئاسية', en: 'Presidential Decisions' },
@@ -503,11 +509,11 @@ const translations: Record<string, Record<Language, string>> = {
   'directorate_paper_guide': { ar: 'عرض دليل المعاملات الورقية', en: 'View Paper Transactions Guide' },
   'directorate_news': { ar: 'آخر أخبار الوزارة', en: 'Latest Ministry News' },
   'directorate_contact': { ar: 'معلومات التواصل', en: 'Contact Information' },
-  'directorate_address': { ar: 'دمشق - تنظيم كفرسوسة - مبنى رئاسة مجلس الوزراء', en: 'Damascus - Kafr Sousa - Prime Ministry Building' },
+  'directorate_address': { ar: 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة', en: 'Damascus - Governorate Square - Ministry of Economy and Industry Building' },
   'directorate_phone': { ar: '+963 11 222 3333', en: '+963 11 222 3333' },
   'directorate_email': { ar: 'contact@ministry.gov.sy', en: 'contact@ministry.gov.sy' },
   'directorate_website': { ar: 'www.ministry.gov.sy', en: 'www.ministry.gov.sy' },
-  'contact_address_damascus': { ar: 'دمشق - تنظيم كفرسوسة - مبنى رئاسة مجلس الوزراء', en: 'Damascus - Kafr Sousa - Prime Ministry Building' },
+  'contact_address_damascus': { ar: 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة', en: 'Damascus - Governorate Square - Ministry of Economy and Industry Building' },
   'directorate_hours': { ar: 'أوقات الدوام الرسمي', en: 'Official Working Hours' },
   'directorate_hours_sun_thu': { ar: 'الأحد - الخميس', en: 'Sunday - Thursday' },
   'directorate_hours_value': { ar: '08:00 ص - 03:30 م', en: '08:00 AM - 03:30 PM' },

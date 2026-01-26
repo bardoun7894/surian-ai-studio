@@ -82,7 +82,7 @@ export const auth = {
    */
   async getUser(): Promise<User | null> {
     try {
-      const response = await api.get<{ user: User }>('/users/me');
+      const response = await api.get<{ user: User }>('/auth/me');
       return response.user;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {

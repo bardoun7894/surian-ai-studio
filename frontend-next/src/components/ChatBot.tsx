@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles } from 'lucide-react';
 import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Attachment {
     name: string;
@@ -18,8 +19,10 @@ const ChatBot: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [attachment, setAttachment] = useState<Attachment | null>(null);
     const [sessionId, setSessionId] = useState<string>('');
+    const [showWelcome, setShowWelcome] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { language } = useLanguage();
 
     // Initialize session ID and load history from API
     useEffect(() => {
@@ -68,7 +71,7 @@ const ChatBot: React.FC = () => {
     const resetChat = async () => {
         const welcomeMsg: ChatMessage = {
             id: 'welcome',
-            text: 'مرحباً بك في البوابة الإلكترونية للحكومة السورية. أنا المساعد الذكي، كيف يمكنني مساعدتك اليوم؟',
+            text: 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك في خدمات الصناعة والتجارة والاقتصاد؟',
             sender: 'bot',
             timestamp: new Date()
         };
@@ -225,52 +228,64 @@ const ChatBot: React.FC = () => {
         }
     };
 
+    // FR-59: Enhanced AI Assistant button with larger size and AI indicator
+    const welcomeText = language === 'ar'
+        ? 'مرحباً! أنا مساعدك الذكي'
+        : 'Hello! I\'m your AI assistant';
+
     return (
         <>
-            {/* Floating Button with Enhanced UI */}
-            <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3 pointer-events-none">
-                {/* Welcome Balloon - Automatically shown initially or on hover */}
-                <div className={`pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-4 py-2 rounded-2xl rounded-br-none shadow-xl border border-gov-gold/20 mb-1 transform transition-all duration-500 origin-bottom-right flex items-center gap-2 ${isOpen ? 'opacity-0 scale-90' : 'opacity-100 scale-100 animate-bounce-slight'}`}>
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-teal opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-gov-teal"></span>
-                    </span>
-                    <span className="text-sm font-bold whitespace-nowrap">مرحباً بك بالمساعد الذكي 👋</span>
+            {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
+            <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-none">
+                {/* Welcome Balloon - Bilingual with AI indicator */}
+                <div
+                    className={`pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 mb-1 transform transition-all duration-500 origin-bottom-right flex items-center gap-3 ${isOpen || !showWelcome ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}
+                >
+                    <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
+                    <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
+                    <button
+                        onClick={() => setShowWelcome(false)}
+                        className="text-gray-400 hover:text-gray-600 ml-1"
+                    >
+                        <X size={14} />
+                    </button>
                 </div>
 
+                {/* FR-59: Professional Flat Button */}
                 <button
                     onClick={() => setIsOpen(true)}
-                    className={`pointer-events-auto bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest p-4 md:p-5 rounded-full shadow-2xl hover:bg-gov-teal dark:hover:bg-white hover:scale-110 transition-all duration-300 group relative ${isOpen ? 'hidden' : 'flex'}`}
+                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'}`}
                 >
                     {/* Icon */}
-                    <MessageSquare size={28} className="md:w-8 md:h-8" />
+                    <div className="relative flex items-center justify-center">
+                        <MessageSquare size={28} />
+                    </div>
 
-                    {/* Notification Badge */}
-                    <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white dark:border-gov-forest"></span>
+                    {/* Online indicator */}
+                    <span className="absolute bottom-1 right-1 flex h-3 w-3">
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
                     </span>
                 </button>
             </div>
 
             {/* Chat Window Container */}
             <div
-                className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
+                className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
             inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[600px] sm:max-h-[80vh]
         `}
             >
                 {/* Header */}
-                <div className="bg-gov-forest p-4 flex justify-between items-center text-white shrink-0">
+                <div className="bg-gov-forest p-4 flex justify-between items-center text-white shrink-0 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="bg-white/10 p-2 rounded-full">
+                        <div className="bg-white/10 p-2 rounded-lg">
                             <Bot size={20} />
                         </div>
                         <div>
-                            <h3 className="font-display font-bold text-sm tracking-wide">المساعد الحكومي الذكي</h3>
+                            <h3 className="font-bold text-sm tracking-wide">المساعد الحكومي الذكي</h3>
                             <div className="flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 bg-gov-emerald rounded-full"></span>
-                                <span className="text-[10px] opacity-80">متصل الآن - يحتفظ بالسياق</span>
+                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                                <span className="text-[10px] opacity-80">متصل الآن</span>
                             </div>
                         </div>
                     </div>

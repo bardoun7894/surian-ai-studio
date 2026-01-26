@@ -146,14 +146,12 @@ function NotificationPreferencesContent() {
       <button
         onClick={onToggle}
         disabled={disabled}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          enabled ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-white/20'
-        } ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-white/20'
+          } ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          }`}
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'
+            }`}
         />
       </button>
     </div>
@@ -192,34 +190,32 @@ function NotificationPreferencesContent() {
           ) : (
             <div className="space-y-6">
               {/* Email Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-gov-gold/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Mail className="text-blue-500" size={20} />
+              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+                <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                      <Mail size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white">
+                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white font-display">
                         {language === 'ar' ? 'إشعارات البريد الإلكتروني' : 'Email Notifications'}
                       </h2>
-                      <p className="text-sm text-gray-500">{user?.email}</p>
+                      <p className="text-sm text-gov-stone dark:text-gov-beige/60 font-mono mt-1">{user?.email}</p>
                     </div>
                     <button
                       onClick={() => togglePreference('email_enabled')}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        preferences.email_enabled ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-white/20'
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-gold ${preferences.email_enabled ? 'bg-gov-forest dark:bg-gov-gold' : 'bg-gov-stone/20 dark:bg-white/10'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          preferences.email_enabled ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${preferences.email_enabled ? (language === 'ar' ? '-translate-x-6' : 'translate-x-6') : (language === 'ar' ? '-translate-x-1' : 'translate-x-1')
+                          }`}
                       />
                     </button>
                   </div>
                 </div>
 
-                <div className="px-6 divide-y divide-gray-100 dark:divide-gov-gold/10">
+                <div className="px-6 divide-y divide-gov-stone/5 dark:divide-white/5">
                   <PreferenceToggle
                     enabled={preferences.email_complaint_updates}
                     onToggle={() => togglePreference('email_complaint_updates')}
@@ -260,36 +256,34 @@ function NotificationPreferencesContent() {
               </div>
 
               {/* Push Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-gov-gold/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                      <Bell className="text-purple-500" size={20} />
+              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+                <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                      <Bell size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white">
+                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white font-display">
                         {language === 'ar' ? 'إشعارات الموقع' : 'Push Notifications'}
                       </h2>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gov-stone dark:text-gov-beige/60 mt-1">
                         {language === 'ar' ? 'إشعارات داخل المتصفح' : 'In-browser notifications'}
                       </p>
                     </div>
                     <button
                       onClick={() => togglePreference('push_enabled')}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        preferences.push_enabled ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-white/20'
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-gold ${preferences.push_enabled ? 'bg-gov-forest dark:bg-gov-gold' : 'bg-gov-stone/20 dark:bg-white/10'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          preferences.push_enabled ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${preferences.push_enabled ? (language === 'ar' ? '-translate-x-6' : 'translate-x-6') : (language === 'ar' ? '-translate-x-1' : 'translate-x-1')
+                          }`}
                       />
                     </button>
                   </div>
                 </div>
 
-                <div className="px-6 divide-y divide-gray-100 dark:divide-gov-gold/10">
+                <div className="px-6 divide-y divide-gov-stone/5 dark:divide-white/5">
                   <PreferenceToggle
                     enabled={preferences.push_complaint_updates}
                     onToggle={() => togglePreference('push_complaint_updates')}
@@ -312,37 +306,35 @@ function NotificationPreferencesContent() {
               </div>
 
               {/* SMS Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-gov-gold/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <Smartphone className="text-green-500" size={20} />
+              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+                <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                      <Smartphone size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white">
+                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white font-display">
                         {language === 'ar' ? 'إشعارات SMS' : 'SMS Notifications'}
                       </h2>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gov-stone dark:text-gov-beige/60 font-mono mt-1">
                         {user?.phone || (language === 'ar' ? 'لم يتم تسجيل رقم هاتف' : 'No phone number registered')}
                       </p>
                     </div>
                     <button
                       onClick={() => togglePreference('sms_enabled')}
                       disabled={!user?.phone}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        preferences.sms_enabled ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-white/20'
-                      } ${!user?.phone ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-gold ${preferences.sms_enabled ? 'bg-gov-forest dark:bg-gov-gold' : 'bg-gov-stone/20 dark:bg-white/10'
+                        } ${!user?.phone ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          preferences.sms_enabled ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${preferences.sms_enabled ? (language === 'ar' ? '-translate-x-6' : 'translate-x-6') : (language === 'ar' ? '-translate-x-1' : 'translate-x-1')
+                          }`}
                       />
                     </button>
                   </div>
                 </div>
 
-                <div className="px-6 divide-y divide-gray-100 dark:divide-gov-gold/10">
+                <div className="px-6 divide-y divide-gov-stone/5 dark:divide-white/5">
                   <PreferenceToggle
                     enabled={preferences.sms_urgent_only}
                     onToggle={() => togglePreference('sms_urgent_only')}
@@ -355,9 +347,9 @@ function NotificationPreferencesContent() {
                 </div>
 
                 {!user?.phone && (
-                  <div className="px-6 py-4 bg-yellow-50 dark:bg-yellow-900/10 flex items-center gap-3 text-sm">
-                    <Info size={16} className="text-yellow-500" />
-                    <span className="text-yellow-700 dark:text-yellow-400">
+                  <div className="px-6 py-4 bg-gov-wood/5 dark:bg-gov-wood/10 flex items-center gap-3 text-sm border-t border-gov-stone/10 dark:border-white/5">
+                    <Info size={16} className="text-gov-wood" />
+                    <span className="text-gov-wood dark:text-gov-wood/80">
                       {language === 'ar'
                         ? 'أضف رقم هاتفك في إعدادات الحساب لتفعيل إشعارات SMS'
                         : 'Add your phone number in account settings to enable SMS notifications'}
@@ -370,15 +362,15 @@ function NotificationPreferencesContent() {
               <div className="flex items-center justify-between pt-4">
                 <div>
                   {saveStatus === 'success' && (
-                    <div className="flex items-center gap-2 text-green-600">
+                    <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold">
                       <CheckCircle size={18} />
-                      <span>{language === 'ar' ? 'تم الحفظ بنجاح' : 'Saved successfully'}</span>
+                      <span className="font-bold">{language === 'ar' ? 'تم الحفظ بنجاح' : 'Saved successfully'}</span>
                     </div>
                   )}
                   {saveStatus === 'error' && (
                     <div className="flex items-center gap-2 text-red-600">
                       <AlertTriangle size={18} />
-                      <span>{language === 'ar' ? 'فشل الحفظ' : 'Failed to save'}</span>
+                      <span className="font-bold">{language === 'ar' ? 'فشل الحفظ' : 'Failed to save'}</span>
                     </div>
                   )}
                 </div>
@@ -386,7 +378,7 @@ function NotificationPreferencesContent() {
                 <button
                   onClick={savePreferences}
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-6 py-3 bg-gov-teal text-white font-bold rounded-xl hover:bg-gov-emerald transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-8 py-3 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-charcoal font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-gold/90 transition-colors disabled:opacity-50 shadow-lg shadow-gov-forest/10"
                 >
                   {isSaving ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -404,9 +396,9 @@ function NotificationPreferencesContent() {
       </main>
 
       <Footer
-        onIncreaseFont={() => {}}
-        onDecreaseFont={() => {}}
-        onToggleContrast={() => {}}
+        onIncreaseFont={() => { }}
+        onDecreaseFont={() => { }}
+        onToggleContrast={() => { }}
       />
     </div>
   );

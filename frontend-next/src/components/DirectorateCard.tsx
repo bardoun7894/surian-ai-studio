@@ -1,89 +1,78 @@
-import React, { useState } from 'react';
-import { Directorate } from '@/types';
-import { Laptop, ShoppingCart, TrendingUp, Building } from 'lucide-react';
+import React from 'react';
+import { Directorate, LocalizedString } from '@/types';
+import { Laptop, ShoppingCart, TrendingUp, Building, Factory, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DirectorateCardProps {
     directorate: Directorate;
+    onOpen: () => void;
 }
 
 const iconMap: Record<string, React.ElementType> = {
     'laptop': Laptop,
     'shopping-cart': ShoppingCart,
     'trending-up': TrendingUp,
+    'factory': Factory,
+    'shield-check': ShieldCheck,
+    'ShieldCheck': ShieldCheck,
+    'Factory': Factory,
+    'TrendingUp': TrendingUp
 };
 
-export default function DirectorateCard({ directorate }: DirectorateCardProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const Icon = iconMap[directorate.icon] || Building;
+export default function DirectorateCard({ directorate, onOpen }: DirectorateCardProps) {
+    const { language } = useLanguage();
+    // Normalize icon key to lowercase for matching if needed, or rely on strict map
+    const Icon = iconMap[directorate.icon] || iconMap[directorate.icon.toLowerCase()] || Building;
+
+    const getLocalized = (content: LocalizedString | string) => {
+        if (typeof content === 'string') return content;
+        return content[language as 'ar' | 'en'];
+    };
 
     return (
-        <div className="relative group">
+        <div className="relative group w-full h-full">
             {/* Card Container */}
             <div
-                onClick={() => setIsExpanded(!isExpanded)}
-                className={`cursor-pointer overflow-hidden rounded-xl border border-gov-gold/20 bg-white/90 dark:bg-gov-forest/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 ${isExpanded ? 'ring-2 ring-gov-gold scale-[1.02]' : 'hover:border-gov-gold/50 hover:-translate-y-1'
-                    }`}
+                onClick={onOpen}
+                className="cursor-pointer overflow-hidden rounded-3xl border border-gov-gold/10 bg-white/80 dark:bg-gov-charcoal/80 backdrop-blur-md shadow-lg hover:shadow-2xl hover:shadow-gov-gold/10 transition-all duration-500 h-full flex flex-col hover:-translate-y-2 group-hover:border-gov-gold/30"
             >
-                {/* Gradient Overlay on Hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gov-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-gov-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-                {/* Header Section with Icon & Title */}
-                <div className="p-6 flex flex-col items-center justify-center text-center space-y-4 relative z-10">
-                    {/* Icon Container */}
-                    <div className="relative w-24 h-24 flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gov-beige/50 to-white/10 dark:from-white/10 dark:to-transparent flex items-center justify-center border border-gov-gold/30 group-hover:border-gov-gold group-hover:scale-110 transition-all duration-300 shadow-inner">
-                            <Icon className="w-10 h-10 text-gov-forest dark:text-gov-gold drop-shadow-md" strokeWidth={1.5} />
+                {/* Content */}
+                <div className="p-8 flex flex-col items-center justify-center text-center space-y-6 relative z-10 h-full">
+
+                    {/* Icon Halo Effect */}
+                    <div className="relative w-28 h-28 flex items-center justify-center transform transition-transform duration-500 group-hover:scale-110">
+                        <div className="absolute inset-0 rounded-full bg-gov-gold/10 dark:bg-gov-gold/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <div className="w-24 h-24 flex items-center justify-center relative z-10 drop-shadow-xl">
+                                <img
+                                    src="/assets/logo/22.png"
+                                    alt="Ministry Eagle"
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
                         </div>
-                        {/* Decorative Elements */}
-                        <div className="absolute inset-0 rounded-full border border-dashed border-gov-gold/20 animate-[spin_20s_linear_infinite] opacity-50"></div>
                     </div>
 
-                    <div>
-                        <h3 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-2 font-display bg-clip-text">
-                            {directorate.name}
+                    <div className="flex-1 flex flex-col justify-center items-center">
+                        <h3 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-white mb-3 font-display leading-tight">
+                            {getLocalized(directorate.name)}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 leading-relaxed">
-                            {directorate.description}
+                        <p className="text-gov-stone/80 dark:text-gov-beige/60 text-sm leading-relaxed max-w-xs mx-auto line-clamp-3">
+                            {getLocalized(directorate.description)}
                         </p>
                     </div>
 
-                    {/* Expand Indicator */}
-                    <div
-                        className={`text-gov-gold mt-2 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'group-hover:translate-y-1'}`}
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                    {/* CTA Button */}
+                    <div className="pt-2">
+                        <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gov-forest/5 dark:bg-white/5 border border-gov-forest/10 dark:border-white/10 text-gov-forest dark:text-gov-gold text-sm font-bold group-hover:bg-gov-gold group-hover:text-white transition-all duration-300">
+                            <span>{language === 'ar' ? 'عرض التفاصيل' : 'View Details'}</span>
+                            <Icon size={16} />
+                        </span>
                     </div>
-                </div>
-
-                {/* Sub-Directorates / Quick Links (Expanded State) */}
-                <div
-                    className={`bg-gov-beige/30 dark:bg-black/20 border-t border-gov-gold/10 transition-[max-height,opacity] duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                        }`}
-                >
-                    {directorate.subDirectorates && (
-                        <ul className="divide-y divide-gov-gold/10">
-                            {directorate.subDirectorates.map((sub, idx) => (
-                                <li key={sub.id} className="transition-all duration-300 hover:bg-gov-gold/5" style={{ transitionDelay: `${idx * 50}ms` }}>
-                                    <a
-                                        href={sub.url || '#'}
-                                        target={sub.isExternal ? '_blank' : '_self'}
-                                        rel={sub.isExternal ? 'noopener noreferrer' : ''}
-                                        onClick={(e) => e.stopPropagation()} // Prevent card toggle when clicking link
-                                        className="block px-6 py-3 text-sm text-gov-forest dark:text-gray-200 group/link flex items-center justify-between"
-                                    >
-                                        <span className="font-medium">{sub.name}</span>
-                                        {sub.isExternal && (
-                                            <svg className="w-3 h-3 text-gov-gold opacity-70 group-hover/link:opacity-100 transform group-hover/link:translate-x-[-2px] transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                        )}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
                 </div>
             </div>
         </div>

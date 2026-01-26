@@ -5,11 +5,9 @@ import { Send, MapPin, Phone, Mail, Clock, Loader2, CheckCircle, User, Building2
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const DIRECTORATES_MOCK = [
-  { id: 'dir1', name: 'الإدارة المركزية' },
-  { id: 'dir2', name: 'إدارة التجارة الخارجية' },
-  { id: 'dir3', name: 'إدارة التجارة الداخلية' },
-  { id: 'dir4', name: 'إدارة الاستثمار' },
-  { id: 'dir5', name: 'إدارة التخطيط والتعاون الدولي' }
+  { id: 'd1', name: 'الإدارة العامة للصناعة' },
+  { id: 'd2', name: 'الإدارة العامة للاقتصاد' },
+  { id: 'd3', name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك' }
 ];
 
 const ContactSection: React.FC = () => {
@@ -46,10 +44,10 @@ const ContactSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
           {/* Contact Info Card */}
-          <div className="bg-gov-forest text-white rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl">
+          <div className="bg-gov-forest text-white rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl h-full flex flex-col justify-center">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-gov-gold/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
@@ -78,7 +76,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">البريد الإلكتروني</span>
-                    <span className="text-lg">info@egov.sy</span>
+                    <span className="text-lg">info@moe.gov.sy</span>
                   </div>
                 </div>
 
@@ -88,7 +86,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">المقر الرئيسي</span>
-                    <span className="text-lg">دمشق - تنظيم كفرسوسة<br />مبنى رئاسة مجلس الوزراء</span>
+                    <span className="text-lg">دمشق - ساحة المحافظة<br />مبنى وزارة الاقتصاد والصناعة</span>
                   </div>
                 </div>
 
@@ -106,7 +104,7 @@ const ContactSection: React.FC = () => {
           </div>
 
           {/* Electronic Form */}
-          <div className="bg-white dark:bg-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gray-100 dark:border-gov-gold/10 h-full">
             <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6">نموذج المراسلة الإلكتروني</h3>
 
             {isSuccess ? (

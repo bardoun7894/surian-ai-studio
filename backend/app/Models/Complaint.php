@@ -31,11 +31,26 @@ class Complaint extends Model
         'ai_keywords',
         'ai_confidence',
         'ai_suggested_directorate_id',
+        // User satisfaction rating (FR-25)
+        'rating',
+        'rating_comment',
+        'rated_at',
+        // Snooze feature (FR-35)
+        'snoozed_until',
+        'snoozed_by',
+        // Escalation tracking (FR-68, FR-69)
+        'escalation_level',
+        'first_warning_at',
+        'final_escalation_at',
     ];
 
     protected $casts = [
         'ai_keywords' => 'array',
         'ai_confidence' => 'float',
+        'rated_at' => 'datetime',
+        'snoozed_until' => 'datetime',
+        'first_warning_at' => 'datetime',
+        'final_escalation_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -73,5 +88,88 @@ class Complaint extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(ComplaintResponse::class);
+    }
+
+    public function snoozedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'snoozed_by');
+    }
+
+    /**
+     * Scope to exclude snoozed complaints
+     */
+    public function scopeNotSnoozed($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('snoozed_until')
+              ->orWhere('snoozed_until', '<=', now());
+        });
+    }
+
+    /**
+     * Scope to get only snoozed complaints
+     */
+    public function scopeSnoozed($query)
+    {
+        return $query->where('snoozed_until', '>', now());
+    }
+
+    /**
+     * Check if complaint is currently snoozed
+     */
+    public function isSnoozed(): bool
+    {
+        return $this->snoozed_until && $this->snoozed_until->isFuture();
+    }
+
+    /**
+     * Check if complaint can be rated
+     */
+    public function canBeRated(): bool
+    {
+        return in_array($this->status, ['resolved', 'closed']) && is_null($this->rating);
+    }
+
+    /**
+     * Rate the complaint (FR-25)
+     */
+    public function rate(int $rating, ?string $comment = null): bool
+    {
+        if (!$this->canBeRated()) {
+            return false;
+        }
+
+        if ($rating < 1 || $rating > 5) {
+            return false;
+        }
+
+        $this->rating = $rating;
+        $this->rating_comment = $comment;
+        $this->rated_at = now();
+        return $this->save();
+    }
+
+    /**
+     * Snooze the complaint (FR-35)
+     */
+    public function snooze(int $days, int $userId): bool
+    {
+        if ($days < 1 || $days > 3) {
+            return false;
+        }
+
+        $this->snoozed_until = now()->addDays($days);
+        $this->snoozed_by = $userId;
+        return $this->save();
+    }
+
+    /**
+     * Unsnooze the complaint
+     */
+    public function unsnooze(): bool
+    {
+        $this->snoozed_until = null;
+        $this->snoozed_by = null;
+        return $this->save();
     }
 }

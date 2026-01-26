@@ -24,6 +24,17 @@ const staffRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Block malformed server action requests from bots/crawlers
+  // Server actions use the 'Next-Action' header - reject invalid ones
+  const nextAction = request.headers.get('Next-Action');
+  if (nextAction) {
+    // Valid server action IDs are 40-character hex strings
+    // Reject malformed action IDs like "x" from bots
+    if (!/^[a-f0-9]{40}$/.test(nextAction)) {
+      return new NextResponse('Bad Request', { status: 400 });
+    }
+  }
+
   // Get auth token from cookies (Sanctum uses cookies for SPA auth)
   const authToken = request.cookies.get('auth_token')?.value ||
                     request.cookies.get('XSRF-TOKEN')?.value;

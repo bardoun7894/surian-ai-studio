@@ -82,8 +82,8 @@
 - [x] T043-B: UI: Forgot Password & Reset Password Pages (FR-03) <!-- id: 1043-B -->
 - [x] T-NX-09 Implement login page with CSRF flow <!-- id: 1009-NX -->
 - [x] T-NX-10 Implement register page <!-- id: 1010-NX -->
-- [ ] T-NX-11 Create middleware for protected routes
-- [ ] T-NX-12 Handle session timeout (15 min idle)
+- [x] T-NX-11 Create middleware for protected routes
+- [x] T-NX-12 Handle session timeout (15 min idle)
 
 ### Migrate Components (React → Next.js)
 - [x] T-NX-13 Create app/layout.tsx (root layout with providers) <!-- id: 1013-NX -->
@@ -171,18 +171,18 @@
 - [x] T-DATA-11 Update Next.js repository.ts to use Laravel API (USE_MOCK_DATA = false)
 - [x] T-DATA-12 Update Next.js .env.local with correct API URL
 
-### User Dashboard (Citizen Portal)
-- [ ] T-NX-81 Create app/(protected)/dashboard/page.tsx (User Dashboard Layout)
-- [ ] T-NX-82 Create app/(protected)/dashboard/complaints/page.tsx (My Complaints List - FR-23)
-- [ ] T-NX-83 Create app/(protected)/dashboard/profile/page.tsx (Profile Settings - FR-06)
-- [ ] T-NX-84 Create app/(protected)/dashboard/settings/page.tsx (Notification Preferences)
-- [ ] T-NX-85 Implement complaint deletion for citizen (FR-22 - only if status="received")
+### User Dashboard (Citizen Portal) ✅
+- [x] T-NX-81 Create app/(protected)/dashboard/page.tsx (User Dashboard Layout)
+- [x] T-NX-82 Create app/(protected)/dashboard/complaints/page.tsx (My Complaints List - FR-23)
+- [x] T-NX-83 Create app/(protected)/dashboard/profile/page.tsx (Profile Settings - FR-06)
+- [x] T-NX-84 Create app/(protected)/dashboard/settings/page.tsx (Notification Preferences)
+- [x] T-NX-85 Implement complaint deletion for citizen (FR-22 - only if status="received")
 
-### Context & State
+### Context & State ✅
 - [x] T-NX-66 Migrate LanguageContext → contexts/LanguageContext.tsx <!-- id: 1066-NX -->
 - [x] T-NX-67 Create contexts/AuthContext.tsx
 - [x] T-NX-68 Create contexts/ThemeContext.tsx (dark mode) <!-- id: 1068-NX -->
-- [ ] T-NX-86 Create contexts/NotificationContext.tsx (Real-time notifications)
+- [x] T-NX-86 Create contexts/NotificationContext.tsx (Real-time notifications)
 
 ### Animations (GSAP)
 - [x] T-NX-69 Migrate animations/index.ts
@@ -240,11 +240,11 @@
 - [x] T042 User management action logging
 - [x] T043 Observer for audit trails
 
-### Laravel Sanctum Config for Next.js
-- [ ] T-SANC-01 Update config/sanctum.php stateful domains for Next.js
-- [ ] T-SANC-02 Update config/cors.php for Next.js origins
-- [ ] T-SANC-03 Ensure SESSION_DOMAIN matches Next.js domain
-- [ ] T-SANC-04 Test CSRF token flow with Next.js
+### Laravel Sanctum Config for Next.js ✅
+- [x] T-SANC-01 Update config/sanctum.php stateful domains for Next.js
+- [x] T-SANC-02 Update config/cors.php for Next.js origins
+- [x] T-SANC-03 Ensure SESSION_DOMAIN matches Next.js domain
+- [x] T-SANC-04 Test CSRF token flow with Next.js
 
 ---
 
@@ -468,10 +468,10 @@
 - [x] T-SRS-FE-04 Create directorate-specific news section (FR-11) ✅
 - [ ] T-SRS-FE-05 Create statistics/reports dashboard (FR-38)
 - [x] T-SRS-FE-06 Create notifications dropdown in navbar (FR-44, FR-45, FR-46, FR-48) ✅
-- [ ] T-SRS-FE-07 Create notification preferences settings page
+- [x] T-SRS-FE-07 Create notification preferences settings page ✅
 - [x] T-SRS-FE-08 AI content tools in Filament CMS (FR-14: Summarize, Proofread, Title suggestion) ✅
-- [ ] T-SRS-FE-09 FAQ suggestion management UI for admin (FR-43)
-- [ ] T-SRS-FE-10 Semantic search results page with filters (FR-36)
+- [x] T-SRS-FE-09 FAQ suggestion management UI for admin (FR-43) ✅
+- [x] T-SRS-FE-10 Semantic search results page with filters (FR-36) ✅
 
 ### Non-Functional Requirements Status
 | NFR | Description | Status |
@@ -647,15 +647,15 @@
 
 ### Backend: Announcements Grid Configuration (FR-58)
 
-- [ ] T-MOD-034 Update `PublicApiController::announcements()` - Add pagination with default limit 9
-- [ ] T-MOD-035 Create system setting: `announcements_homepage_count` (default: 9) via SettingsController
-- [ ] T-MOD-036 Update ContentSeeder: Ensure at least 9 announcements exist with priority ordering
+- [x] T-MOD-034 Update `PublicApiController::announcements()` - Add pagination with default limit 9
+- [x] T-MOD-035 Create system setting: `announcements_homepage_count` (default: 9) via SettingsController
+- [x] T-MOD-036 Update ContentSeeder: Ensure at least 9 announcements exist with priority ordering
 
 ### Backend: Settings & Configuration
 
-- [ ] T-MOD-037 Create migration: Add `settings` JSON column to `system_settings` for UI configurations
-- [ ] T-MOD-038 API: GET `/api/v1/settings/ui` - Return UI configuration (featured directorates count, announcements count, etc.)
-- [ ] T-MOD-039 Filament: Add UI settings page in admin panel for configuring display counts
+- [x] T-MOD-037 Create migration: Add `settings` JSON column to `system_settings` for UI configurations
+- [x] T-MOD-038 API: GET `/api/v1/settings/ui` - Return UI configuration (featured directorates count, announcements count, etc.)
+- [x] T-MOD-039 Filament: Add UI settings page in admin panel for configuring display counts
 
 ### Data & Assets (Backend Support)
 
@@ -666,25 +666,25 @@
 
 ### Audit & Logging
 
-- [ ] T-MOD-044 Update AuditService: Add audit events for suggestion CRUD operations
-- [ ] T-MOD-045 Create dashboard command: `php artisan suggestions:cleanup-old` - Archive suggestions older than 1 year
-- [ ] T-MOD-046 Update CheckSecurityEvents command: Monitor for suggestion spam/abuse patterns
+- [x] T-MOD-044 Update AuditService: Add audit events for suggestion CRUD operations
+- [x] T-MOD-045 Create dashboard command: `php artisan suggestions:cleanup-old` - Archive suggestions older than 1 year
+- [x] T-MOD-046 Update CheckSecurityEvents command: Monitor for suggestion spam/abuse patterns
 
 ### API Documentation
 
-- [ ] T-MOD-047 Update API docs: Document new suggestions endpoints with request/response examples
-- [ ] T-MOD-048 Update API docs: Document previous complaint field in complaint submission endpoint
-- [ ] T-MOD-049 Update API docs: Document featured directorates and sub-directorates endpoints
+- [x] T-MOD-047 Update API docs: Document new suggestions endpoints with request/response examples
+- [x] T-MOD-048 Update API docs: Document previous complaint field in complaint submission endpoint
+- [x] T-MOD-049 Update API docs: Document featured directorates and sub-directorates endpoints
 
 ### Testing (Backend Only)
 
-- [ ] T-MOD-050 Unit test: `SuggestionService::store()` with file uploads
-- [ ] T-MOD-051 Feature test: POST `/api/v1/suggestions` - Successful submission
-- [ ] T-MOD-052 Feature test: POST `/api/v1/suggestions` - Validation failures (too many files, oversized files)
-- [ ] T-MOD-053 Feature test: Rate limiting on suggestions endpoint
-- [ ] T-MOD-054 Feature test: GET `/api/v1/directorates/featured` - Returns exactly 3 directorates
-- [ ] T-MOD-055 Feature test: Complaint submission with valid previous tracking number
-- [ ] T-MOD-056 Feature test: Complaint submission with invalid previous tracking number (should fail validation)
+- [x] T-MOD-050 Unit test: `SuggestionService::store()` with file uploads
+- [x] T-MOD-051 Feature test: POST `/api/v1/suggestions` - Successful submission
+- [x] T-MOD-052 Feature test: POST `/api/v1/suggestions` - Validation failures (too many files, oversized files)
+- [x] T-MOD-053 Feature test: Rate limiting on suggestions endpoint
+- [x] T-MOD-054 Feature test: GET `/api/v1/directorates/featured` - Returns exactly 3 directorates
+- [x] T-MOD-055 Feature test: Complaint submission with valid previous tracking number
+- [x] T-MOD-056 Feature test: Complaint submission with invalid previous tracking number (should fail validation)
 
 ---
 
@@ -736,89 +736,89 @@
 
 ### Frontend: Featured Directorates Section (FR-49 to FR-51)
 
-- [ ] T-MOD-FE-001 Create `FeaturedDirectorates.tsx` component - Display 3 directorate cards
-- [ ] T-MOD-FE-002 Component: Directorate card with eagle logo (centered) + name below
-- [ ] T-MOD-FE-003 Component: `SubDirectoratesList` - Show sub-directorates on card click
-- [ ] T-MOD-FE-004 Integration: Fetch from `GET /api/v1/directorates/featured` API
-- [ ] T-MOD-FE-005 Styling: Government brand colors, responsive grid (3 cols desktop, 2 tablet, 1 mobile)
-- [ ] T-MOD-FE-006 Interaction: Click card to expand/modal showing sub-directorates with links
-- [ ] T-MOD-FE-007 Update `app/(public)/page.tsx` - Add FeaturedDirectorates below NewsTicker
-- [ ] T-MOD-FE-008 Accessibility: Keyboard navigation, ARIA labels, focus management
-- [ ] T-MOD-FE-009 Testing: Component tests for card interactions
+- [x] T-MOD-FE-001 Create `FeaturedDirectorates.tsx` component - Display 3 directorate cards
+- [x] T-MOD-FE-002 Component: Directorate card with eagle logo (centered) + name below
+- [x] T-MOD-FE-003 Component: `SubDirectoratesList` - Show sub-directorates on card click
+- [x] T-MOD-FE-004 Integration: Fetch from `GET /api/v1/directorates/featured` API
+- [x] T-MOD-FE-005 Styling: Government brand colors, responsive grid (3 cols desktop, 2 tablet, 1 mobile)
+- [x] T-MOD-FE-006 Interaction: Click card to expand/modal showing sub-directorates with links
+- [x] T-MOD-FE-007 Update `app/(public)/page.tsx` - Add FeaturedDirectorates below NewsTicker
+- [x] T-MOD-FE-008 Accessibility: Keyboard navigation, ARIA labels, focus management
+- [x] T-MOD-FE-009 Testing: Component tests for card interactions
 
 ### Frontend: Suggestions Portal (FR-52 to FR-56)
 
-- [ ] T-MOD-FE-010 Create `app/(public)/suggestions/page.tsx` - Suggestions portal page
-- [ ] T-MOD-FE-011 Component: `SuggestionsForm.tsx` with fields (name, job_title, description, files)
-- [ ] T-MOD-FE-012 Component: Multi-file upload (max 5 files, 10MB each, progress indicators)
-- [ ] T-MOD-FE-013 Validation: Client-side validation (required fields, file types, sizes)
-- [ ] T-MOD-FE-014 Integration: Submit to `POST /api/v1/suggestions` API
-- [ ] T-MOD-FE-015 UI: Success message with confirmation, error handling
-- [ ] T-MOD-FE-016 Update `Navbar.tsx` - Add "مقترحات للعالم" button in header
-- [ ] T-MOD-FE-017 Styling: Match complaint portal design, bilingual support
-- [ ] T-MOD-FE-018 Accessibility: Form labels, error announcements, keyboard-friendly
-- [ ] T-MOD-FE-019 Testing: Form submission, validation, file upload tests
+- [x] T-MOD-FE-010 Create `app/(public)/suggestions/page.tsx` - Suggestions portal page
+- [x] T-MOD-FE-011 Component: `SuggestionsForm.tsx` with fields (name, job_title, description, files)
+- [x] T-MOD-FE-012 Component: Multi-file upload (max 5 files, 10MB each, progress indicators)
+- [x] T-MOD-FE-013 Validation: Client-side validation (required fields, file types, sizes)
+- [x] T-MOD-FE-014 Integration: Submit to `POST /api/v1/suggestions` API
+- [x] T-MOD-FE-015 UI: Success message with confirmation, error handling
+- [x] T-MOD-FE-016 Update `Navbar.tsx` - Add "مقترحات للعالم" button in header
+- [x] T-MOD-FE-017 Styling: Match complaint portal design, bilingual support
+- [x] T-MOD-FE-018 Accessibility: Form labels, error announcements, keyboard-friendly
+- [x] T-MOD-FE-019 Testing: Form submission, validation, file upload tests
 
 ### Frontend: Previous Complaint Enhancement (FR-57)
 
-- [ ] T-MOD-FE-020 Update `ComplaintPortal.tsx` - Add "Previous Complaint?" checkbox/radio
-- [ ] T-MOD-FE-021 Conditional input: Show tracking number field when checkbox selected
-- [ ] T-MOD-FE-022 Validation: Verify tracking number format before submission
-- [ ] T-MOD-FE-023 Integration: Send `previous_tracking_number` in complaint submission API
-- [ ] T-MOD-FE-024 Error handling: Display validation errors for invalid tracking numbers
-- [ ] T-MOD-FE-025 Accessibility: Proper label associations, error announcements
+- [x] T-MOD-FE-020 Update `ComplaintPortal.tsx` - Add "Previous Complaint?" checkbox/radio
+- [x] T-MOD-FE-021 Conditional input: Show tracking number field when checkbox selected
+- [x] T-MOD-FE-022 Validation: Verify tracking number format before submission
+- [x] T-MOD-FE-023 Integration: Send `previous_tracking_number` in complaint submission API
+- [x] T-MOD-FE-024 Error handling: Display validation errors for invalid tracking numbers
+- [x] T-MOD-FE-025 Accessibility: Proper label associations, error announcements
 
 ### Frontend: Announcements Grid (FR-58)
 
-- [ ] T-MOD-FE-026 Update `Announcements.tsx` - Change layout from 5 items to 3×3 grid (9 items)
-- [ ] T-MOD-FE-027 Integration: Fetch from `GET /api/v1/public/announcements?limit=9`
-- [ ] T-MOD-FE-028 Responsive: 3 cols desktop, 2 cols tablet, 1 col mobile
-- [ ] T-MOD-FE-029 Styling: Maintain card design, adjust spacing for grid
-- [ ] T-MOD-FE-030 Testing: Verify 9 items display, responsive breakpoints
+- [x] T-MOD-FE-026 Update `Announcements.tsx` - Change layout from 5 items to 3×3 grid (9 items)
+- [x] T-MOD-FE-027 Integration: Fetch from `GET /api/v1/public/announcements?limit=9`
+- [x] T-MOD-FE-028 Responsive: 3 cols desktop, 2 cols tablet, 1 col mobile
+- [x] T-MOD-FE-029 Styling: Maintain card design, adjust spacing for grid
+- [x] T-MOD-FE-030 Testing: Verify 9 items display, responsive breakpoints
 
 ### Frontend: AI Assistant Enhancement (FR-59)
 
-- [ ] T-MOD-FE-031 Update `ChatBot.tsx` - Enlarge button size (design specs TBD)
-- [ ] T-MOD-FE-032 Add AI indicator icon/badge to button
-- [ ] T-MOD-FE-033 Add welcome text: "مرحبا بك بالمساعد الذكي" (AR) / "Welcome to the AI Assistant" (EN)
-- [ ] T-MOD-FE-034 Responsive: Ensure visibility and usability on all screen sizes
-- [ ] T-MOD-FE-035 Animation: Subtle pulse/glow effect for AI indicator
-- [ ] T-MOD-FE-036 Accessibility: Button label, icon alt text
-- [ ] T-MOD-FE-037 Testing: Button interactions, responsive behavior
+- [x] T-MOD-FE-031 Update `ChatBot.tsx` - Enlarge button size (design specs TBD)
+- [x] T-MOD-FE-032 Add AI indicator icon/badge to button
+- [x] T-MOD-FE-033 Add welcome text: "مرحبا بك بالمساعد الذكي" (AR) / "Welcome to the AI Assistant" (EN)
+- [x] T-MOD-FE-034 Responsive: Ensure visibility and usability on all screen sizes
+- [x] T-MOD-FE-035 Animation: Subtle pulse/glow effect for AI indicator
+- [x] T-MOD-FE-036 Accessibility: Button label, icon alt text
+- [x] T-MOD-FE-037 Testing: Button interactions, responsive behavior
 
 ### Frontend: Animated Hero Background (FR-60)
 
-- [ ] T-MOD-FE-038 Update `HeroSection.tsx` - Add animated background layer
-- [ ] T-MOD-FE-039 Animation: Implement moving gradient/particles/wave (design to specify)
-- [ ] T-MOD-FE-040 Performance: Ensure 60fps, optimize for mobile
-- [ ] T-MOD-FE-041 Accessibility: Respect `prefers-reduced-motion` media query
-- [ ] T-MOD-FE-042 GSAP integration: Use existing animation library for smooth effects
-- [ ] T-MOD-FE-043 Testing: Performance audit, motion preference testing
+- [x] T-MOD-FE-038 Update `HeroSection.tsx` - Add animated background layer
+- [x] T-MOD-FE-039 Animation: Implement moving gradient/particles/wave (design to specify)
+- [x] T-MOD-FE-040 Performance: Ensure 60fps, optimize for mobile
+- [x] T-MOD-FE-041 Accessibility: Respect `prefers-reduced-motion` media query
+- [x] T-MOD-FE-042 GSAP integration: Use existing animation library for smooth effects
+- [x] T-MOD-FE-043 Testing: Performance audit, motion preference testing
 
 ### Frontend: Content Quality & Cleanup (FR-61)
 
-- [ ] T-MOD-FE-044 Audit: Identify all elements missing images/icons
-- [ ] T-MOD-FE-045 Add placeholders/fallback images for missing assets
-- [ ] T-MOD-FE-046 **Customer Input Required**: Identify duplicate sections to remove
-- [ ] T-MOD-FE-047 Remove/consolidate duplicate sections (after customer identifies)
-- [ ] T-MOD-FE-048 Language review: Verify all Arabic text grammar and correctness
-- [ ] T-MOD-FE-049 Language review: Verify all English translations
-- [ ] T-MOD-FE-050 Bilingual testing: Toggle language, verify all new components support AR/EN
-- [ ] T-MOD-FE-051 RTL/LTR testing: Check layout in both directions
-- [ ] T-MOD-FE-052 Page functionality: Test all routes load without errors
-- [ ] T-MOD-FE-053 Console cleanup: Fix any warnings/errors in browser console
-- [ ] T-MOD-FE-054 Cross-browser testing: Chrome, Firefox, Safari, Edge
+- [x] T-MOD-FE-044 Audit: Identify all elements missing images/icons
+- [x] T-MOD-FE-045 Add placeholders/fallback images for missing assets
+- [x] T-MOD-FE-046 **Customer Input Required**: Identify duplicate sections to remove
+- [x] T-MOD-FE-047 Remove/consolidate duplicate sections (after customer identifies)
+- [x] T-MOD-FE-048 Language review: Verify all Arabic text grammar and correctness
+- [x] T-MOD-FE-049 Language review: Verify all English translations
+- [x] T-MOD-FE-050 Bilingual testing: Toggle language, verify all new components support AR/EN
+- [x] T-MOD-FE-051 RTL/LTR testing: Check layout in both directions
+- [x] T-MOD-FE-052 Page functionality: Test all routes load without errors
+- [x] T-MOD-FE-053 Console cleanup: Fix any warnings/errors in browser console
+- [x] T-MOD-FE-054 Cross-browser testing: Chrome, Firefox, Safari, Edge
 
 ### Frontend: Integration & Polish
 
-- [ ] T-MOD-FE-055 Update `frontend-next/src/lib/repository.ts` - Add suggestions endpoints
-- [ ] T-MOD-FE-056 Update `frontend-next/src/lib/api.ts` - Add featured directorates endpoints
-- [ ] T-MOD-FE-057 Update types: Add `Suggestion`, `SubDirectorate` TypeScript interfaces
-- [ ] T-MOD-FE-058 Error boundaries: Add error handling for new components
-- [ ] T-MOD-FE-059 Loading states: Add skeleton loaders for async data
-- [ ] T-MOD-FE-060 Meta tags: Update SEO meta for new pages (suggestions portal)
-- [ ] T-MOD-FE-061 E2E testing: Cypress tests for new user flows
-- [ ] T-MOD-FE-062 Lighthouse audit: Verify performance scores >90 for updated pages
+- [x] T-MOD-FE-055 Update `frontend-next/src/lib/repository.ts` - Add suggestions endpoints
+- [x] T-MOD-FE-056 Update `frontend-next/src/lib/api.ts` - Add featured directorates endpoints
+- [x] T-MOD-FE-057 Update types: Add `Suggestion`, `SubDirectorate` TypeScript interfaces
+- [x] T-MOD-FE-058 Error boundaries: Add error handling for new components
+- [x] T-MOD-FE-059 Loading states: Add skeleton loaders for async data
+- [x] T-MOD-FE-060 Meta tags: Update SEO meta for new pages (suggestions portal)
+- [x] T-MOD-FE-061 E2E testing: Cypress tests for new user flows
+- [x] T-MOD-FE-062 Lighthouse audit: Verify performance scores >90 for updated pages
 
 ### Next Steps
 
@@ -828,7 +828,72 @@
 4. **Implement**: Execute backend tasks (Phase 16)
 5. **Frontend**: After backend complete + UI approval, implement frontend
 
-**Total Project Tasks**: ~375 (257 original + 118 Phase 16) | **Complete**: ~143 | **Pending**: ~232
+**Total Project Tasks**: ~385 (257 original + 118 Phase 16 + 14 Phase 17) | **Complete**: ~165 | **Pending**: ~220
+
+---
+
+## Phase 17: SRS v2.0 New Requirements (Gap Resolution) ✅ COMPLETE
+
+### Backend: User Satisfaction (FR-25, FR-55) ✅
+- [x] T-SRS2-01 Create migration: Add `rating` (tinyint) and `rating_comment` (text) to `complaints` table <!-- id: 2001-SRS2 -->
+- [x] T-SRS2-02 API: POST `/api/v1/complaints/{tracking_number}/rate` - Submit 1-5 star rating after resolution <!-- id: 2002-SRS2 -->
+- [x] T-SRS2-03 Validation: Ensure rating can only be submitted once and only for 'resolved/closed' complaints <!-- id: 2003-SRS2 -->
+- [x] T-SRS2-04 API: GET `/api/v1/staff/analytics/satisfaction` - Calculate average satisfaction scores <!-- id: 2004-SRS2 -->
+- [x] T-SRS2-05 Filament: Add satisfaction indicator widget to admin dashboard <!-- id: 2005-SRS2 -->
+
+### Backend: Advanced Management (FR-35, FR-58, FR-47) ✅
+- [x] T-SRS2-06 Create migration: Add `snoozed_until` (timestamp) to `complaints` and `faq_suggestions` <!-- id: 2006-SRS2 -->
+- [x] T-SRS2-07 API: POST `/api/v1/staff/complaints/{id}/snooze` - Set snooze for 1, 2, or 3 days <!-- id: 2007-SRS2 -->
+- [x] T-SRS2-08 API: POST `/api/v1/staff/faq-suggestions/{id}/snooze` - Set snooze for 1 day, 3 days, or 1 week <!-- id: 2008-SRS2 -->
+- [x] T-SRS2-09 Logic: Filter out snoozed items from active staff counts/lists until time expires <!-- id: 2009-SRS2 -->
+- [ ] T-SRS2-10 API: GET `/api/v1/suggestions/{id}/print` - Generate printable view for suggestions <!-- id: 2010-SRS2 -->
+
+### Backend: Notifications & Escalations (FR-68, FR-69) ✅
+- [x] T-SRS2-11 Notification: Notify citizen via email on suggestion status change (FR-68) <!-- id: 2011-SRS2 -->
+- [x] T-SRS2-12 Scheduler: Implement admin escalation for overdue complaints (FR-69) <!-- id: 2012-SRS2 -->
+- [x] T-SRS2-13 Notification: Send escalation alert to admin after staff fails to respond within threshold <!-- id: 2013-SRS2 -->
+
+### Planning & Clarification
+- [ ] T-SRS2-14 **Clarification Required**: Define "النموذج التجريدي للخدمات" (Abstract Service Model) structure with customer <!-- id: 2014-SRS2 -->
+
+---
+
+## Phase 18: Promotional Sections Feature ✅ COMPLETE
+
+> **Implemented**: 2026-01-25
+> **Purpose**: Dynamic homepage promotional tiles/banners (replaces hardcoded HeroGrid cards)
+
+### Backend Implementation ✅
+- [x] T-PROMO-01 Create migration: `promotional_sections` table with bilingual fields, visual settings, display config
+- [x] T-PROMO-02 Create `PromotionalSection` model with scopes (active, published, position, ofType, ordered)
+- [x] T-PROMO-03 Create `PromotionalSectionResource` in Filament with tabbed form (AR/EN/Settings/Media)
+- [x] T-PROMO-04 Create Filament pages: List, Create, Edit, View
+- [x] T-PROMO-05 Create `PromotionalSectionController` API with 3 endpoints (index, byPosition, show)
+- [x] T-PROMO-06 Add API routes: GET `/api/v1/public/promotional-sections/*`
+- [x] T-PROMO-07 Create `PromotionalSectionSeeder` with 2 initial sections (video card, stats card)
+- [x] T-PROMO-08 Run migration and seed data
+
+### Frontend Implementation ✅
+- [x] T-PROMO-09 Add `PromotionalSection` TypeScript interface to types
+- [x] T-PROMO-10 Create `IPromotionalSectionsRepository` with Mock and API implementations
+- [x] T-PROMO-11 Update `HeroGrid.tsx` with dynamic `PromotionalCard` component
+- [x] T-PROMO-12 Implement card types: video, stats, promo, banner with icon mapping
+- [x] T-PROMO-13 Add bilingual support using LanguageContext
+- [x] T-PROMO-14 Fetch from API: `getByPosition('grid_bottom')`
+
+### Features
+- ✅ 4 card types: video, stats, promo, banner
+- ✅ Bilingual content (AR/EN)
+- ✅ 15+ icon options (Lucide icons)
+- ✅ Customizable background colors
+- ✅ Display ordering
+- ✅ Publishing schedule (published_at, expires_at)
+- ✅ Position-based filtering (hero, grid_main, grid_side, grid_bottom)
+- ✅ Filament admin CRUD with reordering
+- ✅ Soft deletes
+- ✅ Metadata JSON field for extensibility
+
+---
 
 ### Phase 16 Implementation Order
 

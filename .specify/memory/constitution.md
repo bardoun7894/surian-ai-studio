@@ -47,6 +47,7 @@ Features MUST be prioritized by direct citizen impact.
 Frontend and backend MUST remain independent and communicate via API contracts only.
 
 - Frontend: React 18 + Vite (existing ~70% complete)
+- Frontend: Next.js 14 (App Router) on React 18
 - Backend: Laravel 11 with PHP 8.2+
 - AI Service: FastAPI (Python) - provider-agnostic
 - No direct database access from frontend
@@ -97,9 +98,9 @@ Avoid over-engineering. Build what is needed, not what might be needed.
 
 | Layer | Technology | Version | Status |
 |-------|------------|---------|--------|
-| Frontend | React + Vite | 18.x / 5.x | Implemented |
+| Frontend | Next.js (React) | 14.x / 18.x | Implemented |
 | Backend | Laravel | 11.x | Implemented |
-| AI Service | FastAPI | Latest | Pending |
+| AI Service | FastAPI | Latest | Implemented |
 | Database | PostgreSQL | 15+ | Configured |
 | Cache | Redis | 7+ | Configured |
 | Server | Nginx | 1.24+ | Configured |
@@ -159,6 +160,10 @@ This Constitution supersedes all other development practices and guidelines for 
 3. Changes affecting citizen features (Principle III) require stakeholder approval
 4. All amendments MUST update the version number and Last Amended date
 
+### Amendment Notes
+
+- 2026-01-25: Updated frontend stack requirement to Next.js 14 (App Router) to align with implemented architecture while preserving decoupled API boundaries.
+
 ### Version Policy
 
 - **MAJOR**: Principle removal, redefinition, or backward-incompatible governance changes
@@ -171,4 +176,4 @@ This Constitution supersedes all other development practices and guidelines for 
 - Constitution Check section in plan.md MUST reference applicable principles
 - Non-compliant code MUST document justification in Complexity Tracking section
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-01-14
+**Version**: 1.1.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-01-25

@@ -2,14 +2,15 @@
 
 import React from 'react';
 import {
-  Plane,
-  Car,
-  Zap,
-  GraduationCap,
-  Banknote,
-  Home,
+  Factory,
+  Ship,
+  Package,
+  Briefcase,
+  Shield,
+  Building2,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Zap
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
@@ -28,52 +29,52 @@ const QuickServices: React.FC = () => {
 
   const services: QuickService[] = [
     {
-      id: 'passport',
-      titleKey: 'service_passport',
-      icon: <Plane size={28} />,
+      id: 'industrial_license',
+      titleKey: 'service_industrial_license',
+      icon: <Factory size={28} />,
       color: 'text-gov-teal',
       bgColor: 'bg-transparent group-hover:bg-gov-teal/5',
-      href: '/services/passport'
+      href: '/services/1'
     },
     {
-      id: 'traffic',
-      titleKey: 'service_traffic',
-      icon: <Car size={28} />,
-      color: 'text-gov-red',
-      bgColor: 'bg-transparent group-hover:bg-gov-red/5',
-      href: '/services/traffic'
-    },
-    {
-      id: 'electricity',
-      titleKey: 'service_electricity',
-      icon: <Zap size={28} />,
-      color: 'text-gov-gold',
-      bgColor: 'bg-transparent group-hover:bg-gov-gold/5',
-      href: '/services/electricity'
-    },
-    {
-      id: 'exams',
-      titleKey: 'service_exams',
-      icon: <GraduationCap size={28} />,
+      id: 'import_license',
+      titleKey: 'service_import_license',
+      icon: <Ship size={28} />,
       color: 'text-gov-forest',
       bgColor: 'bg-transparent group-hover:bg-gov-forest/5',
-      href: '/services/exams'
+      href: '/services/7'
     },
     {
-      id: 'clearance',
-      titleKey: 'service_clearance',
-      icon: <Banknote size={28} />,
-      color: 'text-gov-teal',
-      bgColor: 'bg-transparent group-hover:bg-gov-teal/5',
-      href: '/services/clearance'
-    },
-    {
-      id: 'property',
-      titleKey: 'service_property',
-      icon: <Home size={28} />,
+      id: 'export_license',
+      titleKey: 'service_export_license',
+      icon: <Package size={28} />,
       color: 'text-gov-gold',
       bgColor: 'bg-transparent group-hover:bg-gov-gold/5',
-      href: '/services/property'
+      href: '/services/8'
+    },
+    {
+      id: 'sme_financing',
+      titleKey: 'service_sme_financing',
+      icon: <Briefcase size={28} />,
+      color: 'text-gov-teal',
+      bgColor: 'bg-transparent group-hover:bg-gov-teal/5',
+      href: '/services/9'
+    },
+    {
+      id: 'consumer_complaint',
+      titleKey: 'service_consumer_complaint',
+      icon: <Shield size={28} />,
+      color: 'text-gov-red',
+      bgColor: 'bg-transparent group-hover:bg-gov-red/5',
+      href: '/services/14'
+    },
+    {
+      id: 'company_registration',
+      titleKey: 'service_company_registration',
+      icon: <Building2 size={28} />,
+      color: 'text-gov-gold',
+      bgColor: 'bg-transparent group-hover:bg-gov-gold/5',
+      href: '/services/13'
     }
   ];
 

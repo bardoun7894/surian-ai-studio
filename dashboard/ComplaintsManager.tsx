@@ -5,11 +5,11 @@ const ComplaintsManager: React.FC = () => {
   const [filter, setFilter] = useState('all');
 
   const complaints = [
-    { id: 'GOV-2024-001', citizen: 'محمد الأحمد', dept: 'وزارة الكهرباء', status: 'جديد', priority: 'عالية', date: '2024-05-20', subject: 'انقطاع التيار الكهربائي المستمر' },
-    { id: 'GOV-2024-002', citizen: 'سارة خليل', dept: 'وزارة التربية', status: 'قيد المعالجة', priority: 'متوسطة', date: '2024-05-19', subject: 'تأخر صدور النتائج' },
-    { id: 'GOV-2024-003', citizen: 'خالد يوسف', dept: 'وزارة الداخلية', status: 'تم الحل', priority: 'منخفضة', date: '2024-05-18', subject: 'تجديد جواز سفر' },
-    { id: 'GOV-2024-004', citizen: 'منى زيدان', dept: 'وزارة الصحة', status: 'مرفوض', priority: 'متوسطة', date: '2024-05-18', subject: 'طلب توظيف' },
-    { id: 'GOV-2024-005', citizen: 'رامي سعيد', dept: 'وزارة الموارد المائية', status: 'جديد', priority: 'طارئة', date: '2024-05-20', subject: 'تسرب مياه رئيسي' },
+    { id: 'GOV-2024-001', citizen: 'محمد الأحمد', dept: 'الإدارة العامة للصناعة', status: 'جديد', priority: 'عالية', date: '2024-05-20', subject: 'تأخر إصدار ترخيص صناعي' },
+    { id: 'GOV-2024-002', citizen: 'سارة خليل', dept: 'الإدارة العامة للاقتصاد', status: 'قيد المعالجة', priority: 'متوسطة', date: '2024-05-19', subject: 'طلب إجازة استيراد' },
+    { id: 'GOV-2024-003', citizen: 'خالد يوسف', dept: 'الإدارة العامة للتجارة الداخلية', status: 'تم الحل', priority: 'منخفضة', date: '2024-05-18', subject: 'شكوى غش تجاري' },
+    { id: 'GOV-2024-004', citizen: 'منى زيدان', dept: 'الإدارة العامة للصناعة', status: 'مرفوض', priority: 'متوسطة', date: '2024-05-18', subject: 'طلب تخصيص أرض صناعية' },
+    { id: 'GOV-2024-005', citizen: 'رامي سعيد', dept: 'الإدارة العامة للتجارة الداخلية', status: 'جديد', priority: 'طارئة', date: '2024-05-20', subject: 'مخالفة سعرية' },
   ];
 
   const getStatusBadge = (status: string) => {

@@ -90,7 +90,7 @@ export default function UserDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   // FR-22: Delete complaint (only if status is 'new' or 'received')
@@ -221,11 +221,10 @@ export default function UserDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${activeTab === tab.id
                     ? 'bg-gov-teal text-white shadow-lg'
                     : 'bg-white dark:bg-white/5 text-gov-charcoal dark:text-white hover:bg-gov-gold/10'
-                }`}
+                  }`}
               >
                 {tab.icon}
                 {tab.label}
@@ -367,11 +366,10 @@ export default function UserDashboard() {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 rounded-xl border ${
-                        notification.read
+                      className={`p-4 rounded-xl border ${notification.read
                           ? 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10'
                           : 'bg-gov-gold/5 border-gov-gold/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -511,9 +509,9 @@ export default function UserDashboard() {
       )}
 
       <Footer
-        onIncreaseFont={() => {}}
-        onDecreaseFont={() => {}}
-        onToggleContrast={() => {}}
+        onIncreaseFont={() => { }}
+        onDecreaseFont={() => { }}
+        onToggleContrast={() => { }}
       />
     </div>
   );

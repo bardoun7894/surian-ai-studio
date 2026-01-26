@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Suggestion;
 use App\Services\SuggestionService;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,13 +15,16 @@ class SuggestionController extends Controller
 {
     protected SuggestionService $suggestionService;
     protected \App\Services\AuditService $auditService;
+    protected NotificationService $notificationService;
 
-    public function __construct(SuggestionService $suggestionService, \App\Services\AuditService $auditService)
-    {
+    public function __construct(
+        SuggestionService $suggestionService,
+        \App\Services\AuditService $auditService,
+        NotificationService $notificationService
+    ) {
         $this->suggestionService = $suggestionService;
         $this->auditService = $auditService;
-        $this->middleware('auth:sanctum')->except(['store']);
-        $this->middleware('role:admin')->only(['index', 'show', 'updateStatus', 'destroy']);
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -133,6 +137,7 @@ class SuggestionController extends Controller
 
     /**
      * Update suggestion status (admin only)
+     * T-SRS2-11: Notify submitter on status change
      */
     public function updateStatus(Request $request, string $id): JsonResponse
     {
@@ -143,6 +148,7 @@ class SuggestionController extends Controller
                 Suggestion::STATUS_APPROVED,
                 Suggestion::STATUS_REJECTED,
             ])],
+            'response' => 'nullable|string|max:2000', // FR-45: Optional response message
         ]);
 
         if ($validator->fails()) {
@@ -154,21 +160,46 @@ class SuggestionController extends Controller
 
         $suggestion = Suggestion::findOrFail($id);
         $oldStatus = $suggestion->status;
-        $suggestion = $this->suggestionService->updateStatus($suggestion, $request->status);
+        $newStatus = $request->status;
+
+        // Only proceed if status actually changed
+        if ($oldStatus === $newStatus && !$request->filled('response')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'No changes made',
+                'data' => $suggestion
+            ]);
+        }
+
+        // Update status with response (FR-45)
+        $suggestion->updateStatus(
+            $newStatus,
+            auth()->id(),
+            $request->input('response')
+        );
 
         // Log the action
         $this->auditService->log(
-            auth()->user(), 
-            'suggestion_status_updated', 
-            'suggestion', 
-            $suggestion->id, 
+            auth()->user(),
+            'suggestion_status_updated',
+            'suggestion',
+            $suggestion->id,
             ['old_status' => $oldStatus, 'new_status' => $suggestion->status]
         );
+
+        // T-SRS2-11: Notify submitter if status changed
+        if ($oldStatus !== $newStatus) {
+            try {
+                $this->notificationService->notifySuggestionStatusChange($suggestion, $oldStatus, $newStatus);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to notify suggestion status change: {$e->getMessage()}");
+            }
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Suggestion status updated successfully',
-            'data' => $suggestion
+            'data' => $suggestion->fresh()
         ]);
     }
 
@@ -178,19 +209,19 @@ class SuggestionController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $suggestion = Suggestion::findOrFail($id);
-        
+
         // Log before deletion
         $this->auditService->log(
-            auth()->user(), 
-            'suggestion_deleted', 
-            'suggestion', 
-            $suggestion->id, 
+            auth()->user(),
+            'suggestion_deleted',
+            'suggestion',
+            $suggestion->id,
             ['tracking_number' => $suggestion->tracking_number]
         );
 
         // Delete file attachments
         $this->suggestionService->deleteAttachments($suggestion);
-        
+
         // Soft delete the suggestion
         $suggestion->delete();
 
@@ -198,5 +229,131 @@ class SuggestionController extends Controller
             'success' => true,
             'message' => 'Suggestion deleted successfully'
         ]);
+    }
+
+    /**
+     * Get authenticated user's suggestions
+     */
+    public function mySuggestions(Request $request): JsonResponse
+    {
+        $query = Suggestion::where('user_id', auth()->id())
+            ->with('attachments')
+            ->latest();
+
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $suggestions = $query->get()->map(function ($suggestion) {
+            return [
+                'id' => $suggestion->id,
+                'tracking_number' => $suggestion->tracking_number,
+                'description' => $suggestion->description,
+                'status' => $suggestion->status,
+                'status_label' => $this->getStatusLabel($suggestion->status),
+                'created_at' => $suggestion->created_at->toIso8601String(),
+                'updated_at' => $suggestion->updated_at->toIso8601String(),
+                'response' => $suggestion->response,
+                'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
+                'attachments_count' => $suggestion->attachments->count(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $suggestions
+        ]);
+    }
+
+    /**
+     * FR-55: Track suggestion status by tracking number (public endpoint)
+     */
+    public function track(string $trackingNumber): JsonResponse
+    {
+        $suggestion = Suggestion::where('tracking_number', $trackingNumber)
+            ->first();
+
+        if (!$suggestion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Suggestion not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tracking_number' => $suggestion->tracking_number,
+                'status' => $suggestion->status,
+                'submitted_at' => $suggestion->created_at->toIso8601String(),
+                'last_updated' => $suggestion->updated_at->toIso8601String(),
+                // Only show response if status is not pending
+                'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
+                'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
+            ]
+        ]);
+    }
+
+    /**
+     * T-SRS2-10: Print view for suggestion (public endpoint)
+     */
+    public function printView(string $trackingNumber): JsonResponse
+    {
+        $suggestion = Suggestion::where('tracking_number', $trackingNumber)
+            ->with('attachments')
+            ->first();
+
+        if (!$suggestion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Suggestion not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tracking_number' => $suggestion->tracking_number,
+                'name' => $suggestion->name,
+                'job_title' => $suggestion->job_title,
+                'email' => $suggestion->email,
+                'phone' => $suggestion->phone,
+                'description' => $suggestion->description,
+                'status' => $suggestion->status,
+                'status_label' => $this->getStatusLabel($suggestion->status),
+                'submitted_at' => $suggestion->created_at->toIso8601String(),
+                'response' => $suggestion->response,
+                'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
+                'attachments_count' => $suggestion->attachments->count(),
+            ]
+        ]);
+    }
+
+    /**
+     * Get human-readable status label
+     */
+    protected function getStatusLabel(string $status): array
+    {
+        $labels = [
+            Suggestion::STATUS_PENDING => [
+                'ar' => 'قيد المراجعة',
+                'en' => 'Pending Review'
+            ],
+            Suggestion::STATUS_REVIEWED => [
+                'ar' => 'تمت المراجعة',
+                'en' => 'Reviewed'
+            ],
+            Suggestion::STATUS_APPROVED => [
+                'ar' => 'تمت الموافقة',
+                'en' => 'Approved'
+            ],
+            Suggestion::STATUS_REJECTED => [
+                'ar' => 'مرفوض',
+                'en' => 'Rejected'
+            ],
+        ];
+
+        return $labels[$status] ?? ['ar' => $status, 'en' => $status];
     }
 }

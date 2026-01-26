@@ -1,9 +1,10 @@
-import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem } from '../types';
+import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection } from '../types';
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 
 // --- Configuration ---
 const USE_MOCK_DATA = false; // Set to FALSE to use real API calls
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'; // Laravel Backend URL
+// Use relative URL to leverage Next.js rewrites for proper proxying
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 // --- Interfaces ---
 export interface IDirectorateRepository {
@@ -16,6 +17,7 @@ export interface IDirectorateRepository {
 
 export interface INewsRepository {
   getOfficialNews(): Promise<NewsItem[]>;
+  getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]>;
   getBreakingNews(): Promise<string[]>;
   getHeroArticle(): Promise<Article>;
   getGridArticles(): Promise<Article[]>;
@@ -31,6 +33,7 @@ export interface IComplaintRepository {
   track(ticketId: string): Promise<Ticket | null>;
   myComplaints(): Promise<Ticket[]>;
   delete(id: string): Promise<boolean>;
+  rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean>;
 }
 
 export interface IStaffRepository {
@@ -54,10 +57,18 @@ export interface IContentRepository {
 
 export interface IUserRepository {
   updateProfile(data: { name?: string; email?: string; password?: string }): Promise<User | null>;
+  // Admin methods
+  getAll(params?: { search?: string; role_id?: number; is_active?: boolean; per_page?: number; page?: number }): Promise<{ data: User[], total: number, current_page: number, per_page: number, last_page: number }>;
+  getById(id: number): Promise<{ user: User; statistics: any } | null>;
+  create(data: { name: string; email: string; role_id: number; directorate_id?: string }): Promise<{ user: User; temp_password: string }>;
+  update(id: number, data: { name?: string; email?: string; phone?: string; role_id?: number; directorate_id?: string }): Promise<User | null>;
+  toggleStatus(id: number): Promise<{ is_active: boolean } | null>;
 }
 
 export interface ISuggestionRepository {
   submit(data: SuggestionData): Promise<Suggestion>;
+  track(trackingNumber: string): Promise<any>;
+  mySuggestions(): Promise<Suggestion[]>;
 }
 
 // --- Mock Implementations (Uses constants.ts) ---
@@ -81,43 +92,45 @@ class MockDirectorateRepository implements IDirectorateRepository {
     });
   }
   async getFeatured(): Promise<Directorate[]> {
-    // Mock Data for Featured Directorates
+    // Mock Data for Featured Directorates - MOE Structure
     const featuredDocs: Directorate[] = [
       {
-        id: 'dir-1',
-        name: 'مديرية الاقتصاد الرقمي',
-        description: 'تعنى بالتحول الرقمي والخدمات الإلكترونية',
-        icon: 'laptop',
-        servicesCount: 12,
+        id: 'd1',
+        name: 'الإدارة العامة للصناعة',
+        description: 'التراخيص الصناعية والمناطق الصناعية والمواصفات والمقاييس',
+        icon: 'Factory',
+        servicesCount: 6,
         featured: true,
         subDirectorates: [
-          { id: 'sub-1-1', name: 'قسم التطبيقات الذكية', url: '/services/apps', isExternal: false },
-          { id: 'sub-1-2', name: 'قسم البنية التحتية', url: '/services/infra', isExternal: false },
-          { id: 'sub-1-3', name: 'أمن المعلومات', url: 'https://cert.sy', isExternal: true },
+          { id: 'sub-1-1', name: 'مركز التنمية الصناعية', url: '/directorates/industry/development-center', isExternal: false },
+          { id: 'sub-1-2', name: 'مديرية المدن والمناطق الصناعية', url: '/directorates/industry/industrial-zones', isExternal: false },
+          { id: 'sub-1-3', name: 'هيئة المواصفات والمقاييس السورية', url: 'https://sasmo.gov.sy', isExternal: true },
         ]
       },
       {
-        id: 'dir-2',
-        name: 'مديرية التجارة الداخلية',
-        description: 'حماية المستهلك ومراقبة الأسواق',
-        icon: 'shopping-cart',
-        servicesCount: 8,
+        id: 'd2',
+        name: 'الإدارة العامة للاقتصاد',
+        description: 'التجارة الخارجية والمعارض الدولية ودعم المشاريع الصغيرة',
+        icon: 'TrendingUp',
+        servicesCount: 6,
         featured: true,
         subDirectorates: [
-          { id: 'sub-2-1', name: 'حماية المستهلك', url: '/complaints/new', isExternal: false },
-          { id: 'sub-2-2', name: 'الرقابة التموينية', url: '/directorates/dir-2/control', isExternal: false },
+          { id: 'sub-2-1', name: 'مديرية التجارة الخارجية', url: '/directorates/economy/foreign-trade', isExternal: false },
+          { id: 'sub-2-2', name: 'هيئة تنمية المشروعات الصغيرة والمتوسطة', url: '/directorates/economy/sme', isExternal: false },
+          { id: 'sub-2-3', name: 'المؤسسة العامة للمعارض والأسواق الدولية', url: '/directorates/economy/exhibitions', isExternal: false },
         ]
       },
       {
-        id: 'dir-3',
-        name: 'مديرية الاستثمار',
-        description: 'تشجيع الاستثمار وتسهيل الإجراءات',
-        icon: 'trending-up',
-        servicesCount: 15,
+        id: 'd3',
+        name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك',
+        description: 'حماية المستهلك وتسجيل الشركات والعلامات التجارية',
+        icon: 'ShieldCheck',
+        servicesCount: 6,
         featured: true,
         subDirectorates: [
-          { id: 'sub-3-1', name: 'الفرص الاستثمارية', url: '/investment/opportunities', isExternal: false },
-          { id: 'sub-3-2', name: 'النافذة الواحدة', url: '/investment/one-stop', isExternal: false },
+          { id: 'sub-3-1', name: 'مديرية حماية المستهلك وسلامة الغذاء', url: '/directorates/trade/consumer-protection', isExternal: false },
+          { id: 'sub-3-2', name: 'مديرية الشركات', url: '/directorates/trade/companies', isExternal: false },
+          { id: 'sub-3-3', name: 'مديرية حماية الملكية', url: '/directorates/trade/property-protection', isExternal: false },
         ]
       }
     ];
@@ -137,6 +150,22 @@ class MockNewsRepository implements INewsRepository {
   }
   async getGridArticles(): Promise<Article[]> {
     return new Promise(resolve => setTimeout(() => resolve(GRID_ARTICLES), 400));
+  }
+  async getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]> {
+    return new Promise(resolve => setTimeout(() => resolve([
+      {
+        directorate: { id: 'd1', name: 'الإدارة العامة للصناعة', icon: 'Factory' },
+        news: OFFICIAL_NEWS.slice(0, 3)
+      },
+      {
+        directorate: { id: 'd2', name: 'الإدارة العامة للاقتصاد', icon: 'TrendingUp' },
+        news: OFFICIAL_NEWS.slice(0, 2)
+      },
+      {
+        directorate: { id: 'd3', name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', icon: 'ShieldCheck' },
+        news: OFFICIAL_NEWS.slice(0, 2)
+      }
+    ]), 600));
   }
 }
 
@@ -186,6 +215,9 @@ class MockComplaintRepository implements IComplaintRepository {
   }
   async delete(id: string): Promise<boolean> {
     return new Promise(resolve => setTimeout(() => resolve(true), 300));
+  }
+  async rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean> {
+    return new Promise(resolve => setTimeout(() => resolve(true), 500));
   }
 }
 
@@ -247,33 +279,176 @@ class MockContentRepository implements IContentRepository {
 }
 
 class MockUserRepository implements IUserRepository {
+  private mockUsers: User[] = [
+    {
+      id: 1,
+      name: 'أحمد محمود',
+      email: 'admin@moe.gov.sy',
+      role_id: 1,
+      role: { id: 1, name: 'admin', label: 'مدير النظام', permissions: [] },
+      phone: '+963 11 1234567',
+      is_active: true,
+      created_at: '2024-01-15T08:00:00Z',
+      updated_at: '2024-05-20T10:30:00Z',
+      last_login_at: '2024-05-20T10:30:00Z'
+    },
+    {
+      id: 2,
+      name: 'سارة علي',
+      email: 'staff@moe.gov.sy',
+      role_id: 2,
+      role: { id: 2, name: 'staff', label: 'موظف', permissions: [] },
+      phone: '+963 11 7654321',
+      directorate_id: 'd1',
+      is_active: true,
+      created_at: '2024-02-10T09:15:00Z',
+      updated_at: '2024-05-15T14:20:00Z',
+      last_login_at: '2024-05-18T09:00:00Z'
+    },
+    {
+      id: 3,
+      name: 'محمد خالد',
+      email: 'citizen@example.com',
+      role_id: 3,
+      role: { id: 3, name: 'citizen', label: 'مواطن', permissions: [] },
+      phone: '+963 955 123456',
+      national_id: '12345678901',
+      is_active: false,
+      created_at: '2024-03-20T11:00:00Z',
+      updated_at: '2024-05-10T16:45:00Z'
+    }
+  ];
+
   async updateProfile(data: any): Promise<User | null> {
-    return new Promise(resolve => setTimeout(() => resolve({ id: '1', name: data.name || 'User', email: data.email || 'user@example.com', role: 'user' }), 500));
+    return new Promise(resolve => setTimeout(() => resolve({ id: 1, name: data.name || 'User', email: data.email || 'user@example.com', role_id: 1, is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' }), 500));
+  }
+
+  async getAll(params?: any): Promise<{ data: User[], total: number, current_page: number, per_page: number, last_page: number }> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        let filtered = [...this.mockUsers];
+
+        if (params?.search) {
+          const search = params.search.toLowerCase();
+          filtered = filtered.filter(u =>
+            u.name.toLowerCase().includes(search) ||
+            u.email.toLowerCase().includes(search)
+          );
+        }
+
+        if (params?.role_id) {
+          filtered = filtered.filter(u => u.role_id === Number(params.role_id));
+        }
+
+        if (params?.is_active !== undefined) {
+          filtered = filtered.filter(u => u.is_active === Boolean(params.is_active));
+        }
+
+        resolve({
+          data: filtered,
+          total: filtered.length,
+          current_page: 1,
+          per_page: params?.per_page || 15,
+          last_page: 1
+        });
+      }, 400);
+    });
+  }
+
+  async getById(id: number): Promise<{ user: User; statistics: any } | null> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const user = this.mockUsers.find(u => u.id === id);
+        if (!user) {
+          resolve(null);
+        } else {
+          resolve({
+            user,
+            statistics: {
+              complaints_count: 5,
+              suggestions_count: 2,
+              last_login: user.last_login_at || null,
+              account_age_days: 120
+            }
+          });
+        }
+      }, 300);
+    });
+  }
+
+  async create(data: any): Promise<{ user: User; temp_password: string }> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const newUser: User = {
+          id: this.mockUsers.length + 1,
+          name: data.name,
+          email: data.email,
+          role_id: data.role_id,
+          directorate_id: data.directorate_id,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        this.mockUsers.push(newUser);
+        resolve({
+          user: newUser,
+          temp_password: 'TempPass123!'
+        });
+      }, 500);
+    });
+  }
+
+  async update(id: number, data: any): Promise<User | null> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const user = this.mockUsers.find(u => u.id === id);
+        if (!user) {
+          resolve(null);
+        } else {
+          Object.assign(user, data, { updated_at: new Date().toISOString() });
+          resolve(user);
+        }
+      }, 400);
+    });
+  }
+
+  async toggleStatus(id: number): Promise<{ is_active: boolean } | null> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const user = this.mockUsers.find(u => u.id === id);
+        if (!user) {
+          resolve(null);
+        } else {
+          user.is_active = !user.is_active;
+          resolve({ is_active: user.is_active });
+        }
+      }, 300);
+    });
   }
 }
 
 // --- API Implementations (Real Backend) ---
 class ApiDirectorateRepository implements IDirectorateRepository {
   async getAll(): Promise<Directorate[]> {
-    const res = await fetch(`${API_BASE_URL}/directorates`);
+    const res = await fetch(`${API_BASE_URL}/public/directorates`);
     return res.json();
   }
   async getById(id: string): Promise<Directorate | null> {
-    const res = await fetch(`${API_BASE_URL}/directorates/${id}`);
+    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
   async getServicesByDirectorate(id: string): Promise<Service[]> {
-    const res = await fetch(`${API_BASE_URL}/directorates/${id}/services`);
+    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/services`);
     return res.json();
   }
   async getNewsByDirectorate(id: string): Promise<NewsItem[]> {
-    const res = await fetch(`${API_BASE_URL}/directorates/${id}/news`);
+    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/news`);
     if (!res.ok) return [];
     return res.json();
   }
   async getFeatured(): Promise<Directorate[]> {
-    const res = await fetch(`${API_BASE_URL}/directorates/featured`);
+    const res = await fetch(`${API_BASE_URL}/public/directorates/featured`);
     if (!res.ok) return [];
     return res.json();
   }
@@ -281,19 +456,23 @@ class ApiDirectorateRepository implements IDirectorateRepository {
 
 class ApiNewsRepository implements INewsRepository {
   async getOfficialNews(): Promise<NewsItem[]> {
-    const res = await fetch(`${API_BASE_URL}/news`);
+    const res = await fetch(`${API_BASE_URL}/public/news`);
+    return res.json();
+  }
+  async getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]> {
+    const res = await fetch(`${API_BASE_URL}/public/news/by-directorate`);
     return res.json();
   }
   async getBreakingNews(): Promise<string[]> {
-    const res = await fetch(`${API_BASE_URL}/news/breaking`);
+    const res = await fetch(`${API_BASE_URL}/public/news/breaking`);
     return res.json();
   }
   async getHeroArticle(): Promise<Article> {
-    const res = await fetch(`${API_BASE_URL}/news/hero`);
+    const res = await fetch(`${API_BASE_URL}/public/news/hero`);
     return res.json();
   }
   async getGridArticles(): Promise<Article[]> {
-    const res = await fetch(`${API_BASE_URL}/news/grid`);
+    const res = await fetch(`${API_BASE_URL}/public/news/grid`);
     return res.json();
   }
 }
@@ -339,6 +518,14 @@ class ApiComplaintRepository implements IComplaintRepository {
     const res = await fetch(`${API_BASE_URL}/complaints/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    return res.ok;
+  }
+  async rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean> {
+    const res = await fetch(`${API_BASE_URL}/complaints/${trackingNumber}/rate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating, comment })
     });
     return res.ok;
   }
@@ -507,10 +694,9 @@ class MockReportsRepository implements IReportsRepository {
               urgent: 12
             },
             by_directorate: [
-              { name: 'وزارة الداخلية', count: 120 },
-              { name: 'وزارة التربية', count: 80 },
-              { name: 'وزارة الصحة', count: 60 },
-              { name: 'وزارة العدل', count: 50 },
+              { name: 'الإدارة العامة للصناعة', count: 120 },
+              { name: 'الإدارة العامة للاقتصاد', count: 80 },
+              { name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', count: 142 },
             ]
           },
           users: {
@@ -570,17 +756,96 @@ class ApiReportsRepository implements IReportsRepository {
 
 // --- Factory / Export ---
 class ApiUserRepository implements IUserRepository {
+  private getAuthHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Accept': 'application/json'
+    };
+  }
+
   async updateProfile(data: any): Promise<User | null> {
-    const res = await fetch(`${API_BASE_URL}/users/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/me`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.user || json;
+    } catch {
+      return null;
+    }
+  }
+
+  async getAll(params?: any): Promise<{ data: User[], total: number, current_page: number, per_page: number, last_page: number }> {
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.role_id) searchParams.append('role_id', params.role_id.toString());
+      if (params?.is_active !== undefined) searchParams.append('is_active', params.is_active.toString());
+      if (params?.per_page) searchParams.append('per_page', params.per_page.toString());
+      if (params?.page) searchParams.append('page', params.page.toString());
+
+      const res = await fetch(`${API_BASE_URL}/admin/users?${searchParams.toString()}`, {
+        headers: this.getAuthHeaders()
+      });
+      if (!res.ok) return { data: [], total: 0, current_page: 1, per_page: 15, last_page: 1 };
+      return res.json();
+    } catch {
+      return { data: [], total: 0, current_page: 1, per_page: 15, last_page: 1 };
+    }
+  }
+
+  async getById(id: number): Promise<{ user: User; statistics: any } | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+        headers: this.getAuthHeaders()
+      });
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async create(data: any): Promise<{ user: User; temp_password: string }> {
+    const res = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error('Failed to create user');
     return res.json();
+  }
+
+  async update(id: number, data: any): Promise<User | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.user || json;
+    } catch {
+      return null;
+    }
+  }
+
+  async toggleStatus(id: number): Promise<{ is_active: boolean } | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${id}/disable`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders()
+      });
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -602,26 +867,26 @@ class MockAnnouncementsRepository implements IAnnouncementsRepository {
   private announcements: Announcement[] = [
     {
       id: 'a1',
-      title: 'إعلان مناقصة لتوريد أجهزة حاسوب',
+      title: 'مناقصة توريد معدات للمناطق الصناعية',
       date: '2024-05-20',
       category: 'مناقصات',
-      description: 'تعلن وزارة الاتصالات عن رغبتها في إجراء مناقصة لتوريد 500 جهاز حاسوب مكتبي.',
+      description: 'تعلن الإدارة العامة للصناعة عن رغبتها في إجراء مناقصة لتوريد معدات صناعية للمناطق الصناعية.',
       isUrgent: false
     },
     {
       id: 'a2',
-      title: 'تعلن وزارة التعليم العالي عن منح دراسية',
+      title: 'فتح باب التسجيل لبرنامج دعم المشاريع الصغيرة',
       date: '2024-05-18',
-      category: 'منح',
-      description: 'منح دراسية للدراسات العليا في الجامعات الحكومية للعام الدراسي 2024-2025.',
+      category: 'برامج دعم',
+      description: 'تعلن هيئة تنمية المشروعات الصغيرة والمتوسطة عن فتح باب التسجيل لبرنامج التمويل الميسر.',
       isUrgent: true
     },
     {
       id: 'a3',
-      title: 'تعطيل الجهات العامة',
+      title: 'افتتاح مركز خدمة المستثمرين',
       date: '2024-05-15',
-      category: 'إداري',
-      description: 'تعطل الجهات العامة يوم الأحد بمناسبة عيد الشهداء.',
+      category: 'خدمات',
+      description: 'افتتاح مركز جديد لخدمة المستثمرين في الإدارة العامة للاقتصاد - النافذة الواحدة.',
       isUrgent: true
     }
   ];
@@ -642,10 +907,65 @@ class MockSuggestionRepository implements ISuggestionRepository {
     return new Promise(resolve => {
       setTimeout(() => resolve({
         id: Math.random().toString(36).substr(2, 9),
-        trackingNumber: 'SUG-' + Math.floor(Math.random() * 100000),
+        trackingNumber: 'SUG-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'),
         status: 'received',
         createdAt: new Date().toISOString()
       }), 1500);
+    });
+  }
+
+  async track(trackingNumber: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (trackingNumber.startsWith('SUG-')) {
+          resolve({
+            success: true,
+            data: {
+              tracking_number: trackingNumber,
+              status: 'pending',
+              submitted_at: new Date().toISOString(),
+              last_updated: new Date().toISOString(),
+              response: null,
+              reviewed_at: null
+            }
+          });
+        } else {
+          reject(new Error('Not found'));
+        }
+      }, 800);
+    });
+  }
+
+  async mySuggestions(): Promise<Suggestion[]> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: 1,
+            tracking_number: 'SUG-12345678',
+            description: 'اقتراح تحسين الخدمات الإلكترونية',
+            status: 'pending',
+            status_label: { ar: 'قيد المراجعة', en: 'Pending Review' },
+            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            response: null,
+            reviewed_at: null,
+            attachments_count: 2
+          },
+          {
+            id: 2,
+            tracking_number: 'SUG-87654321',
+            description: 'اقتراح تطوير موقع الوزارة',
+            status: 'approved',
+            status_label: { ar: 'تمت الموافقة', en: 'Approved' },
+            created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            response: 'شكراً لاقتراحكم القيم. سيتم العمل على تنفيذه قريباً.',
+            reviewed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            attachments_count: 0
+          }
+        ]);
+      }, 600);
     });
   }
 }
@@ -670,16 +990,39 @@ class ApiSuggestionRepository implements ISuggestionRepository {
     });
     return res.json();
   }
+
+  async track(trackingNumber: string): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/suggestions/track/${trackingNumber}`);
+    if (!res.ok) {
+      throw new Error('Suggestion not found');
+    }
+    return res.json();
+  }
+
+  async mySuggestions(): Promise<Suggestion[]> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const res = await fetch(`${API_BASE_URL}/users/me/suggestions`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) {
+      throw new Error('Failed to fetch suggestions');
+    }
+    const data = await res.json();
+    return data.success ? data.data : [];
+  }
 }
 
 class ApiAnnouncementsRepository implements IAnnouncementsRepository {
   async getAll(): Promise<Announcement[]> {
-    const res = await fetch(`${API_BASE_URL}/announcements`);
+    const res = await fetch(`${API_BASE_URL}/public/announcements`);
     return res.json();
   }
 
   async getById(id: string): Promise<Announcement | null> {
-    const res = await fetch(`${API_BASE_URL}/announcements/${id}`);
+    const res = await fetch(`${API_BASE_URL}/public/announcements/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
@@ -718,6 +1061,52 @@ class ApiMediaRepository implements IMediaRepository {
   }
 }
 
+// --- Roles Repository ---
+export interface IRolesRepository {
+  getAll(): Promise<Role[]>;
+}
+
+class MockRolesRepository implements IRolesRepository {
+  private mockRoles: Role[] = [
+    { id: 1, name: 'admin', label: 'مدير النظام', permissions: ['all'] },
+    { id: 2, name: 'staff', label: 'موظف', permissions: ['manage_complaints', 'view_reports'] },
+    { id: 3, name: 'citizen', label: 'مواطن', permissions: ['submit_complaint', 'track_complaint'] }
+  ];
+
+  async getAll(): Promise<Role[]> {
+    return new Promise(resolve => setTimeout(() => resolve(this.mockRoles), 300));
+  }
+}
+
+class ApiRolesRepository implements IRolesRepository {
+  async getAll(): Promise<Role[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/roles`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (!res.ok) {
+        // Fallback to mock data if endpoint doesn't exist yet
+        return [
+          { id: 1, name: 'admin', label: 'مدير النظام', permissions: ['all'] },
+          { id: 2, name: 'staff', label: 'موظف', permissions: ['manage_complaints', 'view_reports'] },
+          { id: 3, name: 'citizen', label: 'مواطن', permissions: ['submit_complaint', 'track_complaint'] }
+        ];
+      }
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [
+        { id: 1, name: 'admin', label: 'مدير النظام', permissions: ['all'] },
+        { id: 2, name: 'staff', label: 'موظف', permissions: ['manage_complaints', 'view_reports'] },
+        { id: 3, name: 'citizen', label: 'مواطن', permissions: ['submit_complaint', 'track_complaint'] }
+      ];
+    }
+  }
+}
+
 // --- Services Repository ---
 export interface IServicesRepository {
   getAll(): Promise<Service[]>;
@@ -748,6 +1137,255 @@ class ApiServicesRepository implements IServicesRepository {
   }
 }
 
+// --- Investment Repository ---
+export interface Investment {
+  id: number;
+  title_ar: string;
+  title_en: string;
+  sector_ar: string;
+  sector_en: string;
+  location_ar: string;
+  location_en: string;
+  investment_amount: string | null;
+  formatted_amount: string;
+  currency: string;
+  status: string;
+  status_label: { ar: string; en: string };
+  category: string;
+  icon: string;
+  image: string | null;
+  is_featured: boolean;
+  description_ar?: string;
+  description_en?: string;
+}
+
+export interface InvestmentStats {
+  total: number;
+  by_category: Record<string, number>;
+  by_status: Record<string, number>;
+  total_investment_value: number;
+  featured_count: number;
+}
+
+export interface IInvestmentRepository {
+  getAll(): Promise<Investment[]>;
+  getByCategory(category: string): Promise<Investment[]>;
+  getById(id: number): Promise<Investment | null>;
+  getStats(): Promise<InvestmentStats>;
+}
+
+class MockInvestmentRepository implements IInvestmentRepository {
+  private mockData: Investment[] = [
+    {
+      id: 1,
+      title_ar: 'مشروع الطاقة الشمسية - ريف دمشق',
+      title_en: 'Solar Energy Project - Damascus Countryside',
+      sector_ar: 'الطاقة المتجددة',
+      sector_en: 'Renewable Energy',
+      location_ar: 'ريف دمشق',
+      location_en: 'Damascus Countryside',
+      investment_amount: '5000000.00',
+      formatted_amount: '$5,000,000',
+      currency: 'USD',
+      status: 'available',
+      status_label: { ar: 'متاح', en: 'Available' },
+      category: 'opportunities',
+      icon: 'Zap',
+      image: null,
+      is_featured: true
+    },
+    {
+      id: 2,
+      title_ar: 'مجمع صناعي متكامل - حلب',
+      title_en: 'Integrated Industrial Complex - Aleppo',
+      sector_ar: 'الصناعة',
+      sector_en: 'Industry',
+      location_ar: 'حلب',
+      location_en: 'Aleppo',
+      investment_amount: '15000000.00',
+      formatted_amount: '$15,000,000',
+      currency: 'USD',
+      status: 'available',
+      status_label: { ar: 'متاح', en: 'Available' },
+      category: 'opportunities',
+      icon: 'Factory',
+      image: null,
+      is_featured: true
+    }
+  ];
+
+  async getAll(): Promise<Investment[]> {
+    return new Promise(resolve => setTimeout(() => resolve(this.mockData), 400));
+  }
+  async getByCategory(category: string): Promise<Investment[]> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(this.mockData.filter(i => i.category === category)), 300);
+    });
+  }
+  async getById(id: number): Promise<Investment | null> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(this.mockData.find(i => i.id === id) || null), 300);
+    });
+  }
+  async getStats(): Promise<InvestmentStats> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve({
+        total: 18,
+        by_category: { opportunities: 6, 'one-stop': 6, licenses: 4, guide: 2 },
+        by_status: { available: 16, under_review: 2 },
+        total_investment_value: 63500000,
+        featured_count: 3
+      }), 300);
+    });
+  }
+}
+
+class ApiInvestmentRepository implements IInvestmentRepository {
+  async getAll(): Promise<Investment[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/investments`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [];
+    }
+  }
+  async getByCategory(category: string): Promise<Investment[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/investments/category/${category}`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [];
+    }
+  }
+  async getById(id: number): Promise<Investment | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/investments/${id}`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return null;
+    }
+  }
+  async getStats(): Promise<InvestmentStats> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/investments/stats`);
+      if (!res.ok) {
+        return { total: 0, by_category: {}, by_status: {}, total_investment_value: 0, featured_count: 0 };
+      }
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return { total: 0, by_category: {}, by_status: {}, total_investment_value: 0, featured_count: 0 };
+    }
+  }
+}
+
+// --- Promotional Sections Repository ---
+export interface IPromotionalSectionsRepository {
+  getAll(): Promise<PromotionalSection[]>;
+  getByPosition(position: string): Promise<PromotionalSection[]>;
+  getById(id: number): Promise<PromotionalSection | null>;
+}
+
+class MockPromotionalSectionsRepository implements IPromotionalSectionsRepository {
+  private mockData: PromotionalSection[] = [
+    {
+      id: 1,
+      title_ar: 'كواليس التحضيرات النهائية',
+      title_en: 'Behind the Scenes: Final Preparations',
+      description_ar: 'شاهد التقرير الحصري من قلب الحدث مع مراسلنا.',
+      description_en: 'Watch the exclusive report from the heart of the event.',
+      button_text_ar: 'شاهد الفيديو',
+      button_text_en: 'Watch Video',
+      image: null,
+      background_color: '#DC2626',
+      icon: 'Play',
+      button_url: '#video-exclusive',
+      type: 'video',
+      type_label: { ar: 'فيديو', en: 'Video' },
+      position: 'grid_bottom',
+      position_label: { ar: 'أسفل الشبكة', en: 'Grid Bottom' },
+      display_order: 1,
+      metadata: { badge_ar: 'فيديو حصري', badge_en: 'Exclusive Video' },
+    },
+    {
+      id: 2,
+      title_ar: 'كاتب ومحلل',
+      title_en: 'Writers & Analysts',
+      description_ar: 'انضم إلى مجتمعنا من الخبراء والمحللين لقراءة تحليلات عميقة.',
+      description_en: 'Join our community of experts and analysts.',
+      button_text_ar: 'تصفح الكتاب',
+      button_text_en: 'Browse Writers',
+      image: null,
+      background_color: '#1A2E1A',
+      icon: 'Users',
+      button_url: '/writers',
+      type: 'stats',
+      type_label: { ar: 'إحصائيات', en: 'Statistics' },
+      position: 'grid_bottom',
+      position_label: { ar: 'أسفل الشبكة', en: 'Grid Bottom' },
+      display_order: 2,
+      metadata: { stat_value: '30+', stat_label_ar: 'كاتب ومحلل', stat_label_en: 'Writers & Analysts' },
+    },
+  ];
+
+  async getAll(): Promise<PromotionalSection[]> {
+    return new Promise(resolve => setTimeout(() => resolve(this.mockData), 400));
+  }
+
+  async getByPosition(position: string): Promise<PromotionalSection[]> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(this.mockData.filter(s => s.position === position)), 300);
+    });
+  }
+
+  async getById(id: number): Promise<PromotionalSection | null> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(this.mockData.find(s => s.id === id) || null), 300);
+    });
+  }
+}
+
+class ApiPromotionalSectionsRepository implements IPromotionalSectionsRepository {
+  async getAll(): Promise<PromotionalSection[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/promotional-sections`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [];
+    }
+  }
+
+  async getByPosition(position: string): Promise<PromotionalSection[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/promotional-sections/position/${position}`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [];
+    }
+  }
+
+  async getById(id: number): Promise<PromotionalSection | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/promotional-sections/${id}`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return null;
+    }
+  }
+}
+
 export const API = {
   directorates: USE_MOCK_DATA ? new MockDirectorateRepository() : new ApiDirectorateRepository(),
   news: USE_MOCK_DATA ? new MockNewsRepository() : new ApiNewsRepository(),
@@ -756,9 +1394,12 @@ export const API = {
   staff: USE_MOCK_DATA ? new MockStaffRepository() : new ApiStaffRepository(),
   content: USE_MOCK_DATA ? new MockContentRepository() : new ApiContentRepository(),
   users: USE_MOCK_DATA ? new MockUserRepository() : new ApiUserRepository(),
+  roles: USE_MOCK_DATA ? new MockRolesRepository() : new ApiRolesRepository(),
   reports: USE_MOCK_DATA ? new MockReportsRepository() : new ApiReportsRepository(),
   announcements: USE_MOCK_DATA ? new MockAnnouncementsRepository() : new ApiAnnouncementsRepository(),
   suggestions: USE_MOCK_DATA ? new MockSuggestionRepository() : new ApiSuggestionRepository(),
   media: USE_MOCK_DATA ? new MockMediaRepository() : new ApiMediaRepository(),
   services: USE_MOCK_DATA ? new MockServicesRepository() : new ApiServicesRepository(),
+  investments: USE_MOCK_DATA ? new MockInvestmentRepository() : new ApiInvestmentRepository(),
+  promotionalSections: USE_MOCK_DATA ? new MockPromotionalSectionsRepository() : new ApiPromotionalSectionsRepository(),
 };

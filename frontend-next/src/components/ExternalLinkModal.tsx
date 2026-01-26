@@ -27,10 +27,7 @@ const ExternalLinkModal: React.FC<ExternalLinkModalProps> = ({ isOpen, url, onCl
 
                 <div className="p-6">
                     <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        {language === 'ar'
-                            ? 'أنت على وشك مغادرة موقع وزارة الاقتصاد والتجارة الخارجية. الوزارة ليست مسؤولة عن محتوى الروابط الخارجية.'
-                            : 'You are about to leave the Ministry of Economy & Foreign Trade website. The Ministry is not responsible for the content of external links.'
-                        }
+                        {t('external_link_warning_desc')}
                     </p>
                     <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/10 mb-6 flex items-center gap-2 text-sm text-gov-teal break-all">
                         <ExternalLink size={16} className="shrink-0" />

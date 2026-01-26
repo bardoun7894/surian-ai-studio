@@ -13,6 +13,21 @@ Route::prefix('v1')->group(function () {
         Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
         Route::post('verify-2fa', [\App\Http\Controllers\AuthController::class, 'verify2fa']);
         Route::post('register', [\App\Http\Controllers\UserController::class, 'register']);
+
+        // T-NX-07: CSRF route for Next.js Sanctum integration
+        Route::get('csrf', function () {
+            // This endpoint is used by Next.js to fetch CSRF cookie before login
+            // The actual CSRF cookie is set by Laravel Sanctum via /sanctum/csrf-cookie
+            // This endpoint provides a convenient API wrapper
+            return response()->json([
+                'csrf_token' => csrf_token(),
+                'message' => 'CSRF token retrieved. Use /sanctum/csrf-cookie for cookie-based auth.'
+            ]);
+        });
+
+        // Password reset routes
+        Route::post('forgot-password', [\App\Http\Controllers\AuthController::class, 'forgotPassword']);
+        Route::post('reset-password', [\App\Http\Controllers\AuthController::class, 'resetPassword']);
     });
 
     // Complaint Public/Guest Routes
@@ -28,6 +43,7 @@ Route::prefix('v1')->group(function () {
         Route::get('track/{trackingNumber}', [\App\Http\Controllers\ComplaintController::class, 'track']); // T066
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\ComplaintController::class, 'print']); // FR-28
         Route::get('{trackingNumber}/pdf', [\App\Http\Controllers\ComplaintController::class, 'printPdf']); // FR-28: PDF Download
+        Route::post('{trackingNumber}/rate', [\App\Http\Controllers\ComplaintController::class, 'rate']); // FR-25: User satisfaction rating
     });
 
     // Content Public Routes
@@ -44,6 +60,7 @@ Route::prefix('v1')->group(function () {
         Route::get('directorates/{id}/sub-directorates', [\App\Http\Controllers\Api\PublicApiController::class, 'directorateSubDirectorates']); // FR-49-51
 
         // News
+        Route::get('news/by-directorate', [\App\Http\Controllers\Api\PublicApiController::class, 'newsByDirectorate']); // FR-13
         Route::get('news', [\App\Http\Controllers\Api\PublicApiController::class, 'news']);
         Route::get('news/breaking', [\App\Http\Controllers\Api\PublicApiController::class, 'breakingNews']);
         Route::get('news/hero', [\App\Http\Controllers\Api\PublicApiController::class, 'heroArticle']);
@@ -74,12 +91,30 @@ Route::prefix('v1')->group(function () {
         Route::get('search/semantic', [\App\Http\Controllers\Api\PublicApiController::class, 'semanticSearch']);
 
         // FR-42: Public Settings
+        Route::get('settings/ui', [\App\Http\Controllers\Api\SettingsController::class, 'getUiSettings']); // T-MOD-038
         Route::get('settings', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettings']);
+
+        // Investment Portal Routes
+        Route::prefix('investments')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\InvestmentController::class, 'index']);
+            Route::get('stats', [\App\Http\Controllers\Api\InvestmentController::class, 'stats']);
+            Route::get('category/{category}', [\App\Http\Controllers\Api\InvestmentController::class, 'byCategory']);
+            Route::get('{id}', [\App\Http\Controllers\Api\InvestmentController::class, 'show']);
+        });
+
+        // Promotional Sections Routes
+        Route::prefix('promotional-sections')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'index']);
+            Route::get('position/{position}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'byPosition']);
+            Route::get('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'show']);
+        });
     });
 
     // Suggestions Routes (FR-52 to FR-56)
     Route::prefix('suggestions')->group(function () {
         Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store']); // Public submission
+        Route::get('track/{trackingNumber}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'track']); // FR-55: Track suggestion status
+        Route::get('{trackingNumber}/print', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'printView']); // T-SRS2-10: Print view
     });
 
     // Chat Routes (Public - FR-31 to FR-35)
@@ -88,6 +123,17 @@ Route::prefix('v1')->group(function () {
         Route::get('history/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);
         Route::delete('session/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'clearSession']);
         Route::post('handoff', [\App\Http\Controllers\Api\ChatController::class, 'requestHandoff']); // FR-35
+    });
+
+    // FR-53: WhatsApp Webhook Routes (Public - for Meta/Facebook callbacks)
+    Route::prefix('webhooks/whatsapp')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\WhatsAppWebhookController::class, 'verify']); // Webhook verification
+        Route::post('/', [\App\Http\Controllers\Api\WhatsAppWebhookController::class, 'webhook']); // Receive messages
+    });
+
+    // FR-53: Telegram Webhook Routes (Public - for Telegram callbacks)
+    Route::prefix('webhooks/telegram')->group(function () {
+        Route::post('/', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'webhook']); // Receive messages
     });
 
 
@@ -102,6 +148,7 @@ Route::prefix('v1')->group(function () {
         // User Routes
         Route::put('users/me', [\App\Http\Controllers\UserController::class, 'updateProfile']);
         Route::get('users/me/complaints', [\App\Http\Controllers\ComplaintController::class, 'myComplaints']); // T067
+        Route::get('users/me/suggestions', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'mySuggestions']); // Get user's suggestions
         Route::delete('complaints/{id}', [\App\Http\Controllers\ComplaintController::class, 'destroy']); // FR-22: Delete complaint
 
         // User Notification Preferences
@@ -126,6 +173,13 @@ Route::prefix('v1')->group(function () {
             Route::post('complaints/{id}/response', [\App\Http\Controllers\ComplaintController::class, 'addResponse']);
             Route::get('analytics', [\App\Http\Controllers\ComplaintController::class, 'getDashboardAnalytics']);
 
+            // FR-35: Snooze complaint routes
+            Route::post('complaints/{id}/snooze', [\App\Http\Controllers\ComplaintController::class, 'snooze']);
+            Route::delete('complaints/{id}/snooze', [\App\Http\Controllers\ComplaintController::class, 'unsnooze']);
+
+            // T-SRS2-04: User satisfaction analytics
+            Route::get('analytics/satisfaction', [\App\Http\Controllers\ComplaintController::class, 'getSatisfactionAnalytics']);
+
             // FR-35: Chat Handoff Management
             Route::prefix('chat/handoffs')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\ChatController::class, 'listHandoffs']);
@@ -136,7 +190,11 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::middleware('role:admin.*')->prefix('admin')->group(function () {
+            // User Management (FR-01 to FR-10)
+            Route::get('users', [\App\Http\Controllers\UserController::class, 'index']);
+            Route::get('users/{id}', [\App\Http\Controllers\UserController::class, 'show']);
             Route::post('users', [\App\Http\Controllers\UserController::class, 'store']);
+            Route::put('users/{id}', [\App\Http\Controllers\UserController::class, 'update']);
             Route::put('users/{id}/disable', [\App\Http\Controllers\UserController::class, 'toggleStatus']);
 
             // CMS Content Routes (T096-T104)
@@ -150,6 +208,14 @@ Route::prefix('v1')->group(function () {
                 Route::get('{attachmentId}/download', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'download']);
                 Route::put('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'update']);
                 Route::delete('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'destroy']);
+            });
+
+            // FR-14: Content Versioning Routes
+            Route::prefix('content/{contentId}/versions')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\ContentVersionController::class, 'index']);
+                Route::get('{versionNumber}', [\App\Http\Controllers\Api\ContentVersionController::class, 'show']);
+                Route::post('{versionNumber}/restore', [\App\Http\Controllers\Api\ContentVersionController::class, 'restore']);
+                Route::get('{versionNumber}/compare', [\App\Http\Controllers\Api\ContentVersionController::class, 'compare']);
             });
 
             // FR-42: System Settings Routes
@@ -168,9 +234,12 @@ Route::prefix('v1')->group(function () {
             Route::prefix('faq-suggestions')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'index']);
                 Route::get('stats', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'stats']);
+                Route::get('snoozed', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'snoozed']); // FR-58
                 Route::get('{id}', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'show']);
                 Route::post('{id}/approve', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'approve']);
                 Route::post('{id}/reject', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'reject']);
+                Route::post('{id}/snooze', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'snooze']); // FR-58
+                Route::delete('{id}/snooze', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'unsnooze']); // FR-58
                 Route::get('{id}/enhance', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'enhance']);
                 Route::post('analyze', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'analyze']);
                 Route::post('bulk/approve', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'bulkApprove']);
@@ -206,6 +275,18 @@ Route::prefix('v1')->group(function () {
             Route::get('download/{filename}', [\App\Http\Controllers\Api\BackupController::class, 'download']);
             Route::delete('{filename}', [\App\Http\Controllers\Api\BackupController::class, 'destroy']);
             Route::post('export', [\App\Http\Controllers\Api\BackupController::class, 'export']);
+        });
+
+        // FR-53: Webhook Management Routes (Admin only)
+        Route::middleware('role:admin.*')->prefix('admin/webhooks')->group(function () {
+            // WhatsApp
+            Route::get('whatsapp/status', [\App\Http\Controllers\Api\WhatsAppWebhookController::class, 'status']);
+
+            // Telegram
+            Route::get('telegram/status', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'status']);
+            Route::post('telegram/set', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'setWebhook']);
+            Route::delete('telegram', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'deleteWebhook']);
+            Route::get('telegram/info', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'getWebhookInfo']);
         });
 
         Route::get('/user', function (Request $request) {

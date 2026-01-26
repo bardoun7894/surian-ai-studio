@@ -31,8 +31,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
     const uniqueEntities = Array.from(new Set([
         ...OFFICIAL_NEWS.map(n => n.category),
         ...DECREES.map(d => d.type),
-        language === 'ar' ? 'وزارة الكهرباء' : 'Ministry of Electricity',
-        language === 'ar' ? 'وزارة التربية' : 'Ministry of Education'
+        language === 'ar' ? 'الإدارة العامة للصناعة' : 'General Administration for Industry',
+        language === 'ar' ? 'الإدارة العامة للاقتصاد' : 'General Administration for Economy'
     ])).filter(Boolean);
 
     // Filter Logic

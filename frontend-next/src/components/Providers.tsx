@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
 
 interface ProvidersProps {
@@ -45,16 +46,18 @@ export function Providers({ children }: ProvidersProps) {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          {children}
-          <ExternalLinkModal
-            isOpen={!!externalUrl}
-            url={externalUrl || ''}
-            onClose={() => setExternalUrl(null)}
-            onConfirm={() => {
-              if (externalUrl) window.open(externalUrl, '_blank');
-              setExternalUrl(null);
-            }}
-          />
+          <NotificationProvider>
+            {children}
+            <ExternalLinkModal
+              isOpen={!!externalUrl}
+              url={externalUrl || ''}
+              onClose={() => setExternalUrl(null)}
+              onConfirm={() => {
+                if (externalUrl) window.open(externalUrl, '_blank');
+                setExternalUrl(null);
+              }}
+            />
+          </NotificationProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

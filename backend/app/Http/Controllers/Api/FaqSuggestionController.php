@@ -19,10 +19,16 @@ class FaqSuggestionController extends Controller
 
     /**
      * FR-43: Get all FAQ suggestions
+     * FR-58: By default excludes snoozed suggestions (use include_snoozed=true to show all)
      */
     public function index(Request $request): JsonResponse
     {
         $query = FaqSuggestion::with('reviewer');
+
+        // FR-58: Exclude snoozed by default
+        if (!$request->boolean('include_snoozed', false)) {
+            $query->notSnoozed();
+        }
 
         // Filter by status
         if ($request->has('status')) {
@@ -377,6 +383,122 @@ class FaqSuggestionController extends Controller
 
         return response()->json([
             'message' => 'Suggestion deleted',
+        ]);
+    }
+
+    /**
+     * FR-58: Snooze a FAQ suggestion
+     * Allowed periods: 1_day, 3_days, 1_week
+     */
+    public function snooze(Request $request, int $id): JsonResponse
+    {
+        $suggestion = FaqSuggestion::find($id);
+
+        if (!$suggestion) {
+            return response()->json([
+                'message' => 'Suggestion not found',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'period' => 'required|string|in:1_day,3_days,1_week',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $result = $suggestion->snooze(
+            $request->input('period'),
+            $request->user()->id
+        );
+
+        if (!$result) {
+            return response()->json([
+                'message' => 'Failed to snooze suggestion',
+            ], 400);
+        }
+
+        // Audit log
+        $this->auditService->log(
+            'faq_suggestion_snoozed',
+            'faq_suggestion',
+            $suggestion->id,
+            [
+                'period' => $request->input('period'),
+                'snoozed_until' => $suggestion->snoozed_until,
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Suggestion snoozed successfully',
+            'suggestion' => $suggestion->fresh(),
+        ]);
+    }
+
+    /**
+     * FR-58: Unsnooze a FAQ suggestion
+     */
+    public function unsnooze(int $id): JsonResponse
+    {
+        $suggestion = FaqSuggestion::find($id);
+
+        if (!$suggestion) {
+            return response()->json([
+                'message' => 'Suggestion not found',
+            ], 404);
+        }
+
+        if (!$suggestion->isSnoozed()) {
+            return response()->json([
+                'message' => 'Suggestion is not snoozed',
+            ], 400);
+        }
+
+        $suggestion->unsnooze();
+
+        // Audit log
+        $this->auditService->log(
+            'faq_suggestion_unsnoozed',
+            'faq_suggestion',
+            $suggestion->id,
+            []
+        );
+
+        return response()->json([
+            'message' => 'Suggestion unsnoozed successfully',
+            'suggestion' => $suggestion->fresh(),
+        ]);
+    }
+
+    /**
+     * FR-58: Get snoozed suggestions
+     */
+    public function snoozed(Request $request): JsonResponse
+    {
+        $query = FaqSuggestion::with('reviewer', 'snoozedByUser')
+            ->snoozed();
+
+        // Sort
+        $sortBy = $request->input('sort_by', 'snoozed_until');
+        $sortOrder = $request->input('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Paginate
+        $perPage = min((int) $request->input('per_page', 20), 100);
+        $suggestions = $query->paginate($perPage);
+
+        return response()->json([
+            'suggestions' => $suggestions->items(),
+            'meta' => [
+                'total' => $suggestions->total(),
+                'current_page' => $suggestions->currentPage(),
+                'last_page' => $suggestions->lastPage(),
+                'per_page' => $suggestions->perPage(),
+            ],
         ]);
     }
 }

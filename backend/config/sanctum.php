@@ -16,9 +16,13 @@ return [
     */
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,localhost:8080,' . str_replace('https://', '', str_replace('http://', '', env('FRONTEND_URL', 'localhost:8080'))),
-        Sanctum::currentApplicationUrlWithPort(),
+        '%s%s%s',
+        // Local development domains
+        'localhost,localhost:3000,localhost:8080,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1,',
+        // Docker network domains
+        'frontend-next,frontend-next:3000,backend-web,backend-web:80,',
+        // Production/custom domains from env
+        str_replace(['https://', 'http://'], '', env('FRONTEND_URL', '')),
     ))),
 
     /*

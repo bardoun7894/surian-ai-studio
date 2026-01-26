@@ -78,7 +78,7 @@ const Footer: React.FC<FooterProps> = ({
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-gov-gold" />
-                <span>info@egov.sy</span>
+                <span>info@moe.gov.sy</span>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-gov-gold mt-1" />

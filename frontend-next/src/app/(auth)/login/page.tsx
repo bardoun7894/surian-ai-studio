@@ -101,7 +101,7 @@ const LoginPage = () => {
 
                     {/* Title */}
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والتجارة الخارجية' : 'Ministry of Economy & Foreign Trade'}
+                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
                     </h1>
                     <p className="text-gov-gold text-lg text-center mb-8">
                         {language === 'ar' ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}

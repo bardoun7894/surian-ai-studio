@@ -27,12 +27,17 @@ class Suggestion extends Model
         'status',
         'user_id',
         'tracking_number',
+        // Response and review fields (FR-45)
+        'response',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -88,5 +93,41 @@ class Suggestion extends Model
     public function scopePending($query)
     {
         return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * Get the user who reviewed the suggestion
+     */
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Update suggestion status with response (FR-45)
+     */
+    public function updateStatus(string $status, int $reviewerId, ?string $response = null): bool
+    {
+        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_REVIEWED, self::STATUS_APPROVED, self::STATUS_REJECTED])) {
+            return false;
+        }
+
+        $this->status = $status;
+        $this->reviewed_by = $reviewerId;
+        $this->reviewed_at = now();
+
+        if ($response !== null) {
+            $this->response = $response;
+        }
+
+        return $this->save();
+    }
+
+    /**
+     * Check if suggestion can be deleted (only if status is pending/received)
+     */
+    public function canBeDeleted(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 }

@@ -26,143 +26,217 @@ class ContentSeeder extends Seeder
         $news = [
             // Featured Hero Article
             [
-                'title_ar' => 'استراتيجية الحكومة الإلكترونية',
-                'title_en' => 'E-Government Strategy',
-                'content_ar' => 'نحو قطاع عام كفء وشفاف وفعال يخدم المواطن السوري بأحدث التقنيات. تهدف هذه الاستراتيجية إلى تحويل جميع الخدمات الحكومية إلى خدمات إلكترونية متاحة للمواطنين على مدار الساعة.',
-                'content_en' => 'Towards an efficient, transparent and effective public sector serving Syrian citizens with the latest technologies.',
-                'seo_description_ar' => 'نحو قطاع عام كفء وشفاف وفعال يخدم المواطن السوري بأحدث التقنيات.',
+                'title_ar' => 'وزارة الاقتصاد والصناعة تطلق استراتيجية التحول الصناعي 2030',
+                'title_en' => 'Ministry of Economy Launches Industrial Transformation Strategy 2030',
+                'content_ar' => 'أطلقت وزارة الاقتصاد والصناعة استراتيجيتها الجديدة للتحول الصناعي التي تهدف إلى تعزيز القدرات الإنتاجية الوطنية ودعم الصناعات المحلية. تتضمن الاستراتيجية تطوير المناطق الصناعية وتقديم حوافز للمستثمرين.',
+                'content_en' => 'The Ministry of Economy and Industry launched its new industrial transformation strategy aimed at enhancing national production capabilities.',
+                'seo_description_ar' => 'وزارة الاقتصاد والصناعة تطلق استراتيجية التحول الصناعي 2030.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => true,
                 'priority' => 10,
                 'published_at' => now()->subDays(1),
                 'metadata' => [
-                    'image' => '/storage/images/news/hero.jpg',
+                    'directorate_id' => 'd1',
+                    'image' => 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000',
                     'author' => 'المكتب الإعلامي',
                     'read_time' => '5 دقائق',
-                    'category_label' => 'رؤية 2030'
+                    'category_label' => 'استراتيجية'
                 ],
             ],
-            // Breaking/Urgent News
+            // Breaking/Urgent News - d1 (Industry)
             [
-                'title_ar' => 'رئاسة مجلس الوزراء تقر خطة التحول الرقمي الشامل لعام 2024',
-                'title_en' => 'Cabinet approves comprehensive digital transformation plan for 2024',
-                'content_ar' => 'أقر مجلس الوزراء في جلسته الأسبوعية الخطة الوطنية للتحول الرقمي التي تهدف إلى أتمتة كافة الخدمات الحكومية بحلول نهاية العام. وتشمل الخطة تحديث البنية التحتية الرقمية وتدريب الكوادر الحكومية.',
-                'content_en' => 'The Cabinet approved in its weekly session the national digital transformation plan.',
-                'seo_description_ar' => 'أقر مجلس الوزراء في جلسته الأسبوعية الخطة الوطنية للتحول الرقمي التي تهدف إلى أتمتة كافة الخدمات الحكومية.',
+                'title_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة',
+                'title_en' => 'Damascus International Fair Opens with Over 40 Countries Participating',
+                'content_ar' => 'افتتح السيد الوزير معرض دمشق الدولي في دورته الجديدة بمشاركة أكثر من 40 دولة و1500 شركة محلية ودولية. يستمر المعرض لمدة عشرة أيام ويضم أجنحة متخصصة في الصناعة والتجارة والتكنولوجيا.',
+                'content_en' => 'The Minister inaugurated the Damascus International Fair with over 40 countries and 1500 companies participating.',
+                'seo_description_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة و1500 شركة.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 9,
                 'published_at' => now()->subDays(2),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-1.jpg',
-                    'category_label' => 'رئاسة الوزراء',
+                    'directorate_id' => 'd1',
+                    'image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
+                    'category_label' => 'معارض',
                     'is_breaking' => true
                 ],
             ],
+            // d2 (Economy) - SME news
             [
-                'title_ar' => 'وزارة الاتصالات تطلق بوابة الخدمات الإلكترونية الجديدة',
-                'title_en' => 'Ministry of Communications launches new e-services portal',
-                'content_ar' => 'أعلنت وزارة الاتصالات والتقانة عن إطلاق النسخة المحدثة من بوابة المواطن التي تتضمن واجهة مستخدم محسنة وخدمات جديدة تشمل الدفع الإلكتروني والتوقيع الرقمي.',
-                'content_en' => 'The Ministry of Communications and Technology announced the launch of the updated version of the citizen portal.',
-                'seo_description_ar' => 'أعلنت وزارة الاتصالات والتقانة عن إطلاق النسخة المحدثة من بوابة المواطن.',
+                'title_ar' => 'إطلاق برنامج دعم المشاريع الصغيرة والمتوسطة بتمويل 50 مليار ليرة',
+                'title_en' => 'Launch of SME Support Program with 50 Billion SYP Funding',
+                'content_ar' => 'أعلنت هيئة تنمية المشروعات الصغيرة والمتوسطة عن إطلاق برنامج تمويلي جديد بقيمة 50 مليار ليرة سورية لدعم رواد الأعمال والمشاريع الناشئة. يتضمن البرنامج قروضاً ميسرة وبرامج تدريب وإرشاد.',
+                'content_en' => 'The SME Development Authority announced a new 50 billion SYP funding program for entrepreneurs.',
+                'seo_description_ar' => 'إطلاق برنامج دعم المشاريع الصغيرة والمتوسطة بتمويل 50 مليار ليرة.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 8,
                 'published_at' => now()->subDays(3),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-2.jpg',
-                    'category_label' => 'تكنولوجيا',
+                    'directorate_id' => 'd2',
+                    'image' => 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=800',
+                    'category_label' => 'تمويل',
                     'is_breaking' => true
                 ],
             ],
+            // d1 (Industry)
             [
-                'title_ar' => 'مرسوم تشريعي بتعديل رسوم الخدمات القنصلية',
-                'title_en' => 'Legislative decree amending consular service fees',
-                'content_ar' => 'صدر المرسوم التشريعي القاضي بتعديل بعض الرسوم القنصلية لتسهيل الإجراءات على المغتربين. يشمل التعديل تخفيض رسوم تصديق الوثائق وتجديد جوازات السفر.',
-                'content_en' => 'A legislative decree was issued amending some consular fees to facilitate procedures for expatriates.',
-                'seo_description_ar' => 'صدر المرسوم التشريعي القاضي بتعديل بعض الرسوم القنصلية لتسهيل الإجراءات على المغتربين.',
+                'title_ar' => 'تعديل قانون الاستثمار لتشجيع الصناعات التحويلية',
+                'title_en' => 'Investment Law Amendment to Encourage Manufacturing Industries',
+                'content_ar' => 'صدر المرسوم التشريعي بتعديل قانون الاستثمار ليشمل حوافز إضافية للصناعات التحويلية والتصديرية. يتضمن التعديل إعفاءات ضريبية وتسهيلات جمركية للمستثمرين.',
+                'content_en' => 'A legislative decree was issued amending the investment law to include additional incentives for manufacturing.',
+                'seo_description_ar' => 'تعديل قانون الاستثمار لتشجيع الصناعات التحويلية والتصديرية.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 8,
                 'published_at' => now()->subDays(4),
                 'metadata' => [
-                    'category_label' => 'مراسيم',
+                    'directorate_id' => 'd1',
+                    'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800',
+                    'category_label' => 'تشريعات',
                     'is_breaking' => true
                 ],
             ],
+            // d1 (Industry)
             [
-                'title_ar' => 'افتتاح مركز خدمة المواطن الجديد في دمشق',
-                'title_en' => 'Opening of new citizen service center in Damascus',
-                'content_ar' => 'تم افتتاح مركز جديد لخدمة المواطن يقدم أكثر من 50 خدمة حكومية في مكان واحد. يعمل المركز على مدار الأسبوع ويوفر خدمات إلكترونية متكاملة.',
-                'content_en' => 'A new citizen service center was opened providing more than 50 government services in one place.',
-                'seo_description_ar' => 'تم افتتاح مركز جديد لخدمة المواطن يقدم أكثر من 50 خدمة حكومية في مكان واحد.',
+                'title_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب',
+                'title_en' => 'Opening of New Industrial Zone in Aleppo',
+                'content_ar' => 'افتتح السيد الوزير المنطقة الصناعية الجديدة في حلب بمساحة 500 هكتار. تتضمن المنطقة بنية تحتية متكاملة ومرافق خدمية للمنشآت الصناعية.',
+                'content_en' => 'The Minister inaugurated the new industrial zone in Aleppo spanning 500 hectares.',
+                'seo_description_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب بمساحة 500 هكتار.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 7,
                 'published_at' => now()->subDays(5),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-3.jpg',
-                    'category_label' => 'خدمات'
+                    'directorate_id' => 'd1',
+                    'image' => 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&q=80&w=800',
+                    'category_label' => 'مناطق صناعية'
                 ],
             ],
-            // Grid Articles
+            // d2 (Economy) - Grid Articles
             [
-                'title_ar' => 'مشروع الطاقة المتجددة في حمص',
-                'title_en' => 'Renewable Energy Project in Homs',
-                'content_ar' => 'تدشين المرحلة الأولى من محطة الطاقة الشمسية بقدرة 50 ميغاواط لدعم الشبكة الكهربائية. يعد هذا المشروع جزءاً من خطة الحكومة للتحول نحو الطاقة النظيفة.',
-                'content_en' => 'Inauguration of the first phase of the solar power plant with a capacity of 50 megawatts.',
-                'seo_description_ar' => 'تدشين المرحلة الأولى من محطة الطاقة الشمسية بقدرة 50 ميغاواط لدعم الشبكة الكهربائية.',
+                'title_ar' => 'توقيع اتفاقيات تجارية مع 5 دول عربية',
+                'title_en' => 'Signing Trade Agreements with 5 Arab Countries',
+                'content_ar' => 'وقعت وزارة الاقتصاد والصناعة اتفاقيات تبادل تجاري مع خمس دول عربية لتعزيز الصادرات السورية. تتضمن الاتفاقيات تسهيلات جمركية وحصص تفضيلية.',
+                'content_en' => 'The Ministry signed trade agreements with five Arab countries to boost Syrian exports.',
+                'seo_description_ar' => 'توقيع اتفاقيات تبادل تجاري مع خمس دول عربية لتعزيز الصادرات.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 6,
                 'published_at' => now()->subDays(6),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-4.jpg',
-                    'author' => 'وزارة الكهرباء',
+                    'directorate_id' => 'd2',
+                    'image' => 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للاقتصاد',
                     'read_time' => '3 دقائق',
-                    'category_label' => 'طاقة'
+                    'category_label' => 'تجارة خارجية'
                 ],
             ],
+            // d1 (Industry)
             [
-                'title_ar' => 'تحديث المناهج الجامعية',
-                'title_en' => 'University Curriculum Update',
-                'content_ar' => 'إدخال تخصصات الذكاء الاصطناعي والأمن السيبراني في خمس جامعات حكومية جديدة. تهدف هذه الخطوة إلى مواكبة التطورات التكنولوجية العالمية.',
-                'content_en' => 'Introduction of artificial intelligence and cybersecurity specializations in five new public universities.',
-                'seo_description_ar' => 'إدخال تخصصات الذكاء الاصطناعي والأمن السيبراني في خمس جامعات حكومية جديدة.',
+                'title_ar' => 'إطلاق منصة التراخيص الصناعية الإلكترونية',
+                'title_en' => 'Launch of Electronic Industrial Licensing Platform',
+                'content_ar' => 'أطلقت الوزارة منصة إلكترونية جديدة لإصدار التراخيص الصناعية تختصر الإجراءات من 30 يوماً إلى 5 أيام. المنصة متاحة على مدار الساعة.',
+                'content_en' => 'The Ministry launched a new electronic platform for industrial licenses reducing processing from 30 to 5 days.',
+                'seo_description_ar' => 'إطلاق منصة إلكترونية جديدة لإصدار التراخيص الصناعية.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 6,
                 'published_at' => now()->subDays(7),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-5.jpg',
-                    'author' => 'وزارة التعليم العالي',
+                    'directorate_id' => 'd1',
+                    'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للصناعة',
                     'read_time' => '4 دقائق',
-                    'category_label' => 'تعليم عالي'
+                    'category_label' => 'خدمات إلكترونية'
                 ],
             ],
+            // d3 (Internal Trade & Consumer Protection)
             [
-                'title_ar' => 'مهرجان التسوق الشهري',
-                'title_en' => 'Monthly Shopping Festival',
-                'content_ar' => 'انطلاق فعاليات مهرجان التسوق "صنع في سوريا" بمشاركة واسعة من الشركات الصناعية. يهدف المهرجان إلى دعم المنتج المحلي وتشجيع الصناعة الوطنية.',
-                'content_en' => 'Launch of the "Made in Syria" shopping festival with wide participation from industrial companies.',
-                'seo_description_ar' => 'انطلاق فعاليات مهرجان التسوق "صنع في سوريا" بمشاركة واسعة من الشركات الصناعية.',
+                'title_ar' => 'مهرجان التسوق صنع في سوريا',
+                'title_en' => 'Made in Syria Shopping Festival',
+                'content_ar' => 'انطلاق فعاليات مهرجان التسوق "صنع في سوريا" بمشاركة أكثر من 200 شركة صناعية. يهدف المهرجان إلى دعم المنتج المحلي وتشجيع الصناعة الوطنية.',
+                'content_en' => 'Launch of the "Made in Syria" shopping festival with over 200 industrial companies participating.',
+                'seo_description_ar' => 'انطلاق مهرجان التسوق صنع في سوريا بمشاركة 200 شركة صناعية.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 5,
                 'published_at' => now()->subDays(8),
                 'metadata' => [
-                    'image' => '/storage/images/news/news-6.jpg',
-                    'author' => 'غرفة الصناعة',
+                    'directorate_id' => 'd3',
+                    'image' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'غرفة صناعة دمشق',
                     'read_time' => '2 دقائق',
-                    'category_label' => 'اقتصاد'
+                    'category_label' => 'فعاليات'
+                ],
+            ],
+            // d3 (Internal Trade & Consumer Protection) - Additional news
+            [
+                'title_ar' => 'حملة رقابية على الأسواق لضبط الأسعار',
+                'title_en' => 'Market Control Campaign to Regulate Prices',
+                'content_ar' => 'نفذت الإدارة العامة للتجارة الداخلية وحماية المستهلك حملة رقابية مكثفة على الأسواق أسفرت عن ضبط مخالفات سعرية وتحرير محاضر ضبط.',
+                'content_en' => 'The General Administration for Internal Trade executed a market control campaign resulting in price violation fines.',
+                'seo_description_ar' => 'حملة رقابية على الأسواق لضبط الأسعار والمخالفات التموينية.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 6,
+                'published_at' => now()->subDays(9),
+                'metadata' => [
+                    'directorate_id' => 'd3',
+                    'image' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للتجارة الداخلية',
+                    'read_time' => '3 دقائق',
+                    'category_label' => 'حماية المستهلك'
+                ],
+            ],
+            // d2 (Economy) - Additional news
+            [
+                'title_ar' => 'ورشة عمل لدعم رواد الأعمال الشباب',
+                'title_en' => 'Workshop to Support Young Entrepreneurs',
+                'content_ar' => 'نظمت هيئة تنمية المشروعات الصغيرة والمتوسطة ورشة عمل تدريبية لدعم رواد الأعمال الشباب في تطوير خطط أعمالهم.',
+                'content_en' => 'The SME Development Authority organized a training workshop to support young entrepreneurs in developing business plans.',
+                'seo_description_ar' => 'ورشة عمل تدريبية لدعم رواد الأعمال الشباب.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 5,
+                'published_at' => now()->subDays(10),
+                'metadata' => [
+                    'directorate_id' => 'd2',
+                    'image' => 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للاقتصاد',
+                    'read_time' => '3 دقائق',
+                    'category_label' => 'ريادة أعمال'
+                ],
+            ],
+            // d3 (Internal Trade & Consumer Protection) - Additional news
+            [
+                'title_ar' => 'تسجيل علامات تجارية جديدة لمنتجات سورية',
+                'title_en' => 'Registration of New Trademarks for Syrian Products',
+                'content_ar' => 'أعلنت مديرية حماية الملكية التجارية والصناعية عن تسجيل 150 علامة تجارية جديدة لمنتجات سورية خلال الشهر الماضي.',
+                'content_en' => 'The Intellectual Property Directorate announced registration of 150 new trademarks for Syrian products.',
+                'seo_description_ar' => 'تسجيل علامات تجارية جديدة لمنتجات سورية.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 5,
+                'published_at' => now()->subDays(11),
+                'metadata' => [
+                    'directorate_id' => 'd3',
+                    'image' => 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للتجارة الداخلية',
+                    'read_time' => '2 دقائق',
+                    'category_label' => 'علامات تجارية'
                 ],
             ],
         ];
@@ -177,11 +251,11 @@ class ContentSeeder extends Seeder
     {
         $announcements = [
             [
-                'title_ar' => 'إعلان عن مناقصة عامة لتوريد معدات تقنية',
-                'title_en' => 'Public tender announcement for technical equipment supply',
-                'content_ar' => 'تعلن رئاسة مجلس الوزراء عن مناقصة عامة لتوريد معدات تقنية وأجهزة حاسوبية للوزارات والمؤسسات الحكومية. آخر موعد للتقديم: 30/01/2025. للاطلاع على الشروط والمواصفات يرجى مراجعة قسم المشتريات.',
-                'content_en' => 'The Cabinet announces a public tender for the supply of technical equipment and computers.',
-                'seo_description_ar' => 'تعلن رئاسة مجلس الوزراء عن مناقصة عامة لتوريد معدات تقنية وأجهزة حاسوبية للوزارات والمؤسسات الحكومية.',
+                'title_ar' => 'إعلان عن مناقصة لتجهيز المنطقة الصناعية الجديدة',
+                'title_en' => 'Tender Announcement for New Industrial Zone Equipment',
+                'content_ar' => 'تعلن وزارة الاقتصاد والصناعة عن مناقصة عامة لتجهيز البنية التحتية للمنطقة الصناعية الجديدة. آخر موعد للتقديم: 15/02/2026. للاطلاع على الشروط والمواصفات يرجى مراجعة مديرية المناطق الصناعية.',
+                'content_en' => 'The Ministry announces a public tender for infrastructure equipment for the new industrial zone.',
+                'seo_description_ar' => 'مناقصة عامة لتجهيز البنية التحتية للمنطقة الصناعية الجديدة.',
                 'category' => 'announcement',
                 'status' => 'published',
                 'priority' => 7,
@@ -189,11 +263,11 @@ class ContentSeeder extends Seeder
                 'metadata' => ['type' => 'tender', 'category_label' => 'مناقصات'],
             ],
             [
-                'title_ar' => 'تمديد مهلة تقديم طلبات التوظيف',
-                'title_en' => 'Extension of job application deadline',
-                'content_ar' => 'تم تمديد مهلة تقديم طلبات التوظيف للمسابقة المركزية حتى نهاية الشهر الحالي. يرجى من جميع المتقدمين استكمال أوراقهم والتأكد من صحة البيانات المدخلة.',
-                'content_en' => 'The deadline for submitting job applications for the central competition has been extended.',
-                'seo_description_ar' => 'تم تمديد مهلة تقديم طلبات التوظيف للمسابقة المركزية حتى نهاية الشهر الحالي.',
+                'title_ar' => 'فتح باب التسجيل لبرنامج دعم المشاريع الصغيرة',
+                'title_en' => 'SME Support Program Registration Now Open',
+                'content_ar' => 'تعلن هيئة تنمية المشروعات الصغيرة والمتوسطة عن فتح باب التسجيل لبرنامج الدعم المالي والفني. البرنامج يستهدف رواد الأعمال والمشاريع الناشئة في قطاعات الصناعة والتجارة.',
+                'content_en' => 'The SME Development Authority announces opening registration for financial and technical support program.',
+                'seo_description_ar' => 'فتح باب التسجيل لبرنامج دعم المشاريع الصغيرة والمتوسطة.',
                 'category' => 'announcement',
                 'status' => 'published',
                 'priority' => 9,
@@ -201,11 +275,11 @@ class ContentSeeder extends Seeder
                 'metadata' => ['type' => 'urgent', 'category_label' => 'توظيف'],
             ],
             [
-                'title_ar' => 'دورة تدريبية في الإدارة الإلكترونية',
-                'title_en' => 'Training course in electronic management',
-                'content_ar' => 'إعلان عن دورة تدريبية مجانية في الإدارة الإلكترونية للموظفين الحكوميين. التسجيل مفتوح حتى 15/01/2025. تشمل الدورة التعامل مع الأنظمة الإلكترونية والأرشفة الرقمية.',
-                'content_en' => 'Announcement of a free training course in electronic management for government employees.',
-                'seo_description_ar' => 'إعلان عن دورة تدريبية مجانية في الإدارة الإلكترونية للموظفين الحكوميين.',
+                'title_ar' => 'دورة تدريبية في إدارة الجودة الصناعية',
+                'title_en' => 'Industrial Quality Management Training Course',
+                'content_ar' => 'تعلن هيئة المواصفات والمقاييس السورية عن دورة تدريبية في إدارة الجودة ونظام ISO للمصانع والمنشآت الصناعية. التسجيل مفتوح حتى نهاية الشهر.',
+                'content_en' => 'SASMO announces a training course on quality management and ISO systems for factories.',
+                'seo_description_ar' => 'دورة تدريبية في إدارة الجودة ونظام ISO للمصانع والمنشآت الصناعية.',
                 'category' => 'announcement',
                 'status' => 'published',
                 'priority' => 5,
@@ -213,28 +287,28 @@ class ContentSeeder extends Seeder
                 'metadata' => ['type' => 'general', 'category_label' => 'تدريب'],
             ],
             [
-                'title_ar' => 'تحديث نظام المعاملات الإلكترونية',
-                'title_en' => 'Electronic transactions system update',
-                'content_ar' => 'سيتم تحديث نظام المعاملات الإلكترونية يوم السبت القادم من الساعة 12 ليلاً حتى 6 صباحاً. نعتذر عن أي إزعاج قد يسببه هذا التحديث ونشكركم على تفهمكم.',
-                'content_en' => 'The electronic transactions system will be updated next Saturday from 12 AM to 6 AM.',
-                'seo_description_ar' => 'سيتم تحديث نظام المعاملات الإلكترونية يوم السبت القادم من الساعة 12 ليلاً حتى 6 صباحاً.',
+                'title_ar' => 'تحديث منصة التراخيص الصناعية',
+                'title_en' => 'Industrial Licensing Platform Update',
+                'content_ar' => 'سيتم تحديث منصة التراخيص الصناعية الإلكترونية يوم السبت القادم. قد يحدث انقطاع مؤقت في الخدمة من الساعة 12 ليلاً حتى 6 صباحاً.',
+                'content_en' => 'The electronic industrial licensing platform will be updated next Saturday.',
+                'seo_description_ar' => 'تحديث منصة التراخيص الصناعية الإلكترونية يوم السبت القادم.',
                 'category' => 'announcement',
                 'status' => 'published',
                 'priority' => 8,
                 'published_at' => now()->subDays(4),
-                'metadata' => ['type' => 'important', 'category_label' => 'تقنية'],
+                'metadata' => ['type' => 'important', 'category_label' => 'خدمات'],
             ],
             [
-                'title_ar' => 'فرص عمل جديدة في القطاع الحكومي',
-                'title_en' => 'New job opportunities in the government sector',
-                'content_ar' => 'إعلان عن وظائف شاغرة في عدة وزارات ومؤسسات حكومية تشمل: محاسبين، مهندسين، إداريين. للتقديم يرجى زيارة بوابة التوظيف الإلكترونية.',
-                'content_en' => 'Announcement of job vacancies in several ministries and government institutions.',
-                'seo_description_ar' => 'إعلان عن وظائف شاغرة في عدة وزارات ومؤسسات حكومية تشمل: محاسبين، مهندسين، إداريين.',
+                'title_ar' => 'فرص استثمارية في المناطق الصناعية',
+                'title_en' => 'Investment Opportunities in Industrial Zones',
+                'content_ar' => 'إعلان عن فرص استثمارية جديدة في المناطق الصناعية بحلب ودمشق وحمص. حوافز خاصة للمستثمرين في الصناعات الغذائية والنسيجية.',
+                'content_en' => 'New investment opportunities announced in industrial zones of Aleppo, Damascus, and Homs.',
+                'seo_description_ar' => 'فرص استثمارية جديدة في المناطق الصناعية بحوافز خاصة.',
                 'category' => 'announcement',
                 'status' => 'published',
                 'priority' => 6,
                 'published_at' => now()->subDays(5),
-                'metadata' => ['type' => 'job', 'category_label' => 'توظيف'],
+                'metadata' => ['type' => 'job', 'category_label' => 'استثمار'],
             ],
             [
                 'title_ar' => 'إعلان هام: تحديث ساعات العمل خلال شهر رمضان',
@@ -247,6 +321,42 @@ class ContentSeeder extends Seeder
                 'priority' => 9,
                 'published_at' => now()->subDays(6),
                 'metadata' => ['type' => 'urgent', 'category_label' => 'إداري'],
+            ],
+            [
+                'title_ar' => 'ورشة عمل حول الأمن السيبراني',
+                'title_en' => 'Cybersecurity Workshop',
+                'content_ar' => 'دعوة للمشاركة في ورشة عمل حول الأمن السيبراني وحماية البيانات. الورشة مجانية ومفتوحة لجميع الموظفين الحكوميين.',
+                'content_en' => 'Invitation to participate in a workshop on cybersecurity and data protection.',
+                'seo_description_ar' => 'دعوة للمشاركة في ورشة عمل حول الأمن السيبراني وحماية البيانات.',
+                'category' => 'announcement',
+                'status' => 'published',
+                'priority' => 6,
+                'published_at' => now()->subDays(7),
+                'metadata' => ['type' => 'general', 'category_label' => 'تدريب'],
+            ],
+            [
+                'title_ar' => 'إطلاق تطبيق الهاتف المحمول للخدمات الحكومية',
+                'title_en' => 'Launch of Government Services Mobile App',
+                'content_ar' => 'تم إطلاق تطبيق الهاتف المحمول الجديد الذي يتيح الوصول لأكثر من 50 خدمة حكومية. التطبيق متاح على أندرويد وآيفون.',
+                'content_en' => 'New mobile application launched providing access to over 50 government services.',
+                'seo_description_ar' => 'تم إطلاق تطبيق الهاتف المحمول الجديد الذي يتيح الوصول لأكثر من 50 خدمة حكومية.',
+                'category' => 'announcement',
+                'status' => 'published',
+                'priority' => 8,
+                'published_at' => now()->subDays(8),
+                'metadata' => ['type' => 'important', 'category_label' => 'تكنولوجيا'],
+            ],
+            [
+                'title_ar' => 'برنامج دعم المشاريع الريادية الشبابية',
+                'title_en' => 'Youth Entrepreneurship Support Program',
+                'content_ar' => 'إطلاق برنامج جديد لدعم المشاريع الريادية للشباب بتمويل يصل إلى 10 ملايين ليرة سورية. التقديم متاح حتى نهاية الشهر.',
+                'content_en' => 'New program launched to support youth entrepreneurial projects with funding up to 10 million Syrian pounds.',
+                'seo_description_ar' => 'إطلاق برنامج جديد لدعم المشاريع الريادية للشباب بتمويل يصل إلى 10 ملايين ليرة سورية.',
+                'category' => 'announcement',
+                'status' => 'published',
+                'priority' => 7,
+                'published_at' => now()->subDays(9),
+                'metadata' => ['type' => 'general', 'category_label' => 'اقتصاد'],
             ],
         ];
 
@@ -269,7 +379,7 @@ class ContentSeeder extends Seeder
                 'status' => 'published',
                 'priority' => 5,
                 'published_at' => now()->subMonths(3),
-                'metadata' => ['number' => '37', 'year' => '2024', 'decree_type' => 'قانون'],
+                'metadata' => ['number' => '37', 'year' => '2024', 'decree_type' => 'قانون', 'image' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800'],
             ],
             [
                 'title_ar' => 'مرسوم تشريعي بزيادة الرواتب والأجور',
@@ -330,42 +440,26 @@ class ContentSeeder extends Seeder
     private function seedServices(): void
     {
         $services = [
-            // Ministry of Interior (d1)
-            ['title_ar' => 'إصدار جواز سفر إلكتروني', 'title_en' => 'Electronic Passport Issuance', 'content_ar' => 'تقديم طلب للحصول على جواز سفر جديد أو تجديده إلكترونياً. يمكنك تتبع حالة الطلب والحصول على موعد لاستلام الجواز.', 'content_en' => 'Apply for a new passport or renew electronically.', 'seo_description_ar' => 'تقديم طلب للحصول على جواز سفر جديد أو تجديده إلكترونياً.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
-            ['title_ar' => 'خلاصة سجل عدلي (غير محكوم)', 'title_en' => 'Criminal Record Certificate', 'content_ar' => 'الحصول على وثيقة غير محكوم إلكترونياً. خدمة متاحة للمواطنين السوريين والمقيمين.', 'content_en' => 'Get a criminal record certificate electronically.', 'seo_description_ar' => 'الحصول على وثيقة غير محكوم إلكترونياً.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
-            ['title_ar' => 'دفع المخالفات المرورية', 'title_en' => 'Traffic Violation Payment', 'content_ar' => 'الاستعلام عن المخالفات المرورية وتسديدها إلكترونياً. يمكنك الدفع باستخدام البطاقات المصرفية أو الدفع الإلكتروني.', 'content_en' => 'Inquire and pay traffic violations electronically.', 'seo_description_ar' => 'الاستعلام عن المخالفات المرورية وتسديدها.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
+            // الإدارة العامة للصناعة (d1) - General Administration for Industry
+            ['title_ar' => 'ترخيص منشأة صناعية', 'title_en' => 'Industrial Facility License', 'content_ar' => 'تقديم طلب للحصول على ترخيص لإنشاء منشأة صناعية جديدة أو توسيع منشأة قائمة. يتضمن الطلب دراسة الجدوى والتراخيص البيئية.', 'content_en' => 'Apply for a license to establish a new industrial facility or expand an existing one.', 'seo_description_ar' => 'تقديم طلب للحصول على ترخيص منشأة صناعية جديدة.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
+            ['title_ar' => 'تسجيل سجل صناعي', 'title_en' => 'Industrial Registry Registration', 'content_ar' => 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني. الحصول على رقم تسجيل صناعي رسمي.', 'content_en' => 'Register industrial establishments in the national industrial registry.', 'seo_description_ar' => 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
+            ['title_ar' => 'شهادة المطابقة والجودة', 'title_en' => 'Quality Conformity Certificate', 'content_ar' => 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية السورية. خدمة من هيئة المواصفات والمقاييس.', 'content_en' => 'Obtain product conformity certificate to Syrian standards.', 'seo_description_ar' => 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => false]],
+            ['title_ar' => 'تخصيص قطعة أرض صناعية', 'title_en' => 'Industrial Land Allocation', 'content_ar' => 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية. متابعة حالة الطلب إلكترونياً.', 'content_en' => 'Apply for industrial land allocation in industrial zones.', 'seo_description_ar' => 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => true]],
+            ['title_ar' => 'فحص المعادن الثمينة', 'title_en' => 'Precious Metals Testing', 'content_ar' => 'خدمة فحص وتحليل المعادن الثمينة ودمغها. من هيئة إدارة المعادن الثمينة.', 'content_en' => 'Precious metals testing, analysis and hallmarking service.', 'seo_description_ar' => 'خدمة فحص وتحليل المعادن الثمينة ودمغها.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd1', 'is_digital' => false]],
 
-            // Ministry of Justice (d2)
-            ['title_ar' => 'الوكالات العدلية', 'title_en' => 'Legal Powers of Attorney', 'content_ar' => 'حجز موعد لتوثيق الوكالات العدلية. يمكنك اختيار الكاتب بالعدل والموعد المناسب.', 'content_en' => 'Book an appointment for legal power of attorney documentation.', 'seo_description_ar' => 'حجز موعد لتوثيق الوكالات العدلية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => false]],
-            ['title_ar' => 'بيان ملكية عقارية', 'title_en' => 'Property Ownership Statement', 'content_ar' => 'الحصول على بيان يوضح الملكيات العقارية. خدمة إلكترونية متاحة على مدار الساعة.', 'content_en' => 'Get a statement showing real estate ownership.', 'seo_description_ar' => 'الحصول على بيان يوضح الملكيات العقارية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
+            // الإدارة العامة للاقتصاد (d2) - General Administration for Economy
+            ['title_ar' => 'إجازة استيراد', 'title_en' => 'Import License', 'content_ar' => 'تقديم طلب للحصول على إجازة استيراد للبضائع والمواد الأولية. متابعة حالة الطلب إلكترونياً.', 'content_en' => 'Apply for import license for goods and raw materials.', 'seo_description_ar' => 'تقديم طلب للحصول على إجازة استيراد.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
+            ['title_ar' => 'إجازة تصدير', 'title_en' => 'Export License', 'content_ar' => 'تقديم طلب للحصول على إجازة تصدير للمنتجات السورية. دعم الصادرات الوطنية.', 'content_en' => 'Apply for export license for Syrian products.', 'seo_description_ar' => 'تقديم طلب للحصول على إجازة تصدير.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
+            ['title_ar' => 'تمويل المشاريع الصغيرة', 'title_en' => 'SME Financing', 'content_ar' => 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة. قروض ميسرة وبرامج احتضان.', 'content_en' => 'SME support and financing programs. Facilitated loans and incubation.', 'seo_description_ar' => 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
+            ['title_ar' => 'المشاركة في المعارض الدولية', 'title_en' => 'International Exhibition Participation', 'content_ar' => 'تسجيل الشركات للمشاركة في معرض دمشق الدولي والمعارض التخصصية.', 'content_en' => 'Register companies to participate in Damascus International Fair.', 'seo_description_ar' => 'تسجيل الشركات للمشاركة في المعارض الدولية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
+            ['title_ar' => 'دراسات السياسات الاقتصادية', 'title_en' => 'Economic Policy Studies', 'content_ar' => 'طلب دراسات وتقارير اقتصادية متخصصة. تحليلات السوق والمؤشرات الاقتصادية.', 'content_en' => 'Request specialized economic studies and reports.', 'seo_description_ar' => 'طلب دراسات وتقارير اقتصادية متخصصة.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd2', 'is_digital' => true]],
 
-            // Ministry of Health (d3)
-            ['title_ar' => 'نتائج التحاليل الطبية', 'title_en' => 'Medical Test Results', 'content_ar' => 'الاطلاع على نتائج التحاليل من المخابر المعتمدة. تصلك إشعارات فورية عند صدور النتائج.', 'content_en' => 'View test results from accredited laboratories.', 'seo_description_ar' => 'الاطلاع على نتائج التحاليل من المخابر المعتمدة.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
-
-            // Ministry of Education (d4)
-            ['title_ar' => 'نتائج الامتحانات العامة', 'title_en' => 'Public Exam Results', 'content_ar' => 'عرض نتائج الشهادات الإعدادية والثانوية. يمكنك طباعة بيان العلامات مباشرة.', 'content_en' => 'View middle and high school certificate results.', 'seo_description_ar' => 'عرض نتائج الشهادات الإعدادية والثانوية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd4', 'is_digital' => true]],
-            ['title_ar' => 'تسلسل دراسي', 'title_en' => 'Academic Transcript', 'content_ar' => 'طلب وثيقة تسلسل دراسي من المؤسسات التعليمية. الخدمة متاحة لجميع المراحل الدراسية.', 'content_en' => 'Request academic transcript from educational institutions.', 'seo_description_ar' => 'طلب وثيقة تسلسل دراسي من المؤسسات التعليمية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd4', 'is_digital' => false]],
-
-            // Ministry of Higher Education (d5)
-            ['title_ar' => 'المفاضلة الجامعية', 'title_en' => 'University Admission', 'content_ar' => 'التقدم للمفاضلة الجامعية للعام الدراسي. اختر رغباتك وتتبع نتائج المفاضلة إلكترونياً.', 'content_en' => 'Apply for university admission for the academic year.', 'seo_description_ar' => 'التقدم للمفاضلة الجامعية للعام الدراسي.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd5', 'is_digital' => true]],
-            ['title_ar' => 'كشف علامات جامعي', 'title_en' => 'University Grade Transcript', 'content_ar' => 'استخراج كشف علامات للسنوات الدراسية. متاح باللغتين العربية والإنجليزية.', 'content_en' => 'Extract grade transcript for academic years.', 'seo_description_ar' => 'استخراج كشف علامات للسنوات الدراسية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd5', 'is_digital' => true]],
-
-            // Ministry of Electricity (d6)
-            ['title_ar' => 'دفع فاتورة الكهرباء', 'title_en' => 'Electricity Bill Payment', 'content_ar' => 'تسديد فواتير الكهرباء إلكترونياً. يمكنك الاطلاع على سجل الفواتير والاستهلاك.', 'content_en' => 'Pay electricity bills electronically.', 'seo_description_ar' => 'تسديد فواتير الكهرباء إلكترونياً.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd6', 'is_digital' => true]],
-            ['title_ar' => 'طلب عداد جديد', 'title_en' => 'New Meter Request', 'content_ar' => 'تقديم طلب لتركيب عداد كهرباء جديد. تتبع حالة الطلب إلكترونياً.', 'content_en' => 'Apply for new electricity meter installation.', 'seo_description_ar' => 'تقديم طلب لتركيب عداد كهرباء جديد.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd6', 'is_digital' => false]],
-
-            // Ministry of Water Resources (d7)
-            ['title_ar' => 'دفع فاتورة المياه', 'title_en' => 'Water Bill Payment', 'content_ar' => 'تسديد فواتير المياه إلكترونياً. احصل على إيصال إلكتروني فوري.', 'content_en' => 'Pay water bills electronically.', 'seo_description_ar' => 'تسديد فواتير المياه إلكترونياً.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd7', 'is_digital' => true]],
-
-            // Ministry of Transport (d8)
-            ['title_ar' => 'تجديد ترخيص مركبة', 'title_en' => 'Vehicle License Renewal', 'content_ar' => 'تجديد ترسيم المركبات إلكترونياً. الدفع متاح عبر البطاقات المصرفية.', 'content_en' => 'Renew vehicle registration electronically.', 'seo_description_ar' => 'تجديد ترسيم المركبات إلكترونياً.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd8', 'is_digital' => true]],
-
-            // Ministry of Communications (d9)
-            ['title_ar' => 'بوابة خدمة المواطن', 'title_en' => 'Citizen Service Portal', 'content_ar' => 'منصة موحدة لكافة الخدمات الإلكترونية. الوصول لأكثر من 100 خدمة حكومية من مكان واحد.', 'content_en' => 'Unified platform for all electronic services.', 'seo_description_ar' => 'منصة موحدة لكافة الخدمات الإلكترونية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd9', 'is_digital' => true]],
-
-            // Ministry of Finance (d10)
-            ['title_ar' => 'براءة ذمة مالية', 'title_en' => 'Financial Clearance Certificate', 'content_ar' => 'الحصول على براءة ذمة من الدوائر المالية. خدمة إلكترونية سريعة ومباشرة.', 'content_en' => 'Get financial clearance certificate from financial departments.', 'seo_description_ar' => 'الحصول على براءة ذمة من الدوائر المالية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd10', 'is_digital' => true]],
-            ['title_ar' => 'التحقق الضريبي', 'title_en' => 'Tax Verification', 'content_ar' => 'خدمة التحقق من الوثائق الضريبية. تحقق من صحة الشهادات والإيصالات الضريبية.', 'content_en' => 'Tax document verification service.', 'seo_description_ar' => 'خدمة التحقق من الوثائق الضريبية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd10', 'is_digital' => true]],
+            // الإدارة العامة للتجارة الداخلية وحماية المستهلك (d3) - Internal Trade & Consumer Protection
+            ['title_ar' => 'تسجيل شركة تجارية', 'title_en' => 'Commercial Company Registration', 'content_ar' => 'تسجيل الشركات التجارية في السجل التجاري. الحصول على رقم تجاري رسمي.', 'content_en' => 'Register commercial companies in the commercial registry.', 'seo_description_ar' => 'تسجيل الشركات التجارية في السجل التجاري.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
+            ['title_ar' => 'شكوى حماية المستهلك', 'title_en' => 'Consumer Protection Complaint', 'content_ar' => 'تقديم شكوى في حال التعرض للغش التجاري أو المخالفات السعرية. متابعة حالة الشكوى.', 'content_en' => 'File a complaint for commercial fraud or price violations.', 'seo_description_ar' => 'تقديم شكوى في حال التعرض للغش التجاري.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
+            ['title_ar' => 'الاستعلام عن الأسعار', 'title_en' => 'Price Inquiry', 'content_ar' => 'الاستعلام عن الأسعار الرسمية للمواد الأساسية والمحروقات. نشرات الأسعار اليومية.', 'content_en' => 'Inquire about official prices for basic materials and fuel.', 'seo_description_ar' => 'الاستعلام عن الأسعار الرسمية للمواد الأساسية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
+            ['title_ar' => 'تسجيل علامة تجارية', 'title_en' => 'Trademark Registration', 'content_ar' => 'تسجيل وحماية العلامات التجارية. البحث في قاعدة بيانات العلامات المسجلة.', 'content_en' => 'Register and protect trademarks. Search registered trademarks database.', 'seo_description_ar' => 'تسجيل وحماية العلامات التجارية.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
+            ['title_ar' => 'ترخيص نشاط تجاري', 'title_en' => 'Commercial Activity License', 'content_ar' => 'الحصول على ترخيص لممارسة النشاط التجاري. تجديد التراخيص إلكترونياً.', 'content_en' => 'Obtain a license to practice commercial activity.', 'seo_description_ar' => 'الحصول على ترخيص لممارسة النشاط التجاري.', 'category' => 'service', 'status' => 'published', 'metadata' => ['directorate_id' => 'd3', 'is_digital' => true]],
         ];
 
         foreach ($services as $item) {
@@ -391,70 +485,70 @@ class ContentSeeder extends Seeder
                 'published_at' => now()->subDays(5),
                 'metadata' => [
                     'media_type' => 'video',
-                    'thumbnail' => '/storage/images/media/media-1.jpg',
+                    'thumbnail' => 'https://images.unsplash.com/photo-1492619375932-d0234a62176c?auto=format&fit=crop&q=80&w=800',
                     'duration' => '12:30'
                 ],
             ],
             [
-                'title_ar' => 'افتتاح محطة توليد الكهرباء الجديدة',
-                'title_en' => 'Opening of New Power Generation Plant',
-                'content_ar' => 'حفل افتتاح محطة توليد الكهرباء الجديدة التي ستساهم في تحسين واقع الطاقة الكهربائية.',
-                'content_en' => 'Opening ceremony of the new power generation plant.',
-                'seo_description_ar' => 'افتتاح محطة توليد الكهرباء الجديدة',
+                'title_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب',
+                'title_en' => 'Opening of New Industrial Zone in Aleppo',
+                'content_ar' => 'حفل افتتاح المنطقة الصناعية الجديدة في حلب بحضور السيد الوزير ومسؤولين حكوميين.',
+                'content_en' => 'Opening ceremony of the new industrial zone in Aleppo.',
+                'seo_description_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب',
                 'category' => 'media',
                 'status' => 'published',
                 'priority' => 5,
                 'published_at' => now()->subDays(7),
                 'metadata' => [
                     'media_type' => 'video',
-                    'thumbnail' => '/storage/images/media/media-2.jpg',
+                    'thumbnail' => 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&q=80&w=800',
                     'duration' => '05:45'
                 ],
             ],
             [
-                'title_ar' => 'صور من حفل تكريم المبدعين',
-                'title_en' => 'Photos from Innovators Award Ceremony',
-                'content_ar' => 'ألبوم صور من حفل تكريم المبدعين والمتفوقين في مختلف المجالات.',
-                'content_en' => 'Photo album from the innovators and achievers award ceremony.',
-                'seo_description_ar' => 'صور من حفل تكريم المبدعين',
+                'title_ar' => 'صور من حفل تكريم الصناعيين المتميزين',
+                'title_en' => 'Photos from Outstanding Industrialists Award Ceremony',
+                'content_ar' => 'ألبوم صور من حفل تكريم الصناعيين والمصدرين المتميزين في القطاع الصناعي السوري.',
+                'content_en' => 'Photo album from the ceremony honoring outstanding industrialists and exporters.',
+                'seo_description_ar' => 'صور من حفل تكريم الصناعيين المتميزين',
                 'category' => 'media',
                 'status' => 'published',
                 'priority' => 5,
                 'published_at' => now()->subDays(10),
                 'metadata' => [
                     'media_type' => 'photo',
-                    'thumbnail' => '/storage/images/media/media-3.jpg',
+                    'thumbnail' => 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800',
                     'count' => 24
                 ],
             ],
             [
-                'title_ar' => 'إحصائيات التحول الرقمي 2024',
-                'title_en' => 'Digital Transformation Statistics 2024',
-                'content_ar' => 'إنفوجرافيك يوضح إحصائيات ومؤشرات التحول الرقمي في المؤسسات الحكومية.',
-                'content_en' => 'Infographic showing digital transformation statistics and indicators.',
-                'seo_description_ar' => 'إحصائيات التحول الرقمي 2024',
+                'title_ar' => 'إحصائيات الصادرات السورية 2026',
+                'title_en' => 'Syrian Export Statistics 2026',
+                'content_ar' => 'إنفوجرافيك يوضح إحصائيات الصادرات السورية وأهم الأسواق المستهدفة.',
+                'content_en' => 'Infographic showing Syrian export statistics and main target markets.',
+                'seo_description_ar' => 'إحصائيات الصادرات السورية 2026',
                 'category' => 'media',
                 'status' => 'published',
                 'priority' => 5,
                 'published_at' => now()->subDays(15),
                 'metadata' => [
                     'media_type' => 'infographic',
-                    'thumbnail' => '/storage/images/media/media-4.jpg'
+                    'thumbnail' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800'
                 ],
             ],
             [
-                'title_ar' => 'اجتماع مجلس الوزراء الأسبوعي',
-                'title_en' => 'Weekly Cabinet Meeting',
-                'content_ar' => 'ألبوم صور من اجتماع مجلس الوزراء الأسبوعي لمناقشة المستجدات.',
-                'content_en' => 'Photo album from the weekly cabinet meeting.',
-                'seo_description_ar' => 'اجتماع مجلس الوزراء الأسبوعي',
+                'title_ar' => 'اجتماع مع وفد تجاري أردني',
+                'title_en' => 'Meeting with Jordanian Trade Delegation',
+                'content_ar' => 'ألبوم صور من اجتماع السيد الوزير مع الوفد التجاري الأردني لبحث التعاون الاقتصادي.',
+                'content_en' => 'Photo album from the Minister meeting with Jordanian trade delegation.',
+                'seo_description_ar' => 'اجتماع مع وفد تجاري أردني',
                 'category' => 'media',
                 'status' => 'published',
                 'priority' => 5,
                 'published_at' => now()->subDays(12),
                 'metadata' => [
                     'media_type' => 'photo',
-                    'thumbnail' => '/storage/images/media/media-5.jpg',
+                    'thumbnail' => 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
                     'count' => 15
                 ],
             ],
@@ -470,7 +564,7 @@ class ContentSeeder extends Seeder
                 'published_at' => now()->subDays(20),
                 'metadata' => [
                     'media_type' => 'video',
-                    'thumbnail' => '/storage/images/media/media-6.jpg',
+                    'thumbnail' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800',
                     'duration' => '45:00'
                 ],
             ],

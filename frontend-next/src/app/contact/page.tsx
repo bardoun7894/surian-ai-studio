@@ -71,8 +71,8 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">info@egov.sy</p>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">support@egov.sy</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">info@moe.gov.sy</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">support@moe.gov.sy</p>
                                 </div>
                             </div>
 
@@ -84,7 +84,7 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                                        {language === 'ar' ? 'دمشق - تنظيم كفرسوسة - مبنى رئاسة مجلس الوزراء' : 'Damascus - Kafr Sousa - Prime Ministry Building'}
+                                        {language === 'ar' ? 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة' : 'Damascus - Governorate Square - Ministry of Economy and Industry Building'}
                                     </p>
                                 </div>
                             </div>

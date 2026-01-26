@@ -11,7 +11,9 @@ import {
   CheckCircle,
   TrendingUp,
   ArrowRight,
-  Loader2
+  Loader2,
+  Settings,
+  Lightbulb
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,10 +53,28 @@ export default function AdminDashboard() {
       color: 'bg-gov-teal/10 text-gov-teal',
     },
     {
+      href: '/admin/content',
+      label: { ar: 'إدارة المحتوى', en: 'Content Management' },
+      icon: FileText,
+      color: 'bg-gov-emerald/10 text-gov-emerald',
+    },
+    {
       href: '/admin/users',
       label: { ar: 'إدارة المستخدمين', en: 'Manage Users' },
       icon: Users,
       color: 'bg-gov-teal/10 text-gov-teal',
+    },
+    {
+      href: '/admin/suggestions',
+      label: { ar: 'إدارة الاقتراحات', en: 'Manage Suggestions' },
+      icon: Lightbulb,
+      color: 'bg-gov-emerald/10 text-gov-emerald',
+    },
+    {
+      href: '/admin/settings',
+      label: { ar: 'إعدادات النظام', en: 'System Settings' },
+      icon: Settings,
+      color: 'bg-gov-gold/10 text-gov-gold',
     },
   ];
 
@@ -138,6 +158,46 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {language === 'ar' ? 'نسبة SLA' : 'SLA Rate'}
             </p>
+          </div>
+
+          {/* User Satisfaction Indicator (FR-55) */}
+          <div className="md:col-span-2 lg:col-span-4 bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10 mt-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-gov-charcoal dark:text-white">
+                {language === 'ar' ? 'مؤشر رضا المستفيدين' : 'User Satisfaction Index'}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
+                <span className="text-4xl font-bold text-gov-forest dark:text-gov-gold mb-2">4.8</span>
+                <div className="flex text-yellow-400 mb-2">
+                  {[1, 2, 3, 4, 5].map(i => <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>)}
+                </div>
+                <span className="text-sm text-gray-500">{language === 'ar' ? 'التقييم العام' : 'Overall Rating'}</span>
+              </div>
+
+              <div className="md:col-span-2 space-y-4">
+                {[
+                  { label: 'سرعة الاستجابة', value: 92, color: 'bg-green-500' },
+                  { label: 'جودة الحلول', value: 85, color: 'bg-blue-500' },
+                  { label: 'سهولة الاستخدام', value: 96, color: 'bg-purple-500' }
+                ].map((item, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-bold text-gray-700 dark:text-gray-300">{item.label}</span>
+                      <span className="text-gray-500 dark:text-gray-400">{item.value}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.value}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

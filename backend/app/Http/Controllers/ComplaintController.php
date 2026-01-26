@@ -114,10 +114,10 @@ class ComplaintController extends Controller
         $request->validate([
             'directorate_id' => 'required|exists:directorates,id',
             'description' => 'required|string|min:10',
-            // Files validation T057, T058
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
             'attachments' => 'max:5', // Max 5 files
             'recaptcha_token' => 'nullable|string', // Optional pending Config
+            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
         ]);
 
         // Verify CAPTCHA (T060)
@@ -142,6 +142,14 @@ class ComplaintController extends Controller
         }
 
         $data = $request->only(['directorate_id', 'template_id', 'title', 'description']);
+
+        // Resolve previous tracking number to ID
+        if ($request->filled('previous_tracking_number')) {
+            $previousComplaint = Complaint::where('tracking_number', $request->previous_tracking_number)->first();
+            if ($previousComplaint) {
+                $data['related_complaint_id'] = $previousComplaint->id;
+            }
+        }
         
         if ($user) {
             $data['user_id'] = $user->id;
@@ -485,5 +493,172 @@ class ComplaintController extends Controller
         ]);
 
         return response()->json(['message' => 'Complaint deleted successfully']);
+    }
+
+    /**
+     * FR-25: Rate a complaint (1-5 stars)
+     * POST /api/v1/complaints/{trackingNumber}/rate
+     * T-SRS2-02: Submit rating after resolution
+     */
+    public function rate(Request $request, $trackingNumber)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        $complaint = Complaint::where('tracking_number', $trackingNumber)->first();
+
+        if (!$complaint) {
+            return response()->json(['message' => 'Complaint not found'], 404);
+        }
+
+        // T-SRS2-03: Validate that complaint can be rated (status = resolved/closed, not already rated)
+        if (!$complaint->canBeRated()) {
+            if ($complaint->rating !== null) {
+                return response()->json(['message' => 'Complaint has already been rated'], 400);
+            }
+            return response()->json([
+                'message' => 'Only resolved or closed complaints can be rated',
+                'current_status' => $complaint->status
+            ], 400);
+        }
+
+        $success = $complaint->rate($request->rating, $request->comment);
+
+        if (!$success) {
+            return response()->json(['message' => 'Failed to rate complaint'], 500);
+        }
+
+        $this->auditService->log($request->user(), 'complaint_rated', 'complaint', $complaint->id, [
+            'tracking_number' => $trackingNumber,
+            'rating' => $request->rating,
+        ]);
+
+        return response()->json([
+            'message' => 'Thank you for your feedback',
+            'rating' => $complaint->rating,
+            'rated_at' => $complaint->rated_at,
+        ]);
+    }
+
+    /**
+     * FR-35: Snooze a complaint
+     * POST /api/v1/staff/complaints/{id}/snooze
+     * T-SRS2-07: Set snooze for 1, 2, or 3 days
+     */
+    public function snooze(Request $request, $id)
+    {
+        $request->validate([
+            'days' => 'required|integer|in:1,2,3',
+        ]);
+
+        $complaint = Complaint::findOrFail($id);
+        $user = $request->user();
+
+        // FR-34: Verify staff can access this complaint (directorate check)
+        $userDirectorateId = \App\Http\Middleware\CheckDirectorate::getUserDirectorateId($user);
+        if ($userDirectorateId !== null && $complaint->directorate_id !== $userDirectorateId) {
+            return response()->json(['message' => 'Unauthorized to snooze this complaint'], 403);
+        }
+
+        $success = $complaint->snooze($request->days, $user->id);
+
+        if (!$success) {
+            return response()->json(['message' => 'Failed to snooze complaint'], 500);
+        }
+
+        $this->auditService->log($user, 'complaint_snoozed', 'complaint', $id, [
+            'days' => $request->days,
+            'snoozed_until' => $complaint->snoozed_until,
+        ]);
+
+        return response()->json([
+            'message' => 'Complaint snoozed',
+            'snoozed_until' => $complaint->snoozed_until,
+        ]);
+    }
+
+    /**
+     * Unsnooze a complaint
+     * DELETE /api/v1/staff/complaints/{id}/snooze
+     */
+    public function unsnooze(Request $request, $id)
+    {
+        $complaint = Complaint::findOrFail($id);
+        $user = $request->user();
+
+        // FR-34: Verify staff can access this complaint
+        $userDirectorateId = \App\Http\Middleware\CheckDirectorate::getUserDirectorateId($user);
+        if ($userDirectorateId !== null && $complaint->directorate_id !== $userDirectorateId) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $complaint->unsnooze();
+
+        $this->auditService->log($user, 'complaint_unsnoozed', 'complaint', $id, []);
+
+        return response()->json(['message' => 'Complaint unsnoozed']);
+    }
+
+    /**
+     * T-SRS2-04: Get satisfaction analytics
+     * GET /api/v1/staff/analytics/satisfaction
+     */
+    public function getSatisfactionAnalytics(Request $request)
+    {
+        $user = $request->user();
+        $userDirectorateId = \App\Http\Middleware\CheckDirectorate::getUserDirectorateId($user);
+
+        // Base query with optional directorate filter
+        $baseQuery = function () use ($userDirectorateId) {
+            $query = Complaint::whereNotNull('rating');
+            if ($userDirectorateId !== null) {
+                $query->where('directorate_id', $userDirectorateId);
+            }
+            return $query;
+        };
+
+        $stats = [
+            'total_rated' => $baseQuery()->count(),
+            'average_rating' => round($baseQuery()->avg('rating'), 2) ?? 0,
+            'rating_distribution' => [
+                '5_stars' => $baseQuery()->where('rating', 5)->count(),
+                '4_stars' => $baseQuery()->where('rating', 4)->count(),
+                '3_stars' => $baseQuery()->where('rating', 3)->count(),
+                '2_stars' => $baseQuery()->where('rating', 2)->count(),
+                '1_star' => $baseQuery()->where('rating', 1)->count(),
+            ],
+            'satisfaction_rate' => $this->calculateSatisfactionRate($baseQuery()),
+            'recent_feedback' => $baseQuery()
+                ->whereNotNull('rating_comment')
+                ->orderBy('rated_at', 'desc')
+                ->take(10)
+                ->get(['tracking_number', 'rating', 'rating_comment', 'rated_at']),
+        ];
+
+        // Monthly trend for the last 6 months
+        $stats['monthly_trend'] = $baseQuery()
+            ->selectRaw("to_char(rated_at, 'YYYY-MM') as month, AVG(rating) as avg_rating, COUNT(*) as count")
+            ->where('rated_at', '>=', now()->subMonths(6))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Calculate satisfaction rate (% of ratings >= 4)
+     */
+    private function calculateSatisfactionRate($query)
+    {
+        $total = $query->count();
+        if ($total === 0) {
+            return 0;
+        }
+
+        $satisfied = (clone $query)->where('rating', '>=', 4)->count();
+        return round(($satisfied / $total) * 100, 1);
     }
 }

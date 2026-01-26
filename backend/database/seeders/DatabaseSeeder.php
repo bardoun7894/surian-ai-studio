@@ -13,13 +13,17 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesSeeder::class,
-            AdminUserSeeder::class, // Create default admin user
-            DirectoratesSeeder::class,
-            ServicesSeeder::class,
+            AdminUserSeeder::class,      // Create default admin user
+            DirectoratesSeeder::class,   // Ministries and departments
+            SubDirectoratesSeeder::class, // Sub-departments for featured directorates
+            ServicesSeeder::class,       // Government services
             ComplaintTemplatesSeeder::class,
-            ContentSeeder::class,     // News, Announcements, Decrees, Services, Media
-            FaqSeeder::class,          // FAQs for the portal
-            AnalyticsSeeder::class,    // Trend Data for Dashboard
+            SettingsSeeder::class,       // System Settings
+            ContentSeeder::class,        // News, Announcements, Decrees, Services, Media
+            FaqSeeder::class,            // FAQs for the portal
+            AnalyticsSeeder::class,      // Trend Data for Dashboard
+            InvestmentSeeder::class,     // Investment opportunities
+            PromotionalSectionSeeder::class, // Homepage promotional sections
         ]);
     }
 }

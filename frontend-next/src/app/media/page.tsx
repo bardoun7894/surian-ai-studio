@@ -93,8 +93,8 @@ export default function MediaPage() {
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
                 {language === 'ar'
-                  ? 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من رئاسة مجلس الوزراء'
-                  : 'Official video, photo, and infographic library from the Prime Ministry'}
+                  ? 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من وزارة الاقتصاد والصناعة'
+                  : 'Official video, photo, and infographic library from the Ministry of Economy and Industry'}
               </p>
             </div>
           </div>

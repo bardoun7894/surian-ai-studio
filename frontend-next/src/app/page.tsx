@@ -9,12 +9,12 @@ import Announcements from '@/components/Announcements';
 import NewsSection from '@/components/NewsSection';
 import QuickServices from '@/components/QuickServices';
 import StatsAchievements from '@/components/StatsAchievements';
-import DirectoratesList from '@/components/DirectoratesList';
 import GovernmentPartners from '@/components/GovernmentPartners';
 import FAQSection from '@/components/FAQSection';
 import ContactSection from '@/components/ContactSection';
 import ChatBot from '@/components/ChatBot';
 import Footer from '@/components/Footer';
+import HappinessIndicator from '@/components/HappinessIndicator';
 import { useState, useEffect } from 'react';
 
 export default function HomePage() {
@@ -65,19 +65,16 @@ export default function HomePage() {
         <NewsTicker onNewsLoaded={setHasBreakingNews} />
         <FeaturedDirectorates />
         <HeroGrid />
-        <Announcements />
+
+        {/* News & Announcements */}
         <NewsSection />
+        <Announcements />
 
         {/* Quick Services */}
         <QuickServices />
 
         {/* Statistics & Achievements */}
         <StatsAchievements />
-
-        {/* Quick Access to Directorates */}
-        <div className="bg-gov-beige/30 dark:bg-gov-forest/30 py-16 border-t border-gov-gold/20 dark:border-gov-gold/10">
-          <DirectoratesList variant="compact" />
-        </div>
 
         {/* Government Partners */}
         <GovernmentPartners />
@@ -88,6 +85,7 @@ export default function HomePage() {
       </main>
 
       <ChatBot />
+      <HappinessIndicator />
 
       <Footer
         onIncreaseFont={handleIncreaseFont}

@@ -3,7 +3,7 @@ import { Directorate, Service, Article, NewsItem, Decree, MediaItem } from '@/ty
 export const MOCK_MEDIA: MediaItem[] = [
   {
     id: 'm1',
-    title: 'جولة السيد الوزير في معرض دمشق الدولي',
+    title: 'جولة السيد الوزير في معرض دمشق الدولي للصناعات',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1492619375932-d0234a62176c?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-20',
@@ -11,7 +11,7 @@ export const MOCK_MEDIA: MediaItem[] = [
   },
   {
     id: 'm2',
-    title: 'افتتاح محطة توليد الكهرباء الجديدة',
+    title: 'افتتاح المنطقة الصناعية الجديدة في عدرا',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-18',
@@ -19,7 +19,7 @@ export const MOCK_MEDIA: MediaItem[] = [
   },
   {
     id: 'm3',
-    title: 'صور من حفل تكريم المبدعين',
+    title: 'صور من حفل تكريم المصنعين المتميزين',
     type: 'photo',
     thumbnailUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-15',
@@ -27,14 +27,14 @@ export const MOCK_MEDIA: MediaItem[] = [
   },
   {
     id: 'm4',
-    title: 'إحصائيات التحول الرقمي 2024',
+    title: 'إحصائيات القطاع الصناعي 2024',
     type: 'infographic',
     thumbnailUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-10'
   },
   {
     id: 'm5',
-    title: 'اجتماع مجلس الوزراء الأسبوعي',
+    title: 'اجتماع الإدارة العامة للصناعة مع المستثمرين',
     type: 'photo',
     thumbnailUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-08',
@@ -42,7 +42,7 @@ export const MOCK_MEDIA: MediaItem[] = [
   },
   {
     id: 'm6',
-    title: 'مؤتمر الاستثمار السوري الأول',
+    title: 'مؤتمر تطوير المشاريع الصغيرة والمتوسطة',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800',
     date: '2024-05-05',
@@ -53,108 +53,72 @@ export const MOCK_MEDIA: MediaItem[] = [
 export const DIRECTORATES: Directorate[] = [
   {
     id: 'd1',
-    name: 'وزارة الداخلية',
-    description: 'إدارة الأحوال المدنية، الجوازات، وشؤون الهجرة والمرور.',
-    icon: 'ShieldAlert',
-    servicesCount: 15
+    name: { ar: 'الإدارة العامة للصناعة', en: 'General Administration for Industry' },
+    description: { ar: 'إدارة شؤون الصناعة والمصانع والمناطق الصناعية والمواصفات والمقاييس.', en: 'Management of industry, factories, industrial zones, and standards.' },
+    icon: 'Factory',
+    servicesCount: 6,
+    subDirectorates: [
+      { id: 'i1', name: { ar: 'مؤسسات ومعامل القطاع العام', en: 'Public Sector Institutions & Factories' }, url: '#' },
+      { id: 'i2', name: { ar: 'مركز التنمية الصناعية', en: 'Industrial Development Center' }, url: '#' },
+      { id: 'i3', name: { ar: 'مديرية المدن والمناطق الصناعية', en: 'Industrial Cities & Zones Directorate' }, url: '#' },
+      { id: 'i4', name: { ar: 'مديرية الإشراف على التأهيل الفني', en: 'Technical Qualification Supervision Directorate' }, url: '#' },
+      { id: 'i5', name: { ar: 'مديريات الصناعة في المحافظات', en: 'Provincial Industry Directorates' }, url: '#' },
+      { id: 'i6', name: { ar: 'هيئة إدارة المعادن الثمينة', en: 'Precious Metals Management Authority' }, url: '#' },
+      { id: 'i7', name: { ar: 'مركز الاختبارات والأبحاث الصناعية', en: 'Industrial Testing & Research Center' }, url: '#' },
+      { id: 'i8', name: { ar: 'هيئة المواصفات والمقاييس السورية', en: 'Syrian Standards & Metrology Authority' }, url: '#' }
+    ]
   },
   {
     id: 'd2',
-    name: 'وزارة العدل',
-    description: 'الخدمات القضائية، الوكالات، والمحاكم.',
-    icon: 'Scale',
-    servicesCount: 9
+    name: { ar: 'الإدارة العامة للاقتصاد', en: 'General Administration for Economy' },
+    description: { ar: 'إدارة شؤون الاقتصاد والتجارة الخارجية والسياسات الاقتصادية والمشروعات الصغيرة والمتوسطة.', en: 'Management of economy, foreign trade, economic policies, and SMEs.' },
+    icon: 'TrendingUp',
+    servicesCount: 6,
+    subDirectorates: [
+      { id: 'e1', name: { ar: 'المؤسسة العامة للمعارض والأسواق الدولية', en: 'Public Establishment for International Fairs & Markets' }, url: '#' },
+      { id: 'e2', name: { ar: 'هيئة تنمية المشروعات الصغيرة والمتوسطة', en: 'SME Development Authority' }, url: '#' },
+      { id: 'e3', name: { ar: 'مديرية التجارة الخارجية', en: 'Foreign Trade Directorate' }, url: '#' },
+      { id: 'e4', name: { ar: 'مديريات الاقتصاد في المحافظات', en: 'Provincial Economy Directorates' }, url: '#' },
+      { id: 'e5', name: { ar: 'هيئة دعم وتنمية الانتاج المحلي والصادرات', en: 'Authority for Support & Development of Local Production & Exports' }, url: '#' },
+      { id: 'e6', name: { ar: 'مديرية السياسات الاقتصادية', en: 'Economic Policies Directorate' }, url: '#' },
+      { id: 'e7', name: { ar: 'مديرية التعاون الاستهلاكي', en: 'Consumer Cooperation Directorate' }, url: '#' },
+      { id: 'e8', name: { ar: 'المديريات الفرعية في المحافظات', en: 'Provincial Branch Directorates' }, url: '#' },
+      { id: 'e9', name: { ar: 'مديرية المواد والأمن الغذائي', en: 'Materials & Food Security Directorate' }, url: '#' }
+    ]
   },
   {
     id: 'd3',
-    name: 'وزارة الصحة',
-    description: 'الخدمات الطبية، المشافي، والتراخيص الصحية.',
-    icon: 'HeartPulse',
-    servicesCount: 8
-  },
-  {
-    id: 'd4',
-    name: 'وزارة التربية',
-    description: 'شؤون المدارس، المناهج، والامتحانات.',
-    icon: 'BookOpen',
-    servicesCount: 12
-  },
-  {
-    id: 'd5',
-    name: 'وزارة التعليم العالي',
-    description: 'الجامعات الحكومية، المنح، والبحث العلمي.',
-    icon: 'GraduationCap',
-    servicesCount: 10
-  },
-  {
-    id: 'd6',
-    name: 'وزارة الكهرباء',
-    description: 'خدمات المشتركين، الفواتير، والشكاوى الكهربائية.',
-    icon: 'Zap',
-    servicesCount: 5
-  },
-  {
-    id: 'd7',
-    name: 'وزارة الموارد المائية',
-    description: 'مياه الشرب، الصرف الصحي، والري.',
-    icon: 'Droplets',
-    servicesCount: 4
-  },
-  {
-    id: 'd8',
-    name: 'وزارة النقل',
-    description: 'تراخيص المركبات، النقل البري والبحري والجوي.',
-    icon: 'Plane',
-    servicesCount: 7
-  },
-  {
-    id: 'd9',
-    name: 'وزارة الاتصالات',
-    description: 'خدمات الإنترنت، البريد، والتوقيع الرقمي.',
-    icon: 'Wifi',
-    servicesCount: 6
-  },
-  {
-    id: 'd10',
-    name: 'وزارة المالية',
-    description: 'الضرائب، الرسوم، والخدمات المالية.',
-    icon: 'Banknote',
-    servicesCount: 11
-  },
-  {
-    id: 'd11',
-    name: 'وزارة السياحة',
-    description: 'تراخيص المنشآت السياحية والترويج.',
-    icon: 'Map',
-    servicesCount: 5
-  },
-  {
-    id: 'd12',
-    name: 'وزارة الصناعة',
-    description: 'تراخيص المصانع والسجلات الصناعية.',
-    icon: 'Factory',
-    servicesCount: 8
+    name: { ar: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', en: 'General Administration for Internal Trade' },
+    description: { ar: 'إدارة شؤون التجارة الداخلية وحماية المستهلك والرقابة على الأسواق والشركات.', en: 'Management of internal trade, consumer protection, and market monitoring.' },
+    icon: 'ShieldCheck',
+    servicesCount: 6,
+    subDirectorates: [
+      { id: 'it1', name: { ar: 'مديرية حماية المستهلك', en: 'Consumer Protection Directorate' }, url: '#' },
+      { id: 'it2', name: { ar: 'مديرية الأسعار', en: 'Pricing Directorate' }, url: '#' },
+      { id: 'it3', name: { ar: 'مديرية الشركات', en: 'Companies Directorate' }, url: '#' },
+      { id: 'it4', name: { ar: 'مديرية التجارة الداخلية بالمحافظات', en: 'Provincial Internal Trade Directorate' }, url: '#' },
+      { id: 'it5', name: { ar: 'مديرية المخابر', en: 'Laboratories Directorate' }, url: '#' },
+      { id: 'it6', name: { ar: 'مديرية الشؤون الفنية والجودة', en: 'Technical Affairs & Quality Directorate' }, url: '#' }
+    ]
   }
 ];
 
 export const KEY_SERVICES: Service[] = [
-  { id: 's1', title: 'إصدار جواز سفر إلكتروني', directorateId: 'd1', isDigital: true, description: 'تقديم طلب للحصول على جواز سفر جديد أو تجديده إلكترونياً.' },
-  { id: 's2', title: 'خلاصة سجل عدلي (غير محكوم)', directorateId: 'd1', isDigital: true, description: 'الحصول على وثيقة غير محكوم إلكترونياً.' },
-  { id: 's3', title: 'دفع المخالفات المرورية', directorateId: 'd1', isDigital: true, description: 'الاستعلام عن المخالفات المرورية وتسديدها.' },
-  { id: 's4', title: 'الوكالات العدلية', directorateId: 'd2', isDigital: false, description: 'حجز موعد لتوثيق الوكالات العدلية.' },
-  { id: 's5', title: 'بيان ملكية عقارية', directorateId: 'd2', isDigital: true, description: 'الحصول على بيان يوضح الملكيات العقارية.' },
-  { id: 's6', title: 'نتائج التحاليل الطبية', directorateId: 'd3', isDigital: true, description: 'الاطلاع على نتائج التحاليل من المخابر المعتمدة.' },
-  { id: 's7', title: 'نتائج الامتحانات العامة', directorateId: 'd4', isDigital: true, description: 'عرض نتائج الشهادات الإعدادية والثانوية.' },
-  { id: 's8', title: 'تسلسل دراسي', directorateId: 'd4', isDigital: false, description: 'طلب وثيقة تسلسل دراسي من المؤسسات التعليمية.' },
-  { id: 's9', title: 'المفاضلة الجامعية', directorateId: 'd5', isDigital: true, description: 'التقدم للمفاضلة الجامعية للعام الدراسي.' },
-  { id: 's10', title: 'كشف علامات جامعي', directorateId: 'd5', isDigital: true, description: 'استخراج كشف علامات للسنوات الدراسية.' },
-  { id: 's11', title: 'دفع فاتورة الكهرباء', directorateId: 'd6', isDigital: true, description: 'تسديد فواتير الكهرباء إلكترونياً.' },
-  { id: 's12', title: 'طلب عداد جديد', directorateId: 'd6', isDigital: false, description: 'تقديم طلب لتركيب عداد كهرباء جديد.' },
-  { id: 's13', title: 'دفع فاتورة المياه', directorateId: 'd7', isDigital: true, description: 'تسديد فواتير المياه إلكترونياً.' },
-  { id: 's14', title: 'تجديد ترخيص مركبة', directorateId: 'd8', isDigital: true, description: 'تجديد ترسيم المركبات إلكترونياً.' },
-  { id: 's15', title: 'بوابة خدمة المواطن', directorateId: 'd9', isDigital: true, description: 'منصة موحدة لكافة الخدمات الإلكترونية.' },
-  { id: 's16', title: 'براءة ذمة مالية', directorateId: 'd10', isDigital: true, description: 'الحصول على براءة ذمة من الدوائر المالية.' },
-  { id: 's17', title: 'التحقق الضريبي', directorateId: 'd10', isDigital: true, description: 'خدمة التحقق من الوثائق الضريبية.' },
+  // d1 - الإدارة العامة للصناعة (Industry)
+  { id: 's1', title: 'ترخيص منشأة صناعية', directorateId: 'd1', isDigital: true, description: 'تقديم طلب للحصول على ترخيص لإنشاء منشأة صناعية جديدة.' },
+  { id: 's2', title: 'تسجيل سجل صناعي', directorateId: 'd1', isDigital: true, description: 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني.' },
+  { id: 's3', title: 'شهادة المطابقة والجودة', directorateId: 'd1', isDigital: false, description: 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية.' },
+  { id: 's4', title: 'تخصيص قطعة أرض صناعية', directorateId: 'd1', isDigital: true, description: 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية.' },
+  // d2 - الإدارة العامة للاقتصاد (Economy)
+  { id: 's5', title: 'إجازة استيراد', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة استيراد للبضائع والمواد.' },
+  { id: 's6', title: 'إجازة تصدير', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة تصدير للمنتجات السورية.' },
+  { id: 's7', title: 'تمويل المشاريع الصغيرة', directorateId: 'd2', isDigital: true, description: 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة.' },
+  { id: 's8', title: 'المشاركة في المعارض الدولية', directorateId: 'd2', isDigital: true, description: 'تسجيل الشركات للمشاركة في معرض دمشق الدولي.' },
+  // d3 - الإدارة العامة للتجارة الداخلية وحماية المستهلك (Trade & Consumer Protection)
+  { id: 's9', title: 'تسجيل شركة تجارية', directorateId: 'd3', isDigital: true, description: 'تسجيل الشركات التجارية في السجل التجاري.' },
+  { id: 's10', title: 'شكوى حماية المستهلك', directorateId: 'd3', isDigital: true, description: 'تقديم شكوى في حال التعرض للغش التجاري.' },
+  { id: 's11', title: 'الاستعلام عن الأسعار', directorateId: 'd3', isDigital: true, description: 'الاستعلام عن الأسعار الرسمية للمواد الأساسية.' },
+  { id: 's12', title: 'تسجيل علامة تجارية', directorateId: 'd3', isDigital: true, description: 'تسجيل وحماية العلامات التجارية.' },
 ];
 
 export const COMPLAINT_CATEGORIES = [
@@ -169,43 +133,43 @@ export const COMPLAINT_CATEGORIES = [
 export const OFFICIAL_NEWS: NewsItem[] = [
   {
     id: 'n1',
-    title: 'رئاسة مجلس الوزراء تقر خطة التحول الرقمي الشامل لعام 2024',
+    title: 'وزارة الاقتصاد والصناعة تطلق منصة التراخيص الصناعية الإلكترونية',
     date: '2024-05-21',
-    category: 'رئاسة الوزراء',
-    summary: 'أقر مجلس الوزراء في جلسته الأسبوعية الخطة الوطنية للتحول الرقمي التي تهدف إلى أتمتة كافة الخدمات الحكومية بحلول نهاية العام.',
+    category: 'خدمات رقمية',
+    summary: 'أطلقت الوزارة منصة إلكترونية متكاملة لإصدار التراخيص الصناعية وتجديدها بشكل فوري.',
     imageUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&q=80&w=600',
     isUrgent: true
   },
   {
     id: 'n2',
-    title: 'وزارة الاتصالات تطلق بوابة الخدمات الإلكترونية الجديدة',
+    title: 'الإدارة العامة للصناعة تعلن عن تسهيلات جديدة للمستثمرين',
     date: '2024-05-20',
-    category: 'تكنولوجيا',
-    summary: 'أعلنت وزارة الاتصالات والتقانة عن إطلاق النسخة المحدثة من بوابة المواطن.',
+    category: 'صناعة',
+    summary: 'أعلنت الإدارة العامة للصناعة عن حزمة تسهيلات جديدة للمستثمرين في القطاع الصناعي.',
     imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600'
   },
   {
     id: 'n3',
-    title: 'مرسوم تشريعي بتعديل رسوم الخدمات القنصلية',
+    title: 'حملة حماية المستهلك: ضبط مخالفات سعرية في الأسواق',
     date: '2024-05-19',
-    category: 'مراسيم',
-    summary: 'صدر المرسوم التشريعي القاضي بتعديل بعض الرسوم القنصلية لتسهيل الإجراءات على المغتربين.',
+    category: 'تجارة داخلية',
+    summary: 'نفذت الإدارة العامة للتجارة الداخلية حملة رقابية مكثفة أسفرت عن ضبط عدة مخالفات سعرية.',
     isUrgent: false
   },
   {
     id: 'n4',
-    title: 'افتتاح مركز خدمة المواطن الجديد في دمشق',
+    title: 'إطلاق برنامج تمويل المشاريع الصغيرة والمتوسطة',
     date: '2024-05-18',
-    category: 'خدمات',
-    summary: 'تم افتتاح مركز جديد لخدمة المواطن يقدم أكثر من 50 خدمة حكومية في مكان واحد.',
+    category: 'اقتصاد',
+    summary: 'أعلنت الإدارة العامة للاقتصاد عن فتح باب التسجيل لبرنامج التمويل الميسر للمشاريع الناشئة.',
     imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=600'
   }
 ];
 
 export const BREAKING_NEWS = [
-  "رئاسة مجلس الوزراء: عطلة رسمية بمناسبة عيد الشهداء يوم الاثنين القادم.",
-  "وزارة التربية: صدور نتائج امتحانات التعليم الأساسي.",
-  "وزارة الصحة: حملة تلقيح وطنية شاملة تنطلق الأحد القادم."
+  "وزارة الاقتصاد والصناعة: افتتاح معرض دمشق الدولي بمشاركة 40 دولة.",
+  "الإدارة العامة للصناعة: إطلاق منصة التراخيص الصناعية الإلكترونية.",
+  "هيئة المشروعات الصغيرة: فتح باب التسجيل لبرنامج التمويل الميسر."
 ];
 
 export const HERO_ARTICLE: Article = {
@@ -220,29 +184,29 @@ export const HERO_ARTICLE: Article = {
 
 export const GRID_ARTICLES: Article[] = [
   {
-    title: "مشروع الطاقة المتجددة في حمص",
-    excerpt: "تدشين المرحلة الأولى من محطة الطاقة الشمسية بقدرة 50 ميغاواط لدعم الشبكة الكهربائية.",
-    category: "طاقة",
+    title: "إطلاق منصة التراخيص الصناعية الإلكترونية",
+    excerpt: "الإدارة العامة للصناعة تطلق منصة إلكترونية متكاملة لإصدار التراخيص الصناعية وتجديدها.",
+    category: "صناعة",
     date: "2024-05-15",
-    author: "وزارة الكهرباء",
+    author: "الإدارة العامة للصناعة",
     readTime: "3 دقائق",
     imageUrl: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600"
   },
   {
-    title: "تحديث المناهج الجامعية",
-    excerpt: "إدخال تخصصات الذكاء الاصطناعي والأمن السيبراني في خمس جامعات حكومية جديدة.",
-    category: "تعليم عالي",
+    title: "برنامج تمويل المشاريع الصغيرة",
+    excerpt: "هيئة تنمية المشروعات تعلن عن فتح باب التسجيل لبرنامج التمويل الميسر للمشاريع الناشئة.",
+    category: "اقتصاد",
     date: "2024-05-10",
-    author: "وزارة التعليم العالي",
+    author: "الإدارة العامة للاقتصاد",
     readTime: "4 دقائق",
     imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=600"
   },
   {
-    title: "مهرجان التسوق الشهري",
-    excerpt: "انطلاق فعاليات مهرجان التسوق 'صنع في سوريا' بمشاركة واسعة من الشركات الصناعية.",
-    category: "اقتصاد",
+    title: "حملة حماية المستهلك الصيفية",
+    excerpt: "انطلاق حملة مكثفة لمراقبة الأسواق وضبط المخالفات السعرية خلال موسم الصيف.",
+    category: "تجارة داخلية",
     date: "2024-05-08",
-    author: "غرفة الصناعة",
+    author: "الإدارة العامة للتجارة الداخلية",
     readTime: "2 دقائق",
     imageUrl: "https://images.unsplash.com/photo-1472851294608-41510501529f?auto=format&fit=crop&q=80&w=600"
   }
@@ -299,11 +263,11 @@ export const DECREES: Decree[] = [
 export const MOCK_ANNOUNCEMENTS = [
   {
     id: '1',
-    title: 'إعلان عن مناقصة عامة لتوريد معدات تقنية',
+    title: 'إعلان عن مناقصة عامة لتوريد معدات صناعية',
     date: '2025-01-12',
     type: 'tender',
     category: 'مناقصات',
-    description: 'تعلن رئاسة مجلس الوزراء عن مناقصة عامة لتوريد معدات تقنية وأجهزة حاسوبية للوزارات والمؤسسات الحكومية. آخر موعد للتقديم: 30/01/2025'
+    description: 'تعلن وزارة الاقتصاد والصناعة عن مناقصة عامة لتوريد معدات ومواد للمناطق الصناعية. آخر موعد للتقديم: 30/01/2025'
   },
   {
     id: '2',

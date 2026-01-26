@@ -28,13 +28,17 @@
 }
 
 :root {
-  --background: #edebe0; /* gov-beige */
-  --foreground: #161616; /* gov-charcoal */
+  --background: #edebe0;
+  /* gov-beige */
+  --foreground: #161616;
+  /* gov-charcoal */
 }
 
 .dark {
-  --background: #094239; /* gov-forest */
-  --foreground: #edebe0; /* gov-beige */
+  --background: #094239;
+  /* gov-forest */
+  --foreground: #edebe0;
+  /* gov-beige */
 }
 
 body {
@@ -92,9 +96,34 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .animate-bounce-slight {
+    animation: bounce-slight 2.5s ease-in-out infinite;
+  }
+}
+
+@keyframes bounce-slight {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @layer components {
+
   /* Button styles */
   .btn-primary {
     @apply bg-gov-teal text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl;
@@ -115,19 +144,111 @@ body {
   }
 }
 
-/* Hide scrollbar for ticker */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+/* --- Animation Keyframes --- */
+
+/* Gentle Pulse for Badges */
+@keyframes badge-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(200, 16, 46, 0.3);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(200, 16, 46, 0.5);
+  }
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Form Validation Shake */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-5px);
+  }
+
+  40% {
+    transform: translateX(5px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
 }
 
-/* --- High Contrast Mode Styles --- */
-html.high-contrast {
-  filter: contrast(120%);
+/* Loading Spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fade In Up */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Underline Expand */
+@keyframes underline-expand {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+/* --- Utility Classes --- */
+
+.animate-badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* --- Reduced Motion Support --- */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body.high-contrast {

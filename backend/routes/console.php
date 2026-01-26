@@ -43,3 +43,16 @@ Schedule::command('complaints:generate-summary --type=monthly --all-directorates
     ->monthlyOn(1, '06:00')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/complaint-summaries.log'));
+
+// FR-68, FR-69: Escalate old complaints daily at 9 AM
+// T-SRS2-12, T-SRS2-13: First warning at 5 days, final escalation at 10 days
+Schedule::command('complaints:escalate --first-warning=5 --final-escalation=10')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/complaint-escalation.log'));
+
+// FR-58: Cleanup old FAQ suggestion snoozes (auto-unsnooze expired)
+Schedule::command('suggestions:cleanup --days=30')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/suggestion-cleanup.log'));

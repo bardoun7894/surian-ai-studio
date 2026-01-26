@@ -26,34 +26,118 @@ import {
     Wifi,
     Banknote,
     Map,
-    Factory
+    Factory,
+    Laptop,
+    Server,
+    Lock,
+    RefreshCw,
+    Shield,
+    TrendingUp,
+    DollarSign,
+    Award,
+    Truck,
+    FileCheck,
+    Briefcase,
+    Users,
+    BarChart,
+    Building2,
+    Landmark,
+    Hotel,
+    Gavel,
+    FileSignature,
+    UserCog,
+    Settings
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
+
+// Sub-category metadata with icons and descriptions
+const subCategoryMeta: Record<string, { iconName: string; title_ar: string; title_en: string; desc_ar: string; desc_en: string }> = {
+    'apps': { iconName: 'Laptop', title_ar: 'التطبيقات الذكية', title_en: 'Smart Applications', desc_ar: 'تطبيقات حكومية ذكية لتسهيل الخدمات', desc_en: 'Smart government applications for easier services' },
+    'infrastructure': { iconName: 'Server', title_ar: 'البنية التحتية', title_en: 'Infrastructure', desc_ar: 'البنية التحتية الرقمية للخدمات الحكومية', desc_en: 'Digital infrastructure for government services' },
+    'digital-transformation': { iconName: 'RefreshCw', title_ar: 'التحول الرقمي', title_en: 'Digital Transformation', desc_ar: 'خدمات التحول الرقمي والتطوير', desc_en: 'Digital transformation and development services' },
+    'supply-control': { iconName: 'Truck', title_ar: 'الرقابة التموينية', title_en: 'Supply Control', desc_ar: 'خدمات الرقابة على المواد التموينية', desc_en: 'Supply and goods monitoring services' },
+    'price-monitoring': { iconName: 'TrendingUp', title_ar: 'مراقبة الأسعار', title_en: 'Price Monitoring', desc_ar: 'خدمات مراقبة وضبط الأسعار', desc_en: 'Price monitoring and control services' },
+    'trade': { iconName: 'Truck', title_ar: 'التصدير والاستيراد', title_en: 'Import & Export', desc_ar: 'خدمات التجارة الخارجية والاستيراد والتصدير', desc_en: 'Foreign trade, import and export services' },
+    'agreements': { iconName: 'FileSignature', title_ar: 'الاتفاقيات التجارية', title_en: 'Trade Agreements', desc_ar: 'الاتفاقيات التجارية الدولية والإقليمية', desc_en: 'International and regional trade agreements' },
+    'industrial-licenses': { iconName: 'FileCheck', title_ar: 'التراخيص الصناعية', title_en: 'Industrial Licenses', desc_ar: 'تراخيص المنشآت الصناعية', desc_en: 'Industrial facility licenses' },
+    'industrial-zones': { iconName: 'Factory', title_ar: 'المناطق الصناعية', title_en: 'Industrial Zones', desc_ar: 'المناطق والمدن الصناعية', desc_en: 'Industrial zones and cities' },
+    'standards': { iconName: 'Award', title_ar: 'الجودة والمواصفات', title_en: 'Quality & Standards', desc_ar: 'معايير الجودة والمواصفات القياسية', desc_en: 'Quality and standard specifications' },
+    'sme-financing': { iconName: 'DollarSign', title_ar: 'تمويل المشاريع الصغيرة', title_en: 'SME Financing', desc_ar: 'برامج تمويل المشاريع الصغيرة والمتوسطة', desc_en: 'Small and medium enterprise financing programs' },
+    'training': { iconName: 'GraduationCap', title_ar: 'التدريب والإرشاد', title_en: 'Training & Mentoring', desc_ar: 'برامج التدريب والإرشاد المهني', desc_en: 'Training and professional mentoring programs' },
+    'incubators': { iconName: 'Briefcase', title_ar: 'حاضنات الأعمال', title_en: 'Business Incubators', desc_ar: 'حاضنات ومسرعات الأعمال', desc_en: 'Business incubators and accelerators' },
+    'economic-studies': { iconName: 'BarChart', title_ar: 'الدراسات الاقتصادية', title_en: 'Economic Studies', desc_ar: 'الدراسات والأبحاث الاقتصادية', desc_en: 'Economic studies and research' },
+    'statistics': { iconName: 'BarChart', title_ar: 'الإحصاءات', title_en: 'Statistics', desc_ar: 'البيانات والإحصاءات الاقتصادية', desc_en: 'Economic data and statistics' },
+    'planning': { iconName: 'Map', title_ar: 'التخطيط الاستراتيجي', title_en: 'Strategic Planning', desc_ar: 'التخطيط الاستراتيجي والتنموي', desc_en: 'Strategic and developmental planning' },
+    'company-registration': { iconName: 'Building2', title_ar: 'تسجيل الشركات', title_en: 'Company Registration', desc_ar: 'خدمات تسجيل وتأسيس الشركات', desc_en: 'Company registration and establishment services' },
+    'commercial-register': { iconName: 'FileText', title_ar: 'السجل التجاري', title_en: 'Commercial Register', desc_ar: 'خدمات السجل التجاري', desc_en: 'Commercial register services' },
+    'trademarks': { iconName: 'Award', title_ar: 'العلامات التجارية', title_en: 'Trademarks', desc_ar: 'تسجيل وحماية العلامات التجارية', desc_en: 'Trademark registration and protection' },
+    'cooperatives': { iconName: 'Users', title_ar: 'الجمعيات التعاونية', title_en: 'Cooperatives', desc_ar: 'تأسيس وإدارة الجمعيات التعاونية', desc_en: 'Cooperative establishment and management' },
+    'coop-support': { iconName: 'Shield', title_ar: 'الدعم الفني', title_en: 'Technical Support', desc_ar: 'الدعم الفني للجمعيات التعاونية', desc_en: 'Technical support for cooperatives' },
+    'tourism-licenses': { iconName: 'FileCheck', title_ar: 'التراخيص السياحية', title_en: 'Tourism Licenses', desc_ar: 'تراخيص المنشآت السياحية', desc_en: 'Tourism facility licenses' },
+    'tourist-sites': { iconName: 'Map', title_ar: 'المواقع السياحية', title_en: 'Tourist Sites', desc_ar: 'دليل المواقع السياحية', desc_en: 'Tourist sites guide' },
+    'hotels': { iconName: 'Hotel', title_ar: 'الفنادق والمنتجعات', title_en: 'Hotels & Resorts', desc_ar: 'خدمات الفنادق والمنتجعات السياحية', desc_en: 'Hotels and resorts services' },
+    'legal': { iconName: 'Gavel', title_ar: 'الاستشارات القانونية', title_en: 'Legal Consultations', desc_ar: 'الاستشارات والخدمات القانونية', desc_en: 'Legal consultations and services' },
+    'contracts': { iconName: 'FileSignature', title_ar: 'العقود والاتفاقيات', title_en: 'Contracts & Agreements', desc_ar: 'إعداد ومراجعة العقود والاتفاقيات', desc_en: 'Contract and agreement preparation and review' },
+    'hr': { iconName: 'UserCog', title_ar: 'الموارد البشرية', title_en: 'Human Resources', desc_ar: 'خدمات الموارد البشرية والتوظيف', desc_en: 'Human resources and employment services' },
+    'admin': { iconName: 'Settings', title_ar: 'الشؤون الإدارية', title_en: 'Administrative Affairs', desc_ar: 'الخدمات الإدارية العامة', desc_en: 'General administrative services' },
+};
 
 export default function ServiceDetailPage({ params }: { params: { id: string } }) {
     const { language } = useLanguage();
     const [service, setService] = useState<Service | null>(null);
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isCategory, setIsCategory] = useState(false);
 
-    const iconMap: Record<string, React.ReactNode> = {
-        ShieldAlert: <ShieldAlert size={40} />,
-        Scale: <Scale size={40} />,
-        HeartPulse: <HeartPulse size={40} />,
-        BookOpen: <BookOpen size={40} />,
-        GraduationCap: <GraduationCap size={40} />,
-        Zap: <Zap size={40} />,
-        Droplets: <Droplets size={40} />,
-        Plane: <Plane size={40} />,
-        Wifi: <Wifi size={40} />,
-        Banknote: <Banknote size={40} />,
-        Map: <Map size={40} />,
-        Factory: <Factory size={40} />
+    const slug = params.id;
+    const categoryMeta = subCategoryMeta[slug];
+
+    // Icon map for dynamic icon rendering - defined inside component
+    const iconMap: Record<string, React.ElementType> = {
+        Laptop,
+        Server,
+        RefreshCw,
+        Truck,
+        TrendingUp,
+        FileSignature,
+        FileCheck,
+        Factory,
+        Award,
+        DollarSign,
+        GraduationCap,
+        Briefcase,
+        BarChart,
+        Map,
+        Building2,
+        FileText,
+        Users,
+        Shield,
+        Hotel,
+        Gavel,
+        UserCog,
+        Settings,
+        ShieldAlert,
+        Scale,
+        HeartPulse,
+        BookOpen,
+        Zap,
+        Droplets,
+        Plane,
+        Wifi,
+        Banknote
     };
 
     useEffect(() => {
         const fetchData = async () => {
+            // Check if this is a category slug
+            if (categoryMeta) {
+                setIsCategory(true);
+                setLoading(false);
+                return;
+            }
+
+            // Otherwise try to fetch as service ID
             try {
                 const s = await API.services.getById(params.id);
                 if (s) {
@@ -68,7 +152,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
             }
         };
         fetchData();
-    }, [params.id]);
+    }, [params.id, categoryMeta]);
 
     if (loading) {
         return (
@@ -82,6 +166,126 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         );
     }
 
+    // Render category page
+    if (isCategory && categoryMeta) {
+        const IconComponent = iconMap[categoryMeta.iconName] || Laptop;
+        return (
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+                <Navbar />
+                <main className="flex-grow pt-20">
+                    {/* Hero Section */}
+                    <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
+                        {/* Dynamic Background */}
+                        <div className="absolute inset-0 opacity-10">
+                            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-gov-gold/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gov-teal/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+                        </div>
+
+                        <div className="max-w-6xl mx-auto relative z-10">
+                            <Link
+                                href="/services"
+                                className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-8 transition-colors group"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-gov-gold group-hover:text-gov-forest transition-all">
+                                    {language === 'ar' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                                </div>
+                                <span className="font-medium">{language === 'ar' ? 'العودة لدليل الخدمات' : 'Back to Services Guide'}</span>
+                            </Link>
+
+                            <div className="flex flex-col md:flex-row items-center gap-10">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20 shadow-2xl relative z-10 group-hover:border-gov-gold/50 transition-all duration-500">
+                                        <IconComponent size={60} className="filter drop-shadow-lg" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 text-center md:text-right">
+                                    <h1 className="text-4xl md:text-6xl font-display font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gov-gold">
+                                        {language === 'ar' ? categoryMeta.title_ar : categoryMeta.title_en}
+                                    </h1>
+                                    <p className="text-white/80 text-xl max-w-3xl leading-relaxed font-light">
+                                        {language === 'ar' ? categoryMeta.desc_ar : categoryMeta.desc_en}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Services in this category */}
+                    <div className="max-w-6xl mx-auto px-4 py-20">
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-1.5 h-10 bg-gradient-to-b from-gov-gold to-gov-orange rounded-full"></div>
+                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white">
+                                {language === 'ar' ? 'الخدمات المتوفرة' : 'Available Services'}
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {/* Placeholder services */}
+                            {[
+                                { title_ar: 'تقديم طلب جديد', title_en: 'Submit New Request', desc_ar: 'تقديم طلب خدمة جديد إلكترونياً', desc_en: 'Submit a new service request electronically' },
+                                { title_ar: 'الاستعلام عن طلب', title_en: 'Check Request Status', desc_ar: 'متابعة حالة الطلب الحالي', desc_en: 'Track the status of your current request' },
+                                { title_ar: 'تحديث البيانات', title_en: 'Update Information', desc_ar: 'تحديث البيانات المسجلة في السجل', desc_en: 'Update information registered in the registry' },
+                            ].map((svc, idx) => (
+                                <div key={idx} className="group bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gov-teal/5 dark:bg-gov-gold/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+
+                                    <div className="w-16 h-16 rounded-2xl bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-6 group-hover:scale-110 group-hover:bg-gov-gold group-hover:text-gov-forest transition-all duration-300 shadow-sm relative z-10">
+                                        <IconComponent size={32} />
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-gov-forest dark:text-white mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors relative z-10">
+                                        {language === 'ar' ? svc.title_ar : svc.title_en}
+                                    </h3>
+
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 leading-relaxed relative z-10">
+                                        {language === 'ar' ? svc.desc_ar : svc.desc_en}
+                                    </p>
+
+                                    <button className="w-full py-3 rounded-xl border border-gov-teal/20 dark:border-gov-gold/20 text-gov-teal dark:text-gov-gold font-bold text-sm hover:bg-gov-teal hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all flex items-center justify-center gap-2 relative z-10">
+                                        {language === 'ar' ? 'الانتقال للخدمة' : 'Go to Service'}
+                                        {language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Contact Section */}
+                        <div className="mt-20 bg-gradient-to-r from-gov-forest to-gov-emerald dark:from-gov-gold/10 dark:to-gov-forest/10 p-1 rounded-3xl shadow-2xl">
+                            <div className="bg-white dark:bg-gov-forest/90 p-10 rounded-[22px] backdrop-blur-sm">
+                                <div className="flex flex-col md:flex-row items-center gap-10">
+                                    <div className="w-24 h-24 rounded-full bg-gov-gold/10 flex items-center justify-center shrink-0 border border-gov-gold/30 relative">
+                                        <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-xl animate-pulse"></div>
+                                        <Shield size={40} className="text-gov-gold relative z-10" />
+                                    </div>
+                                    <div className="flex-1 text-center md:text-right">
+                                        <h3 className="text-2xl font-bold text-gov-forest dark:text-white mb-3">
+                                            {language === 'ar' ? 'هل تحتاج إلى مساعدة إضافية؟' : 'Need Additional Assistance?'}
+                                        </h3>
+                                        <p className="text-gray-600 dark:text-gray-300 text-lg">
+                                            {language === 'ar'
+                                                ? 'فريق الدعم الفني جاهز لمساعدتك في أي وقت. لا تتردد في التواصل معنا.'
+                                                : "Our technical support team is ready to assist you at any time. Don't hesitate to contact us."}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/complaints"
+                                        className="px-8 py-4 bg-gov-teal hover:bg-gov-emerald text-white font-bold rounded-xl transition-all shadow-lg shadow-gov-teal/30 hover:-translate-y-1 transform duration-300"
+                                    >
+                                        {language === 'ar' ? 'تواصل مع الدعم' : 'Contact Support'}
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    // Render specific service page
     if (!service) {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
@@ -115,7 +319,10 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
 
                         <div className="flex flex-col md:flex-row items-start gap-8">
                             <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
-                                {directorate ? iconMap[directorate.icon] : <Building size={40} />}
+                                {(() => {
+                                    const DirectorateIcon = directorate ? iconMap[directorate.icon] : Building;
+                                    return <DirectorateIcon size={40} />;
+                                })()}
                             </div>
                             <div className="flex-1">
                                 <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold mb-4 inline-block">
@@ -155,8 +362,8 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                 </h2>
                                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
                                     {language === 'ar'
-                                        ? "هذه الخدمة تتيح للمواطنين والمقيمين إنجاز المعاملات المتعلقة بوزارة الاقتصاد والتجارة الخارجية بكفاءة عالية. تهدف الحكومة من خلال توفير هذه الخدمات إلكترونياً إلى تبسيط الإجراءات وتقليل الوقت والجهد المطلجين."
-                                        : "This service allows citizens and residents to complete transactions related to the Ministry of Economy and Foreign Trade efficiently. The government aims to simplify procedures and reduce the time and effort required by providing these services electronically."}
+                                        ? "هذه الخدمة تتيح للمواطنين والمقيمين إنجاز المعاملات المتعلقة بوزارة الاقتصاد والصناعة بكفاءة عالية. تهدف الوزارة من خلال توفير هذه الخدمات إلكترونياً إلى تبسيط الإجراءات وتقليل الوقت والجهد المطلوبين."
+                                        : "This service allows citizens and residents to complete transactions related to the Ministry of Economy and Industry efficiently. The Ministry aims to simplify procedures and reduce the time and effort required by providing these services electronically."}
                                 </p>
                             </section>
 

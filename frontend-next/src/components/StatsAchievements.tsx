@@ -23,7 +23,7 @@ interface StatItem {
 }
 
 const StatsAchievements: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [animatedValues, setAnimatedValues] = useState<Record<string, number>>({});
 
@@ -117,7 +117,7 @@ const StatsAchievements: React.FC = () => {
   }, []);
 
   const formatNumber = (num: number): string => {
-    return num.toLocaleString('en-US');
+    return num.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US');
   };
 
   return (
@@ -136,7 +136,7 @@ const StatsAchievements: React.FC = () => {
         {/* Only header if needed, but keeping it minimal to focus on cards as per image */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            {t('stats_achievements_title') || t('stats_title')}
+            {t('stats_achievements_title')}
           </h2>
         </div>
 

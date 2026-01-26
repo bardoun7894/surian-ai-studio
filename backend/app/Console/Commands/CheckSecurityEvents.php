@@ -75,6 +75,12 @@ class CheckSecurityEvents extends Command
             $alerts[] = $massAccess;
         }
 
+        // Check 5: Suggestion Spam
+        $spamAlerts = $this->checkSuggestionSpam($since);
+        foreach ($spamAlerts as $alert) {
+            $alerts[] = $alert;
+        }
+
         // Send alerts
         $alertsSent = 0;
         foreach ($alerts as $alert) {
@@ -150,7 +156,8 @@ class CheckSecurityEvents extends Command
     protected function checkMassDataAccess(Carbon $since): ?array
     {
         // Check if any user has accessed an unusually high number of records
-        $highAccess = AuditLog::whereIn('action', ['view', 'export', 'list'])
+        // Exclude generic 'list' actions if they are just pagination
+        $highAccess = AuditLog::whereIn('action', ['view', 'export'])
             ->where('created_at', '>=', $since)
             ->selectRaw('user_id, COUNT(*) as count')
             ->groupBy('user_id')
@@ -169,5 +176,41 @@ class CheckSecurityEvents extends Command
         }
 
         return null;
+    }
+
+    /**
+     * Check for suggestion spam (T-MOD-046)
+     */
+    protected function checkSuggestionSpam(Carbon $since): array
+    {
+        $alerts = [];
+
+        // Check by IP
+        // Using raw query for JSON field performance
+        $spamByIp = DB::select("
+            SELECT 
+                details->>'ip' as ip, 
+                COUNT(*) as count 
+            FROM audit_logs 
+            WHERE action = 'suggestion_submitted' 
+                AND created_at >= ? 
+                AND details->>'ip' IS NOT NULL
+            GROUP BY details->>'ip' 
+            HAVING COUNT(*) >= 5
+        ", [$since]);
+
+        foreach ($spamByIp as $record) {
+            $alerts[] = [
+                'type' => 'spam_detection',
+                'description' => "مؤشر سبام: تم استلام {$record->count} مقترحات من نفس العنوان IP: {$record->ip}",
+                'data' => [
+                    'ip' => $record->ip,
+                    'count' => $record->count,
+                    'entity' => 'suggestion'
+                ]
+            ];
+        }
+
+        return $alerts;
     }
 }

@@ -43,6 +43,28 @@ class Content extends Model
     ];
 
     /**
+     * Boot method to automatically create versions (FR-14)
+     */
+    protected static function booted()
+    {
+        // Create version after content is updated
+        static::updated(function ($content) {
+            // Only create version if substantial fields changed
+            $versionableFields = [
+                'title_ar', 'title_en', 'content_ar', 'content_en',
+                'slug', 'category', 'status', 'published_at', 'metadata'
+            ];
+
+            $changed = array_keys($content->getChanges());
+            $hasVersionableChange = !empty(array_intersect($changed, $versionableFields));
+
+            if ($hasVersionableChange) {
+                $content->createVersion();
+            }
+        });
+    }
+
+    /**
      * Content categories
      */
     public const CATEGORY_NEWS = 'news';
@@ -74,6 +96,14 @@ class Content extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(ContentAttachment::class)->orderBy('display_order');
+    }
+
+    /**
+     * Get all versions of this content (FR-14: Content Versioning)
+     */
+    public function versions(): HasMany
+    {
+        return $this->hasMany(ContentVersion::class)->orderBy('version_number', 'desc');
     }
 
     /**
@@ -147,5 +177,73 @@ class Content extends Model
         return $locale === 'ar'
             ? ($this->seo_description_ar ?? '')
             : ($this->seo_description_en ?? '');
+    }
+
+    /**
+     * Create a new version snapshot (FR-14)
+     */
+    public function createVersion(?int $editorId = null): ContentVersion
+    {
+        // Get next version number
+        $latestVersion = $this->versions()->max('version_number') ?? 0;
+        $nextVersion = $latestVersion + 1;
+
+        // Create snapshot of current state
+        $snapshot = $this->only([
+            'title_ar',
+            'title_en',
+            'content_ar',
+            'content_en',
+            'slug',
+            'category',
+            'status',
+            'featured',
+            'published_at',
+            'metadata',
+            'seo_title_ar',
+            'seo_title_en',
+            'seo_description_ar',
+            'seo_description_en',
+            'tags',
+            'priority',
+        ]);
+
+        return ContentVersion::create([
+            'content_id' => $this->id,
+            'version_number' => $nextVersion,
+            'snapshot' => $snapshot,
+            'editor_id' => $editorId ?? auth()->id(),
+        ]);
+    }
+
+    /**
+     * Get the latest version
+     */
+    public function getLatestVersion(): ?ContentVersion
+    {
+        return $this->versions()->first();
+    }
+
+    /**
+     * Get version by number
+     */
+    public function getVersion(int $versionNumber): ?ContentVersion
+    {
+        return $this->versions()->where('version_number', $versionNumber)->first();
+    }
+
+    /**
+     * Restore to a specific version
+     */
+    public function restoreToVersion(int $versionNumber): bool
+    {
+        $version = $this->getVersion($versionNumber);
+
+        if (!$version) {
+            return false;
+        }
+
+        $version->restore();
+        return true;
     }
 }

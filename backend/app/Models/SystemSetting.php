@@ -19,11 +19,13 @@ class SystemSetting extends Model
         'description_en',
         'is_public',
         'is_encrypted',
+        'settings',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'is_encrypted' => 'boolean',
+        'settings' => 'array',
     ];
 
     /**

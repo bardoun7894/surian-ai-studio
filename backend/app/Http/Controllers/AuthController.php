@@ -164,6 +164,90 @@ class AuthController extends Controller
     }
 
     /**
+     * Request password reset link
+     * POST /api/v1/auth/forgot-password
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            // Return success even if user not found (security: don't reveal if email exists)
+            return response()->json([
+                'message' => 'If an account with that email exists, a password reset link has been sent.',
+            ]);
+        }
+
+        // Generate reset token
+        $token = Str::random(64);
+        $user->password_reset_token = Hash::make($token);
+        $user->password_reset_expires_at = Carbon::now()->addHour();
+        $user->save();
+
+        // Log the reset link (in production, send via email)
+        $resetUrl = config('app.frontend_url', 'http://localhost:3000') . "/reset-password?token={$token}&email=" . urlencode($user->email);
+        Log::info("Password reset link for {$user->email}: {$resetUrl}");
+
+        $this->auditService->log($user, 'password_reset_requested', 'user', $user->id);
+
+        return response()->json([
+            'message' => 'If an account with that email exists, a password reset link has been sent.',
+        ]);
+    }
+
+    /**
+     * Reset password with token
+     * POST /api/v1/auth/reset-password
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !$user->password_reset_token || !$user->password_reset_expires_at) {
+            throw ValidationException::withMessages([
+                'token' => ['Invalid or expired password reset token.'],
+            ]);
+        }
+
+        if (Carbon::now()->gt($user->password_reset_expires_at)) {
+            throw ValidationException::withMessages([
+                'token' => ['Password reset token has expired.'],
+            ]);
+        }
+
+        if (!Hash::check($request->token, $user->password_reset_token)) {
+            throw ValidationException::withMessages([
+                'token' => ['Invalid password reset token.'],
+            ]);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->password_reset_token = null;
+        $user->password_reset_expires_at = null;
+        $user->save();
+
+        // Revoke all tokens (force re-login)
+        $user->tokens()->delete();
+
+        $this->auditService->log($user, 'password_reset_completed', 'user', $user->id);
+
+        return response()->json([
+            'message' => 'Password has been reset successfully. Please log in with your new password.',
+        ]);
+    }
+
+    /**
      * FR-46: Check and send security alert for suspicious activity
      */
     protected function checkAndAlertSecurityEvent(string $email, string $ip): void

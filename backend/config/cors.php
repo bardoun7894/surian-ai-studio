@@ -15,23 +15,30 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'auth/*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
+    'allowed_origins' => array_filter([
         env('FRONTEND_URL', 'http://localhost:8080'),
         'http://localhost:3000',
+        'http://localhost:8080',
+        'http://127.0.0.1:3000',
         'http://frontend-next:3000',
-    ],
+        // Production URL if different
+        env('APP_URL'),
+    ]),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // Allow any subdomain of your production domain
+        '/^https?:\/\/.*\.gov\.sy$/',
+    ],
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    'exposed_headers' => ['X-CSRF-TOKEN'],
 
-    'max_age' => 0,
+    'max_age' => 7200, // 2 hours cache for preflight
 
     'supports_credentials' => true,
 

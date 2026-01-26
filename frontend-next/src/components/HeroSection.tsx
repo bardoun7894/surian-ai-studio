@@ -15,6 +15,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
   const { t, language, direction } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const eagleRef = useRef<HTMLDivElement>(null);
+  const eagleContentRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const bgPatternRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -155,6 +156,53 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
         ease: "sine.inOut"
       });
 
+      // 9. Eagle Mouse Tracking Parallax Effect (UI-08)
+      if (typeof window !== 'undefined') {
+        const handleMouseMove = (e: MouseEvent) => {
+          if (!eagleRef.current || !eagleContentRef.current) return;
+
+          const { left, top, width, height } = eagleRef.current.getBoundingClientRect();
+          const x = (e.clientX - left - width / 2) / 15; // Increased sensitivity for smaller area
+          const y = (e.clientY - top - height / 2) / 15;
+
+          gsap.to(eagleContentRef.current, {
+            x: x,
+            y: y,
+            rotationY: x * 0.8,
+            rotationX: -y * 0.8,
+            duration: 0.6,
+            ease: "power2.out"
+          });
+        };
+
+        const handleMouseLeave = () => {
+          if (!eagleContentRef.current) return;
+          gsap.to(eagleContentRef.current, {
+            x: 0,
+            y: 0,
+            rotationY: 0,
+            rotationX: 0,
+            duration: 1,
+            ease: "power3.out"
+          });
+        };
+
+        // Add event listener specifically to the eagle circle wrapper
+        const eagleEl = eagleRef.current;
+        if (eagleEl) {
+          eagleEl.addEventListener('mousemove', handleMouseMove);
+          eagleEl.addEventListener('mouseleave', handleMouseLeave);
+        }
+
+        // Cleanup
+        return () => {
+          if (eagleEl) {
+            eagleEl.removeEventListener('mousemove', handleMouseMove);
+            eagleEl.removeEventListener('mouseleave', handleMouseLeave);
+          }
+        };
+      }
+
     }, containerRef);
 
     return () => ctx.revert();
@@ -204,7 +252,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
             <div className="absolute inset-8 rounded-full bg-mofa-teal border border-gov-gold/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
               {/* Animated Logo Composition */}
-              <div className="relative w-full h-full flex items-center justify-center scale-110">
+              <div ref={eagleContentRef} className="relative w-full h-full flex items-center justify-center scale-110">
                 {/* 1. Eagle Body (Base) */}
                 <Image
                   id="logo-base"

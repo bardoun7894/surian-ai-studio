@@ -19,6 +19,100 @@ class UserController extends Controller
         $this->auditService = $auditService;
     }
 
+    // Admin: List All Users with Filters
+    public function index(Request $request)
+    {
+        $query = User::with(['role', 'directorate']);
+
+        // Filter by role
+        if ($request->has('role_id') && $request->role_id !== '') {
+            $query->where('role_id', $request->role_id);
+        }
+
+        // Filter by status
+        if ($request->has('is_active') && $request->is_active !== '') {
+            $query->where('is_active', $request->is_active === 'true' || $request->is_active === '1');
+        }
+
+        // Filter by directorate
+        if ($request->has('directorate_id') && $request->directorate_id !== '') {
+            $query->where('directorate_id', $request->directorate_id);
+        }
+
+        // Search by name or email
+        if ($request->has('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Order by
+        $orderBy = $request->input('order_by', 'created_at');
+        $orderDir = $request->input('order_dir', 'desc');
+        $query->orderBy($orderBy, $orderDir);
+
+        // Pagination
+        $perPage = $request->input('per_page', 15);
+        $users = $query->paginate($perPage);
+
+        return response()->json($users);
+    }
+
+    // Admin: Get Single User Details
+    public function show(Request $request, $id)
+    {
+        $user = User::with(['role', 'directorate'])->findOrFail($id);
+
+        return response()->json([
+            'user' => $user,
+            'statistics' => [
+                'complaints_count' => $user->complaints()->count(),
+                'suggestions_count' => $user->suggestions()->count(),
+                'last_login' => $user->last_login_at,
+                'account_age_days' => $user->created_at->diffInDays(now()),
+            ]
+        ]);
+    }
+
+    // Admin: Update User Details
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'nullable|string|max:20',
+            'role_id' => 'nullable|exists:roles,id',
+            'directorate_id' => 'nullable|exists:directorates,id',
+            'national_id' => ['nullable', Rule::unique('users')->ignore($user->id)],
+        ]);
+
+        $oldData = $user->only(['name', 'email', 'phone', 'role_id', 'directorate_id']);
+
+        $user->update($request->only([
+            'name',
+            'email',
+            'phone',
+            'role_id',
+            'directorate_id',
+            'national_id'
+        ]));
+
+        $this->auditService->log($request->user(), 'user_updated', 'user', $user->id, [
+            'old' => $oldData,
+            'new' => $user->only(['name', 'email', 'phone', 'role_id', 'directorate_id'])
+        ]);
+
+        return response()->json([
+            'message' => 'User updated successfully.',
+            'user' => $user->load('role', 'directorate')
+        ]);
+    }
+
     // Admin: Create Employee
     public function store(Request $request)
     {

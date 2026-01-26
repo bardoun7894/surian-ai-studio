@@ -61,11 +61,9 @@ const SitemapPage: React.FC<SitemapPageProps> = ({ onNavigate, onBack }) => {
       icon: <Building2 size={24} />,
       view: 'DIRECTORATES',
       children: [
-        { titleAr: 'وزارة الداخلية', titleEn: 'Ministry of Interior' },
-        { titleAr: 'وزارة العدل', titleEn: 'Ministry of Justice' },
-        { titleAr: 'وزارة الصحة', titleEn: 'Ministry of Health' },
-        { titleAr: 'وزارة التربية', titleEn: 'Ministry of Education' },
-        { titleAr: 'وزارة المالية', titleEn: 'Ministry of Finance' },
+        { titleAr: 'الإدارة العامة للصناعة', titleEn: 'General Administration for Industry' },
+        { titleAr: 'الإدارة العامة للاقتصاد', titleEn: 'General Administration for Economy' },
+        { titleAr: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', titleEn: 'General Administration for Internal Trade & Consumer Protection' },
       ]
     },
     {

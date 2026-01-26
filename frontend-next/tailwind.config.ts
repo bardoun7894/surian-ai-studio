@@ -43,6 +43,10 @@ const config: Config = {
         'fade-in': 'fadeIn 0.5s ease-out forwards',
         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'blob': 'blob 7s infinite',
+        'dash-draw': 'dashDraw 3s ease-in-out forwards',
+        'float-particle': 'floatParticle 20s linear infinite',
+        'spin-slow': 'spin 8s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -52,6 +56,22 @@ const config: Config = {
         fadeInUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        blob: {
+          '0%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+          '100%': { transform: 'translate(0px, 0px) scale(1)' },
+        },
+        dashDraw: {
+          '0%': { strokeDasharray: '0 1000', opacity: '0' },
+          '100%': { strokeDasharray: '1000 1000', opacity: '0.2' },
+        },
+        floatParticle: {
+          '0%, 100%': { transform: 'translate(0, 0)' },
+          '25%': { transform: 'translate(10px, -15px)' },
+          '50%': { transform: 'translate(-5px, -25px)' },
+          '75%': { transform: 'translate(-15px, -10px)' },
         }
       }
     },
@@ -59,3 +79,4 @@ const config: Config = {
   plugins: [],
 };
 export default config;
+

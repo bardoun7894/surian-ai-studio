@@ -2,25 +2,75 @@
 
 namespace App\Services;
 
+use App\Mail\NotificationMail;
 use App\Models\Complaint;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
     /**
-     * Send notification to a user
+     * Send notification to a user (both in-app and email if enabled)
      */
-    public function notify(User $user, string $type, string $title, string $body, array $data = []): Notification
+    public function notify(User $user, string $type, string $title, string $body, array $data = [], ?string $actionUrl = null): Notification
     {
-        return Notification::create([
+        // Create in-app notification
+        $notification = Notification::create([
             'user_id' => $user->id,
             'type' => $type,
             'title' => $title,
             'body' => $body,
             'data' => $data,
         ]);
+
+        // Send email notification if user has email and has email notifications enabled
+        $this->sendEmailNotification($user, $type, $title, $body, $data, $actionUrl);
+
+        return $notification;
+    }
+
+    /**
+     * Send email notification based on user preferences
+     */
+    protected function sendEmailNotification(User $user, string $type, string $title, string $body, array $data, ?string $actionUrl): void
+    {
+        // Check if user has email
+        if (empty($user->email)) {
+            return;
+        }
+
+        // Check if user has email notifications enabled (default to true if not set)
+        $preferences = $user->notification_preferences ?? [];
+        $emailEnabled = $preferences['email_enabled'] ?? true;
+
+        if (!$emailEnabled) {
+            Log::info("Email notifications disabled for user #{$user->id}");
+            return;
+        }
+
+        // Check if this notification type should send emails
+        $emailTypes = $preferences['email_types'] ?? ['all'];
+
+        if (!in_array('all', $emailTypes) && !in_array($type, $emailTypes)) {
+            Log::info("Email notification type '{$type}' disabled for user #{$user->id}");
+            return;
+        }
+
+        try {
+            // Send email
+            Mail::to($user->email)->send(new NotificationMail(
+                $title,
+                $body,
+                $data,
+                $actionUrl
+            ));
+
+            Log::info("Email notification sent to {$user->email} for type: {$type}");
+        } catch (\Exception $e) {
+            Log::error("Failed to send email notification to {$user->email}: {$e->getMessage()}");
+        }
     }
 
     /**
@@ -96,7 +146,9 @@ class NotificationService
         ];
 
         $title = 'تحديث حالة الشكوى';
-        $body = "تم تغيير حالة شكواك رقم {$complaint->tracking_number} من \"{$statusLabels[$oldStatus] ?? $oldStatus}\" إلى \"{$statusLabels[$newStatus] ?? $newStatus}\"";
+        $oldLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+        $newLabel = $statusLabels[$newStatus] ?? $newStatus;
+        $body = "تم تغيير حالة شكواك رقم {$complaint->tracking_number} من \"{$oldLabel}\" إلى \"{$newLabel}\"";
 
         $data = [
             'complaint_id' => $complaint->id,
@@ -206,5 +258,89 @@ class NotificationService
         return Notification::where('user_id', $user->id)
             ->unread()
             ->update(['is_read' => true]);
+    }
+
+    /**
+     * FR-68, FR-69: Notify about complaint escalation
+     * T-SRS2-12, T-SRS2-13: Escalation notifications
+     */
+    public function notifyEscalation(Complaint $complaint, string $level, string $message): void
+    {
+        // Get staff users in the same directorate
+        $roles = $level === 'final_escalation'
+            ? ['admin.general', 'admin.super'] // Final escalation goes to admins
+            : ['staff', 'admin.general', 'admin.super'];
+
+        $staffUsers = User::whereHas('role', function ($query) use ($roles) {
+            $query->whereIn('name', $roles);
+        })
+        ->where(function ($query) use ($complaint) {
+            $query->where('directorate_id', $complaint->directorate_id)
+                  ->orWhereNull('directorate_id');
+        })
+        ->get();
+
+        $title = $level === 'final_escalation' ? 'تصعيد نهائي - شكوى متأخرة' : 'تنبيه - شكوى متأخرة';
+
+        $data = [
+            'complaint_id' => $complaint->id,
+            'tracking_number' => $complaint->tracking_number,
+            'escalation_level' => $level,
+            'directorate_id' => $complaint->directorate_id,
+        ];
+
+        $type = $level === 'final_escalation'
+            ? Notification::TYPE_COMPLAINT_OVERDUE
+            : Notification::TYPE_COMPLAINT_OVERDUE;
+
+        $this->notifyMany($staffUsers->all(), $type, $title, $message, $data);
+
+        Log::info("Escalation notification ({$level}) sent for complaint #{$complaint->tracking_number}");
+    }
+
+    /**
+     * T-SRS2-11: Notify suggestion submitter about status change
+     * FR-55: Notification when suggestion status changes
+     */
+    public function notifySuggestionStatusChange(\App\Models\Suggestion $suggestion, string $oldStatus, string $newStatus): void
+    {
+        // Suggestions may not have a user (public submissions)
+        // Try to notify via email if available
+        if (!$suggestion->email) {
+            Log::info("Cannot notify suggestion status change - no email for suggestion #{$suggestion->tracking_number}");
+            return;
+        }
+
+        $statusLabels = [
+            'pending' => 'قيد المراجعة',
+            'reviewed' => 'تمت المراجعة',
+            'approved' => 'تمت الموافقة',
+            'rejected' => 'مرفوض',
+        ];
+
+        $oldLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+        $newLabel = $statusLabels[$newStatus] ?? $newStatus;
+
+        // If there's a user associated, create notification
+        if ($suggestion->user_id) {
+            $user = User::find($suggestion->user_id);
+            if ($user) {
+                $title = 'تحديث حالة الاقتراح';
+                $body = "تم تغيير حالة اقتراحك رقم {$suggestion->tracking_number} من \"{$oldLabel}\" إلى \"{$newLabel}\"";
+
+                $data = [
+                    'suggestion_id' => $suggestion->id,
+                    'tracking_number' => $suggestion->tracking_number,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus,
+                    'response' => $suggestion->response,
+                ];
+
+                $this->notify($user, 'suggestion_status', $title, $body, $data);
+            }
+        }
+
+        // TODO: Send email notification to suggestion email
+        Log::info("Suggestion #{$suggestion->tracking_number} status changed from {$oldStatus} to {$newStatus}");
     }
 }

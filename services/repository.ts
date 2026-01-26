@@ -432,10 +432,9 @@ class MockReportsRepository implements IReportsRepository {
               urgent: 12
             },
             by_directorate: [
-              { name: 'وزارة الداخلية', count: 120 },
-              { name: 'وزارة التربية', count: 80 },
-              { name: 'وزارة الصحة', count: 60 },
-              { name: 'وزارة العدل', count: 50 },
+              { name: 'الإدارة العامة للصناعة', count: 120 },
+              { name: 'الإدارة العامة للاقتصاد', count: 80 },
+              { name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', count: 142 },
             ]
           },
           users: {

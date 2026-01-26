@@ -3,23 +3,35 @@ import gsap from 'gsap';
 import { API } from '@/lib/repository';
 import { useLanguage } from '../contexts/LanguageContext';
 
+interface BreakingNewsItem {
+  title_ar: string;
+  title_en: string;
+}
+
 interface NewsTickerProps {
   onNewsLoaded?: (hasNews: boolean) => void;
 }
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const tickerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [breakingNews, setBreakingNews] = useState<string[]>([]);
+  const [breakingNews, setBreakingNews] = useState<BreakingNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBreaking = async () => {
       try {
         const data = await API.news.getBreakingNews();
-        setBreakingNews(data);
-        if (onNewsLoaded) onNewsLoaded(data.length > 0);
+        // Handle both old format (string[]) and new format ({title_ar, title_en}[])
+        const normalizedData = data.map((item: string | BreakingNewsItem) => {
+          if (typeof item === 'string') {
+            return { title_ar: item, title_en: item };
+          }
+          return item;
+        });
+        setBreakingNews(normalizedData);
+        if (onNewsLoaded) onNewsLoaded(normalizedData.length > 0);
       } catch (e) {
         console.error(e);
         if (onNewsLoaded) onNewsLoaded(false);
@@ -29,6 +41,10 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
     };
     fetchBreaking();
   }, [onNewsLoaded]);
+
+  const getTitle = (item: BreakingNewsItem) => {
+    return language === 'en' ? (item.title_en || item.title_ar) : item.title_ar;
+  };
 
   useEffect(() => {
     if (!contentRef.current || !tickerRef.current || loading || breakingNews.length === 0) return;
@@ -65,7 +81,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
           {/* Duplicate array for seamless loop */}
           {[...breakingNews, ...breakingNews, ...breakingNews].map((news, idx) => (
             <div key={idx} className="flex items-center gap-4 text-sm text-gov-beige/80">
-              <span>{news}</span>
+              <span>{getTitle(news)}</span>
               <span className="text-gov-gold text-xs">●</span>
             </div>
           ))}

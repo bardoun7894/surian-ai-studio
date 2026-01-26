@@ -24,7 +24,16 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
       },
+      {
+        protocol: 'http',
+        hostname: 'backend-web',
+      },
+      {
+        protocol: 'http',
+        hostname: '91.230.110.187',
+      },
     ],
+    unoptimized: true, // Allow images from dynamic sources
   },
 
   // API Rewrites for Laravel and AI Service
@@ -43,6 +52,11 @@ const nextConfig = {
       {
         source: '/sanctum/:path*',
         destination: `${backendUrl}/sanctum/:path*`,
+      },
+      // Storage/uploads (images, files)
+      {
+        source: '/storage/:path*',
+        destination: `${backendUrl}/storage/:path*`,
       },
       // AI Service routes
       {
@@ -75,13 +89,6 @@ const nextConfig = {
     ];
   },
 
-  // Experimental features
-  experimental: {
-    // Enable server actions
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'localhost:8080'],
-    },
-  },
 };
 
 export default nextConfig;

@@ -7,6 +7,9 @@
 // Use relative URLs - Next.js rewrites handle proxying to backend
 const API_URL = '/api/v1';
 
+// Token storage key
+const TOKEN_KEY = 'auth_token';
+
 // Get CSRF cookie from Laravel Sanctum
 export async function getCsrfCookie(): Promise<void> {
   await fetch(`/sanctum/csrf-cookie`, {
@@ -22,6 +25,29 @@ function getXsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+// Token management functions
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(TOKEN_KEY);
+  // Also clear any session cookies
+  document.cookie.split(';').forEach(cookie => {
+    const name = cookie.split('=')[0].trim();
+    if (name.includes('session') || name.includes('XSRF') || name.includes('laravel')) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    }
+  });
+}
+
 // Base fetch wrapper with CSRF and credentials
 async function apiFetch<T>(
   endpoint: string,
@@ -34,6 +60,12 @@ async function apiFetch<T>(
     'Accept': 'application/json',
     ...(options.headers || {}),
   };
+
+  // Add Bearer token if available
+  const authToken = getAuthToken();
+  if (authToken) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${authToken}`;
+  }
 
   // Add XSRF token for non-GET requests
   if (options.method && options.method !== 'GET') {

@@ -17,13 +17,24 @@ import {
   MapPin,
   Calendar,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 const translations = {
   ar: {
     title: 'سجل التدقيق',
     subtitle: 'عرض جميع أنشطة النظام والمستخدمين',
+    passwordRequired: 'التحقق من الهوية مطلوب',
+    passwordHint: 'أدخل كلمة المرور للوصول لسجلات التدقيق',
+    password: 'كلمة المرور',
+    verify: 'تحقق',
+    verifying: 'جاري التحقق...',
+    wrongPassword: 'كلمة المرور غير صحيحة',
     summary: 'ملخص النشاطات',
     recentActivity: 'النشاطات الأخيرة',
     action: 'الإجراء',
@@ -70,6 +81,12 @@ const translations = {
   en: {
     title: 'Audit Log',
     subtitle: 'View all system and user activities',
+    passwordRequired: 'Identity Verification Required',
+    passwordHint: 'Enter your password to access audit logs',
+    password: 'Password',
+    verify: 'Verify',
+    verifying: 'Verifying...',
+    wrongPassword: 'Incorrect password',
     summary: 'Activity Summary',
     recentActivity: 'Recent Activity',
     action: 'Action',
@@ -148,9 +165,63 @@ export default function AuditLogPage() {
   const [days, setDays] = useState(7);
   const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
 
+  // Password protection state
+  const [isLocked, setIsLocked] = useState(true);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Check sessionStorage on mount
   useEffect(() => {
-    fetchAuditLogs();
-  }, [days]);
+    const verified = sessionStorage.getItem('audit_verified');
+    if (verified) {
+      const timestamp = parseInt(verified, 10);
+      // Session verification is valid for the session (no expiry)
+      if (!isNaN(timestamp)) {
+        setIsLocked(false);
+      }
+    }
+  }, []);
+
+  const verifyPassword = async () => {
+    if (!passwordInput.trim()) return;
+
+    setVerifying(true);
+    setPasswordError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/v1/auth/verify-password`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: passwordInput })
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.verified) {
+        sessionStorage.setItem('audit_verified', Date.now().toString());
+        setIsLocked(false);
+        setPasswordInput('');
+      } else {
+        setPasswordError(t.wrongPassword);
+      }
+    } catch (err) {
+      setPasswordError(t.error);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLocked) {
+      fetchAuditLogs();
+    }
+  }, [days, isLocked]);
 
   const fetchAuditLogs = async () => {
     try {
@@ -233,6 +304,75 @@ export default function AuditLogPage() {
     link.download = `audit_log_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
+
+  // Password verification screen
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full"
+        >
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.passwordRequired}</h2>
+            <p className="text-gray-500 text-sm">{t.passwordHint}</p>
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); verifyPassword(); }} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  placeholder="••••••••"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {passwordError && (
+              <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {passwordError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={verifying || !passwordInput.trim()}
+              className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {verifying ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {t.verifying}
+                </>
+              ) : (
+                <>
+                  <Shield className="w-5 h-5" />
+                  {t.verify}
+                </>
+              )}
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

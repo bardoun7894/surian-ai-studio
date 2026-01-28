@@ -12,7 +12,11 @@ import {
   Shield,
   Bell,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Mail,
+  Image,
+  MessageSquare,
+  Lightbulb
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +52,26 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       href: '/admin/complaints',
       label: { ar: 'الشكاوى', en: 'Complaints' },
       icon: FileText,
+    },
+    {
+      href: '/admin/suggestions',
+      label: { ar: 'المقترحات', en: 'Suggestions' },
+      icon: Lightbulb,
+    },
+    {
+      href: '/admin/content',
+      label: { ar: 'إدارة المحتوى', en: 'Content' },
+      icon: MessageSquare,
+    },
+    {
+      href: '/admin/promotional',
+      label: { ar: 'الأقسام الترويجية', en: 'Promotional' },
+      icon: Image,
+    },
+    {
+      href: '/admin/newsletters',
+      label: { ar: 'النشرة البريدية', en: 'Newsletter' },
+      icon: Mail,
     },
     {
       href: '/admin/audit',

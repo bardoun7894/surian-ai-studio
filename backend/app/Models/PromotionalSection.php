@@ -19,6 +19,7 @@ class PromotionalSection extends Model
         'button_text_ar',
         'button_text_en',
         'image',
+        'video_url',
         'background_color',
         'icon',
         'button_url',

@@ -28,6 +28,19 @@ export default function HomePage() {
     document.documentElement.style.fontSize = `${fontSizePercent}%`;
   }, [fontSizePercent]);
 
+  // Handle smooth scroll for hash navigation
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash;
+      const element = document.querySelector(hash);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, []);
+
   // Handle High Contrast Mode
   useEffect(() => {
     if (isHighContrast) {

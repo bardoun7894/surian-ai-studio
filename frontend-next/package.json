@@ -15,7 +15,8 @@
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

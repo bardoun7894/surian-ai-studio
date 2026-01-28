@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Sparkles, Share2, Bookmark, Play, Loader2, Users, TrendingUp, Star, Award, Zap, Target, Heart, ThumbsUp, MessageCircle, FileText, Calendar, Globe, Shield, Briefcase } from 'lucide-react';
 import { API } from '@/lib/repository';
 import ArticleCard from './ArticleCard';
+import VideoCard from './VideoCard';
 import { Article, PromotionalSection } from '@/types';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -26,12 +27,35 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   const buttonText = isArabic ? section.button_text_ar : section.button_text_en;
   const Icon = iconMap[section.icon] || Play;
 
-  // Video type card
+  // Video type card - Use VideoCard component when video_url is present
   if (section.type === 'video') {
     const badge = section.metadata?.badge_ar && section.metadata?.badge_en
       ? (isArabic ? section.metadata.badge_ar : section.metadata.badge_en)
       : (isArabic ? 'فيديو حصري' : 'Exclusive Video');
 
+    // If video_url is present, use actual video player
+    if (section.video_url) {
+      return (
+        <div className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden">
+          <VideoCard
+            videoUrl={section.video_url}
+            posterUrl={section.image || undefined}
+            title={title}
+            aspectRatio="video"
+            className="h-full min-h-[280px] rounded-[2rem]"
+            autoPlayOnHover={true}
+          />
+          {/* Badge overlay */}
+          <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20">
+            <span className="inline-block px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold border border-white/10">
+              {badge}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // Fallback to static card if no video_url
     return (
       <div
         className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"

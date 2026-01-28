@@ -5,7 +5,7 @@ services:
       context: ./frontend-next
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
       # Runtime env vars for server-side rewrites
       - BACKEND_URL=http://backend-web
@@ -29,7 +29,7 @@ services:
   backend-web:
     image: nginx:alpine
     ports:
-      - "8000:80"
+      - "8002:80"
     volumes:
       - ./backend:/var/www
       - ./backend/docker/nginx.conf:/etc/nginx/conf.d/default.conf
@@ -55,7 +55,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=null
       - REDIS_PORT=6379
-      - SANCTUM_STATEFUL_DOMAINS=localhost:3000,localhost:8080,localhost:8000,frontend-next:3000,91.230.110.187:8000,91.230.110.187:3000
+      - SANCTUM_STATEFUL_DOMAINS=localhost:3002,localhost:8080,localhost:8002,frontend-next:3000,91.230.110.187:8002,91.230.110.187:3002
       - SESSION_DOMAIN=null
     depends_on:
       - db
@@ -90,7 +90,7 @@ services:
     env_file:
       - ./ai-service/.env
     environment:
-      - CORS_ORIGINS=["http://localhost:8080","http://localhost:3000","http://frontend-next:3000","http://91.230.110.187:3000","http://91.230.110.187:8000"]
+      - CORS_ORIGINS=["http://localhost:8080","http://localhost:3002","http://frontend-next:3000","http://91.230.110.187:3002","http://91.230.110.187:8002"]
     ports:
       - "8001:8000"
     restart: always

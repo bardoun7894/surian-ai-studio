@@ -5,6 +5,7 @@ import { Phone, Mail, MapPin, Network } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import NewsletterSignup from './NewsletterSignup';
 
 interface FooterProps {
   onIncreaseFont?: () => void;
@@ -25,7 +26,7 @@ const Footer: React.FC<FooterProps> = ({
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
 
           <div className="col-span-1 md:col-span-1">
             <div className="flex flex-col items-start gap-4 mb-6">
@@ -121,6 +122,11 @@ const Footer: React.FC<FooterProps> = ({
                 {language === 'ar' ? 'تباين' : 'Contrast'}
               </button>
             </div>
+          </div>
+
+          {/* Newsletter Section */}
+          <div>
+            <NewsletterSignup />
           </div>
 
         </div>

@@ -164,6 +164,34 @@ class AuthController extends Controller
     }
 
     /**
+     * Verify user's current password (for sensitive operations like viewing audit logs)
+     * POST /api/v1/auth/verify-password
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            $this->auditService->log($user, 'password_verify_failed', 'user', $user->id);
+            return response()->json([
+                'verified' => false,
+                'message' => 'كلمة المرور غير صحيحة',
+            ], 401);
+        }
+
+        $this->auditService->log($user, 'password_verified', 'user', $user->id);
+
+        return response()->json([
+            'verified' => true,
+            'message' => 'تم التحقق بنجاح',
+        ]);
+    }
+
+    /**
      * Request password reset link
      * POST /api/v1/auth/forgot-password
      */

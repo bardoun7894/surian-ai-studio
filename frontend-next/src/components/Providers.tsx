@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
+import { Toaster } from 'sonner';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -48,6 +49,18 @@ export function Providers({ children }: ProvidersProps) {
         <AuthProvider>
           <NotificationProvider>
             {children}
+            <Toaster
+              position="top-center"
+              richColors
+              closeButton
+              dir="rtl"
+              toastOptions={{
+                duration: 5000,
+                classNames: {
+                  toast: 'font-sans',
+                }
+              }}
+            />
             <ExternalLinkModal
               isOpen={!!externalUrl}
               url={externalUrl || ''}

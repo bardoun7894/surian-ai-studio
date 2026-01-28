@@ -35,9 +35,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
     { label: t('nav_home'), href: '/' },
     { label: t('nav_directory'), href: '/services' },
     { label: t('nav_decrees'), href: '/decrees' },
-    { label: language === 'ar' ? 'الإعلانات' : 'Announcements', href: '/announcements' },
-    { label: language === 'ar' ? 'المركز الإعلامي' : 'Media Center', href: '/media' },
-    { label: language === 'ar' ? 'مقترحات للعالم' : 'Suggestions for the World', href: '/suggestions' },
+    { label: t('nav_announcements'), href: '/announcements' },
+    { label: t('nav_media_center'), href: '/media' },
+    { label: t('nav_suggestions'), href: '/suggestions' },
     { label: t('nav_complaints'), href: '/complaints' },
   ];
 
@@ -65,25 +65,46 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             </Link>
 
             {/* Desktop Nav - Centered with Gold Accents */}
-            <div className="hidden lg:flex items-center gap-1 xl:gap-2 justify-center">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`relative px-3 py-2 text-sm font-bold transition-all duration-300 overflow-hidden whitespace-nowrap group ${isActive(item.href)
-                    ? 'text-gov-gold ring-1 ring-white/10'
-                    : 'text-white/80 hover:text-white border-transparent hover:bg-white/10 rounded-lg'
-                    }`}
-                >
-                  <span className="relative z-10">{item.label}</span>
-                  {/* Active Indicator */}
-                  {isActive(item.href) && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gov-gold shadow-[0_0_10px_#b9a779]"></div>
-                  )}
-                  {/* Hover Effect */}
-                  <div className="absolute inset-0 bg-gov-forest/5 dark:bg-white/5 transform scale-y-0 origin-bottom group-hover:scale-y-100 transition-transform duration-300 -z-0"></div>
+            <div className="hidden lg:flex items-center gap-1 xl:gap-2 justify-center flex-1 mx-4">
+              {/* Unified Smart Search Bar */}
+              <div className="relative w-full max-w-xl mx-auto">
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    className="w-full py-2.5 pr-10 pl-4 rtl:pl-10 rtl:pr-12 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/60 focus:bg-gov-forest focus:border-gov-gold focus:ring-1 focus:ring-gov-gold outline-none transition-all text-sm"
+                    placeholder={t('search_placeholder')}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                  <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gov-gold hover:text-white transition-colors rtl:right-auto rtl:left-1">
+                    <Search size={18} />
+                  </button>
+                </form>
+              </div>
+
+              {/* Links - Moved to be secondary or smaller if needed, or kept if space allows. 
+                   Actually, inserting a big search bar might crowd the links. 
+                   Let's keep the links but maybe reduce padding or font size if needed. 
+                   For now, I'll put the search bar in the center and the links below it? 
+                   No, single row is standard.
+                   I will put the Links to the RIGHT of the search bar, or SPLIT them.
+                   Let's try: Logo | Search Bar | Actions. And put Links in a second row? 
+                   The previous design had Links in Center. 
+                   I will move Links to the "Bottom" of the navbar (2-row nav) or just squeeze them.
+                   Let's try to fit them: Logo | Search | Links | Actions.
+               */}
+            </div>
+
+            {/* Desktop Nav Links (Re-positioned) */}
+            <div className="hidden xl:flex items-center gap-1">
+              {navItems.slice(0, 4).map((item) => (
+                <Link key={item.label} href={item.href} className={`px-2 py-2 text-xs font-bold text-white/80 hover:text-gov-gold ${isActive(item.href) ? 'text-gov-gold' : ''}`}>
+                  {item.label}
                 </Link>
               ))}
+              {/* Dropping some links to "More" or just showing main ones if space is tight. 
+                   Actually effectively I'll just keep them but compact.
+               */}
             </div>
 
             {/* Actions */}
@@ -100,12 +121,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
               <div className="h-6 md:h-8 w-[1px] bg-gov-gold/30 dark:bg-gov-gold/20 mx-1 hidden sm:block"></div>
 
+              {/* Search Toggle (Mobile Only) */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 hover:bg-gov-gold hover:text-white transition-colors"
+                className="lg:hidden flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-white border border-white/20 hover:bg-gov-gold hover:text-white transition-colors"
                 aria-label="Search"
               >
-                <Search size={18} />
+                <Search size={16} />
               </button>
 
               {/* Language Toggle */}

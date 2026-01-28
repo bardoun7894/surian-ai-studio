@@ -108,6 +108,12 @@ Route::prefix('v1')->group(function () {
             Route::get('position/{position}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'byPosition']);
             Route::get('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'show']);
         });
+
+        // Newsletter Routes
+        Route::prefix('newsletter')->group(function () {
+            Route::post('subscribe', [\App\Http\Controllers\Api\NewsletterController::class, 'subscribe']);
+            Route::post('unsubscribe', [\App\Http\Controllers\Api\NewsletterController::class, 'unsubscribe']);
+        });
     });
 
     // Suggestions Routes (FR-52 to FR-56)
@@ -143,6 +149,7 @@ Route::prefix('v1')->group(function () {
              Route::post('logout', [\App\Http\Controllers\AuthController::class, 'logout']);
              Route::get('me', [\App\Http\Controllers\AuthController::class, 'me']);
              Route::post('password/reset', [\App\Http\Controllers\UserController::class, 'resetPassword']);
+             Route::post('verify-password', [\App\Http\Controllers\AuthController::class, 'verifyPassword']);
         });
 
         // User Routes
@@ -253,6 +260,27 @@ Route::prefix('v1')->group(function () {
                 Route::get('{id}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'show']);
                 Route::patch('{id}/status', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'updateStatus']);
                 Route::delete('{id}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'destroy']);
+            });
+
+            // Newsletter Management (Admin)
+            Route::prefix('newsletter')->group(function () {
+                Route::get('stats', [\App\Http\Controllers\Api\NewsletterController::class, 'stats']);
+                Route::get('subscribers', [\App\Http\Controllers\Api\NewsletterController::class, 'index']);
+                Route::delete('subscribers/{id}', [\App\Http\Controllers\Api\NewsletterController::class, 'destroy']);
+                Route::get('export', [\App\Http\Controllers\Api\NewsletterController::class, 'export']);
+                Route::post('send', [\App\Http\Controllers\Api\NewsletterController::class, 'send']);
+            });
+
+            // Promotional Sections Management (Admin)
+            Route::prefix('promotional-sections')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'adminIndex']);
+                Route::get('stats', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'stats']);
+                Route::get('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'adminShow']);
+                Route::post('/', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'store']);
+                Route::put('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'update']);
+                Route::delete('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'destroy']);
+                Route::patch('{id}/toggle-active', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'toggleActive']);
+                Route::post('reorder', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'reorder']);
             });
         });
 

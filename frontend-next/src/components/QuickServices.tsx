@@ -81,7 +81,7 @@ const QuickServices: React.FC = () => {
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <section className="py-16 bg-white dark:bg-gov-forest/50 border-t border-gov-gold/10 dark:border-gov-gold/10 transition-colors">
+    <section id="quick-services" className="py-16 bg-white dark:bg-gov-forest/50 border-t border-gov-gold/10 dark:border-gov-gold/10 transition-colors scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
@@ -99,7 +99,7 @@ const QuickServices: React.FC = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6">
           {services.map((service) => (
             <Link
               key={service.id}

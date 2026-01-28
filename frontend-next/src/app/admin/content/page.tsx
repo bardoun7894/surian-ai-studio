@@ -249,6 +249,7 @@ export default function ContentManagementPage() {
     });
     setShowEditModal(true);
   };
+
   const handleViewHistory = async (content: ContentItem) => {
     setSelectedContent(content);
     setShowHistoryModal(true);
@@ -963,8 +964,8 @@ export default function ContentManagementPage() {
                         key={version.version_number}
                         onClick={() => setCompareVersion(version)}
                         className={`w-full text-right rtl:text-right ltr:text-left p-3 rounded-xl transition-all border ${compareVersion?.version_number === version.version_number
-                            ? 'bg-gov-gold/10 border-gov-gold'
-                            : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200'
+                          ? 'bg-gov-gold/10 border-gov-gold'
+                          : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200'
                           }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -1038,12 +1039,14 @@ export default function ContentManagementPage() {
               </div>
             </div>
           </div>
-
-          <Footer
-            onIncreaseFont={() => { }}
-            onDecreaseFont={() => { }}
-            onToggleContrast={() => { }}
-          />
         </div>
-      );
+      )}
+
+      <Footer
+        onIncreaseFont={() => { }}
+        onDecreaseFont={() => { }}
+        onToggleContrast={() => { }}
+      />
+    </div>
+  );
 }

@@ -28,6 +28,7 @@ const translations: Record<string, Record<Language, string>> = {
   'nav_directory': { ar: 'دليل الجهات', en: 'Directory' },
   'nav_decrees': { ar: 'المراسيم والقوانين', en: 'Decrees & Laws' },
   'nav_complaints': { ar: 'منظومة الشكاوى', en: 'Complaints' },
+  'nav_suggestions': { ar: 'المقترحات', en: 'Suggestions' },
   'nav_search': { ar: 'بحث', en: 'Search' },
 
   // Hero

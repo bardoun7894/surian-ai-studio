@@ -1,4 +1,4 @@
-import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection } from '../types';
+import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResults } from '../types';
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 
 // --- Configuration ---
@@ -29,7 +29,8 @@ export interface IDecreeRepository {
 }
 
 export interface IComplaintRepository {
-  submit(data: ComplaintData): Promise<string>; // Returns Ticket ID
+  submit(data: ComplaintData): Promise<string>;
+  submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string>;
   track(ticketId: string): Promise<Ticket | null>;
   myComplaints(): Promise<Ticket[]>;
   delete(id: string): Promise<boolean>;
@@ -69,8 +70,17 @@ export interface IUserRepository {
 
 export interface ISuggestionRepository {
   submit(data: SuggestionData): Promise<Suggestion>;
+  submitWithProgress(data: SuggestionData, onProgress?: (progress: number) => void): Promise<Suggestion>;
   track(trackingNumber: string): Promise<any>;
   mySuggestions(): Promise<Suggestion[]>;
+}
+
+export interface IFaqRepository {
+  getAll(): Promise<FAQ[]>;
+}
+
+export interface ISearchRepository {
+  search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults>;
 }
 
 // --- Mock Implementations (Uses constants.ts) ---
@@ -193,7 +203,19 @@ class MockDecreeRepository implements IDecreeRepository {
 
 class MockComplaintRepository implements IComplaintRepository {
   async submit(data: ComplaintData): Promise<string> {
+    return this.submitWithProgress(data);
+  }
+
+  async submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string> {
     return new Promise(resolve => {
+      if (onProgress) {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 10;
+          onProgress(progress);
+          if (progress >= 100) clearInterval(interval);
+        }, 100);
+      }
       setTimeout(() => resolve('GOV-' + Math.floor(Math.random() * 100000)), 1500);
     });
   }
@@ -500,13 +522,48 @@ class ApiDecreeRepository implements IDecreeRepository {
 
 class ApiComplaintRepository implements IComplaintRepository {
   async submit(data: ComplaintData): Promise<string> {
-    const res = await fetch(`${API_BASE_URL}/complaints`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    return this.submitWithProgress(data);
+  }
+
+  async submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string> {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && key !== 'file') {
+        formData.append(key, String(value));
+      }
     });
-    const result = await res.json();
-    return result.tracking_number; // Use tracking_number from backend
+
+    if (data.file) {
+      formData.append('file', data.file);
+    }
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const result = JSON.parse(xhr.responseText);
+            resolve(result.tracking_number);
+          } catch {
+            reject(new Error('Invalid response'));
+          }
+        } else {
+          reject(new Error('Failed to submit complaint'));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Network error')));
+      xhr.open('POST', `${API_BASE_URL}/complaints`);
+      xhr.send(formData);
+    });
   }
   async track(ticketId: string): Promise<Ticket | null> {
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`);
@@ -925,13 +982,30 @@ class MockAnnouncementsRepository implements IAnnouncementsRepository {
 
 class MockSuggestionRepository implements ISuggestionRepository {
   async submit(data: SuggestionData): Promise<Suggestion> {
+    return this.submitWithProgress(data);
+  }
+
+  async submitWithProgress(data: SuggestionData, onProgress?: (progress: number) => void): Promise<Suggestion> {
     return new Promise(resolve => {
-      setTimeout(() => resolve({
-        id: Math.random().toString(36).substr(2, 9),
-        trackingNumber: 'SUG-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'),
-        status: 'received',
-        createdAt: new Date().toISOString()
-      }), 1500);
+      // Simulate upload progress
+      if (onProgress && data.files && data.files.length > 0) {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 10;
+          onProgress(Math.min(progress, 90));
+          if (progress >= 90) clearInterval(interval);
+        }, 100);
+      }
+
+      setTimeout(() => {
+        onProgress?.(100);
+        resolve({
+          id: Math.random().toString(36).substr(2, 9),
+          trackingNumber: 'SUG-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0'),
+          status: 'received',
+          createdAt: new Date().toISOString()
+        });
+      }, 1500);
     });
   }
 
@@ -993,6 +1067,10 @@ class MockSuggestionRepository implements ISuggestionRepository {
 
 class ApiSuggestionRepository implements ISuggestionRepository {
   async submit(data: SuggestionData): Promise<Suggestion> {
+    return this.submitWithProgress(data);
+  }
+
+  async submitWithProgress(data: SuggestionData, onProgress?: (progress: number) => void): Promise<Suggestion> {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'files' && Array.isArray(value)) {
@@ -1002,14 +1080,35 @@ class ApiSuggestionRepository implements ISuggestionRepository {
       }
     });
 
-    const res = await fetch(`${API_BASE_URL}/suggestions`, {
-      method: 'POST',
-      headers: {
-        // 'Content-Type': 'multipart/form-data', // Let browser set boundary
-      },
-      body: formData
+    // Use XMLHttpRequest for progress tracking
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            resolve({ id: '', trackingNumber: '', status: 'received', createdAt: new Date().toISOString() });
+          }
+        } else {
+          reject(new Error(`HTTP error! status: ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Network error')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+      xhr.open('POST', `${API_BASE_URL}/suggestions`);
+      xhr.send(formData);
     });
-    return res.json();
   }
 
   async track(trackingNumber: string): Promise<any> {
@@ -1083,6 +1182,13 @@ class ApiMediaRepository implements IMediaRepository {
 }
 
 // --- Roles Repository ---
+export interface Role {
+  id: number;
+  name: string;
+  label: string;
+  permissions: string[];
+}
+
 export interface IRolesRepository {
   getAll(): Promise<Role[]>;
 }
@@ -1324,7 +1430,7 @@ class MockPromotionalSectionsRepository implements IPromotionalSectionsRepositor
       button_text_ar: 'شاهد الفيديو',
       button_text_en: 'Watch Video',
       image: null,
-      background_color: '#DC2626',
+      background_color: '#951d1dff',
       icon: 'Play',
       button_url: '#video-exclusive',
       type: 'video',
@@ -1333,6 +1439,7 @@ class MockPromotionalSectionsRepository implements IPromotionalSectionsRepositor
       position_label: { ar: 'أسفل الشبكة', en: 'Grid Bottom' },
       display_order: 1,
       metadata: { badge_ar: 'فيديو حصري', badge_en: 'Exclusive Video' },
+      video_url: 'https://vjs.zencdn.net/v/oceans.mp4', // Mock video URL
     },
     {
       id: 2,
@@ -1407,6 +1514,82 @@ class ApiPromotionalSectionsRepository implements IPromotionalSectionsRepository
   }
 }
 
+// --- Newsletter Repository ---
+export interface INewsletterRepository {
+  subscribe(email: string, recaptchaToken?: string | null): Promise<{ success: boolean; message?: string }>;
+}
+
+class MockNewsletterRepository implements INewsletterRepository {
+  async subscribe(email: string): Promise<{ success: boolean; message?: string }> {
+    return new Promise(resolve => {
+      setTimeout(() => resolve({ success: true, message: 'Subscribed successfully (Mock)' }), 1000);
+    });
+  }
+}
+
+class ApiNewsletterRepository implements INewsletterRepository {
+  async subscribe(email: string, recaptchaToken?: string | null): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, recaptcha_token: recaptchaToken }),
+      });
+      const data = await res.json();
+      return { success: res.ok && data.success, message: data.message };
+    } catch {
+      return { success: false, message: 'Network error' };
+    }
+  }
+}
+
+// --- FAQ Repository ---
+class MockFaqRepository implements IFaqRepository {
+  async getAll(): Promise<FAQ[]> {
+    return new Promise(resolve => setTimeout(() => resolve([
+      { id: '1', question_ar: 'كيف يمكنني الحصول على ترخيص منشأة صناعية؟', answer_ar: 'يمكنك التقدم بطلب ترخيص منشأة صناعية عبر قسم الإدارة العامة للصناعة في البوابة.', question_en: 'How can I obtain an industrial facility license?', answer_en: 'You can apply for an industrial facility license through the General Administration for Industry section.' },
+      { id: '2', question_ar: 'هل يمكنني تقديم شكوى حماية مستهلك إلكترونياً؟', answer_ar: 'نعم، يمكنك تقديم شكاوى الغش التجاري والمخالفات السعرية عبر قسم الإدارة العامة للتجارة الداخلية وحماية المستهلك.', question_en: 'Can I file a consumer protection complaint electronically?', answer_en: 'Yes, you can file commercial fraud and price violation complaints through the General Administration for Internal Trade and Consumer Protection.' },
+    ]), 500));
+  }
+}
+
+class ApiFaqRepository implements IFaqRepository {
+  async getAll(): Promise<FAQ[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/faqs`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json;
+    } catch {
+      return [];
+    }
+  }
+}
+
+// --- Search Repository ---
+class MockSearchRepository implements ISearchRepository {
+  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
+    return new Promise(resolve => setTimeout(() => resolve({ news: [], decrees: [], announcements: [], total: 0 }), 500));
+  }
+}
+
+class ApiSearchRepository implements ISearchRepository {
+  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
+    try {
+      const params = new URLSearchParams({ q: query });
+      if (type) params.append('type', type);
+      if (dateFrom) params.append('date_from', dateFrom);
+      if (dateTo) params.append('date_to', dateTo);
+      if (entity) params.append('entity', entity);
+      const res = await fetch(`${API_BASE_URL}/public/search?${params.toString()}`);
+      if (!res.ok) return { news: [], decrees: [], announcements: [], total: 0 };
+      return res.json();
+    } catch {
+      return { news: [], decrees: [], announcements: [], total: 0 };
+    }
+  }
+}
+
 export const API = {
   directorates: USE_MOCK_DATA ? new MockDirectorateRepository() : new ApiDirectorateRepository(),
   news: USE_MOCK_DATA ? new MockNewsRepository() : new ApiNewsRepository(),
@@ -1423,4 +1606,7 @@ export const API = {
   services: USE_MOCK_DATA ? new MockServicesRepository() : new ApiServicesRepository(),
   investments: USE_MOCK_DATA ? new MockInvestmentRepository() : new ApiInvestmentRepository(),
   promotionalSections: USE_MOCK_DATA ? new MockPromotionalSectionsRepository() : new ApiPromotionalSectionsRepository(),
+  newsletter: USE_MOCK_DATA ? new MockNewsletterRepository() : new ApiNewsletterRepository(),
+  faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),
+  search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
 };

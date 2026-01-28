@@ -2,10 +2,11 @@ import React from 'react';
 import { Directorate, LocalizedString } from '@/types';
 import { Laptop, ShoppingCart, TrendingUp, Building, Factory, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 interface DirectorateCardProps {
     directorate: Directorate;
-    onOpen: () => void;
+    onOpen?: () => void; // Made optional for backward compatibility
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -21,8 +22,14 @@ const iconMap: Record<string, React.ElementType> = {
 
 export default function DirectorateCard({ directorate, onOpen }: DirectorateCardProps) {
     const { language } = useLanguage();
+    const router = useRouter();
     // Normalize icon key to lowercase for matching if needed, or rely on strict map
     const Icon = iconMap[directorate.icon] || iconMap[directorate.icon.toLowerCase()] || Building;
+
+    const handleClick = () => {
+        // Navigate to the directorate detail page instead of opening modal
+        router.push(`/directorates/${directorate.id}`);
+    };
 
     const getLocalized = (content: LocalizedString | string) => {
         if (typeof content === 'string') return content;
@@ -33,7 +40,7 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
         <div className="relative group w-full h-full">
             {/* Card Container */}
             <div
-                onClick={onOpen}
+                onClick={handleClick}
                 className="cursor-pointer overflow-hidden rounded-3xl border border-gov-gold/10 bg-white/80 dark:bg-gov-charcoal/80 backdrop-blur-md shadow-lg hover:shadow-2xl hover:shadow-gov-gold/10 transition-all duration-500 h-full flex flex-col hover:-translate-y-2 group-hover:border-gov-gold/30"
             >
                 {/* Decorative Elements */}

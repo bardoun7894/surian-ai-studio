@@ -67,7 +67,7 @@ const NewsSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-white dark:bg-gov-forest border-t border-gray-100 dark:border-gov-gold/10 transition-colors" id="news-section">
+    <section className="py-20 bg-white dark:bg-gov-forest border-t border-gray-100 dark:border-gov-gold/10 transition-colors scroll-mt-24" id="news-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-12">
           <div>

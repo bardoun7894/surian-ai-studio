@@ -112,6 +112,8 @@ export interface ComplaintData {
   email?: string;
   hasPreviousComplaint?: boolean;
   previousTrackingNumber?: string;
+  recaptcha_token?: string;
+  file?: File | null;
 }
 
 export interface SuggestionData {

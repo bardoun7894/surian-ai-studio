@@ -24,14 +24,24 @@ import {
     User,
     Fingerprint,
     Calendar,
-    CheckCircle
+    CheckCircle,
+    Trash2,
+    UserX,
+    FileCheck,
+    Copy
 } from 'lucide-react';
-import { DIRECTORATES } from '@/lib/constants';
 import { API } from '@/lib/repository';
+import { Directorate } from '@/types';
+import { getLocalizedName } from '@/lib/utils';
+import ComplaintPrintButton from './ComplaintPrintButton';
 import { aiService, ComplaintAnalysis } from '@/lib/aiService';
 import { Ticket } from '@/types';
 import { focusPulse } from '@/lib/animations';
 import ImportedSatisfactionRating from './SatisfactionRating'; // Import Rating Component
+import UploadProgress from './UploadProgress';
+import { toast } from 'sonner';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ComplaintPortalProps {
     initialMode?: 'submit' | 'track';
@@ -42,7 +52,53 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     initialMode = 'submit',
     initialTrackingNumber = ''
 }) => {
+    const { executeRecaptcha } = useRecaptcha();
+    const { user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<'submit' | 'track'>(initialMode);
+    const [directoratesList, setDirectoratesList] = useState<Directorate[]>([]);
+    const [isAnonymous, setIsAnonymous] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        API.directorates.getAll()
+            .then(data => setDirectoratesList(data))
+            .catch(err => console.error('Failed to load directorates:', err));
+    }, []);
+
+    // Fetch templates when modal opens
+    const fetchTemplates = async () => {
+        setLoadingTemplates(true);
+        try {
+            const res = await fetch('/api/v1/complaints/templates');
+            if (res.ok) {
+                const data = await res.json();
+                setTemplates(data.data || data || []);
+            }
+        } catch (err) {
+            console.error('Failed to load templates:', err);
+        } finally {
+            setLoadingTemplates(false);
+        }
+    };
+
+    const handleOpenTemplates = () => {
+        setShowTemplateModal(true);
+        if (templates.length === 0) {
+            fetchTemplates();
+        }
+    };
+
+    const handleSelectTemplate = (template: { id: string; name: string; description: string; category: string }) => {
+        setFormData(prev => ({
+            ...prev,
+            details: template.description,
+            category: template.category
+        }));
+        setShowTemplateModal(false);
+        toast.success('تم تحميل القالب بنجاح', {
+            description: template.name
+        });
+    };
 
     // Submission State
     const [formData, setFormData] = useState({
@@ -63,6 +119,15 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [aiSuggestion, setAiSuggestion] = useState<ComplaintAnalysis | null>(null);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
+
+    // Upload Progress State
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadStatus, setUploadStatus] = useState<'uploading' | 'completed' | 'error'>('uploading');
+
+    // Template State
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [templates, setTemplates] = useState<Array<{ id: string; name: string; description: string; category: string }>>([]);
+    const [loadingTemplates, setLoadingTemplates] = useState(false);
 
     // OCR State
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,6 +156,61 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     }, [initialTrackingNumber, initialMode]);
 
+    // Pre-fill form data for authenticated users
+    useEffect(() => {
+        if (isAuthenticated && user && !isAnonymous) {
+            const nameParts = user.name?.split(' ') || [];
+            setFormData(prev => ({
+                ...prev,
+                firstName: nameParts[0] || '',
+                lastName: nameParts.length > 1 ? nameParts[nameParts.length - 1] : '',
+                fatherName: nameParts.length > 2 ? nameParts[1] : '',
+                email: user.email || '',
+                phone: user.phone || '',
+                nationalId: user.national_id || ''
+            }));
+        } else if (isAnonymous) {
+            // Clear personal data for anonymous submissions
+            setFormData(prev => ({
+                ...prev,
+                firstName: '',
+                lastName: '',
+                fatherName: '',
+                email: '',
+                phone: '',
+                nationalId: '',
+                dob: ''
+            }));
+        }
+    }, [isAuthenticated, user, isAnonymous]);
+
+    // Handle delete complaint (only for "received/new" status)
+    const handleDeleteComplaint = async () => {
+        if (!trackingResult || (trackingResult.status !== 'new' && trackingResult.status !== 'received')) {
+            toast.error('لا يمكن حذف الشكوى', {
+                description: 'يمكن حذف الشكاوى فقط في حالة "مستلمة"',
+            });
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            const success = await API.complaints.delete(trackingResult.id);
+            if (success) {
+                toast.success('تم حذف الشكوى بنجاح');
+                setTrackingResult(null);
+                setTrackId('');
+                setTrackNationalId('');
+            } else {
+                toast.error('فشل حذف الشكوى');
+            }
+        } catch (e) {
+            toast.error('حدث خطأ أثناء حذف الشكوى');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // Handlers
     const handleAIAnalyze = async () => {
         if (formData.details.length < 10) return;
@@ -103,7 +223,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 setFormData(prev => ({
                     ...prev,
                     category: result.category,
-                    directorate: DIRECTORATES.find(d => d.name.includes(result.category))?.name || ''
+                    directorate: directoratesList.find(d => getLocalizedName(d.name, 'ar').includes(result.category))?.id || ''
                 }));
             }
         } catch (error) {
@@ -146,11 +266,35 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setUploadProgress(0);
+        setUploadStatus('uploading');
+
         try {
-            const ticketId = await API.complaints.submit(formData);
+            // Execute reCAPTCHA v3
+            const recaptchaToken = await executeRecaptcha('submit_complaint');
+
+            // Pass selectedFile to the API with progress callback
+            const ticketId = await API.complaints.submitWithProgress({
+                ...formData,
+                recaptcha_token: recaptchaToken,
+                file: selectedFile
+            }, (progress) => {
+                setUploadProgress(progress);
+            });
+
+            setUploadStatus('completed');
             setSubmittedTicket(ticketId);
+            toast.success('تم استلام شكواك بنجاح', {
+                description: ticketId ? `رقم التذكرة: ${ticketId}` : 'سيتم التعامل معها في أقرب وقت',
+                duration: 8000,
+            });
         } catch (e) {
             console.error("Submission failed", e);
+            setUploadStatus('error');
+            setUploadProgress(0);
+            toast.error('فشل إرسال الشكوى', {
+                description: 'يرجى المحاولة مرة أخرى',
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -166,11 +310,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             const result = await API.complaints.track(trackId);
             if (result) {
                 setTrackingResult(result);
+                toast.success('تم العثور على التذكرة', {
+                    description: `حالة الطلب: ${getStatusLabel(result.status)}`,
+                });
             } else {
                 setTrackError("لم يتم العثور على تذكرة بهذا الرقم.");
+                toast.error('لم يتم العثور على التذكرة', {
+                    description: 'تأكد من صحة رقم التذكرة والرقم الوطني',
+                });
             }
         } catch (e) {
             setTrackError("حدث خطأ أثناء الاتصال بالنظام.");
+            toast.error('خطأ في الاتصال', {
+                description: 'حدث خطأ أثناء الاتصال بالنظام',
+            });
         } finally {
             setIsTracking(false);
         }
@@ -178,12 +331,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'new': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case 'processing': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'resolved': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-            case 'rejected': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+            case 'new': return 'bg-gov-ocean/10 text-gov-ocean dark:bg-gov-ocean/20 dark:text-gov-oceanLight';
+            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-gold/20';
+            case 'processing': return 'bg-gov-cornflower/10 text-gov-cornflower dark:bg-gov-cornflower/20';
+            case 'resolved': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
+            case 'rejected': return 'bg-gov-cherry/10 text-gov-cherry dark:bg-gov-cherry/20';
+            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-gray-300';
         }
     };
 
@@ -235,6 +388,53 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
 
+                            {/* Use Template Button */}
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={handleOpenTemplates}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-white/10 border border-gov-gold/30 text-gov-forest dark:text-gov-gold font-bold text-sm hover:bg-gov-gold/10 dark:hover:bg-gov-gold/20 transition-colors"
+                                >
+                                    <FileCheck size={18} />
+                                    استخدام قالب
+                                </button>
+                            </div>
+
+                            {/* Anonymous / Known User Toggle */}
+                            <div className="bg-gov-beige/50 dark:bg-white/5 p-4 rounded-xl border border-gov-gold/20">
+                                <div className="flex items-center justify-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAnonymous(false)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                                            !isAnonymous
+                                                ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                        }`}
+                                    >
+                                        <User size={16} />
+                                        {isAuthenticated ? 'بياناتي المسجلة' : 'معروف الهوية'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAnonymous(true)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                                            isAnonymous
+                                                ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                        }`}
+                                    >
+                                        <UserX size={16} />
+                                        مجهول الهوية
+                                    </button>
+                                </div>
+                                {isAnonymous && (
+                                    <p className="text-xs text-gov-cherry dark:text-orange-400 text-center mt-3">
+                                        ⚠️ الشكاوى المجهولة لن يمكن متابعتها أو الرد عليها
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Document Upload / OCR */}
                             <div className="bg-gov-beige/50 dark:bg-white/5 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
                                 <input
@@ -255,34 +455,50 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-lg border border-gov-gold/20">
-                                        <div className="flex items-center gap-3">
-                                            <FileText size={20} className="text-gov-forest dark:text-gov-gold" />
-                                            <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate max-w-[200px]">{selectedFile.name}</span>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-lg border border-gov-gold/20">
+                                            <div className="flex items-center gap-3">
+                                                <FileText size={20} className="text-gov-forest dark:text-gov-gold" />
+                                                <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate max-w-[200px]">{selectedFile.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {isOcrProcessing ? (
+                                                    <span className="flex items-center gap-1 text-xs text-gov-gold font-bold">
+                                                        <Loader2 size={12} className="animate-spin" />
+                                                        جاري المعالجة...
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-gov-emerald font-bold flex items-center gap-1">
+                                                        <CheckCircle size={12} />
+                                                        تم الاستخراج
+                                                    </span>
+                                                )}
+                                                <button type="button" onClick={removeFile} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            {isOcrProcessing ? (
-                                                <span className="flex items-center gap-1 text-xs text-gov-gold font-bold">
-                                                    <Loader2 size={12} className="animate-spin" />
-                                                    جاري المعالجة...
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
-                                                    <CheckCircle size={12} />
-                                                    تم الاستخراج
-                                                </span>
-                                            )}
-                                            <button type="button" onClick={removeFile} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded">
-                                                <X size={16} />
-                                            </button>
-                                        </div>
+
+                                        {/* Show Progress Bar during upload */}
+                                        {isSubmitting && selectedFile && (
+                                            <UploadProgress
+                                                fileName={selectedFile.name}
+                                                progress={uploadProgress}
+                                                status={uploadStatus}
+                                                fileSize={`${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                                            />
+                                        )}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Personal Information */}
+                            {/* Personal Information - Hidden for anonymous submissions */}
+                            {!isAnonymous && (
                             <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
-                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">بيانات مقدم الشكوى</h3>
+                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">
+                                    بيانات مقدم الشكوى
+                                    {isAuthenticated && <span className="text-xs text-gov-teal mr-2">(تم تعبئة البيانات تلقائياً)</span>}
+                                </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                     <div>
@@ -353,6 +569,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </div>
                                 </div>
                             </div>
+                            )}
 
                             {/* Description with AI */}
                             <div>
@@ -393,13 +610,15 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             )}
 
+                            {/* Contact Information - Hidden for anonymous */}
+                            {!isAnonymous && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">رقم الهاتف <span className="text-gov-gold">*</span></label>
                                     <div className="relative">
                                         <input
                                             type="tel"
-                                            required
+                                            required={!isAnonymous}
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none"
@@ -412,7 +631,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <div className="relative">
                                         <input
                                             type="email"
-                                            required
+                                            required={!isAnonymous}
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none"
@@ -421,6 +640,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </div>
                                 </div>
                             </div>
+                            )}
 
                             {/* Previous Complaint Field (Added for V2) */}
                             <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
@@ -474,9 +694,9 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none"
                                         >
                                             <option value="" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">-- اختر الجهة --</option>
-                                            {DIRECTORATES.map(d => (
-                                                <option key={d.id} value={d.name} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">
-                                                    {d.name}
+                                            {directoratesList.map(d => (
+                                                <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">
+                                                    {getLocalizedName(d.name, 'ar')}
                                                 </option>
                                             ))}
                                         </select>
@@ -497,136 +717,225 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             </div>
                         </form>
                     </div>
-                )}
+                )
+                }
 
                 {/* SUCCESS STATE */}
-                {submittedTicket && (
-                    <div className="p-12 text-center animate-fade-in flex flex-col items-center">
-                        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6 text-green-600 dark:text-green-400">
-                            <CheckCircle size={40} />
-                        </div>
-                        <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">تم استلام طلبك بنجاح</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">يرجى الاحتفاظ برقم التذكرة أدناه لمتابعة حالة الطلب. تم إرسال رسالة تأكيد لرقم هاتفك.</p>
+                {
+                    submittedTicket && (
+                        <div className="p-12 text-center animate-fade-in flex flex-col items-center">
+                            <div className="w-20 h-20 bg-gov-emerald/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mb-6 text-gov-emerald">
+                                <CheckCircle size={40} />
+                            </div>
+                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">تم استلام طلبك بنجاح</h2>
+                            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">يرجى الاحتفاظ برقم التذكرة أدناه لمتابعة حالة الطلب. تم إرسال رسالة تأكيد لرقم هاتفك.</p>
 
-                        <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-8 w-full max-w-sm">
-                            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">رقم التذكرة</span>
-                            <span className="block text-3xl font-display font-bold text-gov-forest dark:text-gov-gold tracking-wider">{submittedTicket}</span>
-                        </div>
+                            <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-8 w-full max-w-sm">
+                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">رقم التذكرة</span>
+                                <span className="block text-3xl font-display font-bold text-gov-forest dark:text-gov-gold tracking-wider">{submittedTicket}</span>
+                            </div>
 
-                        <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-gold font-bold hover:underline">
-                            متابعة الطلب الآن
-                        </button>
-                    </div>
-                )}
+                            <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-gold font-bold hover:underline">
+                                متابعة الطلب الآن
+                            </button>
+                        </div>
+                    )
+                }
 
                 {/* TRACKING TAB */}
-                {activeTab === 'track' && (
-                    <div className="p-8 md:p-12 animate-fade-in">
-                        <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">متابعة الطلبات</h2>
-                            <p className="text-gray-500 dark:text-gray-400">أدخل رقم التذكرة للاستعلام عن آخر المستجدات.</p>
-                        </div>
-
-                        <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">رقم التذكرة</label>
-                                <input
-                                    type="text"
-                                    placeholder="مثال: GOV-12345"
-                                    value={trackId}
-                                    onChange={(e) => setTrackId(e.target.value)}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                    required
-                                />
+                {
+                    activeTab === 'track' && (
+                        <div className="p-8 md:p-12 animate-fade-in">
+                            <div className="text-center mb-10">
+                                <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">متابعة الطلبات</h2>
+                                <p className="text-gray-500 dark:text-gray-400">أدخل رقم التذكرة للاستعلام عن آخر المستجدات.</p>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">الرقم الوطني (للتحقق)</label>
-                                <input
-                                    type="text"
-                                    placeholder="الرقم الوطني"
-                                    value={trackNationalId}
-                                    onChange={(e) => setTrackNationalId(e.target.value)}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="w-full bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-white transition-colors flex items-center justify-center gap-2">
-                                {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
-                                <span>استعلام</span>
-                            </button>
-                            {trackError && <p className="text-red-500 text-sm mt-2 text-center">{trackError}</p>}
-                        </form>
 
-                        {trackingResult && (
-                            <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gov-gold/20 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
-                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-white/10">
-                                    <span className="font-bold text-gov-charcoal dark:text-white">تذكرة #{trackingResult.tracking_number || trackingResult.id}</span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
-                                        {getStatusLabel(trackingResult.status)}
-                                    </span>
+                            <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">رقم التذكرة</label>
+                                    <input
+                                        type="text"
+                                        placeholder="مثال: GOV-12345"
+                                        value={trackId}
+                                        onChange={(e) => setTrackId(e.target.value)}
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        required
+                                    />
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
-                                        <div>
-                                            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">آخر تحديث</span>
-                                            <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString() : 'غير متوفر'}
-                                            </span>
-                                        </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">الرقم الوطني (للتحقق)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="الرقم الوطني"
+                                        value={trackNationalId}
+                                        onChange={(e) => setTrackNationalId(e.target.value)}
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-white transition-colors flex items-center justify-center gap-2">
+                                    {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
+                                    <span>استعلام</span>
+                                </button>
+                                {trackError && <p className="text-gov-cherry text-sm mt-2 text-center">{trackError}</p>}
+                            </form>
+
+                            {trackingResult && (
+                                <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gov-gold/20 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
+                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-white/10">
+                                        <span className="font-bold text-gov-charcoal dark:text-white">تذكرة #{trackingResult.tracking_number || trackingResult.id}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
+                                            {getStatusLabel(trackingResult.status)}
+                                        </span>
                                     </div>
-                                    {trackingResult.description && (
-                                        <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
-                                            <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
                                             <div>
-                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">تفاصيل</span>
-                                                <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{trackingResult.description}</span>
+                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">آخر تحديث</span>
+                                                <span className="text-sm font-medium text-gov-charcoal dark:text-white">
+                                                    {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString() : 'غير متوفر'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {trackingResult.description && (
+                                            <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
+                                                <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+                                                <div>
+                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">تفاصيل</span>
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{trackingResult.description}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {trackingResult.responses && trackingResult.responses.length > 0 && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 animate-fade-in">
+                                            <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold mb-4">الردود والتحديثات</h3>
+                                            <div className="space-y-4">
+                                                {trackingResult.responses.map((response) => (
+                                                    <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.name || 'فريق الدعم'}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(response.created_at).toLocaleString('ar-SY')}</span>
+                                                        </div>
+                                                        <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap">{response.content}</p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
-                                </div>
 
-                                {trackingResult.responses && trackingResult.responses.length > 0 && (
-                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 animate-fade-in">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold mb-4">الردود والتحديثات</h3>
-                                        <div className="space-y-4">
-                                            {trackingResult.responses.map((response) => (
-                                                <div key={response.id} className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/20">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="font-bold text-gov-forest dark:text-blue-100 text-sm">{response.user?.name || 'فريق الدعم'}</span>
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(response.created_at).toLocaleString('ar-SY')}</span>
-                                                    </div>
-                                                    <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap">{response.content}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                    {/* FR-28: Print Complaint Button & Delete Button */}
+                                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/10 flex flex-col sm:flex-row justify-center gap-3">
+                                        <ComplaintPrintButton
+                                            trackingNumber={trackingResult.tracking_number || trackingResult.id}
+                                        />
+
+                                        {/* FR-22: Delete button only for "received/new" status */}
+                                        {(trackingResult.status === 'new' || trackingResult.status === 'received') && (
+                                            <button
+                                                onClick={handleDeleteComplaint}
+                                                disabled={isDeleting}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-cherry/10 text-gov-cherry hover:bg-gov-cherry hover:text-white transition-colors font-bold text-sm disabled:opacity-50"
+                                            >
+                                                {isDeleting ? (
+                                                    <Loader2 size={16} className="animate-spin" />
+                                                ) : (
+                                                    <Trash2 size={16} />
+                                                )}
+                                                حذف الشكوى
+                                            </button>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                            )}
+
+                            {trackingResult && trackingResult.status === 'resolved' && (
+                                <ImportedSatisfactionRating trackingNumber={trackingResult.id} />
+                            )}
+
+                            <div className="mt-8 text-center animate-fade-in">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">هل تحتاج للمساعدة المباشرة؟</p>
+                                <a
+                                    href="https://wa.me/963912345678"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-full font-bold hover:bg-[#20bd5a] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                    </svg>
+                                    <span>تواصل عبر واتساب</span>
+                                </a>
                             </div>
-                        )}
-
-                        {trackingResult && trackingResult.status === 'resolved' && (
-                            <ImportedSatisfactionRating trackingNumber={trackingResult.id} />
-                        )}
-
-                        <div className="mt-8 text-center animate-fade-in">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">هل تحتاج للمساعدة المباشرة؟</p>
-                            <a
-                                href="https://wa.me/963912345678"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-full font-bold hover:bg-[#20bd5a] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                                </svg>
-                                <span>تواصل عبر واتساب</span>
-                            </a>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
             </div>
+
+            {/* Template Modal */}
+            {showTemplateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gov-forest rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-fade-in">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/10">
+                            <h3 className="text-xl font-display font-bold text-gov-forest dark:text-white">
+                                قوالب الشكاوى الجاهزة
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowTemplateModal(false)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto max-h-[60vh]">
+                            {loadingTemplates ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-gov-gold" />
+                                </div>
+                            ) : templates.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                    <FileText size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p>لا توجد قوالب متاحة حالياً</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {templates.map((template) => (
+                                        <button
+                                            key={template.id}
+                                            type="button"
+                                            onClick={() => handleSelectTemplate(template)}
+                                            className="w-full p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10 transition-all text-right"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-gov-forest dark:text-white mb-1">
+                                                        {template.name}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                                                        {template.description}
+                                                    </p>
+                                                    {template.category && (
+                                                        <span className="inline-block mt-2 px-2 py-1 rounded bg-gov-teal/10 dark:bg-gov-teal/20 text-gov-teal text-xs font-bold">
+                                                            {template.category}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <Copy size={18} className="text-gray-400 flex-shrink-0 mt-1" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -18,6 +18,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [breakingNews, setBreakingNews] = useState<BreakingNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const animationRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
     const fetchBreaking = async () => {
@@ -52,25 +54,50 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
     // Reset animation
     gsap.killTweensOf(contentRef.current);
 
-    const contentWidth = contentRef.current.scrollWidth;
+    const contentWidth = contentRef.current.scrollWidth / 3; // Divide by 3 since we triplicate content
 
-    // Create seamless loop
+    // Create seamless loop - For RTL, scroll from right to left (negative X)
     const tl = gsap.timeline({ repeat: -1 });
-    tl.to(contentRef.current, {
-      x: contentWidth / 2, // Move right because RTL
-      duration: 30,
-      ease: "none",
-    });
+    tl.fromTo(contentRef.current,
+      { x: 0 },
+      {
+        x: -contentWidth,
+        duration: 40, // Slower for readability
+        ease: "none",
+      }
+    );
+
+    // Add pause instruction
+    const el = tickerRef.current;
+    if (el) {
+      el.addEventListener('mouseenter', () => tl.pause());
+      el.addEventListener('mouseleave', () => tl.play());
+    }
+
+    animationRef.current = tl;
 
     return () => {
       tl.kill();
     };
   }, [loading, breakingNews]);
 
+  // Handle pause on hover
+  useEffect(() => {
+    if (!animationRef.current) return;
+    if (isPaused) {
+      animationRef.current.pause();
+    } else {
+      animationRef.current.resume();
+    }
+  }, [isPaused]);
+
   if (loading || breakingNews.length === 0) return null;
 
   return (
-    <div className="bg-gov-charcoal text-white border-b border-gov-gold/20 relative overflow-hidden h-12 flex items-center">
+    <div
+      className="bg-gov-charcoal text-white border-b border-gov-gold/20 relative overflow-hidden h-12 flex items-center"
+      ref={tickerRef}
+    >
       <div className="absolute right-0 top-0 bottom-0 bg-gov-emerald px-6 z-20 flex items-center font-bold shadow-lg">
         <span className="ml-2 w-2 h-2 bg-gov-cherry rounded-full animate-pulse shadow-[0_0_8px_rgba(200,16,46,0.6)]"></span>
         {t('news_breaking')}
@@ -78,9 +105,9 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
 
       <div className="flex-1 overflow-hidden relative h-full" ref={tickerRef}>
         <div ref={contentRef} className="absolute top-0 right-0 h-full flex items-center whitespace-nowrap gap-16 pr-[150px]">
-          {/* Duplicate array for seamless loop */}
+          {/* Triplicate array for seamless loop */}
           {[...breakingNews, ...breakingNews, ...breakingNews].map((news, idx) => (
-            <div key={idx} className="flex items-center gap-4 text-sm text-gov-beige/80">
+            <div key={`${idx}-${news.title_ar.slice(0, 10)}`} className="flex items-center gap-4 text-sm text-gov-beige/80">
               <span>{getTitle(news)}</span>
               <span className="text-gov-gold text-xs">●</span>
             </div>

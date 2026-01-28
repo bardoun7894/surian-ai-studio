@@ -2,7 +2,7 @@
  * Authentication utilities for Laravel Sanctum
  */
 
-import api, { getCsrfCookie, ApiError } from './api';
+import api, { getCsrfCookie, ApiError, setAuthToken, clearAuthToken, getAuthToken } from './api';
 
 // User type
 export interface User {
@@ -48,6 +48,13 @@ export interface RegisterData {
 export interface AuthResponse {
   user: User;
   token?: string;
+  require_2fa?: boolean;
+  temp_token?: string; // Temporary token for 2FA verification
+}
+
+export interface TwoFactorVerifyData {
+  email: string;
+  otp: string;
 }
 
 // Auth service
@@ -64,6 +71,18 @@ export const auth = {
   },
 
   /**
+   * Verify 2FA code
+   */
+  async verify2fa(data: TwoFactorVerifyData): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/verify2fa', data);
+    // Store the token if returned
+    if (response.access_token) {
+      setAuthToken(response.access_token);
+    }
+    return response;
+  },
+
+  /**
    * Register new user
    */
   async register(data: RegisterData): Promise<AuthResponse> {
@@ -75,18 +94,35 @@ export const auth = {
    * Logout user
    */
   async logout(): Promise<void> {
-    await api.post('/auth/logout');
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      // Even if the API call fails, clear local state
+      console.error('Logout API error:', error);
+    } finally {
+      // Always clear the token locally
+      clearAuthToken();
+    }
   },
 
   /**
    * Get current authenticated user
    */
   async getUser(): Promise<User | null> {
+    // Check if we have a token first
+    const token = getAuthToken();
+    if (!token) {
+      return null;
+    }
+
     try {
-      const response = await api.get<{ user: User }>('/auth/me');
-      return response.user;
+      // Backend returns user directly, not { user: User }
+      const user = await api.get<User>('/auth/me');
+      return user;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
+        // Clear invalid token
+        clearAuthToken();
         return null;
       }
       throw error;

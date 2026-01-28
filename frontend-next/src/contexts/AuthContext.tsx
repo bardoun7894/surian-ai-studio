@@ -1,13 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import auth, { User, LoginCredentials, RegisterData, AuthResponse } from '@/lib/auth';
+import auth, { User, LoginCredentials, RegisterData, AuthResponse, TwoFactorVerifyData } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
+  verify2fa: (data: TwoFactorVerifyData) => Promise<AuthResponse>;
   register: (data: RegisterData) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -84,8 +85,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await auth.login(credentials);
-    setUser(response.user);
-    setLastActivity(Date.now());
+    // If 2FA is required, don't set the user yet
+    if (!response.require_2fa && response.user) {
+      setUser(response.user);
+      setLastActivity(Date.now());
+    }
+    return response;
+  };
+
+  const verify2fa = async (data: TwoFactorVerifyData): Promise<AuthResponse> => {
+    const response = await auth.verify2fa(data);
+    if (response.user) {
+      setUser(response.user);
+      setLastActivity(Date.now());
+    }
     return response;
   };
 
@@ -99,6 +112,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async (): Promise<void> => {
     await auth.logout();
     setUser(null);
+    // Redirect to login page
+    window.location.href = '/login';
   };
 
   const refreshUser = async (): Promise<void> => {
@@ -119,6 +134,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isLoading,
     isAuthenticated: !!user,
     login,
+    verify2fa,
     register,
     logout,
     refreshUser,

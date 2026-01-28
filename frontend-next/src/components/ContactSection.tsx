@@ -35,7 +35,7 @@ const ContactSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-gov-beige dark:bg-gov-forest/5 relative overflow-hidden" id="contact">
+    <section className="py-20 bg-gov-beige dark:bg-gov-forest/5 relative overflow-hidden scroll-mt-24" id="contact">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-4">تواصل معنا</h2>
@@ -126,9 +126,9 @@ const ContactSection: React.FC = () => {
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all"
+                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gov-sand"
                       />
-                      <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand" size={18} />
+                      <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-gold/50" size={18} />
                     </div>
                   </div>
                   <div>
@@ -139,9 +139,9 @@ const ContactSection: React.FC = () => {
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all"
+                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gov-sand"
                       />
-                      <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand" size={18} />
+                      <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-gold/50" size={18} />
                     </div>
                   </div>
                 </div>
@@ -155,9 +155,9 @@ const ContactSection: React.FC = () => {
                         required
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all"
+                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gov-sand"
                       />
-                      <Tag className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand" size={18} />
+                      <Tag className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-gold/50" size={18} />
                     </div>
                   </div>
                   <div>
@@ -176,7 +176,7 @@ const ContactSection: React.FC = () => {
                           <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{d.name}</option>
                         ))}
                       </select>
-                      <Building2 className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand" size={18} />
+                      <Building2 className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-gold/50" size={18} />
                     </div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ const ContactSection: React.FC = () => {
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all resize-none"
+                    className="w-full p-3 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/10 focus:border-gov-emerald outline-none transition-all resize-none text-gov-charcoal dark:text-white placeholder:text-gov-sand"
                   ></textarea>
                 </div>
 

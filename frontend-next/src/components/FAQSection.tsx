@@ -36,7 +36,7 @@ const FAQSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-white dark:bg-gov-forest border-t border-gov-gold/10 dark:border-gov-gold/10">
+    <section id="faq" className="py-20 bg-white dark:bg-gov-forest border-t border-gov-gold/10 dark:border-gov-gold/10 scroll-mt-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="text-center mb-12">
@@ -53,7 +53,7 @@ const FAQSection: React.FC = () => {
             <div
               key={index}
               className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
-                ? 'bg-gov-beige/30 border-gov-gold/50 shadow-md'
+                ? 'bg-gov-beige/30 dark:bg-white/10 border-gov-gold/50 shadow-md'
                 : 'bg-white dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30'
                 }`}
             >

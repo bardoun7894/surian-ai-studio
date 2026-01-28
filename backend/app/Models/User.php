@@ -18,9 +18,10 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // For now, allow all users with a role to access. 
-        // In production, we might want to restrict this to specific roles.
-        return !is_null($this->role_id) && $this->is_active;
+        $adminRoles = ['super_admin', 'content_admin', 'complaint_admin', 'admin'];
+        return $this->is_active &&
+               $this->role &&
+               in_array($this->role->name, $adminRoles);
     }
 
     /**

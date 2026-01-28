@@ -222,7 +222,7 @@ const Announcements: React.FC = () => {
     // Loading skeleton for 3x3 grid
     if (loading) {
         return (
-            <section className="py-24 bg-white dark:bg-gov-forest/30 relative overflow-hidden" id="announcements">
+            <section className="py-24 bg-white dark:bg-gov-forest/30 relative overflow-hidden scroll-mt-24" id="announcements">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6 animate-pulse"></div>
@@ -239,7 +239,7 @@ const Announcements: React.FC = () => {
     }
 
     return (
-        <section className="py-24 bg-white dark:bg-gov-forest/30 relative overflow-hidden" id="announcements">
+        <section className="py-24 bg-white dark:bg-gov-forest/30 relative overflow-hidden scroll-mt-24" id="announcements">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-gold/20 rounded-full mb-6">

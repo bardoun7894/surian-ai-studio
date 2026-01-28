@@ -90,7 +90,7 @@ export default function UserDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/';
+    // AuthContext handles redirect to /login
   };
 
   // FR-22: Delete complaint (only if status is 'new' or 'received')
@@ -136,11 +136,42 @@ export default function UserDashboard() {
     }
   };
 
-  const notifications: Notification[] = [
-    { id: '1', title: 'تم قبول طلبك', message: 'تم قبول شكواك وهي قيد المعالجة', time: 'منذ ساعة', read: false },
-    { id: '2', title: 'تحديث على شكوى', message: 'تم الرد على شكواك رقم #12345', time: 'منذ 3 ساعات', read: false },
-    { id: '3', title: 'تم إنجاز طلبك', message: 'تم حل شكواك بنجاح', time: 'أمس', read: true },
-  ];
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  // Fetch notifications when tab changes
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (activeTab !== 'notifications') return;
+      setNotificationsLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/v1/notifications', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications((data.data || []).map((n: any) => ({
+            id: n.id,
+            title: n.data?.title || (language === 'ar' ? 'إشعار' : 'Notification'),
+            message: n.data?.message || n.data?.body || '',
+            time: new Date(n.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US'),
+            read: !!n.read_at
+          })));
+        }
+      } catch (e) {
+        console.error('Error fetching notifications:', e);
+        // Fallback to empty
+        setNotifications([]);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, [activeTab, language]);
 
   const stats = [
     {
@@ -362,28 +393,41 @@ export default function UserDashboard() {
                 <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6">
                   {language === 'ar' ? 'الإشعارات' : 'Notifications'}
                 </h3>
-                <div className="space-y-4">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 rounded-xl border ${notification.read
-                          ? 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10'
-                          : 'bg-gov-gold/5 border-gov-gold/20'
-                        }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-bold text-gov-charcoal dark:text-white">{notification.title}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{notification.message}</p>
+                {notificationsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="animate-spin text-gov-gold" size={32} />
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bell size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-4 rounded-xl border ${notification.read
+                            ? 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10'
+                            : 'bg-gov-gold/5 border-gov-gold/20'
+                          }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-bold text-gov-charcoal dark:text-white">{notification.title}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{notification.message}</p>
+                          </div>
+                          {!notification.read && (
+                            <span className="w-2 h-2 bg-gov-gold rounded-full"></span>
+                          )}
                         </div>
-                        {!notification.read && (
-                          <span className="w-2 h-2 bg-gov-gold rounded-full"></span>
-                        )}
+                        <p className="text-xs text-gray-400 mt-2">{notification.time}</p>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">{notification.time}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

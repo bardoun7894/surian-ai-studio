@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { Building2, FileText, Scale, ArrowRight, ShieldCheck, Landmark } from 'lucide-react';
+import { Building2, FileText, Scale, ArrowRight, ShieldCheck, Landmark, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -325,6 +325,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
               <Scale size={18} />
               <span>{t('hero_decrees_btn')}</span>
             </Link>
+
+            <Link
+              href="/proposals"
+              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-charcoal text-white font-bold text-base hover:bg-gov-forest transition-all shadow-md flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
+              style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
+            >
+              <FileText size={18} />
+              <span>{language === 'ar' ? 'المشاريع والمقترحات' : 'Proposals & Projects'}</span>
+            </Link>
           </div>
 
           {/* Official Pillars - Horizontal on Mobile */}
@@ -345,16 +354,37 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
               <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
             </div>
 
-            <div className="animate-stat text-center group cursor-default">
-              <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                <FileText size={16} className="md:w-[20px] md:h-[20px]" />
-              </div>
-              <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
-              <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
-            </div>
           </div>
-
+          <div className="animate-stat text-center group cursor-default">
+            <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+              <FileText size={16} className="md:w-[20px] md:h-[20px]" />
+            </div>
+            <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
+            <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
+          </div>
         </div>
+
+        {/* Smart Assistant Card (Floating) */}
+        <div className="hidden lg:block absolute -right-20 lg:-right-32 top-1/2 -translate-y-1/2 animate-float-slow z-30">
+          <div className="bg-white/90 dark:bg-gov-forest/90 backdrop-blur border border-gov-gold/30 rounded-2xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.1)] w-64 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+            <div className="flex items-center gap-3 mb-3 border-b border-gray-100 dark:border-white/10 pb-2">
+              <div className="w-10 h-10 rounded-full bg-gov-gold/20 flex items-center justify-center text-gov-gold animate-pulse">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gov-forest dark:text-white text-sm">{language === 'ar' ? 'المساعد الذكي' : 'Smart Assistant'}</h3>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Online</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">
+              {language === 'ar' ? 'كيف يمكنني مساعدتك في خدمات الوزارة اليوم؟' : 'How can I assist you with ministry services today?'}
+            </p>
+            <button className="w-full py-2 bg-gov-teal text-white text-xs font-bold rounded-lg hover:bg-gov-emerald transition-colors">
+              {language === 'ar' ? 'ابدأ المحادثة' : 'Start Chat'}
+            </button>
+          </div>
+        </div>
+
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
@@ -180,6 +181,8 @@ class NewsletterController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
+        Gate::authorize('delete', NewsletterSubscriber::class);
+
         $subscriber = NewsletterSubscriber::find($id);
 
         if (!$subscriber) {
@@ -239,6 +242,8 @@ class NewsletterController extends Controller
      */
     public function send(Request $request): JsonResponse
     {
+        Gate::authorize('send', NewsletterSubscriber::class);
+
         $validator = Validator::make($request->all(), [
             'subject' => 'required|string|max:255',
             'content' => 'required|string',

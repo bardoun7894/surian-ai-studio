@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Mail, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+import { API } from '@/lib/repository';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 interface NewsletterSignupProps {
     className?: string;
@@ -16,6 +16,7 @@ export default function NewsletterSignup({ className = '' }: NewsletterSignupPro
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const { executeRecaptcha } = useRecaptcha();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,15 +30,8 @@ export default function NewsletterSignup({ className = '' }: NewsletterSignupPro
         setStatus('idle');
 
         try {
-            const res = await fetch(`${API_BASE_URL}/public/newsletter/subscribe`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            });
-
-            const data = await res.json();
+            const recaptchaToken = await executeRecaptcha('newsletter_subscribe');
+            const data = await API.newsletter.subscribe(email, recaptchaToken);
 
             if (data.success) {
                 setStatus('success');

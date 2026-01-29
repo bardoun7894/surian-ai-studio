@@ -6,6 +6,13 @@ import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Helper to get XSRF token from cookies
+const getXsrfToken = (): string | null => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+};
+
 interface Attachment {
     name: string;
     data: string;
@@ -19,7 +26,7 @@ const ChatBot: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [attachment, setAttachment] = useState<Attachment | null>(null);
     const [sessionId, setSessionId] = useState<string>('');
-    const [showWelcome, setShowWelcome] = useState(true);
+    const [showWelcome, setShowWelcome] = useState(false); // Default hidden, waits for timer
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { language } = useLanguage();
@@ -42,10 +49,29 @@ const ChatBot: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // ChatBot Animation Sequence
+    useEffect(() => {
+        // 1. Wait 30 seconds before showing
+        const startTimer = setTimeout(() => {
+            setShowWelcome(true);
+
+            // 2. Show for 30 seconds then hide
+            const hideTimer = setTimeout(() => {
+                setShowWelcome(false);
+            }, 30000);
+
+            return () => clearTimeout(hideTimer);
+        }, 30000);
+
+        return () => clearTimeout(startTimer);
+    }, []);
+
     const loadHistory = async (sid: string) => {
         try {
             // Use relative path - Next.js rewrites proxy to backend
-            const response = await fetch(`/api/v1/chat/history/${sid}`);
+            const response = await fetch(`/api/v1/chat/history/${sid}`, {
+                credentials: 'include',
+            });
             if (response.ok) {
                 const data = await response.json();
                 if (data.messages && data.messages.length > 0) {
@@ -81,8 +107,11 @@ const ChatBot: React.FC = () => {
         // Clear session on backend
         if (sessionId) {
             try {
+                const xsrfToken = getXsrfToken();
                 await fetch(`/api/v1/chat/session/${sessionId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {},
                 });
             } catch (error) {
                 console.error('Failed to clear session', error);
@@ -236,43 +265,44 @@ const ChatBot: React.FC = () => {
     return (
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
-            <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-none">
-                {/* Welcome Balloon - Bilingual with AI indicator */}
+            <div className={`fixed bottom-4 z-40 flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'right-4 left-auto flex-row-reverse' : 'left-4 right-auto flex-row'} md:bottom-6`}>
+                {/* FR-59: Professional Flat Button */}
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'}`}
+                >
+                    <div className="relative flex items-center justify-center">
+                        <MessageSquare size={28} />
+                    </div>
+                    <span className="absolute bottom-1 right-1 flex h-3 w-3">
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
+                    </span>
+                </button>
+
+                {/* Hint bubble - appears to the left of button in Arabic, right in English */}
+                {!isOpen && showWelcome && (
                 <div
-                    className={`pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 mb-1 transform transition-all duration-500 origin-bottom-right flex items-center gap-3 ${isOpen || !showWelcome ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}
+                    className="pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
                 >
                     <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
                     <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
                     <button
                         onClick={() => setShowWelcome(false)}
-                        className="text-gray-400 hover:text-gray-600 ml-1"
+                        className="text-gray-400 hover:text-gray-600 ms-1"
                     >
                         <X size={14} />
                     </button>
                 </div>
-
-                {/* FR-59: Professional Flat Button */}
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'}`}
-                >
-                    {/* Icon */}
-                    <div className="relative flex items-center justify-center">
-                        <MessageSquare size={28} />
-                    </div>
-
-                    {/* Online indicator */}
-                    <span className="absolute bottom-1 right-1 flex h-3 w-3">
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
-                    </span>
-                </button>
+                )}
             </div>
 
             {/* Chat Window Container */}
             <div
                 className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
-            inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[600px] sm:max-h-[80vh]
+            inset-0 sm:inset-auto sm:bottom-6 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
+            ${language === 'ar' ? 'sm:right-4 sm:left-auto' : 'sm:left-4 sm:right-auto'}
+            ${/* Ensure no conflicting auto margins */ ''}
         `}
             >
                 {/* Header */}
@@ -298,7 +328,8 @@ const ChatBot: React.FC = () => {
                             <Trash2 size={18} />
                         </button>
                         <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1.5 rounded transition-colors">
-                            {typeof window !== 'undefined' && window.innerWidth < 640 ? <X size={20} /> : <Minimize2 size={20} />}
+                            <span className="sm:hidden"><X size={20} /></span>
+                            <span className="hidden sm:inline"><Minimize2 size={20} /></span>
                         </button>
                     </div>
                 </div>

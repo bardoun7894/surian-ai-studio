@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, Globe, Search, Moon, Sun, X, User, LayoutDashboard } from 'lucide-react';
+import { Menu, Globe, Search, Moon, Sun, X, User, LayoutDashboard, ChevronDown, Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import NotificationsDropdown from './NotificationsDropdown';
 
 interface NavbarProps {
@@ -18,36 +18,39 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const { t, toggleLanguage, language } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated, user } = useAuth();
-  const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isQuickLinksOpen, setIsQuickLinksOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+
+  const quickLinks = [
+    { icon: Scale, label: t('ql_laws'), href: '/decrees' },
+    { icon: Newspaper, label: t('ql_news'), href: '/news' },
+    { icon: Megaphone, label: t('ql_announcements'), href: '/announcements' },
+    { icon: Briefcase, label: t('ql_services'), href: '/services' },
+    { icon: MessageSquareWarning, label: t('ql_complaints'), href: '/complaints' },
+    { icon: HelpCircle, label: t('ql_faq'), href: '/faq' },
+    { icon: Phone, label: t('ql_contact'), href: '/contact' },
+    { icon: Building2, label: t('ql_about'), href: '/about' },
+  ];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!searchInput.trim()) return;
     if (onSearch) {
       onSearch(searchInput);
+    } else {
+      router.push(`/search?q=${encodeURIComponent(searchInput)}`);
     }
+    setSearchInput('');
     setIsSearchOpen(false);
   };
 
-  const navItems = [
-    { label: t('nav_home'), href: '/' },
-    { label: t('nav_directory'), href: '/services' },
-    { label: t('nav_decrees'), href: '/decrees' },
-    { label: language === 'ar' ? 'الإعلانات' : 'Announcements', href: '/announcements' },
-    { label: language === 'ar' ? 'المركز الإعلامي' : 'Media Center', href: '/media' },
-    { label: t('nav_complaints'), href: '/complaints' },
-  ];
-
-  const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
-    return pathname.startsWith(href);
-  };
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gov-forest bg-pattern-islamic shadow-lg border-b border-gov-gold/20 min-h-[5rem] md:min-h-[6rem] transition-all duration-500 flex items-center bg-[length:500px] bg-repeat bg-center bg-blend-soft-light">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gov-forest bg-pattern-islamic shadow-lg border-b border-gov-gold/20 min-h-[3.5rem] md:min-h-[4rem] transition-all duration-500 flex items-center bg-[length:500px] bg-repeat bg-center bg-blend-soft-light">
         <div className="absolute inset-0 bg-gov-forest/80 mix-blend-multiply z-0 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-2 z-10 relative">
           <div className="flex items-center justify-between flex-wrap gap-y-2">
@@ -59,30 +62,56 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 alt="Ministry Emblem"
                 width={96}
                 height={96}
-                className="h-20 md:h-24 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                className="h-12 md:h-14 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
               />
             </Link>
 
-            {/* Desktop Nav - Centered with Gold Accents */}
-            <div className="hidden lg:flex items-center gap-2 flex-wrap justify-center">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`relative px-5 py-2 text-sm font-bold transition-all duration-300 overflow-hidden group ${isActive(item.href)
-                    ? 'text-gov-gold ring-1 ring-white/10'
-                    : 'text-white/80 hover:text-white border-transparent hover:bg-white/10 rounded-lg'
-                    }`}
+            {/* Desktop Center: Inline Search + Quick Links */}
+            <div className="hidden lg:flex items-center gap-4 flex-1 mx-4 justify-center">
+              <div className="relative w-full max-w-xl">
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    className="w-full py-2 pr-10 pl-4 rtl:pl-10 rtl:pr-12 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/60 focus:bg-gov-forest focus:border-gov-gold focus:ring-1 focus:ring-gov-gold outline-none transition-all text-sm"
+                    placeholder={t('search_placeholder')}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                  <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gov-gold hover:text-white transition-colors rtl:right-auto rtl:left-1">
+                    <Search size={18} />
+                  </button>
+                </form>
+              </div>
+              <div className="relative"
+                onMouseEnter={() => setIsQuickLinksOpen(true)}
+                onMouseLeave={() => setIsQuickLinksOpen(false)}
+              >
+                <button
+                  onClick={() => setIsQuickLinksOpen(!isQuickLinksOpen)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
                 >
-                  <span className="relative z-10">{item.label}</span>
-                  {/* Active Indicator */}
-                  {isActive(item.href) && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gov-gold shadow-[0_0_10px_#b9a779]"></div>
-                  )}
-                  {/* Hover Effect */}
-                  <div className="absolute inset-0 bg-gov-forest/5 dark:bg-white/5 transform scale-y-0 origin-bottom group-hover:scale-y-100 transition-transform duration-300 -z-0"></div>
-                </Link>
-              ))}
+                  <span>{t('quick_links')}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isQuickLinksOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isQuickLinksOpen && (
+                  <div className={`absolute top-full mt-2 bg-white dark:bg-gov-charcoal rounded-xl shadow-2xl border border-gov-gold/20 py-2 w-56 animate-fade-in ${language === 'ar' ? 'right-0' : 'left-0'}`}>
+                    {quickLinks.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsQuickLinksOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gov-charcoal dark:text-white hover:bg-gov-beige/50 dark:hover:bg-white/10 transition-colors"
+                        >
+                          <Icon size={16} className="text-gov-gold flex-shrink-0" />
+                          <span>{link.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Actions */}
@@ -101,10 +130,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 hover:bg-gov-gold hover:text-white transition-colors"
+                className="lg:hidden flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-white border border-white/20 hover:bg-gov-gold hover:text-white transition-colors"
                 aria-label="Search"
               >
-                <Search size={18} />
+                <Search size={16} />
               </button>
 
               {/* Language Toggle */}
@@ -151,19 +180,22 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
         {/* Mobile Menu */}
         <div className={`lg:hidden bg-white dark:bg-gov-forest border-t border-gov-gold/20 dark:border-gov-gold/20 p-4 space-y-2 shadow-xl absolute top-full left-0 right-0 transition-all duration-300 origin-top transform ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block w-full text-right rtl:text-right ltr:text-left px-4 py-4 rounded-xl border-b border-gov-gold/10 dark:border-white/5 last:border-0 ${isActive(item.href)
-                ? 'bg-gov-beige dark:bg-gov-forest text-gov-forest dark:text-gov-gold font-bold'
-                : 'text-gov-forest dark:text-white hover:bg-gov-beige/20 dark:hover:bg-white/5'
-                }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <div className="space-y-1">
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gov-forest dark:text-white hover:bg-gov-beige/20 dark:hover:bg-white/5 transition-colors"
+                >
+                  <Icon size={18} className="text-gov-gold flex-shrink-0" />
+                  <span className="font-bold text-sm">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
           {/* Login/Dashboard Button - Mobile */}
           {isAuthenticated ? (
             <Link

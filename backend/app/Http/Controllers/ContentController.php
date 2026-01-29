@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use App\Models\User;
 
 class ContentController extends Controller
 {
@@ -57,6 +58,8 @@ class ContentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', Content::class);
+
         $validated = $request->validate([
             'title_ar' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
@@ -101,6 +104,7 @@ class ContentController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
         $content = Content::findOrFail($id);
+        $this->authorize('update', $content);
 
         $validated = $request->validate([
             'title_ar' => 'sometimes|string|max:255',
@@ -124,7 +128,8 @@ class ContentController extends Controller
     public function destroy($id): JsonResponse
     {
         $content = Content::findOrFail($id);
-        
+        $this->authorize('delete', $content);
+
         // Soft delete
         $content->status = Content::STATUS_ARCHIVED;
         $content->save();

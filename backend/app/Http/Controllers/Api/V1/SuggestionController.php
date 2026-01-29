@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Suggestion;
+use App\Notifications\SuggestionSubmitted;
 use App\Services\SuggestionService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -66,12 +67,24 @@ class SuggestionController extends Controller
                 $files
             );
 
+            // Send notification to authenticated user
+            if (auth()->check()) {
+                auth()->user()->notify(new SuggestionSubmitted($suggestion));
+            }
+
+            // FR-70: Notify staff about new suggestion
+            try {
+                $this->notificationService->notifyNewSuggestion($suggestion);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to notify staff about new suggestion: {$e->getMessage()}");
+            }
+
             // Log the action
             $this->auditService->log(
-                auth()->user(), 
-                'suggestion_submitted', 
-                'suggestion', 
-                $suggestion->id, 
+                auth()->user(),
+                'suggestion_submitted',
+                'suggestion',
+                $suggestion->id,
                 ['tracking_number' => $suggestion->tracking_number]
             );
 
@@ -159,6 +172,8 @@ class SuggestionController extends Controller
         }
 
         $suggestion = Suggestion::findOrFail($id);
+        $this->authorize('changeStatus', $suggestion);
+
         $oldStatus = $suggestion->status;
         $newStatus = $request->status;
 
@@ -209,6 +224,7 @@ class SuggestionController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $suggestion = Suggestion::findOrFail($id);
+        $this->authorize('delete', $suggestion);
 
         // Log before deletion
         $this->auditService->log(

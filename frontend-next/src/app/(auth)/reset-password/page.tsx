@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Eye, EyeOff, CheckCircle, ArrowRight, ArrowLeft, ChevronRight, ChevronLeft, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import auth from '@/lib/auth';
@@ -8,6 +8,10 @@ import { ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+
+const ResetPasswordPageWrapper = () => (
+    <Suspense><ResetPasswordPage /></Suspense>
+);
 
 const ResetPasswordPage = () => {
     const { language } = useLanguage();
@@ -211,4 +215,4 @@ const ResetPasswordPage = () => {
     );
 };
 
-export default ResetPasswordPage;
+export default ResetPasswordPageWrapper;

@@ -22,9 +22,12 @@ return [
     'allowed_origins' => array_filter([
         env('FRONTEND_URL', 'http://localhost:8080'),
         'http://localhost:3000',
+        'http://localhost:3002',
         'http://localhost:8080',
         'http://127.0.0.1:3000',
         'http://frontend-next:3000',
+        'http://91.230.110.187:3002',
+        'http://91.230.110.187:8002',
         // Production URL if different
         env('APP_URL'),
     ]),

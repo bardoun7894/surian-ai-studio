@@ -11,14 +11,22 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
+     * User passes if they have ANY of the listed permissions (OR logic).
+     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $permission): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
-        if (! $request->user() || ! $request->user()->hasPermission($permission)) {
+        if (! $request->user()) {
             return response()->json(['message' => 'Unauthorized action.'], 403);
         }
 
-        return $next($request);
+        foreach ($permissions as $permission) {
+            if ($request->user()->hasPermission($permission)) {
+                return $next($request);
+            }
+        }
+
+        return response()->json(['message' => 'Unauthorized action.'], 403);
     }
 }

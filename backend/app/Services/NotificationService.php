@@ -299,6 +299,35 @@ class NotificationService
     }
 
     /**
+     * FR-70: Notify staff when a new suggestion is submitted
+     */
+    public function notifyNewSuggestion(\App\Models\Suggestion $suggestion): void
+    {
+        // Get staff users (admins see all suggestions)
+        $staffUsers = User::whereHas('role', function ($query) {
+            $query->whereIn('name', ['staff', 'admin.general', 'admin.super']);
+        })->get();
+
+        if ($staffUsers->isEmpty()) {
+            Log::warning("No staff users found for new suggestion notification");
+            return;
+        }
+
+        $title = 'اقتراح جديد';
+        $body = "تم استلام اقتراح جديد برقم {$suggestion->tracking_number} من {$suggestion->name}";
+
+        $data = [
+            'suggestion_id' => $suggestion->id,
+            'tracking_number' => $suggestion->tracking_number,
+            'name' => $suggestion->name,
+        ];
+
+        $this->notifyMany($staffUsers->all(), 'suggestion_new', $title, $body, $data);
+
+        Log::info("Notified {$staffUsers->count()} staff members about new suggestion #{$suggestion->tracking_number}");
+    }
+
+    /**
      * T-SRS2-11: Notify suggestion submitter about status change
      * FR-55: Notification when suggestion status changes
      */
@@ -340,7 +369,29 @@ class NotificationService
             }
         }
 
-        // TODO: Send email notification to suggestion email
+        // Send email notification to suggestion email (even for anonymous submissions)
+        if ($suggestion->email) {
+            try {
+                $title = 'تحديث حالة الاقتراح';
+                $body = "تم تغيير حالة اقتراحك رقم {$suggestion->tracking_number} من \"{$oldLabel}\" إلى \"{$newLabel}\"";
+                $actionUrl = url('/suggestions/track?id=' . $suggestion->tracking_number);
+
+                Mail::to($suggestion->email)->send(new NotificationMail(
+                    $title,
+                    $body,
+                    [
+                        'tracking_number' => $suggestion->tracking_number,
+                        'new_status' => $newStatus,
+                        'response' => $suggestion->response,
+                    ],
+                    $actionUrl
+                ));
+                Log::info("Suggestion status email sent to {$suggestion->email}");
+            } catch (\Exception $e) {
+                Log::error("Failed to send suggestion status email to {$suggestion->email}: {$e->getMessage()}");
+            }
+        }
+
         Log::info("Suggestion #{$suggestion->tracking_number} status changed from {$oldStatus} to {$newStatus}");
     }
 }

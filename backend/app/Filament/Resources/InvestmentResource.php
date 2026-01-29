@@ -18,7 +18,7 @@ class InvestmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
-    protected static ?string $navigationGroup = 'Investment Portal';
+    protected static ?string $navigationGroup = 'إدارة المحتوى';
 
     protected static ?int $navigationSort = 1;
 

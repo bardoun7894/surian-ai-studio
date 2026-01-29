@@ -50,12 +50,15 @@ const LoginPage = () => {
             else if (loginMethod === 'phone') loginIdentifier = formData.phone;
             else loginIdentifier = formData.nationalId;
 
-            await login({
-                email: loginIdentifier, // Adjust backend to accept diverse identifiers if needed
+            const response = await login({
+                email: loginIdentifier,
                 password: formData.password
             });
 
-            router.push('/dashboard');
+            if (!response.require_2fa) {
+                window.location.href = '/dashboard';
+                return;
+            }
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);

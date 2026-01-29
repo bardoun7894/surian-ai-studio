@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, Network } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { API } from '@/lib/repository';
 import Link from 'next/link';
 import Image from 'next/image';
 import NewsletterSignup from './NewsletterSignup';
@@ -19,9 +20,22 @@ const Footer: React.FC<FooterProps> = ({
   onToggleContrast
 }) => {
   const { t, language } = useLanguage();
+  const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    API.settings.getByGroup('contact')
+      .then(data => setContactInfo(data as Record<string, string>))
+      .catch(() => {});
+  }, []);
+
+  const phone = contactInfo.contact_phone || '19999';
+  const email = contactInfo.contact_email || 'info@moe.gov.sy';
+  const address = language === 'en' && contactInfo.contact_address_en
+    ? contactInfo.contact_address_en
+    : (contactInfo.contact_address_ar || t('damascus_address'));
 
   return (
-    <footer className="bg-white dark:bg-gov-forest text-gov-forest dark:text-white pt-20 pb-8 border-t-4 border-gov-gold relative overflow-hidden transition-colors duration-500">
+    <footer className="bg-white dark:bg-gov-forest text-gov-forest dark:text-white pt-14 md:pt-16 pb-8 border-t-4 border-gov-gold relative overflow-hidden transition-colors duration-500">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
 
@@ -74,16 +88,16 @@ const Footer: React.FC<FooterProps> = ({
                 <Phone size={16} className="text-gov-gold mt-1" />
                 <div>
                   <span className="block text-xs text-gov-gold/70">{t('contact_center')}</span>
-                  <span className="font-bold text-gov-forest dark:text-white text-lg transition-colors">19999</span>
+                  <span className="font-bold text-gov-forest dark:text-white text-lg transition-colors">{phone}</span>
                 </div>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-gov-gold" />
-                <span>info@moe.gov.sy</span>
+                <span>{email}</span>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-gov-gold mt-1" />
-                <span>{t('damascus_address')}</span>
+                <span>{address}</span>
               </li>
             </ul>
           </div>
@@ -134,6 +148,14 @@ const Footer: React.FC<FooterProps> = ({
         <div className="pt-8 border-t border-gov-gold/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gov-stone dark:text-gov-beige/50 font-light transition-colors">{t('copyright')}</p>
           <div className="flex items-center gap-4">
+            <Link href="/privacy-policy" className="text-xs text-gov-stone dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
+              {t('footer_privacy')}
+            </Link>
+            <span className="text-gov-gold/30">|</span>
+            <Link href="/terms" className="text-xs text-gov-stone dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
+              {t('footer_terms')}
+            </Link>
+            <span className="text-gov-gold/30">|</span>
             <Image
               src="/assets/logo/Asset-14@3x.png"
               width={32}

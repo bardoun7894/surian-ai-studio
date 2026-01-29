@@ -22,6 +22,8 @@ class UserController extends Controller
     // Admin: List All Users with Filters
     public function index(Request $request)
     {
+        $this->authorize('viewAny', User::class);
+
         $query = User::with(['role', 'directorate']);
 
         // Filter by role
@@ -81,6 +83,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $this->authorize('update', $user);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -116,8 +119,8 @@ class UserController extends Controller
     // Admin: Create Employee
     public function store(Request $request)
     {
-        // Permission check is handled by middleware on routes
-        
+        $this->authorize('create', User::class);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -200,6 +203,7 @@ class UserController extends Controller
     public function toggleStatus(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $this->authorize('toggleActive', $user);
 
         // Prevent self-lockout
         if ($user->id === $request->user()->id) {

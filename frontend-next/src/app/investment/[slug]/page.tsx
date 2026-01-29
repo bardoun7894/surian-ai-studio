@@ -251,7 +251,7 @@ export default function InvestmentCategoryPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
                 <Navbar />
-                <main className="flex-grow pt-20 flex items-center justify-center">
+                <main className="flex-grow pt-14 md:pt-16 flex items-center justify-center">
                     <div className="text-center">
                         <h1 className="text-4xl font-bold text-gov-forest dark:text-white mb-4">
                             {language === 'ar' ? 'الصفحة غير موجودة' : 'Page Not Found'}
@@ -539,7 +539,7 @@ export default function InvestmentCategoryPage() {
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
             <Navbar />
-            <main className="flex-grow pt-20">
+            <main className="flex-grow pt-14 md:pt-16">
                 {/* Hero Section */}
                 <div className={`bg-gradient-to-br ${categoryMeta.color} text-white py-20 px-4 relative overflow-hidden`}>
                     <div className="absolute inset-0 opacity-10">

@@ -19,6 +19,7 @@ class ContentSeeder extends Seeder
         $this->seedDecrees();
         $this->seedServices();
         $this->seedMedia();
+        $this->seedOpenData();
     }
 
     private function seedNews(): void
@@ -44,23 +45,77 @@ class ContentSeeder extends Seeder
                     'category_label' => 'استراتيجية'
                 ],
             ],
-            // Breaking/Urgent News - d1 (Industry)
+            // Central/Minister News (no directorate_id)
             [
-                'title_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة',
-                'title_en' => 'Damascus International Fair Opens with Over 40 Countries Participating',
-                'content_ar' => 'افتتح السيد الوزير معرض دمشق الدولي في دورته الجديدة بمشاركة أكثر من 40 دولة و1500 شركة محلية ودولية. يستمر المعرض لمدة عشرة أيام ويضم أجنحة متخصصة في الصناعة والتجارة والتكنولوجيا.',
-                'content_en' => 'The Minister inaugurated the Damascus International Fair with over 40 countries and 1500 companies participating.',
-                'seo_description_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة و1500 شركة.',
+                'title_ar' => 'وزير الاقتصاد يبحث تعزيز العلاقات التجارية مع الوفد الصيني',
+                'title_en' => 'Economy Minister Discusses Strengthening Trade Relations with Chinese Delegation',
+                'content_ar' => 'استقبل السيد وزير الاقتصاد والصناعة وفداً تجارياً صينياً رفيع المستوى لبحث سبل تعزيز العلاقات التجارية والاستثمارية بين البلدين. تناول اللقاء فرص الاستثمار في القطاعات الصناعية والتكنولوجية وإمكانية إقامة مشاريع مشتركة.',
+                'content_en' => 'The Minister of Economy and Industry received a high-level Chinese trade delegation to discuss strengthening trade and investment relations between the two countries.',
+                'seo_description_ar' => 'وزير الاقتصاد يبحث تعزيز العلاقات التجارية مع الوفد الصيني.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 9,
                 'published_at' => now()->subDays(2),
                 'metadata' => [
-                    'directorate_id' => 'd1',
                     'image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
-                    'category_label' => 'معارض',
-                    'is_breaking' => true
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '4 دقائق',
+                    'category_label' => 'علاقات دولية',
+                ],
+            ],
+            [
+                'title_ar' => 'مجلس الوزراء يوافق على خطة إعادة هيكلة الوزارة',
+                'title_en' => 'Cabinet Approves Ministry Restructuring Plan',
+                'content_ar' => 'وافق مجلس الوزراء على خطة إعادة هيكلة وزارة الاقتصاد والصناعة بما يتوافق مع متطلبات المرحلة القادمة. تتضمن الخطة تحديث الهيكل التنظيمي وتطوير آليات العمل وتعزيز الحوكمة الرقمية.',
+                'content_en' => 'The Cabinet approved the restructuring plan for the Ministry of Economy and Industry in line with upcoming phase requirements.',
+                'seo_description_ar' => 'مجلس الوزراء يوافق على خطة إعادة هيكلة وزارة الاقتصاد والصناعة.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 9,
+                'published_at' => now()->subDays(3)->addHours(6),
+                'metadata' => [
+                    'image' => 'https://images.unsplash.com/photo-1577415124269-fc1140815e4f?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '3 دقائق',
+                    'category_label' => 'حكومة',
+                ],
+            ],
+            [
+                'title_ar' => 'الوزير يفتتح مؤتمر التنمية الاقتصادية المستدامة',
+                'title_en' => 'Minister Opens Sustainable Economic Development Conference',
+                'content_ar' => 'افتتح السيد الوزير مؤتمر التنمية الاقتصادية المستدامة بمشاركة خبراء محليين ودوليين. ناقش المؤتمر استراتيجيات التنويع الاقتصادي وتعزيز الاستدامة في القطاعات الإنتاجية.',
+                'content_en' => 'The Minister opened the Sustainable Economic Development Conference with participation from local and international experts.',
+                'seo_description_ar' => 'الوزير يفتتح مؤتمر التنمية الاقتصادية المستدامة بمشاركة خبراء دوليين.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 8,
+                'published_at' => now()->subDays(4)->addHours(3),
+                'metadata' => [
+                    'image' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '5 دقائق',
+                    'category_label' => 'مؤتمرات',
+                ],
+            ],
+            [
+                'title_ar' => 'تقرير أداء الوزارة للربع الأول 2026',
+                'title_en' => 'Ministry Performance Report for Q1 2026',
+                'content_ar' => 'أصدرت الوزارة تقرير الأداء للربع الأول من عام 2026 والذي يظهر نمواً في الإنتاج الصناعي بنسبة 12% وزيادة في حجم الصادرات بنسبة 8%. كما تضمن التقرير إنجازات الوزارة في مجال الخدمات الإلكترونية.',
+                'content_en' => 'The Ministry released its Q1 2026 performance report showing 12% growth in industrial production and 8% increase in exports.',
+                'seo_description_ar' => 'تقرير أداء وزارة الاقتصاد والصناعة للربع الأول 2026.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 7,
+                'published_at' => now()->subDays(5)->addHours(2),
+                'metadata' => [
+                    'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '6 دقائق',
+                    'category_label' => 'تقارير',
                 ],
             ],
             // d2 (Economy) - SME news
@@ -219,6 +274,26 @@ class ContentSeeder extends Seeder
                     'category_label' => 'ريادة أعمال'
                 ],
             ],
+            // d2 (Economy) - Damascus Fair
+            [
+                'title_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة',
+                'title_en' => 'Damascus International Fair Opens with Over 40 Countries Participating',
+                'content_ar' => 'افتتح السيد الوزير معرض دمشق الدولي في دورته الجديدة بمشاركة أكثر من 40 دولة و1500 شركة محلية ودولية. يستمر المعرض لمدة عشرة أيام ويضم أجنحة متخصصة في الصناعة والتجارة والتكنولوجيا.',
+                'content_en' => 'The Minister inaugurated the Damascus International Fair with over 40 countries and 1500 companies participating.',
+                'seo_description_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة و1500 شركة.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 7,
+                'published_at' => now()->subDays(11),
+                'metadata' => [
+                    'directorate_id' => 'd2',
+                    'image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للاقتصاد',
+                    'read_time' => '4 دقائق',
+                    'category_label' => 'معارض',
+                ],
+            ],
             // d3 (Internal Trade & Consumer Protection) - Additional news
             [
                 'title_ar' => 'تسجيل علامات تجارية جديدة لمنتجات سورية',
@@ -237,6 +312,26 @@ class ContentSeeder extends Seeder
                     'author' => 'الإدارة العامة للتجارة الداخلية',
                     'read_time' => '2 دقائق',
                     'category_label' => 'علامات تجارية'
+                ],
+            ],
+            // d3 (Internal Trade & Consumer Protection) - Consumer App
+            [
+                'title_ar' => 'إطلاق تطبيق حماية المستهلك الإلكتروني',
+                'title_en' => 'Launch of Electronic Consumer Protection App',
+                'content_ar' => 'أطلقت الإدارة العامة للتجارة الداخلية وحماية المستهلك تطبيقاً إلكترونياً جديداً يتيح للمواطنين تقديم شكاوى المستهلكين ومتابعتها والاطلاع على نشرات الأسعار الرسمية بشكل فوري. التطبيق متاح على أندرويد وآيفون.',
+                'content_en' => 'The General Administration for Internal Trade and Consumer Protection launched a new app enabling citizens to file consumer complaints, track them, and view official price bulletins.',
+                'seo_description_ar' => 'إطلاق تطبيق حماية المستهلك الإلكتروني لتقديم الشكاوى ومتابعة الأسعار.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 6,
+                'published_at' => now()->subDays(13),
+                'metadata' => [
+                    'directorate_id' => 'd3',
+                    'image' => 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=800',
+                    'author' => 'الإدارة العامة للتجارة الداخلية',
+                    'read_time' => '3 دقائق',
+                    'category_label' => 'خدمات إلكترونية'
                 ],
             ],
         ];
@@ -571,6 +666,89 @@ class ContentSeeder extends Seeder
         ];
 
         foreach ($media as $item) {
+            $item['slug'] = Str::slug($item['title_en'] . '-' . uniqid());
+            Content::create($item);
+        }
+    }
+
+    private function seedOpenData(): void
+    {
+        $datasets = [
+            [
+                'title_ar' => 'الموازنة العامة للدولة 2026',
+                'title_en' => 'State General Budget 2026',
+                'content_ar' => 'بيانات تفصيلية حول الموازنة العامة، الإيرادات والنفقات الحكومية للعام المالي 2026.',
+                'content_en' => 'Detailed data on the general budget, government revenues and expenditures for the fiscal year 2026.',
+                'seo_description_ar' => 'بيانات تفصيلية حول الموازنة العامة، الإيرادات والنفقات الحكومية للعام المالي 2026.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(10),
+                'metadata' => ['format' => 'XLSX', 'size' => '2.4 MB', 'category_label' => 'المالية'],
+            ],
+            [
+                'title_ar' => 'إحصائيات التجارة الخارجية',
+                'title_en' => 'Foreign Trade Statistics',
+                'content_ar' => 'بيانات الصادرات والواردات حسب القطاع والبلد للفترة 2023-2025.',
+                'content_en' => 'Export and import data by sector and country for the period 2023-2025.',
+                'seo_description_ar' => 'بيانات الصادرات والواردات حسب القطاع والبلد للفترة 2023-2025.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(20),
+                'metadata' => ['format' => 'CSV', 'size' => '15 MB', 'category_label' => 'الاقتصاد'],
+            ],
+            [
+                'title_ar' => 'دليل الجهات الحكومية',
+                'title_en' => 'Government Agencies Directory',
+                'content_ar' => 'قائمة شاملة بجميع الوزارات والهيئات الحكومية مع بيانات الاتصال والمواقع الجغرافية.',
+                'content_en' => 'A comprehensive list of all ministries and government agencies with contact details and locations.',
+                'seo_description_ar' => 'قائمة شاملة بجميع الوزارات والهيئات الحكومية مع بيانات الاتصال.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(30),
+                'metadata' => ['format' => 'JSON', 'size' => '450 KB', 'category_label' => 'حكومة'],
+            ],
+            [
+                'title_ar' => 'مؤشرات التنمية الصناعية',
+                'title_en' => 'Industrial Development Indicators',
+                'content_ar' => 'المؤشرات الرئيسية للقطاع الصناعي، عدد المنشآت، وفرص العمل.',
+                'content_en' => 'Key indicators of the industrial sector, number of establishments, and job opportunities.',
+                'seo_description_ar' => 'المؤشرات الرئيسية للقطاع الصناعي، عدد المنشآت، وفرص العمل.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(45),
+                'metadata' => ['format' => 'PDF', 'size' => '5.1 MB', 'category_label' => 'صناعة'],
+            ],
+            [
+                'title_ar' => 'تقرير المشاريع الصغيرة والمتوسطة',
+                'title_en' => 'SME Report',
+                'content_ar' => 'تقرير شامل عن قطاع المشاريع الصغيرة والمتوسطة مع إحصائيات التمويل والتوظيف.',
+                'content_en' => 'Comprehensive report on the SME sector with financing and employment statistics.',
+                'seo_description_ar' => 'تقرير شامل عن قطاع المشاريع الصغيرة والمتوسطة.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(60),
+                'metadata' => ['format' => 'XLSX', 'size' => '3.8 MB', 'category_label' => 'الاقتصاد'],
+            ],
+            [
+                'title_ar' => 'إحصائيات حماية المستهلك',
+                'title_en' => 'Consumer Protection Statistics',
+                'content_ar' => 'بيانات الشكاوى والمخالفات التموينية والرقابة على الأسواق للعام 2025.',
+                'content_en' => 'Consumer complaints, supply violations, and market control data for 2025.',
+                'seo_description_ar' => 'بيانات الشكاوى والمخالفات التموينية والرقابة على الأسواق.',
+                'category' => 'open_data',
+                'status' => 'published',
+                'priority' => 5,
+                'published_at' => now()->subDays(75),
+                'metadata' => ['format' => 'CSV', 'size' => '1.2 MB', 'category_label' => 'حماية المستهلك'],
+            ],
+        ];
+
+        foreach ($datasets as $item) {
             $item['slug'] = Str::slug($item['title_en'] . '-' . uniqid());
             Content::create($item);
         }

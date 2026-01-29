@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
 import { Building2, FileText, Scale, ArrowRight, ShieldCheck, Landmark, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,8 +11,34 @@ interface HeroSectionProps {
   hasBreakingNews?: boolean;
 }
 
+// Generate particle styles only once on client side to avoid hydration mismatch
+interface ParticleStyle {
+  width: string;
+  height: string;
+  left: string;
+  top: string;
+  animationDuration: string;
+  animationDelay: string;
+  opacity: number;
+}
+
 const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) => {
   const { t, language, direction } = useLanguage();
+  const [particles, setParticles] = useState<ParticleStyle[]>([]);
+
+  // Generate particles only on client side
+  useEffect(() => {
+    const generated = [...Array(20)].map(() => ({
+      width: Math.random() * 6 + 2 + 'px',
+      height: Math.random() * 6 + 2 + 'px',
+      left: Math.random() * 100 + '%',
+      top: Math.random() * 100 + '%',
+      animationDuration: Math.random() * 10 + 10 + 's',
+      animationDelay: Math.random() * 5 + 's',
+      opacity: Math.random() * 0.5 + 0.1
+    }));
+    setParticles(generated);
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const eagleRef = useRef<HTMLDivElement>(null);
   const eagleContentRef = useRef<HTMLDivElement>(null);
@@ -209,27 +235,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
   }, []);
 
   return (
-    <section ref={containerRef} className={`relative pt-12 pb-8 md:pt-24 md:pb-16 overflow-hidden bg-gov-beige dark:bg-gov-forest ${hasBreakingNews ? 'min-h-[45vh]' : 'min-h-[55vh]'} md:min-h-[80vh] flex items-center justify-center transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-6 pb-6 md:pt-12 md:pb-10 overflow-hidden bg-gov-beige dark:bg-gov-forest ${hasBreakingNews ? 'min-h-[45vh]' : 'min-h-[55vh]'} md:min-h-[80vh] flex items-center justify-center transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-forest/80 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
 
-      {/* Animated Particles Layer */}
+      {/* Animated Particles Layer - rendered only on client to avoid hydration mismatch */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle, i) => (
           <div
             key={i}
             className="absolute bg-gov-gold/20 rounded-full animate-float-particle"
-            style={{
-              width: Math.random() * 6 + 2 + 'px',
-              height: Math.random() * 6 + 2 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animationDuration: Math.random() * 10 + 10 + 's',
-              animationDelay: Math.random() * 5 + 's',
-              opacity: Math.random() * 0.5 + 0.1
-            }}
+            style={particle}
           ></div>
         ))}
         {/* Connection Lines (SVGs) */}
@@ -327,7 +345,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
             </Link>
 
             <Link
-              href="/proposals"
+              href="/suggestions"
               className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-charcoal text-white font-bold text-base hover:bg-gov-forest transition-all shadow-md flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
               style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
             >
@@ -354,36 +372,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
               <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
             </div>
 
-          </div>
-          <div className="animate-stat text-center group cursor-default">
-            <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-              <FileText size={16} className="md:w-[20px] md:h-[20px]" />
+            <div className="animate-stat text-center group cursor-default">
+              <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                <FileText size={16} className="md:w-[20px] md:h-[20px]" />
+              </div>
+              <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
+              <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
             </div>
-            <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
-            <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
           </div>
         </div>
 
-        {/* Smart Assistant Card (Floating) */}
-        <div className="hidden lg:block absolute -right-20 lg:-right-32 top-1/2 -translate-y-1/2 animate-float-slow z-30">
-          <div className="bg-white/90 dark:bg-gov-forest/90 backdrop-blur border border-gov-gold/30 rounded-2xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.1)] w-64 transform rotate-2 hover:rotate-0 transition-transform duration-300">
-            <div className="flex items-center gap-3 mb-3 border-b border-gray-100 dark:border-white/10 pb-2">
-              <div className="w-10 h-10 rounded-full bg-gov-gold/20 flex items-center justify-center text-gov-gold animate-pulse">
-                <Sparkles size={20} />
-              </div>
-              <div>
-                <h3 className="font-bold text-gov-forest dark:text-white text-sm">{language === 'ar' ? 'المساعد الذكي' : 'Smart Assistant'}</h3>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">Online</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">
-              {language === 'ar' ? 'كيف يمكنني مساعدتك في خدمات الوزارة اليوم؟' : 'How can I assist you with ministry services today?'}
-            </p>
-            <button className="w-full py-2 bg-gov-teal text-white text-xs font-bold rounded-lg hover:bg-gov-emerald transition-colors">
-              {language === 'ar' ? 'ابدأ المحادثة' : 'Start Chat'}
-            </button>
-          </div>
-        </div>
+
 
       </div>
     </section>

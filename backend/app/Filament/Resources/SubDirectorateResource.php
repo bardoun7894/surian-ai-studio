@@ -14,9 +14,32 @@ class SubDirectorateResource extends Resource
 {
     protected static ?string $model = SubDirectorate::class;
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('directorates.view') || $user?->hasPermission('directorates.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasRole('super_admin') || $user?->hasPermission('directorates.manage') || $user?->hasPermission('directorates.*');
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasRole('super_admin') || $user?->hasPermission('directorates.manage') || $user?->hasPermission('directorates.*');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static ?string $navigationGroup = 'System Configuration';
+    protected static ?string $navigationGroup = 'إدارة النظام';
 
     protected static ?int $navigationSort = 2;
 

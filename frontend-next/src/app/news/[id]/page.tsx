@@ -65,7 +65,7 @@ export default function NewsDetailPage({ params }: { params: { id: string } }) {
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
             <Navbar />
-            <main className="flex-grow pt-20">
+            <main className="flex-grow pt-14 md:pt-16">
                 <ArticleDetail
                     title={news.title}
                     date={news.date}

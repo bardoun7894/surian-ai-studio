@@ -30,6 +30,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/repository';
+import AIContentTools from '@/components/AIContentTools';
 
 interface ContentItem {
   id: number;
@@ -568,6 +569,16 @@ export default function ContentManagementPage() {
                     onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
+                  {/* FR-14: AI Content Tools for Arabic content */}
+                  <AIContentTools
+                    content={formData.content_ar}
+                    onAcceptProofread={(text) => setFormData({ ...formData, content_ar: text })}
+                    onAcceptTitle={(title) => setFormData({ ...formData, title_ar: title })}
+                    onAcceptSummary={(summary) => {
+                      alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
+                    }}
+                    className="mt-3"
+                  />
                 </div>
               </div>
 
@@ -776,6 +787,16 @@ export default function ContentManagementPage() {
                     value={formData.content_ar}
                     onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  />
+                  {/* FR-14: AI Content Tools for Arabic content */}
+                  <AIContentTools
+                    content={formData.content_ar}
+                    onAcceptProofread={(text) => setFormData({ ...formData, content_ar: text })}
+                    onAcceptTitle={(title) => setFormData({ ...formData, title_ar: title })}
+                    onAcceptSummary={(summary) => {
+                      alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
+                    }}
+                    className="mt-3"
                   />
                 </div>
               </div>

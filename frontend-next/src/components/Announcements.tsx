@@ -13,142 +13,6 @@ interface Announcement {
     description: string;
 }
 
-const MOCK_ANNOUNCEMENTS_AR: Announcement[] = [
-    {
-        id: '1',
-        title: 'مناقصة عامة لتوريد معدات صناعية للمناطق الصناعية',
-        date: '2025-01-12',
-        type: 'important',
-        description: 'تعلن وزارة الاقتصاد والصناعة عن مناقصة عامة لتوريد معدات صناعية للمناطق الصناعية'
-    },
-    {
-        id: '2',
-        title: 'تمديد مهلة التقديم على برنامج تمويل المشاريع الصغيرة',
-        date: '2025-01-10',
-        type: 'urgent',
-        description: 'تم تمديد مهلة التقديم على برنامج تمويل المشاريع الصغيرة والمتوسطة حتى نهاية الشهر'
-    },
-    {
-        id: '3',
-        title: 'دورة تدريبية في إدارة الجودة الصناعية',
-        date: '2025-01-08',
-        type: 'general',
-        description: 'تعلن الإدارة العامة للصناعة عن دورة تدريبية مجانية في إدارة الجودة للمنشآت الصناعية'
-    },
-    {
-        id: '4',
-        title: 'تحديث منصة التراخيص الصناعية الإلكترونية',
-        date: '2025-01-05',
-        type: 'important',
-        description: 'سيتم تحديث منصة التراخيص الصناعية الإلكترونية يوم السبت القادم'
-    },
-    {
-        id: '5',
-        title: 'فرص عمل جديدة في القطاع الصناعي',
-        date: '2025-01-03',
-        type: 'general',
-        description: 'إعلان عن فرص عمل في المناطق الصناعية تشمل: مهندسين صناعيين، فنيين، إداريين'
-    },
-    {
-        id: '6',
-        title: 'افتتاح مركز خدمات المستثمرين الجديد',
-        date: '2025-01-02',
-        type: 'important',
-        description: 'يسرنا الإعلان عن افتتاح مركز خدمات المستثمرين الجديد في محافظة دمشق'
-    },
-    {
-        id: '7',
-        title: 'إطلاق بوابة وزارة الاقتصاد والصناعة الإلكترونية',
-        date: '2025-01-01',
-        type: 'urgent',
-        description: 'تم إطلاق النسخة الجديدة من بوابة الوزارة بمزايا محسنة وخدمات إلكترونية متكاملة'
-    },
-    {
-        id: '8',
-        title: 'ورشة عمل حول تطوير القطاع الصناعي',
-        date: '2024-12-28',
-        type: 'general',
-        description: 'دعوة للمشاركة في ورشة عمل حول استراتيجية تطوير القطاع الصناعي في سوريا'
-    },
-    {
-        id: '9',
-        title: 'إعلان نتائج مسابقة أفضل منتج صناعي سوري',
-        date: '2024-12-25',
-        type: 'important',
-        description: 'تم الإعلان عن نتائج مسابقة أفضل منتج صناعي سوري. يمكن للمشاركين الاطلاع على النتائج'
-    }
-];
-
-const MOCK_ANNOUNCEMENTS_EN: Announcement[] = [
-    {
-        id: '1',
-        title: 'Tender for industrial equipment supply to industrial zones',
-        date: '2025-01-12',
-        type: 'important',
-        description: 'Ministry of Economy and Industry announces a general tender for supplying industrial equipment'
-    },
-    {
-        id: '2',
-        title: 'SME financing program deadline extended',
-        date: '2025-01-10',
-        type: 'urgent',
-        description: 'The deadline for SME financing program applications has been extended until the end of the month'
-    },
-    {
-        id: '3',
-        title: 'Free training course in industrial quality management',
-        date: '2025-01-08',
-        type: 'general',
-        description: 'General Administration for Industry announces a free training course in quality management for industrial facilities'
-    },
-    {
-        id: '4',
-        title: 'Industrial licensing platform update',
-        date: '2025-01-05',
-        type: 'important',
-        description: 'The electronic industrial licensing platform will be updated next Saturday'
-    },
-    {
-        id: '5',
-        title: 'New job opportunities in the industrial sector',
-        date: '2025-01-03',
-        type: 'general',
-        description: 'Job opportunities in industrial zones including: industrial engineers, technicians, administrators'
-    },
-    {
-        id: '6',
-        title: 'New Investor Services Center Opening',
-        date: '2025-01-02',
-        type: 'important',
-        description: 'We are pleased to announce the opening of a new Investor Services Center in Damascus'
-    },
-    {
-        id: '7',
-        title: 'Ministry of Economy and Industry Portal Launch',
-        date: '2025-01-01',
-        type: 'urgent',
-        description: 'The new Ministry portal has been launched with improved features and integrated e-services'
-    },
-    {
-        id: '8',
-        title: 'Industrial Sector Development Workshop',
-        date: '2024-12-28',
-        type: 'general',
-        description: 'Invitation to participate in a workshop on industrial sector development strategy in Syria'
-    },
-    {
-        id: '9',
-        title: 'Best Syrian Industrial Product Competition Results',
-        date: '2024-12-25',
-        type: 'important',
-        description: 'Results of the Best Syrian Industrial Product competition announced. Participants can view results'
-    }
-];
-
-const getAnnouncements = (language: 'ar' | 'en'): Announcement[] => {
-    return language === 'ar' ? MOCK_ANNOUNCEMENTS_AR : MOCK_ANNOUNCEMENTS_EN;
-};
-
 const Announcements: React.FC = () => {
     const { t, language } = useLanguage();
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -167,11 +31,10 @@ const Announcements: React.FC = () => {
                     type: (item.is_urgent ? 'urgent' : (item.is_important ? 'important' : 'general')) as 'urgent' | 'important' | 'general',
                     description: language === 'ar' ? (item.description_ar || item.description || item.content_ar) : (item.description_en || item.description || item.content_en)
                 }));
-                setAnnouncements(mapped.length > 0 ? mapped : getAnnouncements(language).slice(0, 9));
+                setAnnouncements(mapped);
             } catch (error) {
                 console.error('Failed to fetch announcements:', error);
-                // Fallback to mock data
-                setAnnouncements(getAnnouncements(language).slice(0, 9));
+                setAnnouncements([]);
             } finally {
                 setLoading(false);
             }

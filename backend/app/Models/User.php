@@ -18,10 +18,9 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        $adminRoles = ['super_admin', 'content_admin', 'complaint_admin', 'admin'];
         return $this->is_active &&
                $this->role &&
-               in_array($this->role->name, $adminRoles);
+               $this->hasPermission('admin.panel');
     }
 
     /**
@@ -101,7 +100,7 @@ class User extends Authenticatable implements FilamentUser
             return false;
         }
 
-        $permissions = json_decode($this->role->permissions, true) ?? [];
+        $permissions = $this->role->permissions ?? [];
 
         if (in_array('*', $permissions)) {
             return true;

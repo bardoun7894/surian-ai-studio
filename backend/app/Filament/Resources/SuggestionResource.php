@@ -17,7 +17,7 @@ class SuggestionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
 
-    protected static ?string $navigationGroup = 'Content Management';
+    protected static ?string $navigationGroup = 'إدارة المحتوى';
 
     protected static ?int $navigationSort = 5;
 
@@ -126,10 +126,22 @@ class SuggestionResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && !$user->hasRole('super_admin') && $user->directorate_id) {
+            $query->where('directorate_id', $user->directorate_id);
+        }
+
+        return $query;
+    }
+
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\SuggestionResource\RelationManagers\AttachmentsRelationManager::class,
         ];
     }
 

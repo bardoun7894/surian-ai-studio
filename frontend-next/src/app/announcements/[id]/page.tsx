@@ -64,7 +64,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
             <Navbar />
-            <main className="flex-grow pt-20">
+            <main className="flex-grow pt-14 md:pt-16">
                 <ArticleDetail
                     title={announcement.title}
                     date={announcement.date}

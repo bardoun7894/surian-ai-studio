@@ -62,7 +62,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
       { x: 0 },
       {
         x: -contentWidth,
-        duration: 40, // Slower for readability
+        duration: 50, // Slower for readability
         ease: "none",
       }
     );
@@ -95,21 +95,20 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
 
   return (
     <div
-      className="bg-gov-charcoal text-white border-b border-gov-gold/20 relative overflow-hidden h-12 flex items-center"
+      className="bg-gradient-to-r from-gov-forest via-gov-teal to-gov-forest text-white border-b border-gov-gold/20 relative overflow-hidden h-16 flex items-center"
       ref={tickerRef}
     >
-      <div className="absolute right-0 top-0 bottom-0 bg-gov-emerald px-6 z-20 flex items-center font-bold shadow-lg">
-        <span className="ml-2 w-2 h-2 bg-gov-cherry rounded-full animate-pulse shadow-[0_0_8px_rgba(200,16,46,0.6)]"></span>
-        {t('news_breaking')}
+      <div className="absolute right-0 top-0 bottom-0 bg-gov-teal px-6 z-20 flex items-center font-bold shadow-lg border-l border-gov-gold/20 rtl:border-l-0 rtl:border-r rtl:border-gov-gold/20">
+        <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2.5 h-2.5 bg-gov-cherry rounded-full animate-pulse shadow-[0_0_12px_rgba(200,16,46,0.7)]"></span>
+        <span className="text-base">{t('news_breaking')}</span>
       </div>
 
-      <div className="flex-1 overflow-hidden relative h-full" ref={tickerRef}>
-        <div ref={contentRef} className="absolute top-0 right-0 h-full flex items-center whitespace-nowrap gap-16 pr-[150px]">
-          {/* Triplicate array for seamless loop */}
+      <div className="flex-1 overflow-hidden relative h-full">
+        <div ref={contentRef} className="absolute top-0 right-0 h-full flex items-center whitespace-nowrap gap-16 pr-[160px]">
           {[...breakingNews, ...breakingNews, ...breakingNews].map((news, idx) => (
-            <div key={`${idx}-${news.title_ar.slice(0, 10)}`} className="flex items-center gap-4 text-sm text-gov-beige/80">
-              <span>{getTitle(news)}</span>
-              <span className="text-gov-gold text-xs">●</span>
+            <div key={`${idx}-${news.title_ar.slice(0, 10)}`} className="flex items-center gap-4 text-base text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
+              <span className="font-medium">{getTitle(news)}</span>
+              <span className="text-gov-gold text-sm">●</span>
             </div>
           ))}
         </div>

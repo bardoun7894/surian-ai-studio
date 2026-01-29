@@ -7,6 +7,7 @@ use App\Models\SystemSetting;
 use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class SettingsController extends Controller
@@ -33,6 +34,23 @@ class SettingsController extends Controller
     public function getUiSettings(): JsonResponse
     {
         $settings = SystemSetting::where('group', 'ui')
+            ->where('is_public', true)
+            ->get()
+            ->mapWithKeys(function ($setting) {
+                return [$setting->key => $setting->getTypedValue()];
+            });
+
+        return response()->json([
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
+     * Get public settings by group (e.g. contact, about)
+     */
+    public function getPublicSettingsByGroup(string $group): JsonResponse
+    {
+        $settings = SystemSetting::where('group', $group)
             ->where('is_public', true)
             ->get()
             ->mapWithKeys(function ($setting) {
@@ -119,6 +137,8 @@ class SettingsController extends Controller
      */
     public function update(Request $request, string $key): JsonResponse
     {
+        Gate::authorize('update', SystemSetting::class);
+
         $setting = SystemSetting::where('key', $key)->first();
 
         if (!$setting) {
@@ -241,6 +261,8 @@ class SettingsController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        Gate::authorize('create', SystemSetting::class);
+
         $validator = Validator::make($request->all(), [
             'key' => 'required|string|unique:system_settings,key|max:255',
             'value' => 'present',
@@ -308,6 +330,8 @@ class SettingsController extends Controller
      */
     public function destroy(string $key): JsonResponse
     {
+        Gate::authorize('delete', SystemSetting::class);
+
         $setting = SystemSetting::where('key', $key)->first();
 
         if (!$setting) {

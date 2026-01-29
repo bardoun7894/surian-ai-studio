@@ -78,6 +78,20 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
 
+        // Skip OTP in local/dev environment
+        if (app()->environment('local', 'development', 'testing')) {
+            $user->tokens()->delete();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            $this->auditService->log($user, 'login_success', 'user', $user->id);
+
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user->load('role', 'directorate'),
+            ]);
+        }
+
         // Generate OTP
         $otp = (string) random_int(100000, 999999);
         $user->otp = Hash::make($otp);
@@ -86,7 +100,7 @@ class AuthController extends Controller
 
         // Send OTP (Log for now)
         Log::info("OTP for user {$user->email}: {$otp}");
-        
+
         // In a real app, send email here:
         // Mail::to($user->email)->send(new TwoFactorCode($otp));
 

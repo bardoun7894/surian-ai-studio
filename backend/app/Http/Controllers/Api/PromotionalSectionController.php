@@ -240,6 +240,8 @@ class PromotionalSectionController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', PromotionalSection::class);
+
         $validator = Validator::make($request->all(), [
             'title_ar' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
@@ -317,6 +319,8 @@ class PromotionalSectionController extends Controller
             ], 404);
         }
 
+        $this->authorize('update', $section);
+
         $validator = Validator::make($request->all(), [
             'title_ar' => 'sometimes|required|string|max:255',
             'title_en' => 'nullable|string|max:255',
@@ -383,6 +387,8 @@ class PromotionalSectionController extends Controller
                 'message' => 'القسم الترويجي غير موجود',
             ], 404);
         }
+
+        $this->authorize('delete', $section);
 
         // Delete associated image
         if ($section->image) {

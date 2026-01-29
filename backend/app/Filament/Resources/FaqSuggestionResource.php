@@ -15,6 +15,30 @@ class FaqSuggestionResource extends Resource
 {
     protected static ?string $model = FaqSuggestion::class;
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('faq.view') || $user?->hasPermission('faq.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('faq.manage') || $user?->hasPermission('faq.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('faq.manage') || $user?->hasPermission('faq.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('faq.manage') || $user?->hasPermission('faq.*') || $user?->hasRole('super_admin');
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
 
     protected static ?string $navigationGroup = 'المساعد الذكي';

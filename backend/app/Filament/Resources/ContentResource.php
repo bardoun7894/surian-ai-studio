@@ -348,10 +348,27 @@ class ContentResource extends Resource
             ->defaultSort('published_at', 'desc');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        // Non-super-admin users with a directorate only see their directorate's content
+        if ($user && !$user->hasRole('super_admin') && $user->directorate_id) {
+            $query->where('author_id', $user->id)
+                  ->orWhereHas('author', function (Builder $q) use ($user) {
+                      $q->where('directorate_id', $user->directorate_id);
+                  });
+        }
+
+        return $query;
+    }
+
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\VersionsRelationManager::class,
+            RelationManagers\AttachmentsRelationManager::class,
         ];
     }
 

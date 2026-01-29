@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'api/v1/auth/*',
+            'api/v1/complaints/*',
+        ]);
+
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'session.timeout' => \App\Http\Middleware\CheckSessionTimeout::class,

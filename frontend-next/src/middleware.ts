@@ -35,9 +35,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Get auth token from cookies (Sanctum uses cookies for SPA auth)
-  const authToken = request.cookies.get('auth_token')?.value ||
-                    request.cookies.get('XSRF-TOKEN')?.value;
+  // Get auth token from cookies (only auth_token indicates a logged-in user;
+  // XSRF-TOKEN is set by Sanctum for all visitors and is not an auth indicator)
+  const authToken = request.cookies.get('auth_token')?.value;
 
   // For API routes, let them pass through
   if (pathname.startsWith('/api')) {
@@ -89,6 +89,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|assets).*)',
+    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|public|assets).*)',
   ],
 };

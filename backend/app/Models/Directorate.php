@@ -43,6 +43,11 @@ class Directorate extends Model
         return $this->hasMany(SubDirectorate::class, 'parent_directorate_id');
     }
 
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
     /**
      * Scope to get only featured directorates
      */

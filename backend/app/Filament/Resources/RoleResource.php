@@ -14,6 +14,26 @@ class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
 
     protected static ?string $navigationGroup = 'إدارة النظام';
@@ -48,6 +68,8 @@ class RoleResource extends Resource
                         Forms\Components\CheckboxList::make('permissions')
                             ->label('الصلاحيات')
                             ->options([
+                                // Admin panel access
+                                'admin.panel' => 'الوصول إلى لوحة الإدارة',
                                 // User permissions
                                 'users.view' => 'عرض المستخدمين',
                                 'users.create' => 'إنشاء مستخدمين',
@@ -55,6 +77,8 @@ class RoleResource extends Resource
                                 'users.delete' => 'حذف المستخدمين',
                                 // Complaint permissions
                                 'complaints.view' => 'عرض الشكاوى',
+                                'complaints.create' => 'إنشاء الشكاوى',
+                                'complaints.update' => 'تحديث الشكاوى',
                                 'complaints.manage' => 'إدارة الشكاوى',
                                 'complaints.delete' => 'حذف الشكاوى',
                                 'complaints.assign' => 'تعيين الشكاوى',
@@ -76,6 +100,15 @@ class RoleResource extends Resource
                                 // Directorate permissions
                                 'directorates.view' => 'عرض الإدارات',
                                 'directorates.manage' => 'إدارة الإدارات',
+                                // FAQ permissions
+                                'faq.view' => 'عرض الأسئلة الشائعة',
+                                'faq.manage' => 'إدارة الأسئلة الشائعة',
+                                // Newsletter permissions
+                                'newsletter.view' => 'عرض النشرة البريدية',
+                                'newsletter.manage' => 'إدارة النشرة البريدية',
+                                // Promotional permissions
+                                'promotional.view' => 'عرض الأقسام الترويجية',
+                                'promotional.manage' => 'إدارة الأقسام الترويجية',
                                 // System permissions
                                 'settings.manage' => 'إدارة الإعدادات',
                                 'reports.view' => 'عرض التقارير',

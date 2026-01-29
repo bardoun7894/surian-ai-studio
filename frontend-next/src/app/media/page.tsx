@@ -83,7 +83,7 @@ export default function MediaPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
       <Navbar />
 
-      <main className="flex-grow pt-20">
+      <main className="flex-grow pt-14 md:pt-16">
         <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">

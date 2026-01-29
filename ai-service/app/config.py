@@ -15,18 +15,27 @@ class Settings(BaseSettings):
     SERVICE_NAME: str = "moe-ai-service"
 
     # AI Provider configuration
-    AI_PROVIDER: str = "gemini"  # Options: "gemini", "openai"
+    # Options: "gemini" (default), "openai", "ollama" (future), "local" (future)
+    AI_PROVIDER: str = "gemini"
 
-    # Gemini settings
+    # Gemini settings (Google AI)
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-2.0-flash"
 
     # OpenAI settings
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
 
+    # Ollama settings (future - for open-source models like Llama, Mistral, etc.)
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.2"  # or "mistral", "qwen2.5", etc.
+
+    # Local model settings (future - direct inference with llama.cpp, etc.)
+    LOCAL_MODEL_PATH: str = ""
+    LOCAL_MODEL_TYPE: str = "llama"  # "llama", "mistral", "qwen"
+
     # Embedding settings
-    EMBEDDING_PROVIDER: str = "gemini"  # Options: "gemini", "openai", "local"
+    EMBEDDING_PROVIDER: str = "gemini"  # Options: "gemini", "openai", "ollama", "local"
     EMBEDDING_MODEL: str = "models/embedding-001"  # Gemini default
     EMBEDDING_DIMENSIONS: int = 1024  # Target dimensions (will truncate/pad)
 

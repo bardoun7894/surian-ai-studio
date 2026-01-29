@@ -12,7 +12,10 @@ import {
   Globe,
   Shield,
   Database,
-  CheckCircle
+  CheckCircle,
+  Send,
+  Smartphone,
+  MessageCircle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +49,13 @@ export default function SystemSettingsPage() {
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [changedValues, setChangedValues] = useState<Record<string, any>>({});
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // External channel toggles state
+  const [channelToggles, setChannelToggles] = useState({
+    email_enabled: true,
+    sms_enabled: false,
+    whatsapp_enabled: false
+  });
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -183,7 +193,26 @@ export default function SystemSettingsPage() {
       case 'ui': return Globe;
       case 'security': return Shield;
       case 'system': return Database;
+      case 'channels': return Send;
       default: return Settings;
+    }
+  };
+
+  const handleChannelToggle = async (channel: string, enabled: boolean) => {
+    setChannelToggles(prev => ({ ...prev, [channel]: enabled }));
+    // In production, this would call the API to persist the setting
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`/api/v1/admin/settings/${channel}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: enabled })
+      });
+    } catch (e) {
+      console.error('Failed to update channel toggle:', e);
     }
   };
 
@@ -195,10 +224,14 @@ export default function SystemSettingsPage() {
       ui: { ar: 'إعدادات الواجهة', en: 'UI Settings' },
       security: { ar: 'إعدادات الأمان', en: 'Security Settings' },
       system: { ar: 'إعدادات النظام', en: 'System Settings' },
+      channels: { ar: 'قنوات الإرسال الخارجية', en: 'External Channels' },
     };
 
     return language === 'ar' ? (labels[group]?.ar || group) : (labels[group]?.en || group);
   };
+
+  // Add 'channels' to groups if not present
+  const allGroups = groups.includes('channels') ? groups : [...groups, 'channels'];
 
   const renderSettingInput = (setting: Setting) => {
     const currentValue = changedValues[setting.key] !== undefined
@@ -364,7 +397,7 @@ export default function SystemSettingsPage() {
               <div className="w-64 flex-shrink-0">
                 <div className="bg-white dark:bg-white/5 rounded-3xl p-4 shadow-xl border border-gray-100 dark:border-gov-gold/10 sticky top-28">
                   <nav className="space-y-2">
-                    {groups.map((group) => {
+                    {allGroups.map((group) => {
                       const Icon = getGroupIcon(group);
                       const isActive = activeGroup === group;
 
@@ -405,7 +438,113 @@ export default function SystemSettingsPage() {
                   </div>
 
                   <div className="space-y-4 mb-8">
-                    {settings[activeGroup]?.map(renderSettingInput)}
+                    {activeGroup === 'channels' ? (
+                      <>
+                        {/* External Channel Toggles UI */}
+                        <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-xl">
+                          <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-4 flex items-center gap-2">
+                            <Send size={20} className="text-gov-gold" />
+                            {language === 'ar' ? 'تمكين/تعطيل قنوات الإرسال' : 'Enable/Disable Notification Channels'}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            {language === 'ar'
+                              ? 'حدد القنوات التي ترغب في استخدامها لإرسال الإشعارات للمستخدمين'
+                              : 'Select the channels you want to use for sending notifications to users'}
+                          </p>
+
+                          <div className="space-y-4">
+                            {/* Email Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                  <Mail size={24} className="text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-gov-charcoal dark:text-white">
+                                    {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+                                  </h4>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {language === 'ar' ? 'إرسال الإشعارات عبر البريد الإلكتروني' : 'Send notifications via email'}
+                                  </p>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={channelToggles.email_enabled}
+                                  onChange={(e) => handleChannelToggle('email_enabled', e.target.checked)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                              </label>
+                            </div>
+
+                            {/* SMS Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                  <Smartphone size={24} className="text-green-600 dark:text-green-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-gov-charcoal dark:text-white">
+                                    {language === 'ar' ? 'الرسائل القصيرة (SMS)' : 'SMS'}
+                                  </h4>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {language === 'ar' ? 'إرسال الإشعارات عبر الرسائل القصيرة' : 'Send notifications via SMS'}
+                                  </p>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={channelToggles.sms_enabled}
+                                  onChange={(e) => handleChannelToggle('sms_enabled', e.target.checked)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                              </label>
+                            </div>
+
+                            {/* WhatsApp Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                  <MessageCircle size={24} className="text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-gov-charcoal dark:text-white">
+                                    {language === 'ar' ? 'واتساب' : 'WhatsApp'}
+                                  </h4>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {language === 'ar' ? 'إرسال الإشعارات عبر واتساب' : 'Send notifications via WhatsApp'}
+                                  </p>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={channelToggles.whatsapp_enabled}
+                                  onChange={(e) => handleChannelToggle('whatsapp_enabled', e.target.checked)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="mt-6 p-4 bg-gov-gold/10 rounded-xl">
+                            <p className="text-sm text-gov-charcoal dark:text-white">
+                              <strong>{language === 'ar' ? 'ملاحظة:' : 'Note:'}</strong>{' '}
+                              {language === 'ar'
+                                ? 'تأكد من تكوين إعدادات كل قناة قبل تمكينها من قسم الإعدادات المخصص لها.'
+                                : 'Make sure to configure each channel\'s settings before enabling it from its dedicated settings section.'}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      settings[activeGroup]?.map(renderSettingInput)
+                    )}
                   </div>
 
                   {/* Save Button */}

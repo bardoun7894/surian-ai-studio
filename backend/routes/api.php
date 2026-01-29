@@ -93,6 +93,13 @@ Route::prefix('v1')->group(function () {
         // FR-42: Public Settings
         Route::get('settings/ui', [\App\Http\Controllers\Api\SettingsController::class, 'getUiSettings']); // T-MOD-038
         Route::get('settings', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettings']);
+        Route::get('settings/group/{group}', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettingsByGroup']);
+
+        // Contact Form
+        Route::post('contact', [\App\Http\Controllers\Api\PublicApiController::class, 'submitContactForm']);
+
+        // Open Data
+        Route::get('open-data', [\App\Http\Controllers\Api\PublicApiController::class, 'openData']);
 
         // Investment Portal Routes
         Route::prefix('investments')->group(function () {
@@ -172,7 +179,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Admin/Staff Routes
-        Route::middleware('role:admin.*,staff')->prefix('staff')->group(function () {
+        Route::middleware('role:complaints.view,complaints.*,admin.*')->prefix('staff')->group(function () {
             Route::get('complaints', [\App\Http\Controllers\ComplaintController::class, 'listAllComplaints']);
             Route::put('complaints/{id}/status', [\App\Http\Controllers\ComplaintController::class, 'updateStatus']);
             Route::put('complaints/{id}/categorization', [\App\Http\Controllers\ComplaintController::class, 'updateCategorization']);
@@ -196,37 +203,41 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        Route::middleware(['role:admin.*', 'admin.ip'])->prefix('admin')->group(function () {
+        Route::middleware(['role:admin.panel', 'admin.ip'])->prefix('admin')->group(function () {
             // User Management (FR-01 to FR-10)
-            Route::get('users', [\App\Http\Controllers\UserController::class, 'index']);
-            Route::get('users/{id}', [\App\Http\Controllers\UserController::class, 'show']);
-            Route::post('users', [\App\Http\Controllers\UserController::class, 'store']);
-            Route::put('users/{id}', [\App\Http\Controllers\UserController::class, 'update']);
-            Route::put('users/{id}/disable', [\App\Http\Controllers\UserController::class, 'toggleStatus']);
-
-            // CMS Content Routes (T096-T104)
-            Route::apiResource('content', \App\Http\Controllers\ContentController::class);
-
-            // FR-13: Content Attachments Routes
-            Route::prefix('content/{contentId}/attachments')->group(function () {
-                Route::get('/', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'index']);
-                Route::post('/', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'store']);
-                Route::get('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'show']);
-                Route::get('{attachmentId}/download', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'download']);
-                Route::put('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'update']);
-                Route::delete('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'destroy']);
+            Route::middleware('role:users.view,users.*,admin.*')->group(function () {
+                Route::get('users', [\App\Http\Controllers\UserController::class, 'index']);
+                Route::get('users/{id}', [\App\Http\Controllers\UserController::class, 'show']);
+                Route::post('users', [\App\Http\Controllers\UserController::class, 'store']);
+                Route::put('users/{id}', [\App\Http\Controllers\UserController::class, 'update']);
+                Route::put('users/{id}/disable', [\App\Http\Controllers\UserController::class, 'toggleStatus']);
             });
 
-            // FR-14: Content Versioning Routes
-            Route::prefix('content/{contentId}/versions')->group(function () {
-                Route::get('/', [\App\Http\Controllers\Api\ContentVersionController::class, 'index']);
-                Route::get('{versionNumber}', [\App\Http\Controllers\Api\ContentVersionController::class, 'show']);
-                Route::post('{versionNumber}/restore', [\App\Http\Controllers\Api\ContentVersionController::class, 'restore']);
-                Route::get('{versionNumber}/compare', [\App\Http\Controllers\Api\ContentVersionController::class, 'compare']);
+            // CMS Content Routes (T096-T104)
+            Route::middleware('role:content.view,content.*,admin.*')->group(function () {
+                Route::apiResource('content', \App\Http\Controllers\ContentController::class);
+
+                // FR-13: Content Attachments Routes
+                Route::prefix('content/{contentId}/attachments')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'index']);
+                    Route::post('/', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'store']);
+                    Route::get('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'show']);
+                    Route::get('{attachmentId}/download', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'download']);
+                    Route::put('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'update']);
+                    Route::delete('{attachmentId}', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'destroy']);
+                });
+
+                // FR-14: Content Versioning Routes
+                Route::prefix('content/{contentId}/versions')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Api\ContentVersionController::class, 'index']);
+                    Route::get('{versionNumber}', [\App\Http\Controllers\Api\ContentVersionController::class, 'show']);
+                    Route::post('{versionNumber}/restore', [\App\Http\Controllers\Api\ContentVersionController::class, 'restore']);
+                    Route::get('{versionNumber}/compare', [\App\Http\Controllers\Api\ContentVersionController::class, 'compare']);
+                });
             });
 
             // FR-42: System Settings Routes
-            Route::prefix('settings')->group(function () {
+            Route::middleware('role:settings.manage,settings.*,admin.*')->prefix('settings')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\SettingsController::class, 'index']);
                 Route::get('group/{group}', [\App\Http\Controllers\Api\SettingsController::class, 'getGroup']);
                 Route::get('{key}', [\App\Http\Controllers\Api\SettingsController::class, 'show']);
@@ -238,7 +249,7 @@ Route::prefix('v1')->group(function () {
             });
 
             // FR-43: FAQ Suggestion Routes
-            Route::prefix('faq-suggestions')->group(function () {
+            Route::middleware('role:faq.view,faq.*,admin.*')->prefix('faq-suggestions')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'index']);
                 Route::get('stats', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'stats']);
                 Route::get('snoozed', [\App\Http\Controllers\Api\FaqSuggestionController::class, 'snoozed']); // FR-58
@@ -255,7 +266,7 @@ Route::prefix('v1')->group(function () {
             });
 
             // FR-52 to FR-56: Suggestions Management (Admin)
-            Route::prefix('suggestions')->group(function () {
+            Route::middleware('role:suggestions.view,suggestions.*,admin.*')->prefix('suggestions')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'index']);
                 Route::get('{id}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'show']);
                 Route::patch('{id}/status', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'updateStatus']);
@@ -263,7 +274,7 @@ Route::prefix('v1')->group(function () {
             });
 
             // Newsletter Management (Admin)
-            Route::prefix('newsletter')->group(function () {
+            Route::middleware('role:newsletter.view,newsletter.*,admin.*')->prefix('newsletter')->group(function () {
                 Route::get('stats', [\App\Http\Controllers\Api\NewsletterController::class, 'stats']);
                 Route::get('subscribers', [\App\Http\Controllers\Api\NewsletterController::class, 'index']);
                 Route::delete('subscribers/{id}', [\App\Http\Controllers\Api\NewsletterController::class, 'destroy']);
@@ -272,7 +283,7 @@ Route::prefix('v1')->group(function () {
             });
 
             // Promotional Sections Management (Admin)
-            Route::prefix('promotional-sections')->group(function () {
+            Route::middleware('role:promotional.view,promotional.*,admin.*')->prefix('promotional-sections')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'adminIndex']);
                 Route::get('stats', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'stats']);
                 Route::get('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'adminShow']);
@@ -285,7 +296,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Reports Routes (FR-38, FR-39)
-        Route::middleware('role:admin.*,staff')->prefix('reports')->group(function () {
+        Route::middleware('role:reports.view,reports.*,admin.*')->prefix('reports')->group(function () {
             Route::get('statistics', [\App\Http\Controllers\Api\ReportsController::class, 'statistics']);
             Route::get('export', [\App\Http\Controllers\Api\ReportsController::class, 'export']);
             Route::get('audit', [\App\Http\Controllers\Api\ReportsController::class, 'audit']);
@@ -297,7 +308,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // NFR-05: Backup Routes (Admin only)
-        Route::middleware('role:admin.*')->prefix('backup')->group(function () {
+        Route::middleware('role:backups.manage,backups.*,admin.*')->prefix('backup')->group(function () {
             Route::post('create', [\App\Http\Controllers\Api\BackupController::class, 'create']);
             Route::get('list', [\App\Http\Controllers\Api\BackupController::class, 'list']);
             Route::get('download/{filename}', [\App\Http\Controllers\Api\BackupController::class, 'download']);
@@ -306,7 +317,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // FR-53: Webhook Management Routes (Admin only)
-        Route::middleware('role:admin.*')->prefix('admin/webhooks')->group(function () {
+        Route::middleware('role:settings.manage,settings.*,admin.*')->prefix('admin/webhooks')->group(function () {
             // WhatsApp
             Route::get('whatsapp/status', [\App\Http\Controllers\Api\WhatsAppWebhookController::class, 'status']);
 

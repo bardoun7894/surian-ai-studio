@@ -12,12 +12,18 @@ use App\Models\Suggestion;
 use App\Models\Content;
 use App\Models\NewsletterSubscriber;
 use App\Models\PromotionalSection;
+use App\Models\SystemSetting;
+use App\Models\Faq;
+use App\Models\Service;
 use App\Policies\ComplaintPolicy;
 use App\Policies\SuggestionPolicy;
 use App\Policies\ContentPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\NewsletterSubscriberPolicy;
 use App\Policies\PromotionalSectionPolicy;
+use App\Policies\SettingPolicy;
+use App\Policies\FaqPolicy;
+use App\Policies\ServicePolicy;
 use App\Observers\AuditObserver;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         NewsletterSubscriber::class => NewsletterSubscriberPolicy::class,
         PromotionalSection::class => PromotionalSectionPolicy::class,
+        SystemSetting::class => SettingPolicy::class,
+        Faq::class => FaqPolicy::class,
+        Service::class => ServicePolicy::class,
     ];
 
     /**

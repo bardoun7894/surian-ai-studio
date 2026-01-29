@@ -67,7 +67,16 @@ export const auth = {
     await getCsrfCookie();
 
     // Then login
-    return api.post<AuthResponse>('/auth/login', credentials);
+    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/login', credentials);
+
+    // Store the token if returned (and not requiring 2FA)
+    // Backend may return token as 'token' or 'access_token'
+    const token = response.access_token || response.token;
+    if (!response.require_2fa && token) {
+      setAuthToken(token);
+    }
+
+    return response;
   },
 
   /**
@@ -76,8 +85,9 @@ export const auth = {
   async verify2fa(data: TwoFactorVerifyData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse & { access_token?: string }>('/auth/verify2fa', data);
     // Store the token if returned
-    if (response.access_token) {
-      setAuthToken(response.access_token);
+    const token = response.access_token || response.token;
+    if (token) {
+      setAuthToken(token);
     }
     return response;
   },
@@ -87,7 +97,13 @@ export const auth = {
    */
   async register(data: RegisterData): Promise<AuthResponse> {
     await getCsrfCookie();
-    return api.post<AuthResponse>('/auth/register', data);
+    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/register', data);
+    // Store the token if returned
+    const token = response.access_token || response.token;
+    if (token) {
+      setAuthToken(token);
+    }
+    return response;
   },
 
   /**

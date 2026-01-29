@@ -13,7 +13,9 @@ import {
   ArrowRight,
   Loader2,
   Settings,
-  Lightbulb
+  Lightbulb,
+  Newspaper,
+  MessageSquare
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -157,6 +159,69 @@ export default function AdminDashboard() {
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {language === 'ar' ? 'نسبة SLA' : 'SLA Rate'}
+            </p>
+          </div>
+
+          {/* Additional KPIs Row - Users, Suggestions, News */}
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Users className="text-blue-600 dark:text-blue-400" size={24} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
+              {stats.users?.total?.toLocaleString() || 0}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {language === 'ar' ? 'إجمالي المستخدمين' : 'Total Users'}
+            </p>
+            <p className="text-xs text-gov-teal mt-1">
+              {stats.users?.active_today || 0} {language === 'ar' ? 'نشط اليوم' : 'active today'}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <MessageSquare className="text-purple-600 dark:text-purple-400" size={24} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
+              {stats.complaints.this_week || 0}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {language === 'ar' ? 'شكاوى هذا الأسبوع' : 'Complaints This Week'}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <Lightbulb className="text-green-600 dark:text-green-400" size={24} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
+              {stats.users?.new_this_week || 0}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {language === 'ar' ? 'مستخدمين جدد' : 'New Users'}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                <Newspaper className="text-orange-600 dark:text-orange-400" size={24} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
+              {stats.content?.published || 0}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {language === 'ar' ? 'محتوى منشور' : 'Published Content'}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {stats.content?.draft || 0} {language === 'ar' ? 'مسودة' : 'drafts'}
             </p>
           </div>
 

@@ -189,6 +189,7 @@ export interface PromotionalSection {
   position_label: { ar: string; en: string };
   display_order: number;
   metadata?: Record<string, any>;
+  video_url?: string;
 }
 
 export interface AuditLog {
@@ -204,6 +205,32 @@ export interface AuditLog {
     id: number;
     name: string;
   };
+}
+
+export interface FAQ {
+  id: string | number;
+  question_ar: string;
+  answer_ar: string;
+  question_en?: string;
+  answer_en?: string;
+  order?: number;
+}
+
+export interface SearchResult {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  type: 'news' | 'decree' | 'announcement';
+  category?: string;
+  url?: string;
+}
+
+export interface SearchResults {
+  news: SearchResult[];
+  decrees: SearchResult[];
+  announcements: SearchResult[];
+  total: number;
 }
 
 export interface AuditSummary {

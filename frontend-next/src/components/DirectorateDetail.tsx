@@ -23,7 +23,8 @@ import {
     Map,
     Factory,
     Landmark,
-    Loader2
+    Loader2,
+    Building2
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate, Service, NewsItem } from '@/types';
@@ -145,6 +146,39 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                                 <button className="text-gov-forest font-bold text-sm hover:underline">عرض دليل المعاملات الورقية</button>
                             </div>
                         </div>
+
+                        {/* Sub-Directorates Section (FR-50) */}
+                        {directorate.subDirectorates && directorate.subDirectorates.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                                <h2 className="text-xl font-bold text-gov-charcoal mb-6 flex items-center gap-2">
+                                    <Building2 className="text-gov-forest" />
+                                    المديريات التابعة
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {directorate.subDirectorates.map((sub: any) => {
+                                        const isExternal = sub.is_external || sub.isExternal;
+                                        const subName = sub.name_ar || sub.name;
+                                        return (
+                                            <Link
+                                                key={sub.id}
+                                                href={sub.url}
+                                                target={isExternal ? '_blank' : undefined}
+                                                rel={isExternal ? 'noopener noreferrer' : undefined}
+                                                className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-gov-forest hover:shadow-md transition-all group bg-gray-50"
+                                            >
+                                                <Building2 size={18} className="text-gray-400 group-hover:text-gov-forest transition-colors flex-shrink-0" />
+                                                <span className="text-sm font-bold text-gray-700 group-hover:text-gov-forest transition-colors flex-1">
+                                                    {subName}
+                                                </span>
+                                                {isExternal && (
+                                                    <ExternalLink size={14} className="text-gray-400 flex-shrink-0" />
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
                         {/* News Section for this Ministry (FR-11) */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">

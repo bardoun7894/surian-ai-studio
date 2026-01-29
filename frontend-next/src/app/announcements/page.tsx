@@ -223,7 +223,7 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
       <Navbar />
 
-      <main className="flex-grow pt-20">
+      <main className="flex-grow pt-14 md:pt-16">
         <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-16">
           {/* Hero Header */}
           <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">

@@ -13,6 +13,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Allow dev access from public IP
+  allowedDevOrigins: ['91.230.110.187'],
+
   // Image optimization
   images: {
     remotePatterns: [

@@ -66,9 +66,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
 
     const tabs = [
         { id: 'all', label: language === 'ar' ? 'الكل' : 'All', count: results.total },
-        { id: 'news', label: language === 'ar' ? 'أخبار' : 'News', count: results.news.length },
-        { id: 'decrees', label: language === 'ar' ? 'مراسيم وقوانين' : 'Decrees & Laws', count: results.decrees.length },
-        { id: 'announcements', label: language === 'ar' ? 'إعلانات' : 'Announcements', count: results.announcements.length },
+        { id: 'news', label: language === 'ar' ? 'أخبار' : 'News', count: results.news?.length || 0 },
+        { id: 'decrees', label: language === 'ar' ? 'مراسيم وقوانين' : 'Decrees & Laws', count: results.decrees?.length || 0 },
+        { id: 'announcements', label: language === 'ar' ? 'إعلانات' : 'Announcements', count: results.announcements?.length || 0 },
         { id: 'services', label: language === 'ar' ? 'خدمات' : 'Services', count: results.services?.length || 0 },
         { id: 'faq', label: language === 'ar' ? 'أسئلة شائعة' : 'FAQ', count: results.faqs?.length || 0 },
     ];
@@ -229,14 +229,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                     <div className="space-y-8">
 
                         {/* News Section */}
-                        {(activeTab === 'all' || activeTab === 'news') && results.news.length > 0 && (
+                        {(activeTab === 'all' || activeTab === 'news') && results.news?.length > 0 && (
                             <section>
                                 <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
                                     <FileText size={20} />
                                     {language === 'ar' ? 'الأخبار' : 'News'}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {results.news.map(item => (
+                                    {(results.news || []).map(item => (
                                         <Link key={item.id} href={item.url || `/news/${item.id}`} className="block bg-white dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{item.title}</h3>
                                             <p className="text-sm text-gray-500 dark:text-white/60 mb-2 line-clamp-2">{item.description}</p>
@@ -248,14 +248,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         )}
 
                         {/* Decrees Section */}
-                        {(activeTab === 'all' || activeTab === 'decrees') && results.decrees.length > 0 && (
+                        {(activeTab === 'all' || activeTab === 'decrees') && results.decrees?.length > 0 && (
                             <section>
                                 <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
                                     <Scale size={20} />
                                     {language === 'ar' ? 'المراسيم والقوانين' : 'Decrees & Laws'}
                                 </h2>
                                 <div className="space-y-3">
-                                    {results.decrees.map(item => (
+                                    {(results.decrees || []).map(item => (
                                         <Link key={item.id} href={item.url || '/decrees'} className="bg-white dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors flex items-center justify-between cursor-pointer">
                                             <div>
                                                 <h3 className="font-bold text-gov-charcoal dark:text-white">{item.title}</h3>
@@ -272,14 +272,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         )}
 
                         {/* Announcements Section */}
-                        {(activeTab === 'all' || activeTab === 'announcements') && results.announcements.length > 0 && (
+                        {(activeTab === 'all' || activeTab === 'announcements') && results.announcements?.length > 0 && (
                             <section>
                                 <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
                                     <Megaphone size={20} />
                                     {language === 'ar' ? 'الإعلانات' : 'Announcements'}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {results.announcements.map(item => (
+                                    {(results.announcements || []).map(item => (
                                         <Link key={item.id} href={item.url || '/announcements'} className="block bg-white dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <div className="flex items-start justify-between mb-2">
                                                 <span className="px-2 py-1 rounded bg-gov-teal/10 dark:bg-gov-teal/20 text-gov-teal dark:text-gov-emeraldLight text-xs font-bold">

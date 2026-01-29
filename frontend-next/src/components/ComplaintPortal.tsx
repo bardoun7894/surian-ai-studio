@@ -28,7 +28,9 @@ import {
     Trash2,
     UserX,
     FileCheck,
-    Copy
+    Copy,
+    ShieldAlert,
+    Scale
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
@@ -42,6 +44,7 @@ import UploadProgress from './UploadProgress';
 import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ComplaintPortalProps {
     initialMode?: 'submit' | 'track';
@@ -54,10 +57,16 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 }) => {
     const { executeRecaptcha } = useRecaptcha();
     const { user, isAuthenticated } = useAuth();
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
     const [activeTab, setActiveTab] = useState<'submit' | 'track'>(initialMode);
     const [directoratesList, setDirectoratesList] = useState<Directorate[]>([]);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Terms Agreement State
+    const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
+    const [showTermsScreen, setShowTermsScreen] = useState(true);
 
     useEffect(() => {
         API.directorates.getAll()
@@ -357,7 +366,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             {/* Tabs */}
             <div className="flex bg-white dark:bg-gov-forest/50 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-gold/20 mb-8 max-w-md mx-auto">
                 <button
-                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); }}
+                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setShowTermsScreen(true); setHasAgreedToTerms(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
                         ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest shadow-md'
                         : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -378,9 +387,121 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
             <div className="bg-white dark:bg-gov-forest/30 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-gold/20 overflow-hidden backdrop-blur-sm">
 
-                {/* SUBMIT TAB */}
-                {activeTab === 'submit' && !submittedTicket && (
+                {/* SUBMIT TAB - TERMS AGREEMENT SCREEN */}
+                {activeTab === 'submit' && !submittedTicket && showTermsScreen && (
                     <div className="p-8 md:p-12 animate-fade-in">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Scale size={32} className="text-gov-forest dark:text-gov-gold" />
+                            </div>
+                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                                {isAr ? 'الشكاوى' : 'Complaints'}
+                            </h2>
+                        </div>
+
+                        {/* Warning Box */}
+                        <div className="bg-gov-cherry/5 dark:bg-gov-cherry/10 border border-gov-cherry/20 dark:border-gov-cherry/30 rounded-xl p-5 mb-6">
+                            <div className="flex items-start gap-3">
+                                <ShieldAlert size={24} className="text-gov-cherry flex-shrink-0 mt-0.5" />
+                                <div className="space-y-2">
+                                    <p className="text-gov-cherry dark:text-red-400 font-bold text-sm">
+                                        {isAr ? 'يجب تقديم معلومات صحيحة.' : 'You must provide accurate information.'}
+                                    </p>
+                                    <p className="text-gov-cherry dark:text-red-400 font-bold text-sm mt-3">
+                                        {isAr ? 'الشكاوى الكاذبة سيتم إلغاؤها وقد تؤدي للمساءلة القانونية' : 'False complaints will be cancelled and may result in legal accountability'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Terms Section */}
+                        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-gov-gold/20 rounded-xl p-6 mb-6">
+                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-4">
+                                {isAr ? 'ضوابط النظر في الشكاوى' : 'Complaint Review Guidelines'}
+                            </h3>
+
+                            <p className="text-gov-charcoal dark:text-gray-200 text-sm mb-6 leading-relaxed">
+                                {isAr
+                                    ? 'يتم النظر في الشكاوى بجدية بعد التأكد من وضوحها وكفاية البيانات الواردة فيها'
+                                    : 'Complaints are reviewed seriously after confirming their clarity and sufficiency of provided data'}
+                            </p>
+
+                            {/* Conditions List */}
+                            <div className="bg-gov-beige/50 dark:bg-white/5 rounded-lg p-4 mb-4">
+                                <p className="text-gov-forest dark:text-gov-gold font-bold text-sm mb-3">
+                                    {isAr ? 'لن يتم النظر في الشكوى في الحالات التالية:' : 'Complaints will NOT be reviewed if:'}
+                                </p>
+                                <ul className="space-y-3">
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                        <p className="text-gov-charcoal dark:text-white text-sm">
+                                            {isAr ? 'إذا كانت غير واضحة أو تفتقر إلى البيانات الكافية' : 'If unclear or lacking sufficient data'}
+                                        </p>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                        <p className="text-gov-charcoal dark:text-white text-sm">
+                                            {isAr ? 'إذا تبين أنها كيدية' : 'If found to be malicious or vindictive'}
+                                        </p>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                        <p className="text-gov-charcoal dark:text-white text-sm">
+                                            {isAr ? 'إذا سبق التحقيق فيها' : 'If previously investigated'}
+                                        </p>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                        <p className="text-gov-charcoal dark:text-white text-sm">
+                                            {isAr ? 'إذا كانت خارج نطاق اختصاص وزارة الاقتصاد والصناعة' : 'If outside the jurisdiction of the Ministry of Economy and Industry'}
+                                        </p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Agreement Checkbox */}
+                        <div className="bg-gov-forest/5 dark:bg-gov-gold/10 rounded-xl p-5 mb-6">
+                            <label className="flex items-start gap-3 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={hasAgreedToTerms}
+                                    onChange={(e) => setHasAgreedToTerms(e.target.checked)}
+                                    className="w-5 h-5 mt-0.5 rounded border-gov-forest dark:border-gov-gold text-gov-forest dark:text-gov-gold focus:ring-gov-gold transition-colors cursor-pointer"
+                                />
+                                <p className="text-gov-forest dark:text-white font-bold text-sm">
+                                    {isAr ? 'أوافق على الضوابط المذكورة أعلاه' : 'I agree to the terms mentioned above'}
+                                </p>
+                            </label>
+                        </div>
+
+                        {/* Proceed Button */}
+                        <button
+                            type="button"
+                            onClick={() => setShowTermsScreen(false)}
+                            disabled={!hasAgreedToTerms}
+                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-gold"
+                        >
+                            <span>{isAr ? 'بدء تقديم شكوى جديدة' : 'Start New Complaint'}</span>
+                            <ChevronLeft size={20} className="rtl:rotate-180" />
+                        </button>
+                    </div>
+                )}
+
+                {/* SUBMIT TAB - COMPLAINT FORM */}
+                {activeTab === 'submit' && !submittedTicket && !showTermsScreen && (
+                    <div className="p-8 md:p-12 animate-fade-in">
+                        {/* Back to terms link */}
+                        <button
+                            type="button"
+                            onClick={() => setShowTermsScreen(true)}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                        >
+                            <ChevronRight size={16} className="rtl:rotate-180" />
+                            <span>العودة للضوابط</span>
+                        </button>
+
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">نموذج الشكاوى الموحد</h2>
                             <p className="text-gray-600 dark:text-gray-400">سيتم التعامل مع بياناتك بسرية تامة وتوجيهها للجهة المعنية.</p>

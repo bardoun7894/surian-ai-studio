@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Content;
 use App\Models\Directorate;
 use App\Models\Faq;
+use App\Models\Service;
 use App\Services\VectorSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -31,9 +32,8 @@ class PublicApiController extends Controller
                 'name_en' => $d->name_en ?? $d->name,
                 'description' => $d->description_ar ?? $d->description ?? '',
                 'icon' => $d->icon ?? 'Building2',
-                'servicesCount' => Content::where('category', 'service')
-                    ->where('status', 'published')
-                    ->whereJsonContains('metadata->directorate_id', $d->id)
+                'servicesCount' => Service::where('directorate_id', $d->id)
+                    ->where('is_active', true)
                     ->count(),
             ];
         });
@@ -52,6 +52,20 @@ class PublicApiController extends Controller
             return response()->json(['error' => 'Not found'], 404);
         }
 
+        $subDirectorates = $directorate->subDirectorates()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get()
+            ->map(function ($sub) {
+                return [
+                    'id' => (string) $sub->id,
+                    'name_ar' => $sub->name_ar,
+                    'name_en' => $sub->name_en ?? $sub->name_ar,
+                    'url' => $sub->url,
+                    'is_external' => (bool) $sub->is_external,
+                ];
+            });
+
         return response()->json([
             'id' => (string) $directorate->id,
             'name' => $directorate->name_ar ?? $directorate->name,
@@ -59,6 +73,7 @@ class PublicApiController extends Controller
             'name_en' => $directorate->name_en ?? $directorate->name,
             'description' => $directorate->description_ar ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
+            'subDirectorates' => $subDirectorates,
         ]);
     }
 
@@ -130,11 +145,11 @@ class PublicApiController extends Controller
      */
     public function directorateServices(string $id): JsonResponse
     {
-        $services = Content::where('category', 'service')
-            ->where('status', 'published')
-            ->whereJsonContains('metadata->directorate_id', (int) $id)
+        $services = Service::where('directorate_id', $id)
+            ->active()
+            ->ordered()
             ->get()
-            ->map(fn($s) => $this->formatService($s));
+            ->map(fn($s) => $this->formatServiceModel($s));
 
         return response()->json($services);
     }
@@ -147,7 +162,7 @@ class PublicApiController extends Controller
     {
         $news = Content::where('category', 'news')
             ->where('status', 'published')
-            ->whereJsonContains('metadata->directorate_id', (int) $id)
+            ->whereJsonContains('metadata->directorate_id', $id)
             ->orderBy('published_at', 'desc')
             ->limit(3)
             ->get()
@@ -445,29 +460,27 @@ class PublicApiController extends Controller
      */
     public function services(Request $request): JsonResponse
     {
-        $query = Content::where('category', 'service')
-            ->where('status', 'published')
-            ->orderBy('title_ar');
+        $query = Service::active()->ordered();
 
         if ($request->has('directorate_id')) {
-            $query->whereJsonContains('metadata->directorate_id', (int) $request->directorate_id);
+            $query->where('directorate_id', $request->directorate_id);
         }
 
         if ($request->has('is_digital')) {
-            $query->whereJsonContains('metadata->is_digital', $request->is_digital === 'true');
+            $query->where('is_digital', $request->is_digital === 'true');
         }
 
         if ($request->has('q')) {
             $q = $request->q;
             $query->where(function ($query) use ($q) {
-                $query->where('title_ar', 'like', "%{$q}%")
-                    ->orWhere('title_en', 'like', "%{$q}%")
-                    ->orWhere('content_ar', 'like', "%{$q}%")
-                    ->orWhere('content_en', 'like', "%{$q}%");
+                $query->where('name_ar', 'like', "%{$q}%")
+                    ->orWhere('name_en', 'like', "%{$q}%")
+                    ->orWhere('description_ar', 'like', "%{$q}%")
+                    ->orWhere('description_en', 'like', "%{$q}%");
             });
         }
 
-        $services = $query->get()->map(fn($s) => $this->formatService($s));
+        $services = $query->get()->map(fn($s) => $this->formatServiceModel($s));
 
         return response()->json($services);
     }
@@ -477,15 +490,13 @@ class PublicApiController extends Controller
      */
     public function service(string $id): JsonResponse
     {
-        $service = Content::where('category', 'service')
-            ->where('status', 'published')
-            ->find($id);
+        $service = Service::active()->find($id);
 
         if (!$service) {
             return response()->json(['error' => 'Not found'], 404);
         }
 
-        return response()->json($this->formatService($service));
+        return response()->json($this->formatServiceModel($service));
     }
 
     /**
@@ -736,6 +747,29 @@ class PublicApiController extends Controller
         ];
     }
 
+    private function formatServiceModel(Service $s): array
+    {
+        return [
+            'id' => (string) $s->id,
+            'title' => $s->name_ar,
+            'title_ar' => $s->name_ar,
+            'title_en' => $s->name_en,
+            'directorateId' => (string) $s->directorate_id,
+            'isDigital' => $s->is_digital,
+            'description' => $s->description_ar ? mb_substr(strip_tags($s->description_ar), 0, 200) : '',
+            'description_ar' => $s->description_ar ? mb_substr(strip_tags($s->description_ar), 0, 200) : '',
+            'description_en' => $s->description_en ? mb_substr(strip_tags($s->description_en), 0, 200) : '',
+            'content_ar' => $s->description_ar,
+            'content_en' => $s->description_en,
+            'icon' => $s->icon,
+            'category' => $s->category,
+            'url' => $s->url,
+            'fees' => $s->fees,
+            'estimated_time' => $s->estimated_time,
+            'requirements' => $s->requirements,
+        ];
+    }
+
     private function formatService($s): array
     {
         return [
@@ -762,5 +796,53 @@ class PublicApiController extends Controller
             'service' => "/services/{$content->id}",
             default => "/{$content->category}/{$content->id}",
         };
+    }
+
+    /**
+     * Get open data datasets
+     */
+    public function openData(): JsonResponse
+    {
+        $datasets = Content::where('category', 'open_data')
+            ->where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->get()
+            ->map(fn($d) => [
+                'id' => (string) $d->id,
+                'title_ar' => $d->title_ar,
+                'title_en' => $d->title_en,
+                'description_ar' => $d->seo_description_ar ?? $d->content_ar,
+                'description_en' => $d->content_en,
+                'date' => $d->published_at?->format('Y-m-d'),
+                'format' => $d->metadata['format'] ?? 'PDF',
+                'size' => $d->metadata['size'] ?? '',
+                'category_label' => $d->metadata['category_label'] ?? '',
+                'download_url' => $d->metadata['download_url'] ?? null,
+            ]);
+
+        return response()->json($datasets);
+    }
+
+    /**
+     * Submit contact form
+     */
+    public function submitContactForm(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
+            'department' => 'nullable|string|max:255',
+        ]);
+
+        // Log contact form submission
+        \Log::info('Contact form submitted', $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال رسالتك بنجاح. سنتواصل معك في أقرب وقت.',
+            'message_en' => 'Your message has been sent successfully. We will contact you shortly.',
+        ]);
     }
 }

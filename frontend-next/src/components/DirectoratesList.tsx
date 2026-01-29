@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
-import { Directorate, Service } from '@/types';
+import { Directorate, SubDirectorate } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
     Building2,
-    ArrowRight,
     Search,
     ShieldAlert,
     Scale,
@@ -23,44 +22,23 @@ import {
     Landmark,
     LayoutGrid,
     ChevronLeft,
-    Loader2
+    Loader2,
+    ExternalLink,
+    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 
-interface DirectoratesListProps {
-    variant?: 'full' | 'compact';
-}
-
-const DirectoratesList: React.FC<DirectoratesListProps> = ({
-    variant = 'full',
-}) => {
+const DirectoratesList: React.FC = () => {
     const { t, language } = useLanguage();
-    const [searchTerm, setSearchTerm] = useState('');
     const [directorates, setDirectorates] = useState<Directorate[]>([]);
-    const [servicesMap, setServicesMap] = useState<Record<string, Service[]>>({});
     const [loading, setLoading] = useState(true);
 
-    // Fetch Data
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const dirs = await API.directorates.getAll();
+                const dirs = await API.directorates.getFeatured();
                 setDirectorates(dirs);
-
-                // Fetch services for each directorate
-                const servicesPromises = dirs.map(async (d) => {
-                    const services = await API.directorates.getServicesByDirectorate(d.id);
-                    return { id: d.id, services };
-                });
-
-                const servicesResults = await Promise.all(servicesPromises);
-                const sMap: Record<string, Service[]> = {};
-                servicesResults.forEach(item => {
-                    sMap[item.id] = item.services;
-                });
-                setServicesMap(sMap);
-
             } catch (error) {
                 console.error("Failed to fetch directorates", error);
             } finally {
@@ -70,9 +48,13 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
         fetchData();
     }, []);
 
-    // Icon mapping helper
-    const getIcon = (iconName: string, isCompact: boolean) => {
-        const props = { size: isCompact ? 24 : 32 };
+    const getLocalized = (content: LocalizedString | string) => {
+        if (typeof content === 'string') return content;
+        return content[language as 'ar' | 'en'];
+    };
+
+    const getIcon = (iconName: string) => {
+        const props = { size: 32 };
         switch (iconName) {
             case 'ShieldAlert': return <ShieldAlert {...props} />;
             case 'Scale': return <Scale {...props} />;
@@ -90,10 +72,6 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
         }
     };
 
-    const filteredDirectorates = variant === 'full'
-        ? directorates.filter(dir => dir.name.includes(searchTerm) || dir.description.includes(searchTerm))
-        : directorates.slice(0, 6); // Show only top 6 in compact mode
-
     if (loading) {
         return (
             <div className="flex justify-center items-center py-20">
@@ -103,117 +81,73 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     }
 
     return (
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${variant === 'full' ? 'py-16 min-h-screen' : 'py-12'}`}>
-
-            <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-                <div className={`text-center ${variant === 'full' ? 'md:text-right rtl:md:text-right ltr:md:text-left' : 'md:text-center w-full'}`}>
-                    <h2 className={`text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2 flex items-center gap-3 justify-center ${variant === 'full' ? 'md:justify-start' : ''}`}>
-                        <LayoutGrid className="text-gov-teal dark:text-gov-gold" />
-                        {variant === 'full' ? t('dir_title_full') : t('dir_title_compact')}
-                    </h2>
-                    <p className="text-gov-stone/60 dark:text-gov-beige/60">
-                        {variant === 'full'
-                            ? t('dir_subtitle_full')
-                            : t('dir_subtitle_compact')}
-                    </p>
-                </div>
-
-                {/* Search Bar - Only in Full Mode */}
-                {variant === 'full' && (
-                    <div className="relative w-full md:w-96">
-                        <input
-                            type="text"
-                            placeholder={t('search_placeholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-gov-emerald/10 border border-gov-gold/20 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-teal dark:focus:border-gov-gold focus:ring-1 focus:ring-gov-teal/20 transition-all outline-none"
-                        />
-                        <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 transform -translate-y-1/2 text-gov-sand" size={20} />
-                    </div>
-                )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-screen">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2 flex items-center gap-3 justify-center">
+                    <LayoutGrid className="text-gov-teal dark:text-gov-gold" />
+                    {language === 'ar' ? 'الإدارات العامة' : 'General Directorates'}
+                </h2>
+                <p className="text-gov-stone/60 dark:text-gov-beige/60">
+                    {language === 'ar' ? 'الإدارات الرئيسية التابعة لوزارة الاقتصاد والصناعة' : 'Main directorates of the Ministry of Economy and Industry'}
+                </p>
             </div>
 
-            {filteredDirectorates.length === 0 ? (
-                <div className="text-center py-20 bg-gov-beige/10 dark:bg-white/5 rounded-2xl border border-dashed border-gov-gold/20 dark:border-white/10">
-                    <Building2 size={48} className="mx-auto text-gov-sand/30 mb-4" />
-                    <p className="text-gov-stone/60 font-bold">لا توجد نتائج مطابقة لبحثك</p>
-                    <button onClick={() => setSearchTerm('')} className="mt-2 text-gov-teal dark:text-gov-gold underline text-sm">عرض الكل</button>
-                </div>
-            ) : (
-                <div className={`grid gap-4 md:gap-6 ${variant === 'full'
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
-                    }`}>
-                    {filteredDirectorates.map((dir) => {
-                        const dirServices = servicesMap[dir.id] || [];
-                        const isCompact = variant === 'compact';
+            <div className="space-y-8">
+                {directorates.map((dir) => (
+                    <div key={dir.id} className="bg-white dark:bg-gov-forest/50 rounded-2xl border border-gov-gold/10 dark:border-white/10 shadow-sm overflow-hidden">
+                        {/* Directorate Header */}
+                        <Link
+                            href={`/directorates/${dir.id}`}
+                            className="flex items-center gap-4 p-6 bg-gov-beige/30 dark:bg-white/5 border-b border-gov-gold/10 dark:border-white/10 hover:bg-gov-beige/50 dark:hover:bg-white/10 transition-colors group"
+                        >
+                            <div className="w-14 h-14 rounded-xl bg-gov-teal/10 dark:bg-gov-gold/20 flex items-center justify-center text-gov-teal dark:text-gov-gold group-hover:bg-gov-teal group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-all">
+                                {getIcon(dir.icon)}
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-gov-charcoal dark:text-white group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                                    {getLocalized(dir.name)}
+                                </h3>
+                                <p className="text-sm text-gov-stone/60 dark:text-gov-beige/60 mt-1">
+                                    {getLocalized(dir.description)}
+                                </p>
+                            </div>
+                            <ArrowRight size={20} className={`text-gov-teal dark:text-gov-gold opacity-0 group-hover:opacity-100 transition-opacity ${language === 'ar' ? 'rotate-180' : ''}`} />
+                        </Link>
 
-                        return (
-                            <Link key={dir.id} href={`/directorates/${dir.id}`}
-                                className={`group flex flex-col h-full bg-white dark:bg-gov-forest/50 rounded-2xl border border-gov-gold/10 dark:border-white/10 shadow-sm hover:shadow-xl hover:border-gov-teal/30 dark:hover:border-gov-gold/30 transition-all duration-300 relative overflow-hidden backdrop-blur-sm cursor-pointer ${isCompact ? 'p-4 items-center text-center' : 'p-6'}`}
-                            >
-
-                                {/* Top Decor Line */}
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                                <div className={`flex gap-4 mb-4 ${isCompact ? 'flex-col items-center mb-2' : 'items-center'}`}>
-                                    <div className={`${isCompact ? 'w-12 h-12' : 'w-16 h-16'} rounded-2xl bg-gov-beige dark:bg-white/5 flex items-center justify-center text-gov-teal dark:text-gov-gold group-hover:bg-gov-teal group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-all duration-300 shadow-inner`}>
-                                        {getIcon(dir.icon, isCompact)}
-                                    </div>
-                                    <div>
-                                        <h3 className={`${isCompact ? 'text-sm' : 'text-lg'} font-bold text-gov-charcoal dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors`}>{dir.name}</h3>
-                                        {!isCompact && <span className="text-xs text-gov-sand font-medium">{dir.servicesCount} {language === 'ar' ? 'خدمة متاحة' : 'Services'}</span>}
-                                    </div>
+                        {/* Sub-Directorates Grid */}
+                        {dir.subDirectorates && dir.subDirectorates.length > 0 && (
+                            <div className="p-6">
+                                <h4 className="text-xs font-bold text-gov-sand uppercase tracking-wider mb-4">
+                                    {language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {dir.subDirectorates.map((sub: SubDirectorate) => {
+                                        const isExternal = sub.isExternal || sub.is_external;
+                                        const subName = typeof sub.name === 'string' ? sub.name : (language === 'ar' ? sub.name?.ar || sub.name_ar : sub.name?.en || sub.name_en || sub.name_ar);
+                                        return (
+                                            <Link
+                                                key={sub.id}
+                                                href={sub.url}
+                                                target={isExternal ? '_blank' : undefined}
+                                                rel={isExternal ? 'noopener noreferrer' : undefined}
+                                                className="flex items-center gap-3 p-3 rounded-xl bg-gov-beige/20 dark:bg-white/5 border border-transparent hover:border-gov-gold/20 dark:hover:border-gov-gold/20 hover:shadow-md transition-all group/sub"
+                                            >
+                                                <Building2 size={16} className="text-gov-sand group-hover/sub:text-gov-teal dark:group-hover/sub:text-gov-gold transition-colors flex-shrink-0" />
+                                                <span className="text-sm text-gov-charcoal dark:text-white font-medium flex-1 leading-tight">
+                                                    {subName}
+                                                </span>
+                                                {isExternal && (
+                                                    <ExternalLink size={12} className="text-gov-sand flex-shrink-0" />
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
-
-                                {/* Description - Hidden in Compact Mode */}
-                                {!isCompact && (
-                                    <p className="text-sm text-gov-stone/60 dark:text-gov-beige/60 mb-6 leading-relaxed line-clamp-2 min-h-[40px]">{dir.description}</p>
-                                )}
-
-                                {/* Services List - Hidden in Compact Mode */}
-                                {!isCompact && (
-                                    <div className="bg-gov-beige/20 dark:bg-black/20 rounded-xl p-3 mb-6 flex-1">
-                                        <h4 className="text-[10px] font-bold text-gov-sand uppercase tracking-wider mb-2 pr-1">{language === 'ar' ? 'خدمات مختارة' : 'Selected Services'}</h4>
-                                        <div className="space-y-2">
-                                            {dirServices.slice(0, 3).map(service => (
-                                                <div key={service.id} className="flex items-center gap-2 text-xs text-gov-stone dark:text-gray-300 p-1.5 hover:bg-white dark:hover:bg-white/10 rounded transition-colors">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${service.isDigital ? 'bg-gov-emeraldLight' : 'bg-gov-sand'}`}></div>
-                                                    <span className="truncate">{service.title}</span>
-                                                </div>
-                                            ))}
-                                            {dirServices.length === 0 && <span className="text-xs text-gov-sand block p-1">...</span>}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!isCompact && (
-                                    <div className="mt-auto border-t border-gov-gold/10 dark:border-white/10 pt-4 flex justify-between items-center">
-                                        <span className="text-xs text-gov-sand bg-gov-beige/30 dark:bg-white/5 px-2 py-1 rounded">{dir.id.toUpperCase()}</span>
-                                        <span className="text-sm font-bold text-gov-teal dark:text-gov-gold flex items-center gap-2 hover:gap-3 transition-all">
-                                            {t('view_details')}
-                                            <ArrowRight size={16} className={language === 'ar' ? '' : 'rotate-180'} />
-                                        </span>
-                                    </div>
-                                )}
-                            </Link>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* View All Button for Compact Mode */}
-            {variant === 'compact' && (
-                <div className="mt-8 text-center">
-                    <Link
-                        href="/directorates"
-                        className="inline-flex items-center gap-2 px-8 py-3 bg-gov-teal dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
-                    >
-                        {t('view_all_dirs')}
-                        <ChevronLeft size={20} className={language === 'ar' ? '' : 'rotate-180'} />
-                    </Link>
-                </div>
-            )}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

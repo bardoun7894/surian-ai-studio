@@ -3,18 +3,20 @@
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import NewsTicker from '@/components/NewsTicker';
+
 import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
-import Announcements from '@/components/Announcements';
 import NewsSection from '@/components/NewsSection';
+import Announcements from '@/components/Announcements';
 import QuickServices from '@/components/QuickServices';
-import StatsAchievements from '@/components/StatsAchievements';
+import QuickLinks from '@/components/QuickLinks';
+
 import GovernmentPartners from '@/components/GovernmentPartners';
+import NewsletterSection from '@/components/NewsletterSection';
 import FAQSection from '@/components/FAQSection';
 import ContactSection from '@/components/ContactSection';
 import ChatBot from '@/components/ChatBot';
 import Footer from '@/components/Footer';
-import HappinessIndicator from '@/components/HappinessIndicator';
 import { useState, useEffect } from 'react';
 
 export default function HomePage() {
@@ -73,9 +75,10 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
       <Navbar onSearch={handleSearch} />
 
-      <main className="flex-grow pt-20 overflow-hidden">
+      <main className="flex-grow pt-14 md:pt-16 overflow-hidden">
         <HeroSection hasBreakingNews={hasBreakingNews} />
         <NewsTicker onNewsLoaded={setHasBreakingNews} />
+
         <FeaturedDirectorates />
         <HeroGrid />
 
@@ -83,14 +86,15 @@ export default function HomePage() {
         <NewsSection />
         <Announcements />
 
-        {/* Quick Services */}
+        {/* Quick Services & Links */}
         <QuickServices />
-
-        {/* Statistics & Achievements */}
-        <StatsAchievements />
+        <QuickLinks />
 
         {/* Government Partners */}
         <GovernmentPartners />
+
+        {/* Newsletter */}
+        <NewsletterSection />
 
         {/* FAQ & Contact Sections */}
         <FAQSection />
@@ -98,7 +102,6 @@ export default function HomePage() {
       </main>
 
       <ChatBot />
-      <HappinessIndicator />
 
       <Footer
         onIncreaseFont={handleIncreaseFont}

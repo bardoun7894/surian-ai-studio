@@ -34,12 +34,15 @@ export function getAuthToken(): string | null {
 export function setAuthToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEY, token);
+  // Also set as cookie so Next.js middleware can read it
+  document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
 }
 
 export function clearAuthToken(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
-  // Also clear any session cookies
+  // Clear auth cookie and session cookies
+  document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   document.cookie.split(';').forEach(cookie => {
     const name = cookie.split('=')[0].trim();
     if (name.includes('session') || name.includes('XSRF') || name.includes('laravel')) {

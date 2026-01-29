@@ -51,7 +51,7 @@ const translations: Record<string, Record<Language, string>> = {
   // News
   'news_center': { ar: 'المركز الإعلامي', en: 'Media Center' },
   'news_subtitle': { ar: 'آخر الأخبار والمراسيم والقرارات الحكومية', en: 'Latest news, decrees, and government decisions' },
-  'news_breaking': { ar: 'أخبار عاجلة', en: 'Breaking News' },
+  'news_breaking': { ar: 'آخر المستجدات', en: 'Latest Updates' },
   // External Link Modal
   'external_link_warning_title': { ar: 'تنبيه مغادرة الموقع', en: 'Leaving Website Warning' },
   'external_link_warning_desc': { ar: 'أنت على وشك مغادرة موقع وزارة الاقتصاد والصناعة. الوزارة ليست مسؤولة عن محتوى الروابط الخارجية.', en: 'You are about to leave Ministry of Economy and Industry website. The Ministry is not responsible for the content of external links.' },
@@ -83,7 +83,7 @@ const translations: Record<string, Record<Language, string>> = {
   'switch_lang': { ar: 'English', en: 'عربي' },
 
   // Quick Services
-  'quick_services_title': { ar: 'الخدمات الأكثر طلباً', en: 'Most Requested Services' },
+  'quick_services_title': { ar: 'الخدمات الإلكترونية', en: 'Electronic Services' },
   'quick_services_subtitle': { ar: 'وصول سريع لأهم الخدمات الحكومية الإلكترونية', en: 'Quick access to the most important e-government services' },
   'service_industrial_license': { ar: 'ترخيص منشأة صناعية', en: 'Industrial Facility License' },
   'service_import_license': { ar: 'إجازة استيراد', en: 'Import License' },
@@ -585,6 +585,49 @@ const translations: Record<string, Record<Language, string>> = {
   'admin_content_mgmt': { ar: 'إدارة المحتوى والمراسيم', en: 'Content & Decrees Management' },
   'admin_under_dev': { ar: 'قيد التطوير', en: 'Under Development' },
 
+  // Quick Links Section
+  'ql_title': { ar: 'روابط سريعة', en: 'Quick Links' },
+  'ql_laws': { ar: 'القوانين والمراسيم', en: 'Laws & Decrees' },
+  'ql_news': { ar: 'الأخبار', en: 'News' },
+  'ql_announcements': { ar: 'الإعلانات', en: 'Announcements' },
+  'ql_services': { ar: 'الخدمات', en: 'Services' },
+  'ql_complaints': { ar: 'الشكاوى والمقترحات', en: 'Complaints & Suggestions' },
+  'ql_faq': { ar: 'الأسئلة الشائعة', en: 'FAQ' },
+  'ql_contact': { ar: 'اتصل بنا', en: 'Contact' },
+  'ql_about': { ar: 'عن الوزارة', en: 'About' },
+
+  // Central Directorate News
+  'cdn_title': { ar: 'أخبار الوزارة', en: 'Ministry News' },
+  'cdn_subtitle': { ar: 'آخر أخبار وأنشطة وزارة الاقتصاد والصناعة', en: 'Latest news and activities from the Ministry of Economy and Industry' },
+
+  // News Section (grouped by directorate)
+  'news_section_title': { ar: 'المركز الإعلامي', en: 'Media Center' },
+  'news_section_subtitle': { ar: 'آخر الأخبار والمراسيم حسب المديريات', en: 'Latest news and decrees by directorates' },
+  'show_more': { ar: 'عرض المزيد', en: 'Show More' },
+  'no_news_currently': { ar: 'لا توجد أخبار حالياً.', en: 'No news currently.' },
+  'view_full_archive': { ar: 'عرض الأرشيف الكامل', en: 'View Full Archive' },
+
+  // Newsletter Section
+  'nl_badge': { ar: 'النشرة البريدية', en: 'Newsletter' },
+  'nl_title': { ar: 'ابقَ على اطلاع بآخر المستجدات', en: 'Stay Updated with the Latest News' },
+  'nl_subtitle': { ar: 'اشترك في نشرتنا البريدية للحصول على آخر الأخبار والقرارات والخدمات مباشرة إلى بريدك الإلكتروني', en: 'Subscribe to our newsletter to receive the latest news, decisions, and services directly to your inbox' },
+  'nl_cta': { ar: 'اشتراك', en: 'Subscribe' },
+  'nl_success': { ar: 'تم الاشتراك بنجاح!', en: 'Subscribed successfully!' },
+  'nl_error': { ar: 'حدث خطأ. يرجى المحاولة مرة أخرى', en: 'An error occurred. Please try again' },
+
+  // Footer Legal
+  'footer_privacy': { ar: 'سياسة الخصوصية', en: 'Privacy Policy' },
+  'footer_terms': { ar: 'شروط الاستخدام', en: 'Terms of Use' },
+
+  // Search
+  'search_clear': { ar: 'مسح', en: 'Clear' },
+  'search_date_today': { ar: 'اليوم', en: 'Today' },
+  'search_date_week': { ar: 'هذا الأسبوع', en: 'This Week' },
+  'search_date_month': { ar: 'هذا الشهر', en: 'This Month' },
+  'search_empty_title': { ar: 'لا توجد نتائج مطابقة', en: 'No matching results' },
+  'search_empty_desc': { ar: 'جرب تغيير كلمات البحث أو الفلاتر المستخدمة', en: 'Try different keywords or adjust your filters' },
+  'news_view_more': { ar: 'عرض المزيد', en: 'View More' },
+
   // User Dashboard
   'user_welcome': { ar: 'مرحباً،', en: 'Welcome,' },
   'user_logout': { ar: 'تسجيل الخروج', en: 'Logout' },
@@ -608,29 +651,32 @@ const translations: Record<string, Record<Language, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('gov_lang');
-      return (saved as Language) || 'ar';
-    }
-    return 'ar';
-  });
+  const [language, setLanguage] = useState<Language>('ar');
+  const [hydrated, setHydrated] = useState(false);
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
+  // Sync from localStorage after hydration to avoid mismatch
   useEffect(() => {
+    const saved = localStorage.getItem('gov_lang') as Language | null;
+    if (saved && saved !== language) {
+      setLanguage(saved);
+    }
+    setHydrated(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem('gov_lang', language);
     document.documentElement.setAttribute('dir', direction);
     document.documentElement.setAttribute('lang', language);
 
-    // Adjust font based on language if needed, though the stack handles both well
     if (language === 'en') {
       document.body.classList.add('font-english');
     } else {
       document.body.classList.remove('font-english');
     }
-
-  }, [language, direction]);
+  }, [language, direction, hydrated]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'ar' ? 'en' : 'ar');

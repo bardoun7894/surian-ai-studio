@@ -46,14 +46,11 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setThemeState(newTheme);
   };
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      {children}
+      <div className={mounted ? 'opacity-100 transition-opacity duration-300' : 'opacity-0'}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 };

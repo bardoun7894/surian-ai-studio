@@ -21,7 +21,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { DIRECTORATES } from '@/lib/constants';
+import { API } from '@/lib/repository';
 import { Directorate, LocalizedString } from '@/types';
 import Link from 'next/link';
 
@@ -31,6 +31,8 @@ const GovernmentPartners: React.FC = () => {
     const modalRef = useRef<HTMLDivElement>(null);
     const backdropRef = useRef<HTMLDivElement>(null);
     const [selectedDirectorate, setSelectedDirectorate] = useState<Directorate | null>(null);
+    const [directorates, setDirectorates] = useState<Directorate[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // Map icon names to components
     const iconMap: Record<string, React.ReactNode> = {
@@ -57,7 +59,21 @@ const GovernmentPartners: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!scrollRef.current) return;
+        const fetchDirectorates = async () => {
+            try {
+                const data = await API.directorates.getAll();
+                setDirectorates(data);
+            } catch (error) {
+                console.error('Failed to load directorates:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDirectorates();
+    }, []);
+
+    useEffect(() => {
+        if (!scrollRef.current || directorates.length === 0) return;
 
         const scrollContainer = scrollRef.current;
         let tween: gsap.core.Tween;
@@ -82,7 +98,7 @@ const GovernmentPartners: React.FC = () => {
             scrollContainer.removeEventListener('mouseleave', handleMouseLeave);
             ctx.revert();
         };
-    }, []);
+    }, [directorates]);
 
     // Animate Modal Open
     useEffect(() => {
@@ -124,6 +140,20 @@ const GovernmentPartners: React.FC = () => {
         }
     };
 
+    if (loading || directorates.length === 0) {
+        return (
+            <section className="py-16 bg-gov-beige/30 dark:bg-gov-forest/30 border-t border-gov-gold/20 dark:border-gov-gold/10 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex gap-6 overflow-hidden py-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="w-56 h-56 rounded-3xl bg-gray-200 dark:bg-gray-700 animate-pulse flex-shrink-0" />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className="py-16 bg-gov-beige/30 dark:bg-gov-forest/30 border-t border-gov-gold/20 dark:border-gov-gold/10 transition-colors">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -152,7 +182,7 @@ const GovernmentPartners: React.FC = () => {
                         className="flex gap-6 w-max flex-nowrap py-4"
                     >
                         {/* Duplicate the array multiple times to ensure it covers wide screens and loops seamlessly */}
-                        {[...DIRECTORATES, ...DIRECTORATES, ...DIRECTORATES, ...DIRECTORATES].map((directorate, index) => (
+                        {[...directorates, ...directorates, ...directorates, ...directorates].map((directorate, index) => (
                             <div
                                 key={`${directorate.id}-${index}`}
                                 className="flex-shrink-0"

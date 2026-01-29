@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Enums\Permission;
 
 class RolesSeeder extends Seeder
 {
@@ -13,42 +14,53 @@ class RolesSeeder extends Seeder
             [
                 'name' => 'super_admin',
                 'label' => 'مدير النظام',
-                'permissions' => json_encode(['*']),
+                'permissions' => json_encode([Permission::SUPER_ADMIN]),
             ],
             [
                 'name' => 'content_admin',
                 'label' => 'مدير المحتوى',
                 'permissions' => json_encode([
-                    'content.view', 'content.create', 'content.edit',
-                    'content.delete', 'content.publish', 'content.feature',
-                    'services.view', 'services.manage'
+                    Permission::ADMIN_PANEL,
+                    Permission::CONTENT_ALL,
+                    Permission::SERVICES_ALL,
+                    Permission::FAQ_ALL,
+                    Permission::NEWSLETTER_ALL,
+                    Permission::PROMOTIONAL_ALL,
                 ]),
             ],
             [
                 'name' => 'complaint_admin',
                 'label' => 'مدير الشكاوى',
                 'permissions' => json_encode([
-                    'complaints.view', 'complaints.manage', 'complaints.delete',
-                    'complaints.assign', 'complaints.respond',
-                    'suggestions.view', 'suggestions.manage',
-                    'directorates.view'
+                    Permission::ADMIN_PANEL,
+                    Permission::COMPLAINTS_ALL,
+                    Permission::SUGGESTIONS_ALL,
+                    Permission::DIRECTORATES_VIEW,
+                    Permission::REPORTS_VIEW,
                 ]),
             ],
-            // Legacy roles for backwards compatibility
             [
                 'name' => 'admin',
                 'label' => 'Administrator',
-                'permissions' => json_encode(['*']),
+                'permissions' => json_encode([Permission::SUPER_ADMIN]),
             ],
             [
                 'name' => 'content_manager',
                 'label' => 'Content Manager',
-                'permissions' => json_encode(['content.*']),
+                'permissions' => json_encode([
+                    Permission::ADMIN_PANEL,
+                    Permission::CONTENT_ALL,
+                    Permission::SERVICES_ALL,
+                ]),
             ],
             [
                 'name' => 'complaint_officer',
                 'label' => 'Complaint Officer',
-                'permissions' => json_encode(['complaints.*', 'directorates.*']),
+                'permissions' => json_encode([
+                    Permission::ADMIN_PANEL,
+                    Permission::COMPLAINTS_ALL,
+                    Permission::DIRECTORATES_ALL,
+                ]),
             ],
         ];
 

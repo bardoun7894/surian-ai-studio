@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20">
+            <main className="flex-grow pt-14 md:pt-16">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-4xl mx-auto text-center animate-fade-in-up">

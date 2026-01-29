@@ -21,7 +21,9 @@ import {
   Banknote,
   Map,
   Factory,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  Circle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
@@ -29,6 +31,50 @@ import { Directorate, Service } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+
+// Service workflow stages component
+const ServiceStages = ({ service, language }: { service: Service; language: string }) => {
+  // Define stages based on service type
+  const stages = service.isDigital
+    ? [
+        { id: 1, name: { ar: 'تقديم الطلب', en: 'Submit Request' }, completed: true },
+        { id: 2, name: { ar: 'مراجعة البيانات', en: 'Review Data' }, completed: true },
+        { id: 3, name: { ar: 'الموافقة', en: 'Approval' }, completed: false },
+        { id: 4, name: { ar: 'الإصدار', en: 'Issuance' }, completed: false }
+      ]
+    : [
+        { id: 1, name: { ar: 'حجز موعد', en: 'Book Appointment' }, completed: true },
+        { id: 2, name: { ar: 'زيارة المركز', en: 'Visit Center' }, completed: false },
+        { id: 3, name: { ar: 'تقديم المستندات', en: 'Submit Documents' }, completed: false },
+        { id: 4, name: { ar: 'استلام الخدمة', en: 'Receive Service' }, completed: false }
+      ];
+
+  return (
+    <div className="flex items-center justify-between gap-1 px-2 py-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+      {stages.map((stage, idx) => (
+        <div key={stage.id} className="flex items-center flex-1">
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                stage.completed
+                  ? 'bg-gov-teal text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+              }`}
+            >
+              {stage.completed ? <CheckCircle2 size={14} /> : <Circle size={10} />}
+            </div>
+            <span className={`text-[10px] text-center font-medium ${stage.completed ? 'text-gov-teal' : 'text-gray-400'}`}>
+              {language === 'ar' ? stage.name.ar : stage.name.en}
+            </span>
+          </div>
+          {idx < stages.length - 1 && (
+            <div className={`h-0.5 flex-1 mx-1 ${stage.completed ? 'bg-gov-teal' : 'bg-gray-200 dark:bg-gray-700'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function ServicesPage() {
   const { language } = useLanguage();
@@ -38,6 +84,7 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showStages, setShowStages] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,7 +145,7 @@ export default function ServicesPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
       <Navbar />
 
-      <main className="flex-grow pt-20">
+      <main className="flex-grow pt-14 md:pt-16">
         {/* Header */}
         <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
           <div className="max-w-7xl mx-auto">
@@ -175,6 +222,18 @@ export default function ServicesPage() {
                 {language === 'ar' ? 'حضورية' : 'In-Person'}
               </button>
             </div>
+
+            {/* Show Stages Toggle */}
+            <button
+              onClick={() => setShowStages(!showStages)}
+              className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${showStages
+                ? 'bg-gov-gold text-white'
+                : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20'
+                }`}
+            >
+              <CheckCircle2 size={16} />
+              {language === 'ar' ? 'إظهار المراحل' : 'Show Stages'}
+            </button>
           </div>
 
           {/* Results Count */}
@@ -230,6 +289,13 @@ export default function ServicesPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                   {service.description}
                 </p>
+
+                {/* Service Workflow Stages */}
+                {showStages && (
+                  <div className="mb-4">
+                    <ServiceStages service={service} language={language} />
+                  </div>
+                )}
 
                 {/* Service Footer */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/10 mt-auto">

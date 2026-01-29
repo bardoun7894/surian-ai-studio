@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Search, Loader2, CheckCircle, Clock, XCircle, AlertCircle, FileText, ArrowLeft, Calendar, User, Printer } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -46,6 +46,10 @@ const statusConfig: Record<string, { label: string; labelEn: string; color: stri
 };
 
 export default function SuggestionTrackPage() {
+    return <Suspense><SuggestionTrackPageContent /></Suspense>;
+}
+
+function SuggestionTrackPageContent() {
     const searchParams = useSearchParams();
     const initialId = searchParams.get('id') || '';
 

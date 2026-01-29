@@ -265,6 +265,7 @@ class ComplaintController extends Controller
     {
         $request->validate(['status' => 'required|string|in:new,received,in_progress,resolved,rejected,closed']);
         $complaint = Complaint::findOrFail($id);
+        $this->authorize('changeStatus', $complaint);
 
         $oldStatus = $complaint->status;
         $newStatus = $request->status;
@@ -339,7 +340,8 @@ class ComplaintController extends Controller
     {
         $request->validate(['response' => 'required|string']);
         $complaint = Complaint::findOrFail($id);
-        
+        $this->authorize('respond', $complaint);
+
         $complaint->responses()->create([
             'user_id' => $request->user()->id,
             'content' => $request->response

@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ApiError } from '@/lib/api';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 const RegisterPage = () => {
     const { language } = useLanguage();
@@ -46,6 +47,7 @@ const RegisterPage = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { executeRecaptcha } = useRecaptcha();
 
     const governorates = [
         'دمشق',
@@ -76,6 +78,7 @@ const RegisterPage = () => {
         setIsLoading(true);
 
         try {
+            const recaptchaToken = await executeRecaptcha('register');
             await register({
                 name: formData.fullName,
                 email: formData.email,
@@ -85,7 +88,8 @@ const RegisterPage = () => {
                 phone: formData.phone,
                 birth_date: formData.birthDate,
                 governorate: formData.governorate,
-                two_factor_enabled: formData.twoFactorEnabled
+                two_factor_enabled: formData.twoFactorEnabled,
+                recaptcha_token: recaptchaToken,
             });
 
             // Redirect to dashboard

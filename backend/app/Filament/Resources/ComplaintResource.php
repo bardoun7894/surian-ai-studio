@@ -153,6 +153,12 @@ class ComplaintResource extends Resource
                     ->relationship('directorate', 'name_ar'),
             ])
             ->actions([
+                Tables\Actions\Action::make('print')
+                    ->label('طباعة')
+                    ->icon('heroicon-o-printer')
+                    ->color('success')
+                    ->url(fn ($record) => url("/api/v1/complaints/{$record->tracking_number}/pdf"))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
             ])
@@ -167,7 +173,8 @@ class ComplaintResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ResponsesRelationManager::class,
+            RelationManagers\AttachmentsRelationManager::class,
         ];
     }
 

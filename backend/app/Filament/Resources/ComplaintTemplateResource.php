@@ -16,6 +16,30 @@ class ComplaintTemplateResource extends Resource
 {
     protected static ?string $model = ComplaintTemplate::class;
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('complaints.view') || $user?->hasPermission('complaints.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('complaints.manage') || $user?->hasPermission('complaints.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('complaints.manage') || $user?->hasPermission('complaints.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('complaints.manage') || $user?->hasPermission('complaints.*') || $user?->hasRole('super_admin');
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $navigationGroup = 'الشكاوى';

@@ -14,6 +14,23 @@ class SystemSettingResource extends Resource
 {
     protected static ?string $model = SystemSetting::class;
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('settings.manage') || $user?->hasPermission('settings.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = auth()->user();
+        return $user?->hasPermission('settings.manage') || $user?->hasPermission('settings.*') || $user?->hasRole('super_admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?string $navigationGroup = 'إدارة النظام';

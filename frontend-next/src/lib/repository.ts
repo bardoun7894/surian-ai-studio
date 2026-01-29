@@ -1590,7 +1590,58 @@ class ApiSearchRepository implements ISearchRepository {
   }
 }
 
+// Open Data API
+const openDataApi = {
+  async getAll(): Promise<Array<{ id: string; title_ar: string; title_en: string; description_ar: string; description_en: string; date: string; format: string; size: string; category_label: string; download_url: string | null }>> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/open-data`);
+      if (!res.ok) return [];
+      return res.json();
+    } catch {
+      return [];
+    }
+  },
+};
+
+// Settings & Contact API
+const settingsApi = {
+  async getByGroup(group: string): Promise<Record<string, unknown>> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/settings/group/${group}`);
+      if (!res.ok) return {};
+      const json = await res.json();
+      return json.settings || {};
+    } catch {
+      return {};
+    }
+  },
+  async getPublic(): Promise<Record<string, unknown>> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/public/settings`);
+      if (!res.ok) return {};
+      const json = await res.json();
+      return json.settings || {};
+    } catch {
+      return {};
+    }
+  },
+  async submitContactForm(data: { name: string; email: string; subject: string; message: string; department?: string }): Promise<{ success: boolean; message: string; message_en: string }> {
+    const res = await fetch(`${API_BASE_URL}/public/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to submit contact form');
+    }
+    return res.json();
+  },
+};
+
 export const API = {
+  settings: settingsApi,
+  openData: openDataApi,
   directorates: USE_MOCK_DATA ? new MockDirectorateRepository() : new ApiDirectorateRepository(),
   news: USE_MOCK_DATA ? new MockNewsRepository() : new ApiNewsRepository(),
   decrees: USE_MOCK_DATA ? new MockDecreeRepository() : new ApiDecreeRepository(),

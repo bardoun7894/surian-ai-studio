@@ -1,15 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Map as MapIcon, Loader2, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+
+interface ContactInfo {
+    contact_phone?: string;
+    contact_email?: string;
+    contact_support_email?: string;
+    contact_address_ar?: string;
+    contact_address_en?: string;
+    contact_working_hours_ar?: string;
+    contact_working_hours_en?: string;
+}
 
 export default function ContactPage() {
     const { language } = useLanguage();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [error, setError] = useState('');
+    const [contactInfo, setContactInfo] = useState<ContactInfo>({});
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -17,22 +30,48 @@ export default function ContactPage() {
         message: ''
     });
 
+    useEffect(() => {
+        const fetchContactInfo = async () => {
+            try {
+                const settings = await API.settings.getByGroup('contact') as ContactInfo;
+                setContactInfo(settings);
+            } catch {
+                setContactInfo({});
+            }
+        };
+        fetchContactInfo();
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSubmitting(false);
+        setError('');
+        try {
+            await API.settings.submitContactForm(formData);
             setIsSuccess(true);
             setFormData({ name: '', email: '', subject: '', message: '' });
-        }, 1500);
+        } catch {
+            setError(language === 'ar' ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'An error occurred. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const phone = contactInfo.contact_phone || '19999';
+    const email = contactInfo.contact_email || 'info@moe.gov.sy';
+    const supportEmail = contactInfo.contact_support_email || 'support@moe.gov.sy';
+    const address = language === 'en' && contactInfo.contact_address_en
+        ? contactInfo.contact_address_en
+        : (contactInfo.contact_address_ar || 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة');
+    const workingHours = language === 'en' && contactInfo.contact_working_hours_en
+        ? contactInfo.contact_working_hours_en
+        : (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 صباحاً - 3:30 عصراً');
 
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20">
+            <main className="flex-grow pt-14 md:pt-16">
                 {/* Header */}
                 <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
@@ -59,7 +98,7 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
-                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-gray-200">19999</p>
+                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-gray-200">{phone}</p>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>
@@ -71,8 +110,8 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">info@moe.gov.sy</p>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">support@moe.gov.sy</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">{email}</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">{supportEmail}</p>
                                 </div>
                             </div>
 
@@ -84,7 +123,7 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                                        {language === 'ar' ? 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة' : 'Damascus - Governorate Square - Ministry of Economy and Industry Building'}
+                                        {address}
                                     </p>
                                 </div>
                             </div>
@@ -97,7 +136,7 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="font-bold text-white mb-1">{language === 'ar' ? 'ساعات العمل' : 'Working Hours'}</h3>
                                     <p className="text-sm text-gray-300 mb-2">
-                                        {language === 'ar' ? 'الأحد - الخميس: 8:00 صباحاً - 3:30 عصراً' : 'Sun - Thu: 8:00 AM - 3:30 PM'}
+                                        {workingHours}
                                     </p>
                                     <span className="text-xs bg-white/20 px-2 py-1 rounded text-white">
                                         {language === 'ar' ? 'الجمعة والسبت عطلة رسمية' : 'Fri & Sat Closed'}
@@ -134,6 +173,11 @@ export default function ContactPage() {
                                     </div>
                                 ) : (
                                     <form onSubmit={handleSubmit} className="space-y-6">
+                                        {error && (
+                                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-xl text-sm">
+                                                {error}
+                                            </div>
+                                        )}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
@@ -190,7 +234,6 @@ export default function ContactPage() {
 
                             {/* Map Placeholder */}
                             <div className="bg-gray-200 dark:bg-gray-800 rounded-3xl h-[400px] overflow-hidden relative shadow-inner flex items-center justify-center group">
-                                {/* This would be an iframe or map component in production */}
                                 <div className="absolute inset-0 bg-cover bg-center opacity-50 grayscale transition-all duration-500 group-hover:grayscale-0" style={{ backgroundImage: "url('/assets/map-placeholder.jpg')" }}></div>
                                 <div className="bg-white/90 dark:bg-black/70 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-2 text-gov-forest dark:text-white font-bold z-10 shadow-lg">
                                     <MapIcon />

@@ -1,17 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, MapPin, Phone, Mail, Clock, Loader2, CheckCircle, User, Building2, Tag } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const DIRECTORATES_MOCK = [
-  { id: 'd1', name: 'الإدارة العامة للصناعة' },
-  { id: 'd2', name: 'الإدارة العامة للاقتصاد' },
-  { id: 'd3', name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك' }
-];
+import { API } from '@/lib/repository';
+import { Directorate } from '@/types';
+import { getLocalizedName } from '@/lib/utils';
 
 const ContactSection: React.FC = () => {
   const { language } = useLanguage();
+  const [directorates, setDirectorates] = useState<Directorate[]>([]);
+  const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    API.directorates.getAll()
+      .then(data => setDirectorates(data))
+      .catch(err => console.error('Failed to load directorates:', err));
+    API.settings.getByGroup('contact')
+      .then(data => setContactInfo(data as Record<string, string>))
+      .catch(() => {});
+  }, []);
+
+  const phone = contactInfo.contact_phone || '19999';
+  const email = contactInfo.contact_email || 'info@moe.gov.sy';
+  const addressAr = contactInfo.contact_address_ar || 'دمشق - ساحة المحافظة\nمبنى وزارة الاقتصاد والصناعة';
+  const workingHoursAr = contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 ص - 3:30 م';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,16 +36,25 @@ const ContactSection: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await API.settings.submitContactForm({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        department: formData.directorate,
+      });
       setIsSuccess(true);
       setFormData({ name: '', email: '', subject: '', directorate: '', message: '' });
       setTimeout(() => setIsSuccess(false), 5000);
-    }, 1500);
+    } catch {
+      // Silently handle - the form UI will reset
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -66,7 +89,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">الخط الساخن الموحد</span>
-                    <span className="text-xl font-bold font-display">19999</span>
+                    <span className="text-xl font-bold font-display">{phone}</span>
                   </div>
                 </div>
 
@@ -76,7 +99,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">البريد الإلكتروني</span>
-                    <span className="text-lg">info@moe.gov.sy</span>
+                    <span className="text-lg">{email}</span>
                   </div>
                 </div>
 
@@ -86,7 +109,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">المقر الرئيسي</span>
-                    <span className="text-lg">دمشق - ساحة المحافظة<br />مبنى وزارة الاقتصاد والصناعة</span>
+                    <span className="text-lg">{addressAr}</span>
                   </div>
                 </div>
 
@@ -96,7 +119,7 @@ const ContactSection: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-sm text-white/50 mb-1">ساعات العمل</span>
-                    <span className="text-lg">الأحد - الخميس: 8:00 ص - 3:30 م</span>
+                    <span className="text-lg">{workingHoursAr}</span>
                   </div>
                 </div>
               </div>
@@ -172,8 +195,8 @@ const ContactSection: React.FC = () => {
                         <option value="general" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">الاستعلامات العامة</option>
                         <option value="complaints" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">مكتب الشكاوى</option>
                         <option value="media" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">المكتب الإعلامي</option>
-                        {DIRECTORATES_MOCK.map(d => (
-                          <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{d.name}</option>
+                        {directorates.map(d => (
+                          <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{getLocalizedName(d.name, language)}</option>
                         ))}
                       </select>
                       <Building2 className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-gold/50" size={18} />

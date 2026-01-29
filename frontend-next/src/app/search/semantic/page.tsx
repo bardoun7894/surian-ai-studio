@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Search,
@@ -38,6 +38,10 @@ interface FilterState {
 }
 
 export default function SemanticSearchPage() {
+    return <Suspense><SemanticSearchPageContent /></Suspense>;
+}
+
+function SemanticSearchPageContent() {
   const { language } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();

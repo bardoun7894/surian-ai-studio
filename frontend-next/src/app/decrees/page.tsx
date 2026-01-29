@@ -1,17 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, Download, Calendar, Scale, Loader2 } from 'lucide-react';
+import { Search, FileText, Download, Calendar, Scale, Loader2, Sparkles, X } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Decree } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { aiService } from '@/lib/aiService';
 
 export default function DecreesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [decrees, setDecrees] = useState<Decree[]>([]);
   const [loading, setLoading] = useState(true);
+  const [summaryModal, setSummaryModal] = useState<{ isOpen: boolean; title: string; summary: string; loading: boolean }>({
+    isOpen: false,
+    title: '',
+    summary: '',
+    loading: false
+  });
+
+  const handleAISummary = async (decree: Decree) => {
+    setSummaryModal({ isOpen: true, title: decree.title, summary: '', loading: true });
+    try {
+      const textToSummarize = `${decree.title}. ${decree.description}`;
+      const summary = await aiService.summarize(textToSummarize);
+      setSummaryModal(prev => ({ ...prev, summary, loading: false }));
+    } catch (e) {
+      setSummaryModal(prev => ({ ...prev, summary: 'فشل في إنشاء الملخص. يرجى المحاولة مرة أخرى.', loading: false }));
+    }
+  };
 
   useEffect(() => {
     const fetchDecrees = async () => {
@@ -37,7 +55,7 @@ export default function DecreesPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
       <Navbar />
 
-      <main className="flex-grow pt-20">
+      <main className="flex-grow pt-14 md:pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in-up">
 
           {/* Header */}
@@ -135,7 +153,14 @@ export default function DecreesPage() {
                       </div>
                     </div>
 
-                    <div className="self-center md:self-start">
+                    <div className="self-center md:self-start flex flex-col gap-2">
+                      <button
+                        onClick={() => handleAISummary(decree)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-sm"
+                      >
+                        <Sparkles size={16} />
+                        ملخص ذكي
+                      </button>
                       <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold font-bold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all text-sm border border-transparent hover:border-gov-forest dark:hover:border-gov-gold">
                         <Download size={16} />
                         تحميل PDF
@@ -152,6 +177,38 @@ export default function DecreesPage() {
       </main>
 
       <Footer />
+
+      {/* AI Summary Modal */}
+      {summaryModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gov-forest rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/10">
+              <div className="flex items-center gap-2 text-gov-gold">
+                <Sparkles size={20} />
+                <h3 className="font-bold">ملخص ذكي للمرسوم</h3>
+              </div>
+              <button
+                onClick={() => setSummaryModal({ isOpen: false, title: '', summary: '', loading: false })}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6">
+              <h4 className="font-bold text-gov-charcoal dark:text-white mb-4 line-clamp-2">{summaryModal.title}</h4>
+              {summaryModal.loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="animate-spin text-gov-gold" size={32} />
+                </div>
+              ) : (
+                <div className="bg-gov-beige/50 dark:bg-white/5 rounded-xl p-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{summaryModal.summary}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

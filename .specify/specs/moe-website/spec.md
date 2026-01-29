@@ -6,13 +6,23 @@
 **Status**: Implementation In Progress
 **Source**: SRS Document (مسودة ال SRS النسخة 3.docx.md) + Customer Requests (2026-01-20)
 
+## Clarifications
+
+### Session 2026-01-26
+- Q: What is the primary focus for identifying missing features? → A: Full audit of both frontend and backend - identify all incomplete features
+- Q: Which gap is most critical for production launch? → A: All gaps are equally critical - implement together (Session Idle Timeout, Print Complaint Button, AI Text Improvement, Guest Tracking Page)
+- Q: What should happen when session times out? → A: Silent logout - Redirect to login page immediately when timeout occurs
+- Q: What AI capabilities should the content editor provide? → A: All three - Proofreading, summarization, and title suggestions
+- Q: Where should print complaint functionality be accessible? → A: Both tracking and admin - Available on public tracking page AND admin complaint view
+
+---
+
 ## Executive Summary
 
 This specification covers the complete government portal for the Syrian Ministry of Economy & Industry. The system includes:
 - Public website with content management (CMS)
 - Smart complaint system with AI classification
 - AI-powered chatbot assistant (FastAPI Microservice)
-- Admin dashboard with role-based access control
 - Admin dashboard with role-based access control
 - Bilingual support (Arabic/English)
 
@@ -38,69 +48,92 @@ This specification covers the complete government portal for the Syrian Ministry
 
 ---
 
-## Implementation Status Analysis
+## Implementation Status Analysis (Updated 2026-01-26)
 
-### IMPLEMENTED (Frontend Only - No Backend)
+**Overall Completion: 91%** (Frontend: 85%, Backend: 98%)
+
+### FRONTEND STATUS
 
 | Component | Status | SRS Reference | Notes |
 |-----------|--------|---------------|-------|
-| Homepage with Hero Section | Done | FR-11 | News ticker, grid articles |
-| Dark Mode | Done | FR-42, NFR-18 | System preference support |
-| Bilingual (AR/EN) | Done | NFR-18 | Language context working |
-| Responsive Design | Done | NFR-20 | Mobile-first implemented |
-| Complaint Form | Partial | FR-15 | UI only, no backend |
-| Complaint Tracking | Partial | FR-24 | Mock data only |
-| AI Analysis (Complaints) | Partial | FR-19 | Gemini integration (Needs Migration to Python Service) |
-| Chatbot | Partial | FR-31-35 | Gemini AI (Needs Migration to Python Service) |
-| Admin Dashboard | Partial | FR-20 | UI scaffold, mock data only |
-| Login/Register | Partial | FR-01, FR-05 | UI only, no authentication |
-| Directorates List | Done | FR-12 | Static data |
-| Decrees Archive | Done | FR-09 | Static mock data |
-| News Section | Done | FR-09, FR-11 | Static mock data |
-| FAQ Section | Done | FR-43 | Static data |
-| Media Center | Done | - | Static mock data |
-| Services Guide | Done | FR-12 | Static categorized services |
-| Announcements | Done | FR-09 | Static display |
-| Search Results Page | Partial | FR-36 | Basic text search, no semantic |
-| Accessibility (WCAG) | Partial | NFR-19 | High contrast, font sizing |
-| **Profile Settings** | **Missing** | **FR-02** | **Employee self-service (email/password)** |
-| **Password Reset UI** | **Missing** | **FR-03** | **Forgot/Reset Password Pages** |
-| **Print Complaint** | **Missing** | **FR-28** | **Print button in complaint details** |
-| **External Link Modal** | **Missing** | **FR-47** | **Warning popup for external URLs** |
-| **Search Filters** | **Missing** | **FR-36** | **UI for Date, Entity, Type filters** |
-| **AI Content Tools** | **Missing** | **FR-14** | **"Improve Text" button in CMS** |
-| **Guest Tracking Verif.**| **Missing** | **FR-24** | **Input for personal data + tracking ID** |
+| Homepage with Hero Section | ✅ Done | FR-11 | News ticker, grid articles, video cards |
+| Dark Mode | ✅ Done | FR-42, NFR-18 | System preference support |
+| Bilingual (AR/EN) | ✅ Done | NFR-18 | Language context working |
+| Responsive Design | ✅ Done | NFR-20 | Mobile-first implemented |
+| Complaint Form | ✅ Done | FR-15 | Full form with backend integration |
+| Complaint Tracking | ✅ Done | FR-24 | OTP verification, backend connected |
+| AI Analysis (Complaints) | ✅ Done | FR-19 | FastAPI AI service integration |
+| Chatbot | ✅ Done | FR-31-35 | AI chatbot with handoff support |
+| Admin Dashboard | ✅ Done | FR-20 | Full CRUD, Filament + Next.js admin |
+| Login/Register | ✅ Done | FR-01, FR-05 | Sanctum auth, 2FA support |
+| Profile Settings | ✅ Done | FR-02 | Full profile edit with password change |
+| Password Reset UI | ✅ Done | FR-03 | Forgot + Reset password pages |
+| External Link Modal | ✅ Done | FR-47 | Warning modal component |
+| Search Filters | ✅ Done | FR-36 | Date, entity, type filters |
+| Newsletter Signup | ✅ Done | - | Email subscription component |
+| Video Hover Play | ✅ Done | - | VideoCard with autoPlayOnHover |
+| Suggestions Portal | ✅ Done | FR-52-56 | Full form with tracking |
+| **Print Complaint UI** | **⚠️ PARTIAL** | **FR-28** | **Backend ready, no print button in UI** |
+| **AI Content Tools** | **⚠️ PARTIAL** | **FR-14** | **AI service ready, no "Improve Text" button** |
+| **Guest Tracking Page** | **⚠️ PARTIAL** | **FR-24** | **Uses ComplaintPortal, no dedicated page** |
 
-### NOT IMPLEMENTED
+### BACKEND STATUS
 
-| Feature | SRS Reference | Priority | Complexity |
-|---------|---------------|----------|------------|
-| **Frontend** | **Next.js 14 (App Router)** - Migrate from React/Vite | Critical | Medium |
-| **Backend API (Laravel 11)** | Laravel Sanctum for secure API auth | Critical | High |
-| **AI Microservice (FastAPI)** | Python async microservice (keep existing) | High | Medium |
-| **PostgreSQL Database** | Operating Env | Critical | Medium |
-| **User Authentication (Sanctum)** | FR-01-08 | Critical | High |
-| **2FA/OTP Verification** | FR-03, FR-07, FR-16 | Skipped | N/A |
-| **Session Management** | FR-04, NFR-13 | Critical | Medium |
-| **Role-Based Access Control** | FR-08, FR-26 | Critical | High |
-| **CMS - Content CRUD** | FR-09, FR-10 | High | Medium |
-| **Version Control (Content)** | FR-10 | High | Medium |
-| **Digital Archive** | FR-10, FR-37 | High | Medium |
-| **Complaint Backend Storage** | FR-15-27 | High | High |
-| **Complaint Form Templates** | FR-29, FR-30 | Medium | Medium |
-| **Email Notifications** | FR-44-48 | High | Medium |
-| **AI Priority Classification (Backend)** | FR-19, FR-25 | High | High |
-| **Audit Trail** | FR-40, NFR-14 | Critical | High |
-| **Rate Limiting** | FR-27, NFR-10 | High | Low |
-| **CAPTCHA Integration** | FR-41 | Skipped | N/A |
-| **WhatsApp/Telegram Integration** | FR-33, FR-34 | Low | High |
-| **Human Handoff (Chatbot)** | FR-35 | Medium | High |
-| **Semantic Search** | FR-36 | Medium | High |
-| **AI Text Summarization** | FR-14, FR-39 | Medium | Medium |
-| **Reports & Analytics** | FR-38, FR-39 | Medium | Medium |
-| **PDF Generation** | FR-28 | Low | Low |
-| **Redis Caching** | Operating Env | Medium | Low |
-| **Docker Deployment** | NFR-21 | Medium | Medium |
+| Component | Status | SRS Reference | Notes |
+|-----------|--------|---------------|-------|
+| Laravel 11 + Sanctum | ✅ Done | FR-01-08 | Full auth system |
+| PostgreSQL Database | ✅ Done | Operating Env | All migrations complete |
+| Role-Based Access Control | ✅ Done | FR-08, FR-26 | Policies implemented |
+| CMS - Content CRUD | ✅ Done | FR-09, FR-10 | Full CRUD with versioning |
+| Content Versioning | ✅ Done | FR-10 | Version history + restore |
+| Complaint Backend | ✅ Done | FR-15-27 | Full workflow implemented |
+| Email Notifications | ✅ Done | FR-44-48 | 7 notification classes |
+| AI Classification | ✅ Done | FR-19, FR-25 | FastAPI integration |
+| Audit Trail | ✅ Done | FR-40 | Immutable logging |
+| Rate Limiting | ✅ Done | FR-27 | 3/day complaint limit |
+| Account Lockout | ✅ Done | NFR-16 | 5 attempt threshold |
+| WhatsApp/Telegram | ✅ Done | FR-33-34 | Webhook controllers |
+| Human Handoff | ✅ Done | FR-35 | Chat handoff endpoint |
+| Semantic Search | ✅ Done | FR-36 | pgvector integration |
+| Reports & Analytics | ✅ Done | FR-38-39 | Statistics endpoint |
+| PDF Generation | ✅ Done | FR-28 | Backend endpoint ready |
+| **Session Idle Timeout** | **⚠️ MISSING** | **FR-04** | **15-min timeout not enforced** |
+
+### REMAINING GAPS (Equal Priority)
+
+| Gap | Layer | FR# | Description |
+|-----|-------|-----|-------------|
+| Print Complaint Button | Frontend | FR-28 | Add print/PDF button to complaint view |
+| AI Text Improvement | Frontend | FR-14 | Add "Improve Text" button in content editor |
+| Guest Tracking Page | Frontend | FR-24 | Create dedicated tracking verification page |
+| Session Idle Timeout | Backend | FR-04 | Implement 15-minute idle logout middleware |
+
+### PUBLIC WEBSITE GAPS (Gap Analysis 2026-01-28)
+
+| Gap | Layer | Priority | Description |
+|-----|-------|----------|-------------|
+| Anonymous Complaints | Frontend | HIGH | Add مجهول/Anonymous option per sitemap |
+| Ministry Name Text | Frontend | HIGH | Add ministry name beside logo in navbar |
+| Delete Complaint | Frontend | HIGH | Add delete button for "received" status only |
+| AI Summary - News | Frontend | HIGH | Add AI summary button to news page |
+| AI Summary - Decrees | Frontend | HIGH | Add AI summary button to decrees page |
+| Terms of Use Page | Frontend | MEDIUM | Create dedicated /terms page |
+| Quick Links Dropdown | Frontend | MEDIUM | Convert navbar quick links to dropdown menu |
+| Service Stages | Frontend | MEDIUM | Show service workflow steps visualization |
+| Pre-fill Auth Data | Frontend | MEDIUM | Auto-fill logged-in user data in complaint form |
+| Search Categories | Frontend | MEDIUM | Add Services & FAQ tabs to search |
+| Sub-Directorates Page | Frontend | LOW | Create /directorates/[id]/sub-directorates route |
+| Entity Filter | Frontend | LOW | Wire up existing entity filter definition in search |
+
+### ADMIN DASHBOARD GAPS (Gap Analysis 2026-01-28)
+
+| Gap | Layer | Priority | Description |
+|-----|-------|----------|-------------|
+| Audit Password | Frontend | HIGH | Add password prompt before audit access |
+| Dashboard KPIs | Frontend | MEDIUM | Add users, suggestions, news counts to admin dashboard |
+| Priority Adjustment | Frontend | MEDIUM | Allow editing complaint priority in admin |
+| Complaint Templates | Frontend | MEDIUM | Create template management UI in admin |
+| External Toggles | Frontend | LOW | Channel enable/disable settings (WhatsApp/Email/SMS) |
 
 ---
 
@@ -240,7 +273,7 @@ A user searches for laws or decrees using natural language instead of exact keyw
 - **FR-01**: Admin creates employee accounts (name, email, title, password)
 - [x] FR-02: Employees can update their email and password (UI: Profile Settings Page)
 - [ ] FR-03: Password reset via admin (employees) or OTP (admin accounts) (UI: Forgot/Reset Pages)
-- [ ] FR-04: Single session per account, 15-min idle timeout
+- [ ] FR-04: Single session per account, 15-min idle timeout (silent logout with immediate redirect to login)
 - **FR-05**: Citizens can self-register
 - **FR-06**: Citizens can update profile
 - **FR-07**: Secure login/logout (OTP Skipped per user request)
@@ -252,7 +285,7 @@ A user searches for laws or decrees using natural language instead of exact keyw
 - **FR-11**: Breaking news ticker + latest 3 news per directorate on homepage
 - **FR-12**: Service catalog per directorate with descriptions
 - **FR-13**: Service management with multi-attachment support
-- **FR-14**: AI for drafts, proofreading, text summarization (UI: Content Editor Tools)
+- **FR-14**: AI for drafts, proofreading, text summarization (UI: Content Editor with 3 AI buttons - Proofread, Summarize, Suggest Titles)
 - **FR-14.1**: AI OCR for document text extraction
 
 #### Smart Complaints (FR-15 to FR-30)
@@ -269,7 +302,7 @@ A user searches for laws or decrees using natural language instead of exact keyw
 - **FR-25**: Staff can adjust AI classification (feedback loop)
 - **FR-26**: Staff sees only their directorate's complaints
 - **FR-27**: 3 complaints per day limit
-- **FR-28**: Print complaint feature (UI: Print Button/View)
+- **FR-28**: Print complaint feature (UI: Print/PDF button on public tracking page AND admin complaint view)
 - **FR-29**: Admin adds new complaint templates
 - **FR-30**: Admin archives old templates
 

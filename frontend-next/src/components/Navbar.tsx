@@ -64,25 +64,17 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               <Image
                 src="/assets/logo/Asset-14@3x.png"
                 alt="Ministry Emblem"
-                width={96}
-                height={96}
+                width={120}
+                height={120}
                 style={{ width: 'auto' }}
-                className="h-16 md:h-20 object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                className="h-20 md:h-24 object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
               />
             </Link>
 
 
 
 
-            {/* Home shortcut */}
-            <Link
-              href="/"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 shrink-0"
-            >
-              <span>{t('nav_home')}</span>
-            </Link>
-
-            <div className="hidden lg:block relative w-full max-w-xl">
+            <div className="hidden lg:block relative w-full max-w-md">
               <form onSubmit={handleSearchSubmit}>
                 <input
                   type="text"
@@ -96,6 +88,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 </button>
               </form>
             </div>
+            {/* Home shortcut */}
+            <Link
+              href="/"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 shrink-0"
+            >
+              <span>{t('nav_home')}</span>
+            </Link>
             <div className="hidden lg:block relative"
               onMouseEnter={() => {
                 if (quickLinksTimeoutRef.current) {
@@ -118,7 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 <ChevronDown size={14} className={`transition-transform duration-200 ${isQuickLinksOpen ? 'rotate-180' : ''}`} />
               </button>
               {isQuickLinksOpen && (
-                <div className={`absolute top-full mt-2 bg-white dark:bg-gov-charcoal rounded-xl shadow-2xl border border-gov-gold/20 py-2 w-56 animate-fade-in ${language === 'ar' ? 'right-0' : 'left-0'}`}>
+                <div className={`absolute top-full mt-2 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gov-gold/20 dark:border-dm-border py-2 w-56 animate-fade-in ${language === 'ar' ? 'right-0' : 'left-0'}`}>
                   {quickLinks.map((link) => {
                     const Icon = link.icon;
                     return (
@@ -150,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 <Moon size={16} className="md:w-[18px] md:h-[18px] block dark:hidden" />
               </button>
 
-              <div className="h-6 md:h-8 w-[1px] bg-gov-gold/30 dark:bg-gov-gold/20 mx-1 hidden sm:block"></div>
+              <div className="h-6 md:h-8 w-[1px] bg-gov-gold/30 dark:bg-gov-emerald/20 mx-1 hidden sm:block"></div>
 
               <button
                 onClick={() => setIsSearchOpen(true)}
@@ -206,7 +205,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
 
         {/* Mobile Menu */}
-        <div className={`lg:hidden bg-white dark:bg-gray-900 border-t border-gov-gold/20 dark:border-gov-gold/20 p-4 space-y-2 shadow-xl absolute top-full left-0 right-0 transition-all duration-300 origin-top transform ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden bg-white dark:bg-dm-surface border-t border-gov-gold/20 dark:border-gov-border/25 p-4 space-y-2 shadow-xl absolute top-full left-0 right-0 transition-all duration-300 origin-top transform ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
           <div className="space-y-1">
             {quickLinks.map((link) => {
               const Icon = link.icon;
@@ -215,7 +214,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gov-forest dark:text-gov-gold hover:bg-gov-beige/20 dark:hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gov-forest dark:text-gov-teal hover:bg-gov-beige/20 dark:hover:bg-white/5 transition-colors"
                 >
                   <Icon size={18} className="text-gov-gold flex-shrink-0" />
                   <span className="font-bold text-sm">{link.label}</span>
@@ -228,7 +227,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             <Link
               href="/dashboard"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gov-gold text-gov-forest dark:bg-gov-emeraldStatic dark:text-gov-gold font-bold rounded-xl mt-2"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gov-gold text-gov-forest dark:bg-dm-surface dark:text-gov-teal font-bold rounded-xl mt-2"
             >
               <LayoutDashboard size={20} />
               <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
@@ -237,26 +236,26 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             <Link
               href="/login"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gov-gold text-gov-forest dark:bg-gov-emeraldStatic dark:text-gov-gold font-bold rounded-xl mt-2"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gov-gold text-gov-forest dark:bg-dm-surface dark:text-gov-teal font-bold rounded-xl mt-2"
             >
               <User size={20} />
               <span>{language === 'ar' ? 'تسجيل الدخول' : 'Login'}</span>
             </Link>
           )}
-          <div className="flex items-center justify-between pt-4 mt-2 border-t border-gov-gold/10 dark:border-white/10">
+          <div className="flex items-center justify-between pt-4 mt-2 border-t border-gov-gold/10 dark:border-gov-border/15">
             <button
               onClick={() => {
                 setIsSearchOpen(true);
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold"
+              className="flex items-center gap-2 text-gov-forest dark:text-gov-teal font-bold"
             >
               <Search size={20} />
               <span>{t('nav_search')}</span>
             </button>
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold"
+              className="flex items-center gap-2 text-gov-forest dark:text-gov-teal font-bold"
             >
               <Globe size={20} />
               <span>{t('switch_lang')}</span>

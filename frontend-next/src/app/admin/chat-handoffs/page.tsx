@@ -33,7 +33,7 @@ const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   assigned: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  closed: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  closed: 'bg-gray-100 text-gray-700 dark:bg-dm-surface dark:text-white/70',
 };
 
 export default function ChatHandoffsPage() {
@@ -152,7 +152,7 @@ export default function ChatHandoffsPage() {
     <div className="p-6 md:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">{t.title}</h1>
-        <p className="text-gray-500 dark:text-gray-400">{t.subtitle}</p>
+        <p className="text-gray-500 dark:text-white/70">{t.subtitle}</p>
       </div>
 
       {loading ? (
@@ -164,7 +164,7 @@ export default function ChatHandoffsPage() {
           {/* Handoff List */}
           <div className="lg:col-span-1 space-y-3">
             {handoffs.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+              <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
                 <MessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
                 <p className="text-gray-500">{t.noPending}</p>
               </div>
@@ -175,8 +175,8 @@ export default function ChatHandoffsPage() {
                   onClick={() => setSelectedHandoff(h)}
                   className={`w-full text-right p-4 rounded-xl border transition-all ${
                     selectedHandoff?.id === h.id
-                      ? 'bg-gov-teal/10 border-gov-teal/30 dark:bg-gov-gold/10 dark:border-gov-gold/30'
-                      : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 hover:border-gov-gold/30'
+                      ? 'bg-gov-teal/10 border-gov-teal/30 dark:bg-gov-gold/10 dark:border-gov-border/35'
+                      : 'bg-white dark:bg-gov-card/10 border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -191,7 +191,7 @@ export default function ChatHandoffsPage() {
                     {h.citizen_name || (language === 'ar' ? 'زائر' : 'Visitor')}
                   </p>
                   {h.reason && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{h.reason}</p>
+                    <p className="text-xs text-gray-500 dark:text-white/70 mt-1 line-clamp-2">{h.reason}</p>
                   )}
                 </button>
               ))
@@ -201,9 +201,9 @@ export default function ChatHandoffsPage() {
           {/* Handoff Detail */}
           <div className="lg:col-span-2">
             {selectedHandoff ? (
-              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+              <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-white/10">
+                <div className="p-6 border-b border-gray-100 dark:border-gov-border/15">
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-xl font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
@@ -229,7 +229,7 @@ export default function ChatHandoffsPage() {
                         <button
                           onClick={() => handleClose(selectedHandoff.id)}
                           disabled={actionLoading === selectedHandoff.id}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg font-bold text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/70 rounded-lg font-bold text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
                         >
                           <XCircle size={16} />
                           {t.close}
@@ -238,9 +238,9 @@ export default function ChatHandoffsPage() {
                     </div>
                   </div>
                   {selectedHandoff.reason && (
-                    <div className="mt-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                    <div className="mt-4 p-3 bg-gray-50 dark:bg-gov-card/10 rounded-lg">
                       <span className="text-xs font-bold text-gray-500 block mb-1">{t.reason}</span>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{selectedHandoff.reason}</p>
+                      <p className="text-sm text-gray-700 dark:text-white/70">{selectedHandoff.reason}</p>
                     </div>
                   )}
                   {selectedHandoff.assigned_to && (
@@ -262,7 +262,7 @@ export default function ChatHandoffsPage() {
                             : 'bg-gray-100 dark:bg-white/10 ml-auto'
                         }`}
                       >
-                        <p className="text-sm text-gray-800 dark:text-gray-200">{msg.content}</p>
+                        <p className="text-sm text-gray-800 dark:text-white/70">{msg.content}</p>
                         <span className="text-xs text-gray-400 mt-1 block">
                           {new Date(msg.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
                         </span>
@@ -277,7 +277,7 @@ export default function ChatHandoffsPage() {
 
                 {/* Response input */}
                 {selectedHandoff.status !== 'closed' && (
-                  <div className="p-4 border-t border-gray-100 dark:border-white/10">
+                  <div className="p-4 border-t border-gray-100 dark:border-gov-border/15">
                     <div className="flex gap-3">
                       <input
                         type="text"
@@ -285,7 +285,7 @@ export default function ChatHandoffsPage() {
                         onChange={(e) => setResponseText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleRespond(selectedHandoff.id)}
                         placeholder={t.responsePlaceholder}
-                        className="flex-1 py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white focus:border-gov-teal dark:focus:border-gov-gold outline-none transition-colors"
+                        className="flex-1 py-3 px-4 rounded-xl bg-gray-50 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white focus:border-gov-teal dark:focus:border-gov-gold outline-none transition-colors"
                       />
                       <button
                         onClick={() => handleRespond(selectedHandoff.id)}
@@ -299,10 +299,10 @@ export default function ChatHandoffsPage() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+              <div className="flex items-center justify-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
                 <div className="text-center">
-                  <MessageSquare size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <MessageSquare size={48} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
+                  <p className="text-gray-500 dark:text-white/70">
                     {language === 'ar' ? 'اختر طلباً لعرض التفاصيل' : 'Select a request to view details'}
                   </p>
                 </div>

@@ -63,7 +63,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
                 <main className="flex-grow flex items-center justify-center">
                     <Loader2 className="animate-spin text-gov-teal" size={40} />
@@ -75,7 +75,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
     if (!news || error) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
                 <main className="flex-grow flex flex-col items-center justify-center p-12 text-center">
                     <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-4">
@@ -97,9 +97,9 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 <ArticleDetail
                     title={language === 'ar'
                         ? (news.title_ar || news.title || '')

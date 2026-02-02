@@ -1,3 +1,9 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable standalone output for Docker deployment (only in production)
@@ -98,4 +104,4 @@ const nextConfig = {
 
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

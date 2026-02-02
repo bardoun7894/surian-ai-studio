@@ -83,6 +83,7 @@ export interface MediaItem {
   title: string;
   type: 'video' | 'photo' | 'infographic';
   thumbnailUrl: string;
+  url?: string;
   date: string;
   duration?: string;
   count?: number;
@@ -250,9 +251,12 @@ export interface FAQ {
 export interface SearchResult {
   id: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   description?: string;
+  excerpt?: string;
   date: string;
-  type: 'news' | 'decree' | 'announcement';
+  type: string;
   category?: string;
   url?: string;
 }
@@ -261,6 +265,9 @@ export interface SearchResults {
   news: SearchResult[];
   decrees: SearchResult[];
   announcements: SearchResult[];
+  services: SearchResult[];
+  faqs: SearchResult[];
+  pages: SearchResult[];
   total: number;
 }
 

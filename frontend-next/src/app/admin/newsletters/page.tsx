@@ -219,7 +219,7 @@ export default function AdminNewslettersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gov-charcoal p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-dm-bg p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -227,7 +227,7 @@ export default function AdminNewslettersPage() {
             <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white">
               {language === 'ar' ? 'إدارة النشرة البريدية' : 'Newsletter Management'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-white/70 mt-1">
               {language === 'ar' ? 'إدارة المشتركين في النشرة البريدية' : 'Manage newsletter subscribers'}
             </p>
           </div>
@@ -243,7 +243,7 @@ export default function AdminNewslettersPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
                 <CheckCircle size={24} className="text-green-500" />
@@ -254,7 +254,7 @@ export default function AdminNewslettersPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
                 <XCircle size={24} className="text-red-500" />
@@ -265,7 +265,7 @@ export default function AdminNewslettersPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
                 <Users size={24} className="text-blue-500" />
@@ -276,7 +276,7 @@ export default function AdminNewslettersPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
                 <TrendingUp size={24} className="text-purple-500" />
@@ -287,7 +287,7 @@ export default function AdminNewslettersPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
                 <Calendar size={24} className="text-orange-500" />
@@ -309,7 +309,7 @@ export default function AdminNewslettersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ar' ? 'بحث بالبريد الإلكتروني...' : 'Search by email...'}
-              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
 
@@ -318,7 +318,7 @@ export default function AdminNewslettersPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'unsubscribed')}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             >
               <option value="all">{language === 'ar' ? 'الكل' : 'All'}</option>
               <option value="active">{language === 'ar' ? 'نشط' : 'Active'}</option>
@@ -328,7 +328,7 @@ export default function AdminNewslettersPage() {
 
           <button
             onClick={() => { fetchSubscribers(); fetchStats(); }}
-            className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+            className="p-3 bg-white dark:bg-gov-card/10 rounded-xl border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             title={language === 'ar' ? 'تحديث' : 'Refresh'}
           >
             <RefreshCw size={20} className="text-gray-500" />
@@ -337,15 +337,15 @@ export default function AdminNewslettersPage() {
       </div>
 
       {/* Subscribers Table */}
-      <div className="bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
+      <div className="bg-white dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="animate-spin text-gov-gold" size={40} />
           </div>
         ) : filteredSubscribers.length === 0 ? (
           <div className="text-center py-12">
-            <Mail size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <Mail size={48} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
+            <p className="text-gray-500 dark:text-white/70">
               {language === 'ar' ? 'لا يوجد مشتركون' : 'No subscribers found'}
             </p>
           </div>
@@ -353,7 +353,7 @@ export default function AdminNewslettersPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-white/5">
+                <thead className="bg-gray-50 dark:bg-gov-card/10">
                   <tr>
                     <th className="px-6 py-4 text-start text-sm font-bold text-gov-charcoal dark:text-white">
                       {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
@@ -396,10 +396,10 @@ export default function AdminNewslettersPage() {
                             : (language === 'ar' ? 'ألغى الاشتراك' : 'Unsubscribed')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-white/70">
                         {new Date(subscriber.subscribed_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-white/70">
                         {subscriber.unsubscribed_at
                           ? new Date(subscriber.unsubscribed_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
                           : '-'}
@@ -423,7 +423,7 @@ export default function AdminNewslettersPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 p-4 border-t border-gray-100 dark:border-white/10">
+              <div className="flex items-center justify-center gap-2 p-4 border-t border-gray-100 dark:border-gov-border/15">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
@@ -431,7 +431,7 @@ export default function AdminNewslettersPage() {
                 >
                   {language === 'ar' ? 'السابق' : 'Previous'}
                 </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-white/70">
                   {language === 'ar' ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
                 </span>
                 <button

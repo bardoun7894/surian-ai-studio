@@ -25,9 +25,9 @@ export default function UnauthorizedPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gov-forest to-gov-charcoal p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gov-forest to-gov-charcoal dark:from-dm-bg dark:to-dm-surface p-4">
       <div className="max-w-md w-full text-center">
-        <div className="bg-white dark:bg-gov-forest/50 rounded-3xl shadow-2xl p-8 border border-gov-gold/20">
+        <div className="bg-white dark:bg-dm-surface rounded-3xl shadow-2xl p-8 border border-gov-gold/20">
           {/* Icon */}
           <div className="w-20 h-20 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
             <ShieldAlert className="w-10 h-10 text-red-600 dark:text-red-400" />
@@ -39,7 +39,7 @@ export default function UnauthorizedPage() {
           </h1>
 
           {/* Message */}
-          <p className="text-gray-600 dark:text-gray-300 mb-8">
+          <p className="text-gray-600 dark:text-white/70 mb-8">
             {language === 'ar'
               ? 'ليس لديك صلاحية للوصول إلى هذه الصفحة. يرجى التواصل مع مدير النظام إذا كنت تعتقد أن هذا خطأ.'
               : 'You do not have permission to access this page. Please contact the system administrator if you believe this is an error.'}
@@ -71,7 +71,7 @@ export default function UnauthorizedPage() {
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
-                className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                className="w-full text-sm text-gray-500 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               >
                 {language === 'ar' ? 'تسجيل الخروج' : 'Sign out'}
               </button>

@@ -153,7 +153,7 @@
                     <div class="flex items-center gap-2">
                         <input type="checkbox" name="is_digital" id="is_digital" value="1" {{ old('is_digital', $service->is_digital) ? 'checked' : '' }}
                             class="rounded border-gray-300 text-primary focus:ring-primary">
-                        <label for="is_digital" class="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">خدمة رقمية</label>
+                        <label for="is_digital" class="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">خدمة </label>
                     </div>
                     <div class="flex items-center gap-2">
                         <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $service->is_active) ? 'checked' : '' }}

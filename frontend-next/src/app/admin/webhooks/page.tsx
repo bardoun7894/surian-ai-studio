@@ -127,7 +127,7 @@ export default function WebhookManagementPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">{t.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t.subtitle}</p>
+          <p className="text-gray-500 dark:text-white/70">{t.subtitle}</p>
         </div>
         <button
           onClick={() => { setEditing(null); setForm({ url: '', channel: 'whatsapp', events: '', is_active: true }); setShowModal(true); }}
@@ -141,14 +141,14 @@ export default function WebhookManagementPage() {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-gov-gold" size={40} /></div>
       ) : webhooks.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+        <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
           <Globe size={64} className="mx-auto text-gray-300 mb-4" />
           <p className="text-gray-500 text-lg font-bold">{t.noWebhooks}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {webhooks.map((webhook) => (
-            <div key={webhook.id} className="bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-5">
+            <div key={webhook.id} className="bg-white dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -191,8 +191,8 @@ export default function WebhookManagementPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="p-6 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+          <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl w-full max-w-lg">
+            <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gov-charcoal dark:text-white">
                 {editing ? t.edit : t.add}
               </h3>
@@ -202,12 +202,12 @@ export default function WebhookManagementPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t.url} *</label>
-                <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal font-mono text-sm" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{t.url} *</label>
+                <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal font-mono text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t.channel}</label>
-                <select value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal">
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{t.channel}</label>
+                <select value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal">
                   <option value="whatsapp">WhatsApp</option>
                   <option value="telegram">Telegram</option>
                   <option value="sms">SMS</option>
@@ -215,16 +215,16 @@ export default function WebhookManagementPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t.events}</label>
-                <input type="text" value={form.events} onChange={(e) => setForm({ ...form, events: e.target.value })} placeholder="complaint.created, complaint.updated" className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal text-sm" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{t.events}</label>
+                <input type="text" value={form.events} onChange={(e) => setForm({ ...form, events: e.target.value })} placeholder="complaint.created, complaint.updated" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal text-sm" />
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="w-5 h-5 rounded" />
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{t.active}</span>
+                <span className="text-sm font-bold text-gray-700 dark:text-white/70">{t.active}</span>
               </label>
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 font-bold text-sm">{t.cancel}</button>
+            <div className="p-6 border-t border-gray-100 dark:border-gov-border/15 flex justify-end gap-3">
+              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/70 font-bold text-sm">{t.cancel}</button>
               <button onClick={handleSave} disabled={saving || !form.url} className="px-5 py-2.5 rounded-xl bg-gov-teal text-white font-bold text-sm hover:bg-gov-emerald transition-colors disabled:opacity-50 flex items-center gap-2">
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                 {t.save}

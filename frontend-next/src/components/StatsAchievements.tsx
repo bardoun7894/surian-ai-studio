@@ -157,7 +157,7 @@ const StatsAchievements: React.FC = () => {
       </div>
 
       {/* Decorative Gradients */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gov-gold/5 dark:bg-gov-gold/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gov-gold/5 dark:bg-gov-emerald/5 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-gov-teal/5 dark:bg-gov-brand/10 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

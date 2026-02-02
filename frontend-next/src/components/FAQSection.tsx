@@ -41,6 +41,13 @@ const FALLBACK_FAQS: FAQ[] = [
     answer_ar: "يتم تسجيل وحماية العلامات التجارية عبر مديرية حماية الملكية في الإدارة العامة للتجارة الداخلية. يمكنك تقديم الطلب إلكترونياً مع صورة العلامة والمستندات المطلوبة.",
     question_en: "How can I register a trademark?",
     answer_en: "Trademarks are registered through the Property Protection Directorate in the General Administration for Internal Trade. You can submit an application electronically with the trademark image and required documents."
+  },
+  {
+    id: '6',
+    question_ar: "هل يمكنني تقديم شكوى مجهولة؟",
+    answer_ar: "نعم، يمكنك تقديم شكوى دون الكشف عن هويتك. سيتم التعامل مع شكواك بسرية تامة ولن يطلع عليه أحد.",
+    question_en: "Can I file an anonymous complaint?",
+    answer_en: "Yes, you can file a complaint without revealing your identity. Your complaint will be handled with complete confidentiality and no one will see it."
   }
 ];
 
@@ -73,15 +80,15 @@ const FAQSection: React.FC = () => {
 
   if (loading) {
     return (
-      <section id="faq" className="py-20 bg-white dark:bg-gov-forest border-t border-gov-gold/10 dark:border-gov-gold/10 scroll-mt-24">
+      <section id="faq" className="py-20 bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15 scroll-mt-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 animate-pulse" />
-            <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded mx-auto mb-4 animate-pulse" />
+            <div className="h-8 w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 animate-pulse" />
+            <div className="h-10 w-64 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-4 animate-pulse" />
           </div>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse" />
+              <div key={i} className="h-16 bg-gray-200 dark:bg-dm-surface rounded-2xl animate-pulse" />
             ))}
           </div>
         </div>
@@ -90,7 +97,7 @@ const FAQSection: React.FC = () => {
   }
 
   return (
-    <section id="faq" className="py-20 bg-white dark:bg-gov-forest border-t border-gov-gold/10 dark:border-gov-gold/10 scroll-mt-24">
+    <section id="faq" className="py-20 bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15 scroll-mt-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="text-center mb-12">
@@ -98,10 +105,10 @@ const FAQSection: React.FC = () => {
             <HelpCircle size={14} />
             <span>{language === 'ar' ? 'مركز المساعدة' : 'Help Center'}</span>
           </div>
-          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">
+          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-gov-teal mb-4">
             {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
           </h2>
-          <p className="text-gov-stone/60 dark:text-gray-300">
+          <p className="text-gov-stone/60 dark:text-white/70">
             {language === 'ar' ? 'إجابات على أكثر الاستفسارات شيوعاً حول الخدمات والبوابة.' : 'Answers to the most common questions about services and the portal.'}
           </p>
         </div>
@@ -112,24 +119,24 @@ const FAQSection: React.FC = () => {
               key={faq.id}
               className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                 ? 'bg-gov-beige/30 dark:bg-gov-brand border-gov-gold/50 shadow-md'
-                : 'bg-white dark:bg-gov-emeraldStatic border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30'
+                : 'bg-white dark:bg-dm-surface border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30'
                 }`}
             >
               <button
                 onClick={() => toggleFaq(index)}
-                className="w-full flex items-center justify-between p-6 text-right font-display font-bold text-gov-forest dark:text-gov-gold hover:text-gov-teal dark:hover:text-white transition-colors"
+                className="w-full flex items-center justify-between p-6 text-right font-display font-bold text-gov-forest dark:text-gov-teal hover:text-gov-teal dark:hover:text-white transition-colors"
               >
                 <span>{getQuestion(faq)}</span>
                 <ChevronDown
                   size={20}
-                  className={`transform transition-transform duration-300 ${openIndex === index ? 'rotate-180 text-gov-gold' : 'text-gov-sand'}`}
+                  className={`transform transition-transform duration-300 ${openIndex === index ? 'rotate-180 text-gov-gold' : 'text-gov-sand dark:text-white/50'}`}
                 />
               </button>
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                   }`}
               >
-                <div className="p-6 pt-0 text-sm text-gov-stone dark:text-gray-300 leading-relaxed border-t border-gov-gold/10 dark:border-white/10 mt-2">
+                <div className="p-6 pt-0 text-sm text-gov-stone dark:text-white/70 leading-relaxed border-t border-gov-gold/10 dark:border-gov-border/15 mt-2">
                   {getAnswer(faq)}
                 </div>
               </div>

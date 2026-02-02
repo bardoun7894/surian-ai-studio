@@ -203,7 +203,7 @@ export default function UserDashboard() {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
@@ -212,7 +212,7 @@ export default function UserDashboard() {
   // Don't render dashboard if not authenticated (will redirect)
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
@@ -335,21 +335,21 @@ export default function UserDashboard() {
       value: complaints.filter(c => c.status === 'new' || c.status === 'in_progress').length,
       icon: <Clock size={24} />,
       color: 'text-gov-teal',
-      bgColor: 'bg-white/60 dark:bg-white/5 border border-gov-teal/20'
+      bgColor: 'bg-white/60 dark:bg-gov-card/10 border border-gov-teal/20'
     },
     {
       label: language === 'ar' ? 'تم الحل' : 'Resolved',
       value: complaints.filter(c => c.status === 'resolved').length,
       icon: <CheckCircle size={24} />,
       color: 'text-gov-gold',
-      bgColor: 'bg-white/60 dark:bg-white/5 border border-gov-gold/20'
+      bgColor: 'bg-white/60 dark:bg-gov-card/10 border border-gov-gold/20'
     },
     {
       label: language === 'ar' ? 'مرفوضة' : 'Rejected',
       value: complaints.filter(c => c.status === 'rejected').length,
       icon: <AlertCircle size={24} />,
       color: 'text-red-500',
-      bgColor: 'bg-white/60 dark:bg-white/5 border border-red-500/20'
+      bgColor: 'bg-white/60 dark:bg-gov-card/10 border border-red-500/20'
     },
   ];
 
@@ -394,7 +394,7 @@ export default function UserDashboard() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors font-sans">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors font-sans">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
       <main className="flex-grow pt-28 pb-12">
@@ -411,7 +411,7 @@ export default function UserDashboard() {
               <h1 className="text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? `مرحباً، ${authUser?.first_name || 'مستخدم'}` : `Welcome, ${authUser?.first_name || 'User'}`}
               </h1>
-              <p className="text-gov-stone dark:text-gray-300 text-lg">
+              <p className="text-gov-stone dark:text-white/70 text-lg">
                 {language === 'ar' ? 'إدارة شكاواك واقتراحاتك وإعدادات حسابك' : 'Manage your complaints, suggestions, and account settings'}
               </p>
             </div>
@@ -485,7 +485,7 @@ export default function UserDashboard() {
                           </div>
                           <div>
                             <p className="text-4xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
-                            <p className="text-sm font-bold text-gov-stone dark:text-gray-400 uppercase tracking-wide">{stat.label}</p>
+                            <p className="text-sm font-bold text-gov-stone dark:text-white/70 uppercase tracking-wide">{stat.label}</p>
                           </div>
                         </motion.div>
                       ))}
@@ -500,10 +500,10 @@ export default function UserDashboard() {
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
-                        { label: language === 'ar' ? 'الإجمالي' : 'Total', value: suggestions.length, color: 'text-gov-teal', bgColor: 'bg-white/50 dark:bg-white/5 border border-gov-teal/20', icon: <Lightbulb size={22} /> },
-                        { label: language === 'ar' ? 'قيد الانتظار' : 'Pending', value: suggestions.filter(s => s.status === 'pending').length, color: 'text-gov-gold', bgColor: 'bg-white/50 dark:bg-white/5 border border-gov-gold/20', icon: <Clock size={22} /> },
-                        { label: language === 'ar' ? 'مقبولة' : 'Approved', value: suggestions.filter(s => s.status === 'approved').length, color: 'text-green-500', bgColor: 'bg-white/50 dark:bg-white/5 border border-green-500/20', icon: <CheckCircle size={22} /> },
-                        { label: language === 'ar' ? 'مرفوضة' : 'Rejected', value: suggestions.filter(s => s.status === 'rejected').length, color: 'text-red-500', bgColor: 'bg-white/50 dark:bg-white/5 border border-red-500/20', icon: <AlertCircle size={22} /> },
+                        { label: language === 'ar' ? 'الإجمالي' : 'Total', value: suggestions.length, color: 'text-gov-teal', bgColor: 'bg-white/50 dark:bg-gov-card/10 border border-gov-teal/20', icon: <Lightbulb size={22} /> },
+                        { label: language === 'ar' ? 'قيد الانتظار' : 'Pending', value: suggestions.filter(s => s.status === 'pending').length, color: 'text-gov-gold', bgColor: 'bg-white/50 dark:bg-gov-card/10 border border-gov-gold/20', icon: <Clock size={22} /> },
+                        { label: language === 'ar' ? 'مقبولة' : 'Approved', value: suggestions.filter(s => s.status === 'approved').length, color: 'text-green-500', bgColor: 'bg-white/50 dark:bg-gov-card/10 border border-green-500/20', icon: <CheckCircle size={22} /> },
+                        { label: language === 'ar' ? 'مرفوضة' : 'Rejected', value: suggestions.filter(s => s.status === 'rejected').length, color: 'text-red-500', bgColor: 'bg-white/50 dark:bg-gov-card/10 border border-red-500/20', icon: <AlertCircle size={22} /> },
                       ].map((stat, idx) => (
                         <motion.div
                           key={idx}
@@ -515,7 +515,7 @@ export default function UserDashboard() {
                           </div>
                           <div>
                             <p className="text-2xl font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
-                            <p className="text-xs font-bold text-gov-stone dark:text-gray-400">{stat.label}</p>
+                            <p className="text-xs font-bold text-gov-stone dark:text-white/70">{stat.label}</p>
                           </div>
                         </motion.div>
                       ))}
@@ -559,14 +559,14 @@ export default function UserDashboard() {
                       <Link href="/complaints/track" className="group">
                         <motion.div
                           whileHover={{ y: -5 }}
-                          className="flex items-center gap-4 p-6 bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 rounded-2xl shadow-sm hover:shadow-md transition-all"
+                          className="flex items-center gap-4 p-6 bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 rounded-2xl shadow-sm hover:shadow-md transition-all"
                         >
                           <div className="w-12 h-12 rounded-xl bg-gov-stone/10 dark:bg-white/10 flex items-center justify-center text-gov-stone dark:text-white backdrop-blur-sm">
                             <Eye size={24} />
                           </div>
                           <div>
                             <span className="block font-bold text-lg text-gov-charcoal dark:text-white">{language === 'ar' ? 'تتبع الحالة' : 'Track Status'}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{language === 'ar' ? 'تابع شكاواك' : 'Follow up on complaints'}</span>
+                            <span className="text-xs text-gray-500 dark:text-white/70">{language === 'ar' ? 'تابع شكاواك' : 'Follow up on complaints'}</span>
                           </div>
                         </motion.div>
                       </Link>
@@ -590,7 +590,7 @@ export default function UserDashboard() {
                         <Loader2 className="animate-spin text-gov-gold" size={32} />
                       </div>
                     ) : complaints.length === 0 ? (
-                      <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl">
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gov-border/15 rounded-2xl">
                         <p className="text-gray-500 font-bold">
                           {language === 'ar' ? 'لا توجد شكاوى بعد' : 'No complaints yet'}
                         </p>
@@ -601,7 +601,7 @@ export default function UserDashboard() {
                           <motion.div
                             layout
                             key={complaint.id}
-                            className="group flex items-center justify-between p-5 bg-white/60 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-gov-gold/50 transition-colors shadow-sm"
+                            className="group flex items-center justify-between p-5 bg-white/60 dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-gov-gold/50 transition-colors shadow-sm"
                           >
                             <div className="flex-1">
                               <p className="font-bold text-lg text-gov-charcoal dark:text-white mb-1 group-hover:text-gov-teal transition-colors">{complaint.subject}</p>
@@ -609,7 +609,7 @@ export default function UserDashboard() {
                             </div>
                             <div className="flex items-center gap-4">
                               {getStatusBadge(complaint.status)}
-                              <Link href={`/complaints/${complaint.tracking_number}`} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-300 hover:bg-gov-teal hover:text-white transition-all transform hover:rotate-12">
+                              <Link href={`/complaints/${complaint.tracking_number}`} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/70 hover:bg-gov-teal hover:text-white transition-all transform hover:rotate-12">
                                 <Eye size={20} />
                               </Link>
                             </div>
@@ -639,9 +639,9 @@ export default function UserDashboard() {
                       <Loader2 className="animate-spin text-gov-gold" size={40} />
                     </div>
                   ) : complaints.length === 0 ? (
-                    <div className="text-center py-16 bg-white/50 dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10">
+                    <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <FileText size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
                         {language === 'ar' ? 'لم تقم بتقديم أي شكاوى بعد' : 'You haven\'t submitted any complaints yet'}
                       </p>
                     </div>
@@ -651,7 +651,7 @@ export default function UserDashboard() {
                         <motion.div
                           variants={itemVariants}
                           key={complaint.id}
-                          className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all shadow-sm hover:shadow-md"
+                          className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-all shadow-sm hover:shadow-md"
                         >
                           <div className="flex-1 mb-4 md:mb-0">
                             <div className="flex items-center gap-3 mb-1">
@@ -662,7 +662,7 @@ export default function UserDashboard() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-5 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center gap-5 text-sm text-gray-500 dark:text-white/70">
                               <span className="font-mono bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs">#{complaint.tracking_number}</span>
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
@@ -673,7 +673,7 @@ export default function UserDashboard() {
                           <div className="flex items-center gap-4">
                             {getStatusBadge(complaint.status)}
                             <div className="flex items-center gap-2">
-                              <Link href={`/complaints/${complaint.tracking_number}`} className="p-2.5 bg-gray-50 dark:bg-white/10 rounded-xl hover:bg-gov-teal hover:text-white transition-colors text-gray-600 dark:text-gray-300" title={language === 'ar' ? 'عرض التفاصيل' : 'View Details'}>
+                              <Link href={`/complaints/${complaint.tracking_number}`} className="p-2.5 bg-gray-50 dark:bg-white/10 rounded-xl hover:bg-gov-teal hover:text-white transition-colors text-gray-600 dark:text-white/70" title={language === 'ar' ? 'عرض التفاصيل' : 'View Details'}>
                                 <Eye size={20} />
                               </Link>
                               {c_delete(complaint) && (
@@ -712,9 +712,9 @@ export default function UserDashboard() {
                       <Loader2 className="animate-spin text-gov-gold" size={40} />
                     </div>
                   ) : suggestions.length === 0 ? (
-                    <div className="text-center py-16 bg-white/50 dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10">
+                    <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <Lightbulb size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
                         {language === 'ar' ? 'لم تقم بتقديم أي اقتراحات بعد' : 'You haven\'t submitted any suggestions yet'}
                       </p>
                     </div>
@@ -724,13 +724,13 @@ export default function UserDashboard() {
                         <motion.div
                           variants={itemVariants}
                           key={suggestion.id}
-                          className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all shadow-sm hover:shadow-md"
+                          className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-all shadow-sm hover:shadow-md"
                         >
                           <div className="flex-1 mb-4 md:mb-0">
                             <p className="font-bold text-lg text-gov-charcoal dark:text-white mb-2 line-clamp-1">
                               {suggestion.description}
                             </p>
-                            <div className="flex items-center gap-5 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center gap-5 text-sm text-gray-500 dark:text-white/70">
                               <span className="font-mono bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs">#{suggestion.tracking_number}</span>
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
@@ -770,9 +770,9 @@ export default function UserDashboard() {
                       <Loader2 className="animate-spin text-gov-gold" size={32} />
                     </div>
                   ) : notifications.length === 0 ? (
-                    <div className="text-center py-16 bg-white/50 dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10">
+                    <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <Bell size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
                         {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications'}
                       </p>
                     </div>
@@ -783,7 +783,7 @@ export default function UserDashboard() {
                           variants={itemVariants}
                           key={notification.id}
                           className={`p-6 rounded-2xl border transition-all ${notification.read
-                            ? 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10'
+                            ? 'bg-white dark:bg-gov-card/10 border-gray-100 dark:border-gov-border/15'
                             : 'bg-gov-gold/5 border-gov-gold/30 shadow-md'
                             }`}
                         >
@@ -793,8 +793,8 @@ export default function UserDashboard() {
                                 <Bell size={20} />
                               </div>
                               <div>
-                                <p className={`font-bold text-lg ${notification.read ? 'text-gray-700 dark:text-gray-300' : 'text-gov-charcoal dark:text-white'}`}>{notification.title}</p>
-                                <p className="text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">{notification.message}</p>
+                                <p className={`font-bold text-lg ${notification.read ? 'text-gray-700 dark:text-white/70' : 'text-gov-charcoal dark:text-white'}`}>{notification.title}</p>
+                                <p className="text-gray-600 dark:text-white/70 mt-1 leading-relaxed">{notification.message}</p>
                                 <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
                                   <Clock size={12} />
                                   {notification.time}
@@ -836,7 +836,7 @@ export default function UserDashboard() {
                   <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-8">
                     {language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'}
                   </h3>
-                  <div className="max-w-xl mx-auto space-y-8 bg-white/50 dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10">
+                  <div className="max-w-xl mx-auto space-y-8 bg-white/50 dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
@@ -846,7 +846,7 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.first_name}
                           onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
@@ -857,7 +857,7 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.father_name}
                           onChange={(e) => setProfileData({ ...profileData, father_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
@@ -868,7 +868,7 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.last_name}
                           onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                     </div>
@@ -880,7 +880,7 @@ export default function UserDashboard() {
                         type="email"
                         value={profileData.email}
                         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                       />
                     </div>
                     <div>
@@ -892,7 +892,7 @@ export default function UserDashboard() {
                         value={profileData.phone}
                         onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                         placeholder="09xxxxxxxx"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -904,7 +904,7 @@ export default function UserDashboard() {
                           type="date"
                           value={profileData.birth_date}
                           onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
@@ -914,7 +914,7 @@ export default function UserDashboard() {
                         <select
                           value={profileData.governorate}
                           onChange={(e) => setProfileData({ ...profileData, governorate: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white appearance-none"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white appearance-none"
                         >
                           <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
                           {['دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس', 'دير الزور', 'الحسكة', 'الرقة', 'إدلب', 'درعا', 'السويداء', 'القنيطرة'].map((gov) => (
@@ -932,7 +932,7 @@ export default function UserDashboard() {
                           type="text"
                           value={authUser.national_id}
                           readOnly
-                          className="w-full px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none font-bold text-gov-charcoal dark:text-white cursor-default"
+                          className="w-full px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 outline-none font-bold text-gov-charcoal dark:text-white cursor-default"
                         />
                         <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'الرقم الوطني لا يمكن تغييره' : 'National ID cannot be changed'}</p>
                       </div>
@@ -946,7 +946,7 @@ export default function UserDashboard() {
                         value={profileData.password}
                         onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                         placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
                       />
                     </div>
                     <motion.button
@@ -963,7 +963,7 @@ export default function UserDashboard() {
                       }
                     </motion.button>
                     {/* Notification Preferences */}
-                    <div className="mt-10 pt-8 border-t border-gray-200 dark:border-white/10">
+                    <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gov-border/15">
                       <h4 className="text-xl font-display font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
                         <Bell size={20} className="text-gov-gold" />
                         {language === 'ar' ? 'تفضيلات الإشعارات' : 'Notification Preferences'}
@@ -981,7 +981,7 @@ export default function UserDashboard() {
                             { key: 'email_newsletter', label: language === 'ar' ? 'النشرة البريدية' : 'Newsletter emails' },
                             { key: 'push_notifications', label: language === 'ar' ? 'إشعارات الموقع' : 'Push notifications' },
                           ].map((pref) => (
-                            <label key={pref.key} className="flex items-center justify-between p-4 bg-white dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 cursor-pointer hover:border-gov-teal/30 transition-colors">
+                            <label key={pref.key} className="flex items-center justify-between p-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-200 dark:border-gov-border/15 cursor-pointer hover:border-gov-teal/30 transition-colors">
                               <span className="font-bold text-sm text-gov-charcoal dark:text-white">{pref.label}</span>
                               <div className="relative">
                                 <input
@@ -1032,7 +1032,7 @@ export default function UserDashboard() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gov-forest rounded-3xl max-w-md w-full p-8 shadow-2xl border border-white/20"
+              className="bg-white dark:bg-dm-surface rounded-3xl max-w-md w-full p-8 shadow-2xl border border-white/20"
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
@@ -1049,7 +1049,7 @@ export default function UserDashboard() {
               </div>
 
               {deleteModal.complaint && (
-                <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-5 mb-8 border border-gray-100 dark:border-white/5">
+                <div className="bg-gray-50 dark:bg-gov-card/10 rounded-2xl p-5 mb-8 border border-gray-100 dark:border-white/5">
                   <p className="font-bold text-gov-charcoal dark:text-white text-lg">
                     {deleteModal.complaint.subject}
                   </p>
@@ -1059,7 +1059,7 @@ export default function UserDashboard() {
                 </div>
               )}
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 bg-red-50 dark:bg-red-900/10 p-4 rounded-xl">
+              <p className="text-sm text-gray-600 dark:text-white/70 mb-8 bg-red-50 dark:bg-red-900/10 p-4 rounded-xl">
                 {language === 'ar'
                   ? 'لا يمكن التراجع عن هذا الإجراء. سيتم حذف الشكوى نهائياً.'
                   : 'This action cannot be undone. The complaint will be permanently deleted.'}

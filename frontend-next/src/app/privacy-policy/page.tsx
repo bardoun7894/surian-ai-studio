@@ -10,10 +10,10 @@ export default function PrivacyPolicyPage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
 
                     <div className="space-y-8">
                         {/* Section 1 */}
-                        <section className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-dm-surface p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <Eye size={20} />
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
                                     {language === 'ar' ? 'جمع المعلومات' : 'Information Collection'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'نقوم بجمع المعلومات التي تقدمونها طواعية عند استخدام البوابة، مثل الاسم، الرقم الوطني، معلومات الاتصال، وأي بيانات أخرى ضرورية لإتمام المعاملات الحكومية.'
@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
                         </section>
 
                         {/* Section 2 */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
                                     <Lock size={20} />
@@ -75,7 +75,7 @@ export default function PrivacyPolicyPage() {
                                     {language === 'ar' ? 'أمن المعلومات' : 'Information Security'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'نطبق إجراءات أمنية صارمة (فيزيائية وتشفرية وإدارية) لحماية معلوماتكم من الوصول غير المصرح به أو التعديل أو الإفشاء أو الإتلاف.'
@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
                         </section>
 
                         {/* Section 3 */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
                                     <FileText size={20} />
@@ -99,7 +99,7 @@ export default function PrivacyPolicyPage() {
                                     {language === 'ar' ? 'استخدام المعلومات' : 'Use of Information'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'نستخدم المعلومات التي نجمعها حصراً للأغراض التالية:'
@@ -108,13 +108,13 @@ export default function PrivacyPolicyPage() {
                                 <ul className="list-disc list-inside space-y-2 marker:text-gov-teal">
                                     <li>{language === 'ar' ? 'تقديم الخدمات الحكومية المطلوبة ومعالجة المعاملات.' : 'Providing requested government services and processing transactions.'}</li>
                                     <li>{language === 'ar' ? 'التواصل معكم بخصوص حالة طلباتكم أو الإعلانات الهامة.' : 'Communicating with you regarding your request status or important announcements.'}</li>
-                                    <li>{language === 'ar' ? 'تحسين أداء البوابة وتطوير الخدمات الرقمية.' : 'Improving portal performance and developing digital services.'}</li>
+                                    <li>{language === 'ar' ? 'تحسين أداء البوابة وتطوير الخدمات الرقمية.' : 'Improving portal performance and developing Services.'}</li>
                                 </ul>
                             </div>
                         </section>
 
                         {/* Section 4 */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                                     <Server size={20} />
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
                                     {language === 'ar' ? 'مشاركة البيانات' : 'Data Sharing'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'لا نقوم ببيع أو تأجير أو مشاركة معلوماتكم الشخصية مع أي أطراف ثالثة لأغراض تجارية. قد نشارك البيانات فقط مع جهات حكومية أخرى إذا كان ذلك ضرورياً لإنجاز معاملتكم، أو بموجب أمر قضائي.'

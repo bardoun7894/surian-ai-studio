@@ -19,10 +19,10 @@ function SearchPageContent() {
     const query = searchParams.get('q') || '';
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-surface transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16 overflow-hidden">
+            <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
                 <SearchResultsPage initialQuery={query} />
             </main>
 

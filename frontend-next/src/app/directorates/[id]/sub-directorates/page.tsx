@@ -34,9 +34,9 @@ export default function SubDirectoratesPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-14 md:pt-16">
+                <main className="flex-grow flex items-center justify-center pt-20 md:pt-24">
                     <Loader2 className="animate-spin text-gov-gold" size={40} />
                 </main>
                 <Footer />
@@ -46,9 +46,9 @@ export default function SubDirectoratesPage() {
 
     if (!directorate) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-14 md:pt-16">
+                <main className="flex-grow flex items-center justify-center pt-20 md:pt-24">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-4">
                             {language === 'ar' ? 'الإدارة غير موجودة' : 'Directorate Not Found'}
@@ -66,10 +66,10 @@ export default function SubDirectoratesPage() {
     const subDirectorates = directorate.subDirectorates || [];
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">
@@ -111,12 +111,12 @@ export default function SubDirectoratesPage() {
                 {/* Sub-Directorates List */}
                 <div className="max-w-6xl mx-auto px-4 py-12">
                     {subDirectorates.length === 0 ? (
-                        <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl">
-                            <Building2 size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
+                        <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-3xl">
+                            <Building2 size={48} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
                             <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">
                                 {language === 'ar' ? 'لا توجد مديريات فرعية' : 'No Sub-Directorates'}
                             </h3>
-                            <p className="text-gray-500 dark:text-gray-400">
+                            <p className="text-gray-500 dark:text-white/70">
                                 {language === 'ar'
                                     ? 'لم يتم إضافة مديريات فرعية لهذه الإدارة بعد'
                                     : 'No sub-directorates have been added to this directorate yet'}
@@ -127,7 +127,7 @@ export default function SubDirectoratesPage() {
                             {subDirectorates.map((sub: SubDirectorate) => (
                                 <div
                                     key={sub.id}
-                                    className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-lg transition-all group"
+                                    className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-lg transition-all group"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center">
@@ -156,7 +156,7 @@ export default function SubDirectoratesPage() {
                                         </a>
                                     ) : (
                                         <Link
-                                            href={`/directorates/${params.id}`}
+                                            href={`/directorates/${sub.id}`}
                                             className="inline-flex items-center gap-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
                                         >
                                             {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
@@ -172,7 +172,7 @@ export default function SubDirectoratesPage() {
                     <div className="mt-12 text-center">
                         <Link
                             href={`/directorates/${directorate.id}`}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:opacity-90 transition-opacity"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
                         >
                             <ChevronLeft size={20} className="rtl:rotate-180" />
                             {language === 'ar' ? 'العودة إلى الإدارة' : 'Back to Directorate'}

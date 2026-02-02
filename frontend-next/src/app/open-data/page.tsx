@@ -49,10 +49,10 @@ export default function OpenDataPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -84,7 +84,7 @@ export default function OpenDataPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {datasets.map((dataset) => (
-                                <div key={dataset.id} className="bg-white dark:bg-gov-emeraldStatic rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300 group">
+                                <div key={dataset.id} className="bg-white dark:bg-dm-surface rounded-2xl p-6 border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300 group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal">
@@ -97,16 +97,16 @@ export default function OpenDataPage() {
                                                 </h3>
                                             </div>
                                         </div>
-                                        <span className="text-xs font-mono bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-600 dark:text-gray-400">
+                                        <span className="text-xs font-mono bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-600 dark:text-white/70">
                                             {dataset.size}
                                         </span>
                                     </div>
 
-                                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 line-clamp-2">
+                                    <p className="text-gray-600 dark:text-white/70 text-sm mb-6 line-clamp-2">
                                         {language === 'ar' ? dataset.description_ar : dataset.description_en}
                                     </p>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/10">
+                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gov-border/15">
                                         <span className="text-xs text-gray-500">
                                             {language === 'ar' ? `تاريخ التحديث: ${dataset.date}` : `Updated: ${dataset.date}`}
                                         </span>

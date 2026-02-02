@@ -129,7 +129,7 @@ export default function VideoCard({
                         <iframe
                             src={youtubeEmbedUrl}
                             title={title || 'Video'}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                             className="absolute inset-0 w-full h-full border-0 z-10"
                         />
@@ -169,7 +169,9 @@ export default function VideoCard({
                         muted={isMuted}
                         loop
                         playsInline
+                        controls
                         preload="metadata"
+                        crossOrigin="anonymous"
                         className="w-full h-full object-cover"
                     />
 

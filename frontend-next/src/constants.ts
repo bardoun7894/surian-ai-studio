@@ -6,6 +6,7 @@ export const MOCK_MEDIA: MediaItem[] = [
     title: 'جولة السيد الوزير في معرض دمشق الدولي للصناعات',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1492619375932-d0234a62176c?auto=format&fit=crop&q=80&w=800',
+    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     date: '2024-05-20',
     duration: '12:30'
   },
@@ -14,6 +15,7 @@ export const MOCK_MEDIA: MediaItem[] = [
     title: 'افتتاح المنطقة الصناعية الجديدة في عدرا',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800',
+    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     date: '2024-05-18',
     duration: '05:45'
   },
@@ -45,6 +47,7 @@ export const MOCK_MEDIA: MediaItem[] = [
     title: 'مؤتمر تطوير المشاريع الصغيرة والمتوسطة',
     type: 'video',
     thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800',
+    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     date: '2024-05-05',
     duration: '45:00'
   }
@@ -53,60 +56,60 @@ export const MOCK_MEDIA: MediaItem[] = [
 export const DIRECTORATES: Directorate[] = [
   {
     id: 'd1',
-    name: 'الإدارة العامة للصناعة',
-    description: 'إدارة شؤون الصناعة والمصانع والمناطق الصناعية والمواصفات والمقاييس.',
+    name: { ar: 'الإدارة العامة للصناعة', en: 'General Administration for Industry' },
+    description: { ar: 'إدارة شؤون الصناعة والمصانع والمناطق الصناعية والمواصفات والمقاييس.', en: 'Industrial affairs, factories, industrial zones, standards and specifications.' },
     icon: 'Factory',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd1-1', name: 'مديرية التراخيص الصناعية', url: '/directorates/industry/licensing' },
-      { id: 'sd1-2', name: 'مديرية المواصفات والمقاييس', url: '/directorates/industry/standards' },
-      { id: 'sd1-3', name: 'مديرية المدن الصناعية', url: '/directorates/industry/zones' }
+      { id: 'sd1-1', name: { ar: 'مديرية التراخيص الصناعية', en: 'Directorate of Industrial Licensing' }, url: '/directorates/industry/licensing' },
+      { id: 'sd1-2', name: { ar: 'مديرية المواصفات والمقاييس', en: 'Directorate of Standards & Specifications' }, url: '/directorates/industry/standards' },
+      { id: 'sd1-3', name: { ar: 'مديرية المدن الصناعية', en: 'Directorate of Industrial Zones' }, url: '/directorates/industry/zones' }
     ]
   },
   {
     id: 'd2',
-    name: 'الإدارة العامة للاقتصاد',
-    description: 'إدارة شؤون الاقتصاد والتجارة الخارجية والسياسات الاقتصادية والمشروعات الصغيرة والمتوسطة.',
+    name: { ar: 'الإدارة العامة للاقتصاد', en: 'General Administration for Economy' },
+    description: { ar: 'إدارة شؤون الاقتصاد والتجارة الخارجية والسياسات الاقتصادية والمشروعات الصغيرة والمتوسطة.', en: 'Economic affairs, foreign trade, economic policies, and SME development.' },
     icon: 'TrendingUp',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd2-1', name: 'مديرية التجارة الخارجية', url: '/directorates/economy/trade' },
-      { id: 'sd2-2', name: 'هيئة المشروعات الصغيرة', url: 'https://sme.gov.sy', isExternal: true },
-      { id: 'sd2-3', name: 'مديرية السياسات الاقتصادية', url: '/directorates/economy/policies' }
+      { id: 'sd2-1', name: { ar: 'مديرية التجارة الخارجية', en: 'Directorate of Foreign Trade' }, url: '/directorates/economy/trade' },
+      { id: 'sd2-2', name: { ar: 'هيئة المشروعات الصغيرة', en: 'SME Development Authority' }, url: 'https://sme.gov.sy', isExternal: true },
+      { id: 'sd2-3', name: { ar: 'مديرية السياسات الاقتصادية', en: 'Directorate of Economic Policies' }, url: '/directorates/economy/policies' }
     ]
   },
   {
     id: 'd3',
-    name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك',
-    description: 'إدارة شؤون التجارة الداخلية وحماية المستهلك والرقابة على الأسواق والشركات.',
+    name: { ar: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', en: 'General Administration for Internal Trade & Consumer Protection' },
+    description: { ar: 'إدارة شؤون التجارة الداخلية وحماية المستهلك والرقابة على الأسواق والشركات.', en: 'Internal trade, consumer protection, market regulation, and company registration.' },
     icon: 'ShieldCheck',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd3-1', name: 'مديرية حماية المستهلك', url: '/directorates/trade/protection' },
-      { id: 'sd3-2', name: 'مديرية الشركات', url: '/directorates/trade/companies' },
-      { id: 'sd3-3', name: 'مديرية الأسعار', url: '/directorates/trade/prices' }
+      { id: 'sd3-1', name: { ar: 'مديرية حماية المستهلك', en: 'Directorate of Consumer Protection' }, url: '/directorates/trade/protection' },
+      { id: 'sd3-2', name: { ar: 'مديرية الشركات', en: 'Directorate of Companies' }, url: '/directorates/trade/companies' },
+      { id: 'sd3-3', name: { ar: 'مديرية الأسعار', en: 'Directorate of Prices' }, url: '/directorates/trade/prices' }
     ]
   }
 ];
 
 export const KEY_SERVICES: Service[] = [
   // d1 - الإدارة العامة للصناعة (Industry)
-  { id: 's1', title: 'ترخيص منشأة صناعية', directorateId: 'd1', isDigital: true, description: 'تقديم طلب للحصول على ترخيص لإنشاء منشأة صناعية جديدة.' },
-  { id: 's2', title: 'تسجيل سجل صناعي', directorateId: 'd1', isDigital: true, description: 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني.' },
-  { id: 's3', title: 'شهادة المطابقة والجودة', directorateId: 'd1', isDigital: false, description: 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية.' },
-  { id: 's4', title: 'تخصيص قطعة أرض صناعية', directorateId: 'd1', isDigital: true, description: 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية.' },
+  { id: 's1', title: 'ترخيص منشأة صناعية', title_ar: 'ترخيص منشأة صناعية', title_en: 'Industrial Facility License', directorateId: 'd1', isDigital: true, description: 'تقديم طلب للحصول على ترخيص لإنشاء منشأة صناعية جديدة.', description_ar: 'تقديم طلب للحصول على ترخيص لإنشاء منشأة صناعية جديدة.', description_en: 'Apply for a license to establish a new industrial facility.' },
+  { id: 's2', title: 'تسجيل سجل صناعي', title_ar: 'تسجيل سجل صناعي', title_en: 'Industrial Registry', directorateId: 'd1', isDigital: true, description: 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني.', description_ar: 'تسجيل المنشآت الصناعية في السجل الصناعي الوطني.', description_en: 'Register industrial establishments in the national industrial registry.' },
+  { id: 's3', title: 'شهادة المطابقة والجودة', title_ar: 'شهادة المطابقة والجودة', title_en: 'Quality Conformity Certificate', directorateId: 'd1', isDigital: false, description: 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية.', description_ar: 'الحصول على شهادة مطابقة المنتجات للمواصفات القياسية.', description_en: 'Obtain product conformity certificate to Syrian standards.' },
+  { id: 's4', title: 'تخصيص قطعة أرض صناعية', title_ar: 'تخصيص قطعة أرض صناعية', title_en: 'Industrial Land Allocation', directorateId: 'd1', isDigital: true, description: 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية.', description_ar: 'تقديم طلب لتخصيص قطعة أرض في المناطق الصناعية.', description_en: 'Apply for industrial land allocation in industrial zones.' },
 
   // d2 - الإدارة العامة للاقتصاد (Economy)
-  { id: 's5', title: 'إجازة استيراد', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة استيراد للبضائع والمواد.' },
-  { id: 's6', title: 'إجازة تصدير', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة تصدير للمنتجات السورية.' },
-  { id: 's7', title: 'تمويل المشاريع الصغيرة', directorateId: 'd2', isDigital: true, description: 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة.' },
-  { id: 's8', title: 'المشاركة في المعارض الدولية', directorateId: 'd2', isDigital: true, description: 'تسجيل الشركات للمشاركة في معرض دمشق الدولي.' },
+  { id: 's5', title: 'إجازة استيراد', title_ar: 'إجازة استيراد', title_en: 'Import License', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة استيراد للبضائع والمواد.', description_ar: 'تقديم طلب للحصول على إجازة استيراد للبضائع والمواد.', description_en: 'Apply for import license for goods and raw materials.' },
+  { id: 's6', title: 'إجازة تصدير', title_ar: 'إجازة تصدير', title_en: 'Export License', directorateId: 'd2', isDigital: true, description: 'تقديم طلب للحصول على إجازة تصدير للمنتجات السورية.', description_ar: 'تقديم طلب للحصول على إجازة تصدير للمنتجات السورية.', description_en: 'Apply for export license for Syrian products.' },
+  { id: 's7', title: 'تمويل المشاريع الصغيرة', title_ar: 'تمويل المشاريع الصغيرة', title_en: 'SME Financing', directorateId: 'd2', isDigital: true, description: 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة.', description_ar: 'برامج دعم وتمويل المشاريع الصغيرة والمتوسطة.', description_en: 'SME support and financing programs.' },
+  { id: 's8', title: 'المشاركة في المعارض الدولية', title_ar: 'المشاركة في المعارض الدولية', title_en: 'International Exhibition', directorateId: 'd2', isDigital: true, description: 'تسجيل الشركات للمشاركة في معرض دمشق الدولي.', description_ar: 'تسجيل الشركات للمشاركة في معرض دمشق الدولي.', description_en: 'Register for Damascus International Fair participation.' },
 
   // d3 - الإدارة العامة للتجارة الداخلية وحماية المستهلك (Trade & Consumer Protection)
-  { id: 's9', title: 'تسجيل شركة تجارية', directorateId: 'd3', isDigital: true, description: 'تسجيل الشركات التجارية في السجل التجاري.' },
-  { id: 's10', title: 'شكوى حماية المستهلك', directorateId: 'd3', isDigital: true, description: 'تقديم شكوى في حال التعرض للغش التجاري.' },
-  { id: 's11', title: 'الاستعلام عن الأسعار', directorateId: 'd3', isDigital: true, description: 'الاستعلام عن الأسعار الرسمية للمواد الأساسية.' },
-  { id: 's12', title: 'تسجيل علامة تجارية', directorateId: 'd3', isDigital: true, description: 'تسجيل وحماية العلامات التجارية.' },
+  { id: 's9', title: 'تسجيل شركة تجارية', title_ar: 'تسجيل شركة تجارية', title_en: 'Commercial Company Registration', directorateId: 'd3', isDigital: true, description: 'تسجيل الشركات التجارية في السجل التجاري.', description_ar: 'تسجيل الشركات التجارية في السجل التجاري.', description_en: 'Register commercial companies in the commercial registry.' },
+  { id: 's10', title: 'شكوى حماية المستهلك', title_ar: 'شكوى حماية المستهلك', title_en: 'Consumer Protection Complaint', directorateId: 'd3', isDigital: true, description: 'تقديم شكوى في حال التعرض للغش التجاري.', description_ar: 'تقديم شكوى في حال التعرض للغش التجاري.', description_en: 'File a complaint for commercial fraud or price violations.' },
+  { id: 's11', title: 'الاستعلام عن الأسعار', title_ar: 'الاستعلام عن الأسعار', title_en: 'Price Inquiry', directorateId: 'd3', isDigital: true, description: 'الاستعلام عن الأسعار الرسمية للمواد الأساسية.', description_ar: 'الاستعلام عن الأسعار الرسمية للمواد الأساسية.', description_en: 'Inquire about official prices for basic materials.' },
+  { id: 's12', title: 'تسجيل علامة تجارية', title_ar: 'تسجيل علامة تجارية', title_en: 'Trademark Registration', directorateId: 'd3', isDigital: true, description: 'تسجيل وحماية العلامات التجارية.', description_ar: 'تسجيل وحماية العلامات التجارية.', description_en: 'Register and protect trademarks.' },
 ];
 
 export const COMPLAINT_CATEGORIES = [
@@ -330,12 +333,12 @@ export const COMPLAINT_CATEGORIES_BILINGUAL: Record<string, { ar: string; en: st
 
 export const MOCK_MEDIA_BILINGUAL: Record<string, { ar: MediaItem; en: MediaItem }> = {
   'm1': {
-    ar: { id: 'm1', title: 'جولة السيد الوزير في معرض دمشق الدولي', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-149261937592-d0234a62176c?auto=format&fit=crop&q=80&w=800', date: '2024-05-20', duration: '12:30' },
-    en: { id: 'm1', title: 'Minister Tour in Damascus International Fair', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-149261937592-d0234a62176c?auto=format&fit=crop&q=80&w=800', date: '2024-05-20', duration: '12:30' }
+    ar: { id: 'm1', title: 'جولة السيد الوزير في معرض دمشق الدولي', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-149261937592-d0234a62176c?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', date: '2024-05-20', duration: '12:30' },
+    en: { id: 'm1', title: 'Minister Tour in Damascus International Fair', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-149261937592-d0234a62176c?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', date: '2024-05-20', duration: '12:30' }
   },
   'm2': {
-    ar: { id: 'm2', title: 'افتتاح محطة توليد الكهرباء الجديدة', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800', date: '2024-05-18', duration: '05:45' },
-    en: { id: 'm2', title: 'Opening New Power Station', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800', date: '2024-05-18', duration: '05:45' }
+    ar: { id: 'm2', title: 'افتتاح محطة توليد الكهرباء الجديدة', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', date: '2024-05-18', duration: '05:45' },
+    en: { id: 'm2', title: 'Opening New Power Station', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', date: '2024-05-18', duration: '05:45' }
   },
   'm3': {
     ar: { id: 'm3', title: 'صور من حفل تكريم المبدعين', type: 'photo', thumbnailUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800', date: '2024-05-15', count: 24 },
@@ -350,8 +353,8 @@ export const MOCK_MEDIA_BILINGUAL: Record<string, { ar: MediaItem; en: MediaItem
     en: { id: 'm5', title: 'Weekly Council of Ministers Meeting', type: 'photo', thumbnailUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c?auto=format&fit=crop&q=80&w=800', date: '2024-05-08', count: 15 }
   },
   'm6': {
-    ar: { id: 'm6', title: 'مؤتمر الاستثمار السوري الأول', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800', date: '2024-05-05', duration: '45:00' },
-    en: { id: 'm6', title: 'First Syrian Investment Forum', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800', date: '2024-05-05', duration: '45:00' }
+    ar: { id: 'm6', title: 'مؤتمر الاستثمار السوري الأول', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', date: '2024-05-05', duration: '45:00' },
+    en: { id: 'm6', title: 'First Syrian Investment Forum', type: 'video', thumbnailUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', date: '2024-05-05', duration: '45:00' }
   }
 };
 

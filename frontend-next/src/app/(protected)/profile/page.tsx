@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
     User,
     Mail,
@@ -18,8 +19,12 @@ import {
     Pencil,
     X,
     Send,
-    KeyRound
+    KeyRound,
+    FileText,
+    ExternalLink,
+    Inbox
 } from 'lucide-react';
+import { Ticket } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { API } from '@/lib/repository';
@@ -45,6 +50,10 @@ export default function ProfilePage() {
     const [emailLoading, setEmailLoading] = useState(false);
     const [emailError, setEmailError] = useState<string | null>(null);
     const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+
+    // Complaints state
+    const [complaints, setComplaints] = useState<Ticket[]>([]);
+    const [complaintsLoading, setComplaintsLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         first_name: '',
@@ -86,6 +95,31 @@ export default function ProfilePage() {
             });
         }
     }, [authUser]);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            setComplaintsLoading(true);
+            API.complaints.myComplaints()
+                .then((data) => setComplaints(data))
+                .catch(() => setComplaints([]))
+                .finally(() => setComplaintsLoading(false));
+        }
+    }, [isAuthenticated]);
+
+    const getStatusBadge = (status: string) => {
+        const statusMap: Record<string, { label: { ar: string; en: string }; color: string }> = {
+            new: { label: { ar: 'جديدة', en: 'New' }, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+            in_progress: { label: { ar: 'قيد المعالجة', en: 'In Progress' }, color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+            resolved: { label: { ar: 'تم الحل', en: 'Resolved' }, color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+            rejected: { label: { ar: 'مرفوضة', en: 'Rejected' }, color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+        };
+        const info = statusMap[status] || { label: { ar: status, en: status }, color: 'bg-gray-100 text-gray-700 dark:bg-dm-surface dark:text-white/70' };
+        return (
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${info.color}`}>
+                {language === 'ar' ? info.label.ar : info.label.en}
+            </span>
+        );
+    };
 
     const handleRequestEmailChange = async () => {
         if (!newEmail || !emailPassword) return;
@@ -172,14 +206,14 @@ export default function ProfilePage() {
 
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
                 <Loader2 className="animate-spin text-gov-gold" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
             <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
             <main className="flex-grow pt-24 pb-12">
@@ -189,12 +223,12 @@ export default function ProfilePage() {
                         <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                             {language === 'ar' ? 'الملف الشخصي' : 'User Profile'}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-white/70">
                             {language === 'ar' ? 'إدارة معلوماتك الشخصية وإعدادات الأمان' : 'Manage your personal information and security settings'}
                         </p>
                     </div>
 
-                    <div className="bg-white dark:bg-white/5 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-border/15">
                         {success && (
                             <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl flex items-center gap-3 animate-in fade-in duration-300">
                                 <CheckCircle size={20} />
@@ -214,7 +248,7 @@ export default function ProfilePage() {
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {/* Section 1: Basic Info */}
                             <div>
-                                <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-white/10 flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-gov-border/15 flex items-center gap-2">
                                     <User size={20} className="text-gov-teal" />
                                     {language === 'ar' ? 'المعلومات الأساسية' : 'Basic Information'}
                                 </h3>
@@ -229,7 +263,7 @@ export default function ProfilePage() {
                                                 type="text"
                                                 value={formData.first_name}
                                                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -245,7 +279,7 @@ export default function ProfilePage() {
                                                 type="text"
                                                 value={formData.father_name}
                                                 onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -261,7 +295,7 @@ export default function ProfilePage() {
                                                 type="text"
                                                 value={formData.last_name}
                                                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -279,7 +313,7 @@ export default function ProfilePage() {
                                                     type="email"
                                                     value={formData.email}
                                                     readOnly
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white cursor-default"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-100 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white cursor-default"
                                                 />
                                                 <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                             </div>
@@ -339,7 +373,7 @@ export default function ProfilePage() {
                                                                 value={newEmail}
                                                                 onChange={(e) => setNewEmail(e.target.value)}
                                                                 placeholder="new@example.com"
-                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                                 required
                                                             />
                                                             <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -355,7 +389,7 @@ export default function ProfilePage() {
                                                                 value={emailPassword}
                                                                 onChange={(e) => setEmailPassword(e.target.value)}
                                                                 placeholder="********"
-                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                                 required
                                                             />
                                                             <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -384,7 +418,7 @@ export default function ProfilePage() {
 
                                             {emailEditMode === 'verify' && (
                                                 <>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                    <p className="text-sm text-gray-600 dark:text-white/70">
                                                         {t('profile_email_verify_sent')}
                                                     </p>
                                                     <div>
@@ -401,7 +435,7 @@ export default function ProfilePage() {
                                                                 }}
                                                                 placeholder={t('profile_verify_code_placeholder')}
                                                                 maxLength={6}
-                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all text-center text-2xl tracking-[0.5em] font-mono"
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all text-center text-2xl tracking-[0.5em] font-mono"
                                                             />
                                                             <KeyRound className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                                         </div>
@@ -450,7 +484,7 @@ export default function ProfilePage() {
                                                 type="tel"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             />
                                             <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
@@ -465,7 +499,7 @@ export default function ProfilePage() {
                                                 type="date"
                                                 value={formData.birth_date}
                                                 onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             />
                                             <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
@@ -479,7 +513,7 @@ export default function ProfilePage() {
                                             <select
                                                 value={formData.governorate}
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
                                             >
                                                 <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
                                                 {governorates.map((gov) => (
@@ -494,7 +528,7 @@ export default function ProfilePage() {
 
                             {/* Section 2: Security */}
                             <div>
-                                <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-white/10 flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-gov-border/15 flex items-center gap-2">
                                     <Lock size={20} className="text-gov-teal" />
                                     {language === 'ar' ? 'الأمان وكلمة المرور' : 'Security & Password'}
                                 </h3>
@@ -510,7 +544,7 @@ export default function ProfilePage() {
                                                 value={formData.current_password}
                                                 onChange={(e) => setFormData({ ...formData, current_password: e.target.value })}
                                                 placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
-                                                className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             />
                                             <Lock className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
@@ -528,7 +562,7 @@ export default function ProfilePage() {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
-                                                className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             />
                                             <button
                                                 type="button"
@@ -549,7 +583,7 @@ export default function ProfilePage() {
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.password_confirmation}
                                                 onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             />
                                             <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
@@ -558,7 +592,7 @@ export default function ProfilePage() {
                             </div>
 
                             {/* Submit Button */}
-                            <div className="pt-6 border-t border-gray-100 dark:border-white/10 flex justify-end">
+                            <div className="pt-6 border-t border-gray-100 dark:border-gov-border/15 flex justify-end">
                                 <button
                                     type="submit"
                                     disabled={isLoading}
@@ -569,6 +603,66 @@ export default function ProfilePage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                    {/* My Complaints Section */}
+                    <div className="mt-8 bg-white dark:bg-gov-card/10 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-border/15">
+                        <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-gov-border/15 flex items-center gap-2">
+                            <FileText size={20} className="text-gov-teal" />
+                            {language === 'ar' ? 'شكاواي' : 'My Complaints'}
+                        </h3>
+
+                        {complaintsLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader2 className="animate-spin text-gov-teal" size={32} />
+                            </div>
+                        ) : complaints.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-white/70">
+                                <Inbox size={48} className="mb-3 opacity-50" />
+                                <p className="text-sm font-bold">
+                                    {language === 'ar' ? 'لا توجد شكاوى مقدمة' : 'No complaints submitted'}
+                                </p>
+                                <p className="text-xs mt-1">
+                                    {language === 'ar' ? 'ستظهر هنا شكاواك عند تقديمها' : 'Your complaints will appear here once submitted'}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {complaints.map((complaint) => (
+                                    <div
+                                        key={complaint.id}
+                                        className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-dm-surface border border-gray-100 dark:border-gov-border/10 hover:border-gov-teal/30 transition-all"
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                <span className="text-sm font-mono font-bold text-gov-charcoal dark:text-white">
+                                                    {complaint.tracking_number || complaint.id}
+                                                </span>
+                                                {getStatusBadge(complaint.status)}
+                                            </div>
+                                            {(complaint.title || complaint.subject) && (
+                                                <p className="text-sm text-gray-500 dark:text-white/70 mt-1 truncate">
+                                                    {complaint.title || complaint.subject}
+                                                </p>
+                                            )}
+                                            <p className="text-xs text-gray-400 dark:text-white/70 mt-1">
+                                                {complaint.created_at
+                                                    ? new Date(complaint.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                    : complaint.lastUpdate}
+                                            </p>
+                                        </div>
+                                        {complaint.tracking_number && (
+                                            <Link
+                                                href={`/suggestions/track?type=complaint&id=${complaint.tracking_number}`}
+                                                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gov-teal hover:bg-gov-teal/10 rounded-xl transition-colors shrink-0 ltr:ml-4 rtl:mr-4"
+                                            >
+                                                <ExternalLink size={14} />
+                                                {language === 'ar' ? 'تتبع' : 'Track'}
+                                            </Link>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

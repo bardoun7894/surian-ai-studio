@@ -41,11 +41,21 @@ const QuickLinks: React.FC = () => {
   }, []);
 
   return (
-    <section id="quick-links" className="py-16 bg-white dark:bg-gov-emeraldStatic to-gov-forest border-t border-gray-100 dark:border-white/5 transition-colors">
+    <section id="quick-links" className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-display font-bold text-gov-charcoal dark:text-gov-gold text-center mb-10">
-          {t('ql_title')}
-        </h2>
+        {/* Centered Header - matching Announcements pattern */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-6">
+            <Globe className="text-gov-gold" size={20} />
+            <span className="text-gov-gold font-bold text-sm tracking-wide">
+              {t('ql_title')}
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
+            {t('ql_title')}
+          </h2>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
           {links.map((link) => {
             const Icon = iconMap[link.icon || ''] || Building2;
@@ -54,12 +64,12 @@ const QuickLinks: React.FC = () => {
               <Link
                 key={link.id}
                 href={link.url}
-                className="flex flex-col items-center gap-3 p-4 rounded-xl bg-gov-beige/50 dark:bg-white/5 border border-transparent hover:border-gov-gold/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
+                className="flex flex-col items-center gap-3 p-5 rounded-[1.5rem] bg-gov-forest/5 dark:bg-dm-surface border border-gov-forest/10 dark:border-gov-border/15 hover:border-gov-gold/40 hover:shadow-2xl hover:shadow-gov-gold/10 hover:-translate-y-2 transition-all duration-500 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-gov-gold/10 dark:bg-gov-gold/20 flex items-center justify-center group-hover:bg-gov-gold group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-gov-gold/10 dark:bg-gov-emerald/20 flex items-center justify-center group-hover:bg-gov-gold group-hover:text-white transition-colors">
                   <Icon size={22} className="text-gov-gold group-hover:text-white transition-colors" />
                 </div>
-                <span className="text-xs font-bold text-gov-charcoal dark:text-white text-center leading-tight">
+                <span className="text-xs font-bold text-gov-forest dark:text-gov-teal text-center leading-tight">
                   {label}
                 </span>
               </Link>

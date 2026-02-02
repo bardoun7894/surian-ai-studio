@@ -30,6 +30,7 @@ class ChatConversationController extends Controller
     public function show(ChatConversation $chatConversation)
     {
         $chatConversation->load('user', 'assignedTo');
-        return view('admin.chat-conversations.show', compact('chatConversation'));
+        $conversation = $chatConversation;
+        return view('admin.chat-conversations.show', compact('chatConversation', 'conversation'));
     }
 }

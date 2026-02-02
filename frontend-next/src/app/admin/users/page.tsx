@@ -250,14 +250,14 @@ export default function UsersManagementPage() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -268,7 +268,7 @@ export default function UsersManagementPage() {
               <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? 'إدارة المستخدمين' : 'User Management'}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-white/70">
                 {language === 'ar'
                   ? 'إدارة حسابات المستخدمين والصلاحيات'
                   : 'Manage user accounts and permissions'}
@@ -284,7 +284,7 @@ export default function UsersManagementPage() {
           </div>
 
           {/* Filters */}
-          <div className="mb-6 bg-white dark:bg-white/5 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+          <div className="mb-6 bg-white dark:bg-gov-card/10 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-border/15">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Search */}
               <form onSubmit={handleSearch} className="md:col-span-2">
@@ -295,7 +295,7 @@ export default function UsersManagementPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder={language === 'ar' ? 'البحث عن مستخدم...' : 'Search users...'}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </form>
@@ -304,7 +304,7 @@ export default function UsersManagementPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => { setRoleFilter(e.target.value === '' ? '' : Number(e.target.value)); setCurrentPage(1); }}
-                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
               >
                 <option value="">{language === 'ar' ? 'كل الأدوار' : 'All Roles'}</option>
                 {roles.map(role => (
@@ -318,7 +318,7 @@ export default function UsersManagementPage() {
               <select
                 value={statusFilter === '' ? '' : statusFilter.toString()}
                 onChange={(e) => { setStatusFilter(e.target.value === '' ? '' : e.target.value === 'true'); setCurrentPage(1); }}
-                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
               >
                 <option value="">{language === 'ar' ? 'كل الحالات' : 'All Status'}</option>
                 <option value="true">{language === 'ar' ? 'نشط' : 'Active'}</option>
@@ -328,19 +328,19 @@ export default function UsersManagementPage() {
           </div>
 
           {/* Users Table */}
-          <div className="bg-white dark:bg-white/5 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
+          <div className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="animate-spin text-gov-gold" size={40} />
               </div>
             ) : users.length === 0 ? (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-12 text-gray-500 dark:text-white/70">
                 {language === 'ar' ? 'لا توجد مستخدمين' : 'No users found'}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-white/5">
+                  <thead className="bg-gray-50 dark:bg-gov-card/10">
                     <tr>
                       <th className="px-6 py-4 text-right text-sm font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'الاسم' : 'Name'}
@@ -368,7 +368,7 @@ export default function UsersManagementPage() {
                         <td className="px-6 py-4 text-gov-charcoal dark:text-white">
                           {user.full_name}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 text-gray-600 dark:text-white/70">
                           {user.email}
                         </td>
                         <td className="px-6 py-4">
@@ -389,14 +389,14 @@ export default function UsersManagementPage() {
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300 text-sm">
+                        <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
                           {new Date(user.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewUser(user)}
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-colors"
+                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-white/70 transition-colors"
                               title={language === 'ar' ? 'عرض' : 'View'}
                             >
                               <Eye size={18} />
@@ -428,11 +428,11 @@ export default function UsersManagementPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-white/10">
+              <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gov-border/15">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gov-card/10 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   {language === 'ar' ? 'السابق' : 'Previous'}
                 </button>
@@ -442,7 +442,7 @@ export default function UsersManagementPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gov-card/10 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   {language === 'ar' ? 'التالي' : 'Next'}
                 </button>
@@ -455,7 +455,7 @@ export default function UsersManagementPage() {
       {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'إضافة مستخدم جديد' : 'Add New User'}
@@ -485,7 +485,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -497,7 +497,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.father_name}
                     onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -509,7 +509,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </div>
@@ -523,7 +523,7 @@ export default function UsersManagementPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 />
               </div>
 
@@ -535,7 +535,7 @@ export default function UsersManagementPage() {
                   required
                   value={formData.role_id}
                   onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 >
                   <option value="">{language === 'ar' ? 'اختر الدور' : 'Select Role'}</option>
                   {roles.map(role => (
@@ -580,7 +580,7 @@ export default function UsersManagementPage() {
       {/* Edit User Modal */}
       {showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'تعديل المستخدم' : 'Edit User'}
@@ -610,7 +610,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -622,7 +622,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.father_name}
                     onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -634,7 +634,7 @@ export default function UsersManagementPage() {
                     required
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </div>
@@ -648,7 +648,7 @@ export default function UsersManagementPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 />
               </div>
 
@@ -660,7 +660,7 @@ export default function UsersManagementPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 />
               </div>
 
@@ -673,7 +673,7 @@ export default function UsersManagementPage() {
                   value={formData.national_id}
                   onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })}
                   maxLength={11}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none font-mono"
                 />
               </div>
 
@@ -686,7 +686,7 @@ export default function UsersManagementPage() {
                     type="date"
                     value={formData.birth_date}
                     onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -697,7 +697,7 @@ export default function UsersManagementPage() {
                     type="text"
                     value={formData.governorate}
                     onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </div>
@@ -710,7 +710,7 @@ export default function UsersManagementPage() {
                   required
                   value={formData.role_id}
                   onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 >
                   <option value="">{language === 'ar' ? 'اختر الدور' : 'Select Role'}</option>
                   {roles.map(role => (
@@ -755,7 +755,7 @@ export default function UsersManagementPage() {
       {/* View User Modal */}
       {showViewModal && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'تفاصيل المستخدم' : 'User Details'}
@@ -771,19 +771,19 @@ export default function UsersManagementPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                     {language === 'ar' ? 'الاسم' : 'Name'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">{selectedUser.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                     {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">{selectedUser.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                     {language === 'ar' ? 'الدور' : 'Role'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">
@@ -791,7 +791,7 @@ export default function UsersManagementPage() {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                     {language === 'ar' ? 'الحالة' : 'Status'}
                   </label>
                   <p className={`font-bold ${selectedUser.is_active ? 'text-green-600' : 'text-red-600'}`}>
@@ -800,7 +800,7 @@ export default function UsersManagementPage() {
                 </div>
                 {selectedUser.phone && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                       {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
                     </label>
                     <p className="text-gov-charcoal dark:text-white font-bold">{selectedUser.phone}</p>
@@ -808,7 +808,7 @@ export default function UsersManagementPage() {
                 )}
                 {selectedUser.national_id && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                       {language === 'ar' ? 'الرقم الوطني' : 'National ID'}
                     </label>
                     <p className="text-gov-charcoal dark:text-white font-bold font-mono">{selectedUser.national_id}</p>
@@ -816,7 +816,7 @@ export default function UsersManagementPage() {
                 )}
                 {selectedUser.birth_date && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                       {language === 'ar' ? 'تاريخ الميلاد' : 'Date of Birth'}
                     </label>
                     <p className="text-gov-charcoal dark:text-white font-bold">
@@ -826,14 +826,14 @@ export default function UsersManagementPage() {
                 )}
                 {selectedUser.governorate && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                    <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                       {language === 'ar' ? 'المحافظة' : 'Governorate'}
                     </label>
                     <p className="text-gov-charcoal dark:text-white font-bold">{selectedUser.governorate}</p>
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">
                     {language === 'ar' ? 'تاريخ التسجيل' : 'Registration Date'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">
@@ -843,26 +843,26 @@ export default function UsersManagementPage() {
               </div>
 
               {userStats && (
-                <div className="pt-6 border-t border-gray-200 dark:border-white/10">
+                <div className="pt-6 border-t border-gray-200 dark:border-gov-border/15">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-4">
                     {language === 'ar' ? 'الإحصائيات' : 'Statistics'}
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-gov-teal/10 dark:bg-gov-teal/20 rounded-xl p-4 text-center">
                       <p className="text-2xl font-bold text-gov-teal">{userStats.complaints_count || 0}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-white/70">
                         {language === 'ar' ? 'الشكاوى' : 'Complaints'}
                       </p>
                     </div>
                     <div className="bg-gov-gold/10 dark:bg-gov-gold/20 rounded-xl p-4 text-center">
                       <p className="text-2xl font-bold text-gov-gold">{userStats.suggestions_count || 0}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-white/70">
                         {language === 'ar' ? 'المقترحات' : 'Suggestions'}
                       </p>
                     </div>
                     <div className="bg-gov-emerald/10 dark:bg-gov-emerald/20 rounded-xl p-4 text-center">
                       <p className="text-2xl font-bold text-gov-emerald">{userStats.account_age_days || 0}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-white/70">
                         {language === 'ar' ? 'يوم' : 'Days'}
                       </p>
                     </div>

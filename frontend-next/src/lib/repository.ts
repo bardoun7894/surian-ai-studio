@@ -1,4 +1,4 @@
-import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResults } from '../types';
+import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults } from '../types';
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 import { getCsrfCookie } from '@/lib/api';
 
@@ -670,10 +670,31 @@ class ApiComplaintRepository implements IComplaintRepository {
     return res.ok;
   }
   async rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean> {
+    // Fetch CSRF cookie before submitting (required by Laravel Sanctum)
+    await getCsrfCookie();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    // Include XSRF token from cookie
+    const xsrfToken = getXsrfToken();
+    if (xsrfToken) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+
+    // Include auth token if user is logged in
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE_URL}/complaints/${trackingNumber}/rate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rating, comment })
+      headers,
+      credentials: 'include',
+      body: JSON.stringify({ rating, comment }),
     });
     return res.ok;
   }
@@ -1728,12 +1749,13 @@ class ApiFaqRepository implements IFaqRepository {
 // --- Search Repository ---
 class MockSearchRepository implements ISearchRepository {
   async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
-    return new Promise(resolve => setTimeout(() => resolve({ news: [], decrees: [], announcements: [], total: 0 }), 500));
+    return new Promise(resolve => setTimeout(() => resolve({ news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 }), 500));
   }
 }
 
 class ApiSearchRepository implements ISearchRepository {
   async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
+    const empty: SearchResults = { news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 };
     try {
       const params = new URLSearchParams({ q: query });
       if (type) params.append('type', type);
@@ -1741,10 +1763,51 @@ class ApiSearchRepository implements ISearchRepository {
       if (dateTo) params.append('date_to', dateTo);
       if (entity) params.append('entity', entity);
       const res = await fetch(`${API_BASE_URL}/public/search?${params.toString()}`);
-      if (!res.ok) return { news: [], decrees: [], announcements: [], total: 0 };
-      return res.json();
+      if (!res.ok) return empty;
+      const json = await res.json();
+
+      // Backend returns { results: [...], total, search_type }
+      // Transform flat results array into categorized structure
+      const results: SearchResult[] = json.results || [];
+      const grouped: SearchResults = {
+        news: [],
+        decrees: [],
+        announcements: [],
+        services: [],
+        faqs: [],
+        pages: [],
+        total: json.total || results.length,
+      };
+      for (const item of results) {
+        const mapped: SearchResult = {
+          ...item,
+          description: item.description || item.excerpt || '',
+        };
+        switch (item.type) {
+          case 'news':
+            grouped.news.push(mapped);
+            break;
+          case 'decree':
+          case 'law':
+            grouped.decrees.push(mapped);
+            break;
+          case 'announcement':
+            grouped.announcements.push(mapped);
+            break;
+          case 'service':
+            grouped.services.push(mapped);
+            break;
+          case 'faq':
+            grouped.faqs.push(mapped);
+            break;
+          default:
+            grouped.pages.push(mapped);
+            break;
+        }
+      }
+      return grouped;
     } catch {
-      return { news: [], decrees: [], announcements: [], total: 0 };
+      return empty;
     }
   }
 }
@@ -1845,6 +1908,27 @@ export const API = {
     async getBySlug(slug: string): Promise<any | null> {
       try {
         const res = await fetch(`${API_BASE_URL}/public/pages/${slug}`);
+        if (!res.ok) return null;
+        return res.json();
+      } catch { return null; }
+    },
+  },
+
+  // --- Happiness Feedback (مؤشر الرضا) ---
+  happiness: {
+    async submit(rating: number, page?: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/happiness-feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ rating, page }),
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async getStats(): Promise<any> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/happiness-feedback/stats`);
         if (!res.ok) return null;
         return res.json();
       } catch { return null; }
@@ -2083,6 +2167,19 @@ export const API = {
         if (!res.ok) return null;
         return res.json();
       } catch { return null; }
+    },
+  },
+
+  // --- AI Tools ---
+  ai: {
+    async summarize(content: string): Promise<{ summary: string }> {
+      const res = await fetch(`${API_BASE_URL}/ai/summarize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error('Failed to summarize');
+      return res.json();
     },
   },
 

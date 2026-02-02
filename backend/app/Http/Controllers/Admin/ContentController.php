@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Content;
+use App\Models\Directorate;
 use App\Services\AIService;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,7 @@ class ContentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Content::with('author');
+        $query = Content::with(['author', 'directorate']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -47,7 +48,8 @@ class ContentController extends Controller
             Content::CATEGORY_ABOUT => 'من نحن',
             Content::CATEGORY_MEDIA => 'المركز الإعلامي',
         ];
-        return view('admin.content.create', compact('categories'));
+        $directorates = Directorate::where('is_active', true)->get();
+        return view('admin.content.create', compact('categories', 'directorates'));
     }
     
     public function store(Request $request)
@@ -60,8 +62,11 @@ class ContentController extends Controller
             'content_ar' => 'required|string',
             'content_en' => 'nullable|string',
             'published_at' => 'nullable|date',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|max:5120',
             'tags' => 'nullable|string',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
             // Service specific fields (optional)
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
@@ -69,14 +74,27 @@ class ContentController extends Controller
         ]);
         
         $data = $validated;
-        $data['slug'] = \Illuminate\Support\Str::slug($validated['title_ar']);
+        $data['slug'] = \Illuminate\Support\Str::slug($validated['title_ar']) . '-' . uniqid();
         $data['author_id'] = auth()->id();
+
+        // Clear directorate_id if category is not news
+        if ($data['category'] !== Content::CATEGORY_NEWS) {
+            unset($data['directorate_id']);
+        }
         
         // Prepare metadata
         $metadata = [];
 
-        if ($request->hasFile('image')) {
-            $metadata['image'] = $request->file('image')->store('content', 'public');
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = '/storage/' . $image->store('content', 'public');
+            }
+            $metadata['images'] = $imagePaths;
+            $metadata['image'] = $imagePaths[0];
+        } elseif ($request->hasFile('image')) {
+            $path = '/storage/' . $request->file('image')->store('content', 'public');
+            $metadata['image'] = $path;
         }
 
         // Add service metadata if exists
@@ -106,7 +124,8 @@ class ContentController extends Controller
             Content::CATEGORY_ABOUT => 'من نحن',
             Content::CATEGORY_MEDIA => 'المركز الإعلامي',
         ];
-        return view('admin.content.edit', compact('content', 'categories'));
+        $directorates = Directorate::where('is_active', true)->get();
+        return view('admin.content.edit', compact('content', 'categories', 'directorates'));
     }
 
     public function update(Request $request, Content $content)
@@ -119,20 +138,36 @@ class ContentController extends Controller
             'content_ar' => 'required|string',
             'content_en' => 'nullable|string',
             'published_at' => 'nullable|date',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|max:5120',
             'tags' => 'nullable|string',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
             'service_duration' => 'nullable|string',
         ]);
         
         $data = $validated;
-        
+
+        // Clear directorate_id if category is not news
+        if ($data['category'] !== Content::CATEGORY_NEWS) {
+            $data['directorate_id'] = null;
+        }
+
         // Prepare metadata - Start with existing
         $metadata = $content->metadata ?? [];
         
-        if ($request->hasFile('image')) {
-            $metadata['image'] = $request->file('image')->store('content', 'public');
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = '/storage/' . $image->store('content', 'public');
+            }
+            $metadata['images'] = $imagePaths;
+            $metadata['image'] = $imagePaths[0];
+        } elseif ($request->hasFile('image')) {
+            $path = '/storage/' . $request->file('image')->store('content', 'public');
+            $metadata['image'] = $path;
         }
 
         // Update/Merge service metadata

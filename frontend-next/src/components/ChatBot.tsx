@@ -311,13 +311,13 @@ const ChatBot: React.FC = () => {
                 {/* Hint bubble - appears to the left of button in Arabic, right in English */}
                 {!isOpen && showWelcome && (
                     <div
-                        className="pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
+                        className="pointer-events-auto bg-white dark:bg-dm-surface text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
                     >
-                        <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
+                        <Bot size={18} className="text-gov-forest dark:text-gov-teal" />
                         <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
                         <button
                             onClick={() => setShowWelcome(false)}
-                            className="text-gray-400 hover:text-gray-600 ms-1"
+                            className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 ms-1"
                         >
                             <X size={14} />
                         </button>
@@ -327,7 +327,7 @@ const ChatBot: React.FC = () => {
 
             {/* Chat Window Container */}
             <div
-                className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
+                className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 dark:bg-dm-surface backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20 dark:border-dm-border
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
             inset-0 sm:inset-auto sm:bottom-8 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
             ${language === 'ar' ? 'sm:right-6 sm:left-auto' : 'sm:left-6 sm:right-auto'}
@@ -371,7 +371,7 @@ const ChatBot: React.FC = () => {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 bg-gov-beige space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 bg-gov-beige dark:bg-dm-surface space-y-4">
                     {messages.map((msg) => (
                         <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-gov-stone text-white' : 'bg-gov-forest text-white'}`}>
@@ -400,24 +400,24 @@ const ChatBot: React.FC = () => {
 
                 {/* Attachment Preview */}
                 {attachment && (
-                    <div className="bg-gray-50 border-t border-gray-100 p-2 px-4 flex items-center justify-between animate-fade-in shrink-0">
+                    <div className="bg-gray-50 dark:bg-dm-surface border-t border-gray-100 dark:border-dm-border p-2 px-4 flex items-center justify-between animate-fade-in shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-gov-teal/10 rounded-lg flex items-center justify-center text-gov-teal">
                                 {attachment.mimeType.includes('pdf') ? <FileText size={16} /> : <ImageIcon size={16} />}
                             </div>
                             <div className="overflow-hidden">
-                                <p className="text-xs font-bold text-gray-700 truncate max-w-[200px]">{attachment.name}</p>
-                                <p className="text-[10px] text-gray-400">{language === 'ar' ? 'جاهز للإرسال (OCR)' : 'Ready to send (OCR)'}</p>
+                                <p className="text-xs font-bold text-gray-700 dark:text-white truncate max-w-[200px]">{attachment.name}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-white/70">{language === 'ar' ? 'جاهز للإرسال (OCR)' : 'Ready to send (OCR)'}</p>
                             </div>
                         </div>
-                        <button onClick={removeAttachment} className="p-1 hover:bg-gray-200 rounded-full text-gray-500">
+                        <button onClick={removeAttachment} className="p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full text-gray-500 dark:text-white/70">
                             <X size={14} />
                         </button>
                     </div>
                 )}
 
                 {/* Input Area */}
-                <form onSubmit={handleSend} className="p-4 bg-white dark:bg-gov-forest border-t border-gov-gold/10 shrink-0 safe-area-bottom">
+                <form onSubmit={handleSend} className="p-4 bg-white dark:bg-dm-surface border-t border-gov-gold/10 dark:border-dm-border shrink-0 safe-area-bottom">
                     <div className="flex items-center gap-2">
                         <input
                             type="file"
@@ -439,12 +439,12 @@ const ChatBot: React.FC = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder={language === 'ar' ? 'اكتب استفسارك هنا...' : 'Type your question here...'}
-                            className="flex-1 bg-gov-beige/20 dark:bg-white/5 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50"
+                            className="flex-1 bg-gov-beige/20 dark:bg-gov-card/10 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50"
                         />
                         <button
                             type="submit"
                             disabled={(!input.trim() && !attachment) || isLoading}
-                            className="bg-gov-forest text-white p-3 rounded-xl hover:bg-gov-teal disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="bg-gov-forest dark:bg-gov-forest text-white p-3 rounded-xl hover:bg-gov-teal disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             <Send size={18} />
                         </button>

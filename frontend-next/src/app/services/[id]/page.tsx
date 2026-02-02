@@ -157,7 +157,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
                 <main className="flex-grow flex items-center justify-center">
                     <Loader2 className="animate-spin text-gov-teal" size={40} />
@@ -171,9 +171,9 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     if (isCategory && categoryMeta) {
         const IconComponent = iconMap[categoryMeta.iconName] || Laptop;
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-14 md:pt-16">
+                <main className="flex-grow pt-20 md:pt-24">
                     {/* Hero Section */}
                     <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
                         {/* Dynamic Background */}
@@ -222,39 +222,17 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                             </h2>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {/* Placeholder services */}
-                            {[
-                                { title_ar: 'تقديم طلب جديد', title_en: 'Submit New Request', desc_ar: 'تقديم طلب خدمة جديد إلكترونياً', desc_en: 'Submit a new service request electronically' },
-                                { title_ar: 'الاستعلام عن طلب', title_en: 'Check Request Status', desc_ar: 'متابعة حالة الطلب الحالي', desc_en: 'Track the status of your current request' },
-                                { title_ar: 'تحديث البيانات', title_en: 'Update Information', desc_ar: 'تحديث البيانات المسجلة في السجل', desc_en: 'Update information registered in the registry' },
-                            ].map((svc, idx) => (
-                                <div key={idx} className="group bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gov-teal/5 dark:bg-gov-gold/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-
-                                    <div className="w-16 h-16 rounded-2xl bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-6 group-hover:scale-110 group-hover:bg-gov-gold group-hover:text-gov-forest transition-all duration-300 shadow-sm relative z-10">
-                                        <IconComponent size={32} />
-                                    </div>
-
-                                    <h3 className="text-xl font-bold text-gov-forest dark:text-white mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors relative z-10">
-                                        {language === 'ar' ? svc.title_ar : svc.title_en}
-                                    </h3>
-
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 leading-relaxed relative z-10">
-                                        {language === 'ar' ? svc.desc_ar : svc.desc_en}
-                                    </p>
-
-                                    <button className="w-full py-3 rounded-xl border border-gov-teal/20 dark:border-gov-gold/20 text-gov-teal dark:text-gov-gold font-bold text-sm hover:bg-gov-teal hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all flex items-center justify-center gap-2 relative z-10">
-                                        {language === 'ar' ? 'الانتقال للخدمة' : 'Go to Service'}
-                                        {language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                                    </button>
-                                </div>
-                            ))}
+                        <div className="text-center py-12">
+                            <p className="text-gray-600 dark:text-white/70 text-lg">
+                                {language === 'ar'
+                                    ? 'للمزيد من المعلومات حول الخدمات المتاحة في هذه الفئة، يرجى التواصل مع الجهة المختصة.'
+                                    : 'For more information about available services in this category, please contact the relevant authority.'}
+                            </p>
                         </div>
 
                         {/* Contact Section */}
                         <div className="mt-20 bg-gradient-to-r from-gov-forest to-gov-emerald dark:from-gov-gold/10 dark:to-gov-forest/10 p-1 rounded-3xl shadow-2xl">
-                            <div className="bg-white dark:bg-gov-forest/90 p-10 rounded-[22px] backdrop-blur-sm">
+                            <div className="bg-white dark:bg-dm-surface p-10 rounded-[22px] backdrop-blur-sm">
                                 <div className="flex flex-col md:flex-row items-center gap-10">
                                     <div className="w-24 h-24 rounded-full bg-gov-gold/10 flex items-center justify-center shrink-0 border border-gov-gold/30 relative">
                                         <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-xl animate-pulse"></div>
@@ -264,7 +242,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                         <h3 className="text-2xl font-bold text-gov-forest dark:text-white mb-3">
                                             {language === 'ar' ? 'هل تحتاج إلى مساعدة إضافية؟' : 'Need Additional Assistance?'}
                                         </h3>
-                                        <p className="text-gray-600 dark:text-gray-300 text-lg">
+                                        <p className="text-gray-600 dark:text-white/70 text-lg">
                                             {language === 'ar'
                                                 ? 'فريق الدعم الفني جاهز لمساعدتك في أي وقت. لا تتردد في التواصل معنا.'
                                                 : "Our technical support team is ready to assist you at any time. Don't hesitate to contact us."}
@@ -289,7 +267,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     // Render specific service page
     if (!service) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
                 <main className="flex-grow flex flex-col items-center justify-center p-12 text-center">
                     <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-4">
@@ -305,9 +283,9 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-5xl mx-auto">
                         <Link
@@ -340,7 +318,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                 {service.isDigital ? (
                                     <div className="px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-2xl text-green-400 font-bold flex items-center gap-2">
                                         <Monitor size={20} />
-                                        {language === 'ar' ? 'خدمة رقمية' : 'Digital Service'}
+                                        {language === 'ar' ? 'خدمة ' : 'Service'}
                                     </div>
                                 ) : (
                                     <div className="px-4 py-2 bg-orange-500/20 border border-orange-500/50 rounded-2xl text-orange-400 font-bold flex items-center gap-2">
@@ -361,7 +339,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                 <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-6 border-r-4 border-gov-gold pr-4">
                                     {language === 'ar' ? 'حول الخدمة' : 'About the Service'}
                                 </h2>
-                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
+                                <p className="text-gray-600 dark:text-white/70 leading-relaxed text-lg">
                                     {language === 'ar'
                                         ? "هذه الخدمة تتيح للمواطنين والمقيمين إنجاز المعاملات المتعلقة بوزارة الاقتصاد والصناعة بكفاءة عالية. تهدف الوزارة من خلال توفير هذه الخدمات إلكترونياً إلى تبسيط الإجراءات وتقليل الوقت والجهد المطلوبين."
                                         : "This service allows citizens and residents to complete transactions related to the Ministry of Economy and Industry efficiently. The Ministry aims to simplify procedures and reduce the time and effort required by providing these services electronically."}
@@ -379,9 +357,9 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                         language === 'ar' ? "طلبات التقديم المعبأة مسبقاً (إن وجدت)" : "Pre-filled application forms (if any)",
                                         language === 'ar' ? "دفع الرسوم المقررة" : "Payment of designated fees"
                                     ]).map((req, i) => (
-                                        <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+                                        <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
                                             <CheckCircle className="text-green-500 mt-1" size={18} />
-                                            <span className="text-gray-700 dark:text-gray-200">{req}</span>
+                                            <span className="text-gray-700 dark:text-white/70">{req}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -390,7 +368,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/10">
+                            <div className="bg-white dark:bg-gov-card/10 p-6 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                                 <h3 className="font-bold text-gov-forest dark:text-white mb-6 flex items-center gap-2">
                                     <FileText size={20} className="text-gov-teal" />
                                     {language === 'ar' ? 'بيانات الخدمة' : 'Service Info'}
@@ -412,27 +390,14 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     </div>
                                 </div>
 
-                                <button className="w-full mt-8 py-4 bg-gov-teal hover:bg-gov-emerald text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-gov-teal/20">
-                                    {service.isDigital ? (
-                                        <>
-                                            <ExternalLink size={20} />
-                                            {language === 'ar' ? 'بدء الخدمة إلكترونياً' : 'Start Digital Service'}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Clock size={20} />
-                                            {language === 'ar' ? 'حجز موعد حضوري' : 'Book Appointment'}
-                                        </>
-                                    )}
-                                </button>
                             </div>
 
-                            <div className="bg-gov-teal/5 dark:bg-gov-gold/5 p-6 rounded-3xl border border-gov-teal/10 dark:border-gov-gold/10">
+                            <div className="bg-gov-teal/5 dark:bg-gov-gold/5 p-6 rounded-3xl border border-gov-teal/10 dark:border-gov-border/15">
                                 <h3 className="font-bold text-gov-forest dark:text-white mb-4 flex items-center gap-2">
                                     <ShieldAlert size={20} className="text-gov-gold" />
                                     {language === 'ar' ? 'مساعدة' : 'Support'}
                                 </h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                                <p className="text-sm text-gray-600 dark:text-white/70 mb-4">
                                     {language === 'ar'
                                         ? "إذا واجهت أي مشكلة أثناء التقديم، يرجى التواصل مع فريق الدعم الفني."
                                         : "If you encounter any issues during application, please contact our technical support team."}

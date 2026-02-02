@@ -292,7 +292,7 @@ export default function AdminPromotionalPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gov-charcoal p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-dm-bg p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -300,7 +300,7 @@ export default function AdminPromotionalPage() {
             <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white">
               {language === 'ar' ? 'الأقسام الترويجية' : 'Promotional Sections'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-white/70 mt-1">
               {language === 'ar' ? 'إدارة المحتوى الترويجي على الصفحة الرئيسية' : 'Manage promotional content on homepage'}
             </p>
           </div>
@@ -322,7 +322,7 @@ export default function AdminPromotionalPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ar' ? 'بحث...' : 'Search...'}
-              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
 
@@ -331,7 +331,7 @@ export default function AdminPromotionalPage() {
             <select
               value={filterPosition}
               onChange={(e) => setFilterPosition(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             >
               <option value="all">{language === 'ar' ? 'جميع المواقع' : 'All Positions'}</option>
               <option value="hero">{language === 'ar' ? 'الرئيسي' : 'Hero'}</option>
@@ -343,7 +343,7 @@ export default function AdminPromotionalPage() {
 
           <button
             onClick={fetchSections}
-            className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+            className="p-3 bg-white dark:bg-gov-card/10 rounded-xl border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
           >
             <RefreshCw size={20} className="text-gray-500" />
           </button>
@@ -356,9 +356,9 @@ export default function AdminPromotionalPage() {
           <Loader2 className="animate-spin text-gov-gold" size={40} />
         </div>
       ) : filteredSections.length === 0 ? (
-        <div className="bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-gov-gold/10 p-12 text-center">
-          <Image size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">
+        <div className="bg-white dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15 p-12 text-center">
+          <Image size={48} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
+          <p className="text-gray-500 dark:text-white/70">
             {language === 'ar' ? 'لا توجد أقسام ترويجية' : 'No promotional sections found'}
           </p>
         </div>
@@ -367,12 +367,12 @@ export default function AdminPromotionalPage() {
           {filteredSections.map((section) => (
             <div
               key={section.id}
-              className={`bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden ${
+              className={`bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden ${
                 !section.is_active ? 'opacity-60' : ''
               }`}
             >
               {/* Image Preview */}
-              <div className="relative h-40 bg-gray-100 dark:bg-gray-800">
+              <div className="relative h-40 bg-gray-100 dark:bg-dm-surface">
                 {section.image ? (
                   <img
                     src={section.image}
@@ -409,22 +409,22 @@ export default function AdminPromotionalPage() {
                 <h3 className="font-bold text-gov-charcoal dark:text-white mb-1 line-clamp-1">
                   {language === 'ar' ? section.title_ar : section.title_en}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+                <p className="text-sm text-gray-500 dark:text-white/70 mb-3 line-clamp-2">
                   {language === 'ar' ? section.description_ar : section.description_en}
                 </p>
 
                 {/* Meta */}
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="px-2 py-1 text-xs rounded-lg bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400">
+                  <span className="px-2 py-1 text-xs rounded-lg bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/70">
                     {getPositionLabel(section.position)}
                   </span>
-                  <span className="px-2 py-1 text-xs rounded-lg bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400">
+                  <span className="px-2 py-1 text-xs rounded-lg bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/70">
                     #{section.display_order}
                   </span>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-white/10">
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gov-border/15">
                   <button
                     onClick={() => toggleActive(section)}
                     className={`flex items-center gap-1 text-sm ${
@@ -460,7 +460,7 @@ export default function AdminPromotionalPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gov-forest rounded-3xl max-w-2xl w-full p-6 shadow-2xl my-8">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl max-w-2xl w-full p-6 shadow-2xl my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gov-charcoal dark:text-white">
                 {modalMode === 'create'
@@ -485,7 +485,7 @@ export default function AdminPromotionalPage() {
                   type="text"
                   value={formData.title_ar || ''}
                   onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   dir="rtl"
                 />
               </div>
@@ -499,7 +499,7 @@ export default function AdminPromotionalPage() {
                   type="text"
                   value={formData.title_en || ''}
                   onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 />
               </div>
 
@@ -513,7 +513,7 @@ export default function AdminPromotionalPage() {
                     rows={3}
                     value={formData.description_ar || ''}
                     onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
                     dir="rtl"
                   />
                 </div>
@@ -525,7 +525,7 @@ export default function AdminPromotionalPage() {
                     rows={3}
                     value={formData.description_en || ''}
                     onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
                   />
                 </div>
               </div>
@@ -539,7 +539,7 @@ export default function AdminPromotionalPage() {
                   <select
                     value={formData.type || 'promo'}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as PromotionalSection['type'] })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     <option value="promo">{language === 'ar' ? 'ترويجي' : 'Promotional'}</option>
                     <option value="banner">{language === 'ar' ? 'بانر' : 'Banner'}</option>
@@ -554,7 +554,7 @@ export default function AdminPromotionalPage() {
                   <select
                     value={formData.position || 'grid_bottom'}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value as PromotionalSection['position'] })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     <option value="hero">{language === 'ar' ? 'الرئيسي' : 'Hero'}</option>
                     <option value="grid_main">{language === 'ar' ? 'الشبكة الرئيسية' : 'Grid Main'}</option>
@@ -575,7 +575,7 @@ export default function AdminPromotionalPage() {
                     value={formData.image || ''}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     placeholder="/assets/image.jpg"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -587,7 +587,7 @@ export default function AdminPromotionalPage() {
                     value={formData.video_url || ''}
                     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
                     placeholder="https://example.com/video.mp4"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </div>
@@ -602,7 +602,7 @@ export default function AdminPromotionalPage() {
                     type="text"
                     value={formData.button_text_ar || ''}
                     onChange={(e) => setFormData({ ...formData, button_text_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                     dir="rtl"
                   />
                 </div>
@@ -614,7 +614,7 @@ export default function AdminPromotionalPage() {
                     type="text"
                     value={formData.button_text_en || ''}
                     onChange={(e) => setFormData({ ...formData, button_text_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -625,7 +625,7 @@ export default function AdminPromotionalPage() {
                     type="text"
                     value={formData.button_url || ''}
                     onChange={(e) => setFormData({ ...formData, button_url: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </div>
@@ -640,7 +640,7 @@ export default function AdminPromotionalPage() {
                     type="number"
                     value={formData.display_order || 0}
                     onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
                 <div>
@@ -652,13 +652,13 @@ export default function AdminPromotionalPage() {
                       type="color"
                       value={formData.background_color || '#1a4d3e'}
                       onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                      className="w-14 h-12 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer"
+                      className="w-14 h-12 rounded-xl border border-gray-200 dark:border-gov-border/15 cursor-pointer"
                     />
                     <input
                       type="text"
                       value={formData.background_color || '#1a4d3e'}
                       onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                      className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                      className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                     />
                   </div>
                 </div>
@@ -682,7 +682,7 @@ export default function AdminPromotionalPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gov-border/15">
               <button
                 onClick={() => setShowModal(false)}
                 className="flex-1 py-3 px-4 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"

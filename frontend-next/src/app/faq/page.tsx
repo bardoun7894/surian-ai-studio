@@ -42,10 +42,10 @@ export default function FAQPage() {
     });
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
@@ -82,9 +82,9 @@ export default function FAQPage() {
                             {filteredFaqs.length > 0 ? filteredFaqs.map((faq, index) => (
                                 <div
                                     key={faq.id}
-                                    className={`bg-white dark:bg-gov-emeraldStatic rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
+                                    className={`bg-white dark:bg-dm-surface rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                                         ? 'border-gov-gold/50 shadow-md'
-                                        : 'border-gray-100 dark:border-white/10 hover:border-gov-gold/30'
+                                        : 'border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30'
                                         }`}
                                 >
                                     <button
@@ -102,7 +102,7 @@ export default function FAQPage() {
                                         className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 opacity-100 pb-6' : 'max-h-0 opacity-0'
                                             }`}
                                     >
-                                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed border-t border-gray-100 dark:border-white/10 pt-4">
+                                        <p className="text-gray-600 dark:text-white/70 leading-relaxed border-t border-gray-100 dark:border-gov-border/15 pt-4">
                                             {getAnswer(faq)}
                                         </p>
                                     </div>

@@ -243,7 +243,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
   }, []);
 
   return (
-    <section ref={containerRef} className={`relative pt-6 pb-6 md:pt-12 md:pb-10 overflow-hidden bg-gov-beige dark:bg-gov-forest ${hasBreakingNews ? 'min-h-[45vh]' : 'min-h-[55vh]'} md:min-h-[80vh] flex items-center justify-center transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-2 pb-2 md:pt-4 md:pb-3 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'max-h-[calc(100svh-6rem)]' : 'max-h-[calc(100svh-3.5rem)] md:max-h-[calc(100svh-4rem)]'} h-[calc(100svh-3.5rem)] md:h-[calc(100svh-4rem)] flex items-center justify-center transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -264,15 +264,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
         </svg>
       </div>
 
-      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
+      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] md:w-[380px] md:h-[380px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-4 md:gap-10">
 
         {/* The Golden Hawk */}
-        <div ref={eagleRef} className="mb-4 md:mb-0 relative z-20 flex justify-center items-center md:w-1/2 md:order-1">
-          <div className="relative w-64 h-64 md:w-96 md:h-96 flex items-center justify-center">
+        <div ref={eagleRef} className="mb-2 md:mb-0 relative z-20 flex justify-center items-center md:w-5/12 md:order-1">
+          <div className="relative w-44 h-44 md:w-72 md:h-72 lg:w-80 lg:h-80 flex items-center justify-center">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gov-gold/10 rounded-full blur-3xl dark:bg-gov-brand/20"></div>
-            <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/10"></div>
+            <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-border/15"></div>
             <div className="absolute inset-4 rounded-full border-t border-l border-gov-teal/30 dark:border-gov-teal/20 animate-[spin_8s_linear_infinite]"></div>
             <div className="absolute inset-16 rounded-full border border-gov-gold/10"></div>
             <div className="absolute inset-8 rounded-full bg-mofa-teal dark:bg-gradient-to-br dark:from-gov-brand dark:to-gov-forest border border-gov-gold/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
@@ -319,89 +319,89 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
           </div>
         </div>
 
-        <div ref={textContainerRef} className="space-y-4 md:space-y-8 relative z-20 md:w-1/2 md:order-2 text-center md:text-start">
+        <div ref={textContainerRef} className="space-y-2 md:space-y-4 relative z-20 md:w-7/12 md:order-2 text-center md:text-start">
 
           {/* Titles Group */}
           <div className="flex flex-col items-center md:items-start">
-            <div className="animate-text inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-6 opacity-0">
+            <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-3 opacity-0">
               <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
-              <span className="text-xs md:text-sm font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
+              <span className="text-xs font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
                 {t('republic_name')}
               </span>
             </div>
 
-            <h1 className="animate-text text-4xl md:text-6xl lg:text-7xl font-bold font-display text-gov-forest dark:text-gov-gold mb-6 leading-tight drop-shadow-sm opacity-0">
+            <h1 className="animate-text text-2xl md:text-4xl lg:text-5xl font-bold font-display text-gov-forest dark:text-gov-gold mb-3 leading-tight drop-shadow-sm opacity-0">
               {t('ministry_name')} <span className="text-gov-teal dark:text-gov-gold relative inline-block">
 
-                <svg className="absolute w-full h-3 -bottom-1 left-0 text-gov-gold/30" viewBox="0 0 100 10" preserveAspectRatio="none">
+                <svg className="absolute w-full h-2 -bottom-1 left-0 text-gov-gold/30" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0 5 Q 50 10 100 5 L 100 10 L 0 10 Z" fill="currentColor" />
                 </svg>
               </span>
             </h1>
 
-            <div className="animate-text flex items-center justify-center md:justify-start gap-4 md:gap-6 mt-2 mb-4 md:mb-6 w-full opacity-0">
-              <div className={`h-[1px] w-8 md:w-24 bg-gradient-to-${direction === 'rtl' ? 'l' : 'r'} from-transparent to-gov-gold`}></div>
-              <span className="text-lg md:text-3xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
+            <div className="animate-text flex items-center justify-center md:justify-start gap-3 md:gap-5 mt-1 mb-2 md:mb-3 w-full opacity-0">
+              <div className={`h-[1px] w-6 md:w-16 bg-gradient-to-${direction === 'rtl' ? 'l' : 'r'} from-transparent to-gov-gold`}></div>
+              <span className="text-base md:text-2xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
                 {t('portal_name')}
               </span>
-              <div className={`h-[1px] w-8 md:w-24 bg-gradient-to-${direction === 'rtl' ? 'r' : 'l'} from-transparent to-gov-gold`}></div>
+              <div className={`h-[1px] w-6 md:w-16 bg-gradient-to-${direction === 'rtl' ? 'r' : 'l'} from-transparent to-gov-gold`}></div>
             </div>
 
-            <p className="animate-text text-lg md:text-xl text-gov-charcoal/80 dark:text-gov-gold/90 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0 opacity-0">
+            <p className="animate-text text-sm md:text-base text-gov-charcoal/80 dark:text-gov-gold/90 mb-4 leading-relaxed max-w-lg mx-auto md:mx-0 opacity-0">
               {t('unified_platform')}
               <br />
-              <span className="text-xs md:text-base text-gov-stone/70 dark:text-gov-beige/60 mt-1 block">{t('secure_gateway')}</span>
+              <span className="text-xs md:text-sm text-gov-stone/70 dark:text-gov-beige/60 mt-1 block">{t('secure_gateway')}</span>
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start pt-2 md:pt-4 w-full px-4 md:px-0">
+          <div className="flex flex-col sm:flex-row items-center gap-2 justify-center md:justify-start pt-1 md:pt-2 w-full px-4 md:px-0">
             <Link
               href="/services"
-              className="animate-btn relative overflow-hidden w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald dark:hover:bg-gov-emerald transition-all shadow-[0_5px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_30px_rgba(9,66,57,0.3)] flex items-center justify-center gap-2 group rounded-xl sm:rounded-none"
+              className="animate-btn relative overflow-hidden w-full sm:w-auto min-w-[140px] px-4 py-2.5 bg-gov-teal dark:bg-gov-brand text-white font-bold text-sm hover:bg-gov-emerald dark:hover:bg-gov-emerald transition-all shadow-[0_5px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_30px_rgba(9,66,57,0.3)] flex items-center justify-center gap-2 group rounded-xl sm:rounded-none"
               style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-              <Landmark size={18} className="relative z-10" />
+              <Landmark size={16} className="relative z-10" />
               <span className="relative z-10">{t('hero_services_btn')}</span>
-              <ArrowRight className={`relative z-10 ${language === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform duration-300`} size={16} />
+              <ArrowRight className={`relative z-10 ${language === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform duration-300`} size={14} />
             </Link>
 
             <Link
               href="/decrees"
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-transparent border border-gov-teal text-gov-teal dark:text-gov-gold dark:border-gov-gold font-bold text-base hover:bg-gov-teal/10 dark:hover:bg-gov-gold/10 transition-all flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
+              className="animate-btn w-full sm:w-auto min-w-[140px] px-4 py-2.5 bg-transparent border border-gov-teal text-gov-teal dark:text-gov-gold dark:border-gov-gold font-bold text-sm hover:bg-gov-teal/10 dark:hover:bg-gov-gold/10 transition-all flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
               style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
             >
-              <Scale size={18} />
+              <Scale size={16} />
               <span>{t('hero_decrees_btn')}</span>
             </Link>
 
             <Link
               href="/suggestions"
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-charcoal text-white font-bold text-base hover:bg-gov-forest transition-all shadow-md flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
+              className="animate-btn w-full sm:w-auto min-w-[140px] px-4 py-2.5 bg-gov-charcoal text-white font-bold text-sm hover:bg-gov-forest transition-all shadow-md flex items-center justify-center gap-2 rounded-xl sm:rounded-none"
               style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
             >
-              <FileText size={18} />
+              <FileText size={16} />
               <span>{language === 'ar' ? 'المشاريع والمقترحات' : 'Proposals & Projects'}</span>
             </Link>
           </div>
 
           {/* Official Pillars - Horizontal on Mobile */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-6 md:gap-12 w-full max-w-2xl mx-auto mt-6 md:mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-6 px-2 md:px-4">
-            <div className="animate-stat text-center border-r border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default px-1">
-              <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                <ShieldCheck size={16} className="md:w-[20px] md:h-[20px]" />
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:gap-8 w-full max-w-2xl mx-auto mt-3 md:mt-6 border-t border-gov-charcoal/10 dark:border-gov-border/15 pt-3 px-2 md:px-4">
+            <div className="animate-stat text-center border-r border-gov-charcoal/10 dark:border-gov-border/15 group cursor-default px-1">
+              <div className="w-7 h-7 md:w-9 md:h-9 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-1 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                <ShieldCheck size={14} className="md:w-[18px] md:h-[18px]" />
               </div>
-              <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">24/7</div>
-              <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
+              <div className="text-base md:text-xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-0.5">24/7</div>
+              <div className="text-[9px] md:text-[11px] text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_secure')}</div>
             </div>
 
             <div className="animate-stat text-center group cursor-default">
-              <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                <FileText size={16} className="md:w-[20px] md:h-[20px]" />
+              <div className="w-7 h-7 md:w-9 md:h-9 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-1 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
+                <FileText size={14} className="md:w-[18px] md:h-[18px]" />
               </div>
-              <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">100%</div>
-              <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
+              <div className="text-base md:text-xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-0.5">100%</div>
+              <div className="text-[9px] md:text-[11px] text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_transparency')}</div>
             </div>
           </div>
         </div>

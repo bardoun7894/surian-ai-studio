@@ -239,7 +239,7 @@ export default function AdminNotificationsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gov-charcoal p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-dm-bg p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -247,7 +247,7 @@ export default function AdminNotificationsPage() {
             <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white">
               {language === 'ar' ? 'إدارة الإشعارات' : 'Notifications Management'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-white/70 mt-1">
               {language === 'ar' ? 'إدارة ومراقبة إشعارات النظام' : 'Manage and monitor system notifications'}
             </p>
           </div>
@@ -262,7 +262,7 @@ export default function AdminNotificationsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
                 <Bell size={24} className="text-blue-500" />
@@ -273,7 +273,7 @@ export default function AdminNotificationsPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
                 <Clock size={24} className="text-orange-500" />
@@ -284,7 +284,7 @@ export default function AdminNotificationsPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
                 <CheckCircle size={24} className="text-green-500" />
@@ -295,7 +295,7 @@ export default function AdminNotificationsPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-gray-100 dark:border-gov-gold/10">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-5 border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
                 <Users size={24} className="text-purple-500" />
@@ -317,7 +317,7 @@ export default function AdminNotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ar' ? 'بحث في الإشعارات...' : 'Search notifications...'}
-              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="w-full pl-12 rtl:pl-4 rtl:pr-12 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
 
@@ -326,7 +326,7 @@ export default function AdminNotificationsPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as 'all' | 'unread' | 'read')}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             >
               <option value="all">{language === 'ar' ? 'الكل' : 'All'}</option>
               <option value="unread">{language === 'ar' ? 'غير مقروء' : 'Unread'}</option>
@@ -336,7 +336,7 @@ export default function AdminNotificationsPage() {
 
           <button
             onClick={fetchNotifications}
-            className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+            className="p-3 bg-white dark:bg-gov-card/10 rounded-xl border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             title={language === 'ar' ? 'تحديث' : 'Refresh'}
           >
             <RefreshCw size={20} className="text-gray-500" />
@@ -354,15 +354,15 @@ export default function AdminNotificationsPage() {
       </div>
 
       {/* Notifications List */}
-      <div className="bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
+      <div className="bg-white dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="animate-spin text-gov-gold" size={40} />
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="text-center py-12">
-            <Bell size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <Bell size={48} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
+            <p className="text-gray-500 dark:text-white/70">
               {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications found'}
             </p>
           </div>
@@ -385,14 +385,14 @@ export default function AdminNotificationsPage() {
                         <h4 className="font-bold text-gov-charcoal dark:text-white">
                           {notification.title}
                         </h4>
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400">
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/70">
                           {getTypeLabel(notification.type)}
                         </span>
                         {!notification.read_at && (
                           <span className="w-2 h-2 bg-gov-gold rounded-full"></span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-white/70 mb-2">
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
@@ -431,11 +431,11 @@ export default function AdminNotificationsPage() {
       {/* Broadcast Modal */}
       {showBroadcastModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gov-forest rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl max-w-lg w-full p-6 shadow-2xl">
             <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-4">
               {language === 'ar' ? 'إرسال إشعار جماعي' : 'Broadcast Notification'}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-sm text-gray-500 dark:text-white/70 mb-6">
               {language === 'ar'
                 ? 'سيتم إرسال هذا الإشعار لجميع المستخدمين'
                 : 'This notification will be sent to all users'}
@@ -451,7 +451,7 @@ export default function AdminNotificationsPage() {
                   value={broadcastTitle}
                   onChange={(e) => setBroadcastTitle(e.target.value)}
                   placeholder={language === 'ar' ? 'عنوان الإشعار' : 'Notification title'}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                 />
               </div>
               <div>
@@ -463,7 +463,7 @@ export default function AdminNotificationsPage() {
                   value={broadcastMessage}
                   onChange={(e) => setBroadcastMessage(e.target.value)}
                   placeholder={language === 'ar' ? 'نص الإشعار' : 'Notification message'}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none resize-none"
                 />
               </div>
             </div>

@@ -40,7 +40,7 @@ const SnoozeButton: React.FC<SnoozeButtonProps> = ({ itemId, itemType, onSnoozed
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${currentSnoozeUntil
                     ? 'bg-gov-gold/10 text-gov-gold border-gov-gold/20 hover:bg-gov-gold/20'
-                    : 'bg-white dark:bg-white/5 text-gov-stone dark:text-gov-beige border-gov-stone/20 dark:border-gov-gold/10 hover:border-gov-gold hover:text-gov-gold'
+                    : 'bg-white dark:bg-gov-card/10 text-gov-stone dark:text-gov-beige border-gov-stone/20 dark:border-gov-border/15 hover:border-gov-gold hover:text-gov-gold'
                     }`}
                 title="تأجيل المعالجة (غياب مؤقت)"
             >

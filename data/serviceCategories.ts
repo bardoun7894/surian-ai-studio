@@ -542,7 +542,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'digital-services',
     titleAr: 'الخدمات الإلكترونية',
-    titleEn: 'Digital Services',
+    titleEn: 'Services',
     descriptionAr: 'الهوية الرقمية وإدارة الحساب',
     descriptionEn: 'Digital ID and account management',
     icon: React.createElement(FileText, { size: 36 }),

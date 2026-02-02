@@ -69,6 +69,7 @@ class ContentController extends Controller
             'status' => 'required|in:draft,published,archived',
             'featured' => 'boolean',
             'published_at' => 'nullable|date',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
         ]);
 
         $validated['author_id'] = $request->user()->id;
@@ -115,6 +116,7 @@ class ContentController extends Controller
             'status' => 'sometimes|in:draft,published,archived',
             'featured' => 'boolean',
             'published_at' => 'nullable|date',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
         ]);
 
         $content->update($validated);

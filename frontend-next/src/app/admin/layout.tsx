@@ -104,15 +104,15 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gov-charcoal">
+    <div className="min-h-screen flex bg-gray-100 dark:bg-dm-bg">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 start-0 z-40 bg-white dark:bg-gov-forest border-e border-gray-200 dark:border-gov-gold/10 transition-all duration-300 ${
+        className={`fixed inset-y-0 start-0 z-40 bg-white dark:bg-dm-bg border-e border-gray-200 dark:border-gov-border/15 transition-all duration-300 ${
           sidebarCollapsed ? 'w-20' : 'w-64'
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gov-gold/10">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gov-border/15">
           {!sidebarCollapsed && (
             <Link href="/" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-gov-gold/10 flex items-center justify-center">
@@ -147,7 +147,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   active
                     ? 'bg-gov-gold/10 text-gov-gold font-bold'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                    : 'text-gray-600 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
                 }`}
                 title={sidebarCollapsed ? (language === 'ar' ? item.label.ar : item.label.en) : undefined}
               >
@@ -162,7 +162,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
         {/* User Info */}
         {!sidebarCollapsed && user && (
-          <div className="absolute bottom-0 start-0 end-0 p-4 border-t border-gray-200 dark:border-gov-gold/10">
+          <div className="absolute bottom-0 start-0 end-0 p-4 border-t border-gray-200 dark:border-gov-border/15">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gov-teal/10 flex items-center justify-center">
                 <Users size={18} className="text-gov-teal" />
@@ -182,7 +182,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 ${
+        className={`flex-1 transition-all duration-300 pt-6 ${
           sidebarCollapsed ? 'ms-20' : 'ms-64'
         }`}
       >

@@ -133,7 +133,7 @@ function SemanticSearchPageContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => router.push(`/search?q=${encodeURIComponent(q)}`)} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -172,13 +172,13 @@ function SemanticSearchPageContent() {
                       ? 'ابحث في المحتوى...'
                       : 'Search content...'
                   }
-                  className="w-full ps-12 pe-4 py-4 bg-white dark:bg-white/5 border border-gov-stone/20 dark:border-white/10 rounded-xl text-gov-charcoal dark:text-white placeholder-gov-stone/50 focus:outline-none focus:ring-2 focus:ring-gov-gold/50 transition-all shadow-sm"
+                  className="w-full ps-12 pe-4 py-4 bg-white dark:bg-gov-card/10 border border-gov-stone/20 dark:border-gov-border/15 rounded-xl text-gov-charcoal dark:text-white placeholder-gov-stone/50 focus:outline-none focus:ring-2 focus:ring-gov-gold/50 transition-all shadow-sm"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-8 py-4 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-charcoal font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-gold/90 transition-all disabled:opacity-50 shadow-lg shadow-gov-forest/10"
+                className="px-8 py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-all disabled:opacity-50 shadow-lg shadow-gov-forest/10"
               >
                 {isLoading ? <Loader2 className="animate-spin" size={20} /> : language === 'ar' ? 'بحث' : 'Search'}
               </button>
@@ -187,7 +187,7 @@ function SemanticSearchPageContent() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-4 py-4 border rounded-xl font-bold transition-all ${showFilters
                     ? 'bg-gov-gold/10 text-gov-gold border-gov-gold'
-                    : 'bg-white dark:bg-white/5 border-gov-stone/20 dark:border-white/10 text-gov-stone dark:text-white hover:bg-gov-stone/5 dark:hover:bg-white/10'
+                    : 'bg-white dark:bg-gov-card/10 border-gov-stone/20 dark:border-gov-border/15 text-gov-stone dark:text-white hover:bg-gov-stone/5 dark:hover:bg-white/10'
                   }`}
               >
                 <Filter size={20} />
@@ -197,7 +197,7 @@ function SemanticSearchPageContent() {
 
           {/* Filters Panel */}
           {showFilters && (
-            <div className="mb-8 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 shadow-sm">
+            <div className="mb-8 p-6 bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gov-charcoal dark:text-white font-display">
                   {language === 'ar' ? 'خيارات التصفية' : 'Filter Options'}
@@ -308,7 +308,7 @@ function SemanticSearchPageContent() {
             {results.map((result) => (
               <div
                 key={result.id}
-                className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/30 hover:shadow-lg hover:shadow-gov-gold/5 transition-all cursor-pointer group"
+                className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/30 hover:shadow-lg hover:shadow-gov-gold/5 transition-all cursor-pointer group"
                 onClick={() => router.push(`/content/${result.id}`)}
               >
                 <div className="flex items-start justify-between mb-4">
@@ -327,7 +327,7 @@ function SemanticSearchPageContent() {
                         ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
                         : result.similarity_score >= 0.6
                           ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
-                          : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-dm-surface dark:text-white/70 dark:border-gov-border/15'
                       }`}>
                       {(result.similarity_score * 100).toFixed(0)}%
                     </div>
@@ -336,7 +336,7 @@ function SemanticSearchPageContent() {
 
                 <div className="flex items-center gap-4 text-xs font-medium text-gov-stone/60 dark:text-gov-beige/40 border-t border-gov-stone/5 dark:border-white/5 pt-4">
                   {result.category && (
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-gov-stone/5 dark:bg-white/5 rounded text-gov-stone dark:text-gov-beige/60">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-gov-stone/5 dark:bg-gov-card/10 rounded text-gov-stone dark:text-gov-beige/60">
                       <Tag size={12} />
                       <span>
                         {categoryLabels[result.category]
@@ -373,8 +373,8 @@ function SemanticSearchPageContent() {
           </div>
 
           {!isLoading && query && results.length === 0 && (
-            <div className="text-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gov-stone/5 dark:bg-white/5 rounded-full flex items-center justify-center">
+            <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-full flex items-center justify-center">
                 <Search className="text-gov-stone/40" size={32} />
               </div>
               <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2 font-display">

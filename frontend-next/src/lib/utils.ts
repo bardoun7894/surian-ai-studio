@@ -11,7 +11,77 @@ export function getLocalizedName(name: string | LocalizedString, lang: 'ar' | 'e
  */
 export function getLocalizedField(obj: any, field: string, lang: 'ar' | 'en'): string {
   if (!obj) return '';
-  const ar = obj[`${field}_ar`] || obj[field] || '';
+  const val = obj[field];
+  // Handle LocalizedString objects { ar: '...', en: '...' }
+  if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
+    return val[lang] || val['ar'] || '';
+  }
+  const ar = obj[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
   const en = obj[`${field}_en`] || ar;
   return lang === 'ar' ? ar : en;
+}
+
+/**
+ * Copy text to clipboard with fallback for non-HTTPS environments.
+ * Uses navigator.clipboard when available, falls back to execCommand.
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to fallback
+    }
+  }
+  // Fallback for HTTP / older browsers
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  const success = document.execCommand('copy');
+  document.body.removeChild(textarea);
+  return success;
+}
+
+/**
+ * Share content using Web Share API with clipboard fallback.
+ * Returns true if shared/copied successfully.
+ */
+export async function shareContent(title: string, url: string): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({ title, url });
+      return true;
+    } catch (err: any) {
+      if (err.name === 'AbortError') return false;
+      // Fall through to clipboard fallback
+    }
+  }
+  return copyToClipboard(url);
+}
+
+/**
+ * Format a date as locale-aware relative time (e.g., "2 hours ago", "منذ ساعتين").
+ */
+export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return lang === 'ar' ? 'الآن' : 'Just now';
+  if (diffMin < 60) return lang === 'ar' ? `منذ ${diffMin} دقيقة` : `${diffMin} min ago`;
+  if (diffHrs < 24) return lang === 'ar' ? `منذ ${diffHrs} ساعة` : `${diffHrs}h ago`;
+  if (diffDays < 7) return lang === 'ar' ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
+
+  return date.toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }

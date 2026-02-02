@@ -5,6 +5,9 @@ Auto-generated from all feature plans. Last updated: 2026-01-26
 ## Active Technologies
 - TypeScript 5.x (Next.js 14), PHP 8.2+ (Laravel 11) + Next.js 14 (App Router), React 18, Tailwind CSS 3.4.1, GSAP, Framer Motion, Laravel Sanctum, Filament 3.3 (002-frontend-fixes)
 - PostgreSQL 15+ (existing), Redis 7+ (cache) (002-frontend-fixes)
+- TypeScript 5.x (Next.js 14.2.35), PHP 8.2+ (Laravel 11) + React 18, Tailwind CSS 3.4.1, GSAP 3.14.2, Framer Motion 11.18.2, Lucide React, Sonner, Laravel Sanctum (003-ui-amendments)
+- TypeScript 5.x (Next.js 14 App Router), React 18 + Tailwind CSS 3.4.1, Next.js 14, Framer Motion, GSAP (004-unified-dark-mode)
+- N/A (frontend-only changes) (004-unified-dark-mode)
 
 - PHP 8.2+ (Laravel 11), TypeScript 5.x (Next.js 14) + Laravel Sanctum, Next.js App Router, Filament Admin, FastAPI AI Service (001-moe-website)
 
@@ -24,9 +27,10 @@ npm test && npm run lint
 PHP 8.2+ (Laravel 11), TypeScript 5.x (Next.js 14): Follow standard conventions
 
 ## Recent Changes
+- 004-unified-dark-mode: Added TypeScript 5.x (Next.js 14 App Router), React 18 + Tailwind CSS 3.4.1, Next.js 14, Framer Motion, GSAP
+- 003-ui-amendments: Added TypeScript 5.x (Next.js 14.2.35), PHP 8.2+ (Laravel 11) + React 18, Tailwind CSS 3.4.1, GSAP 3.14.2, Framer Motion 11.18.2, Lucide React, Sonner, Laravel Sanctum
 - 002-frontend-fixes: Added TypeScript 5.x (Next.js 14), PHP 8.2+ (Laravel 11) + Next.js 14 (App Router), React 18, Tailwind CSS 3.4.1, GSAP, Framer Motion, Laravel Sanctum, Filament 3.3
 
-- 001-moe-website: Added PHP 8.2+ (Laravel 11), TypeScript 5.x (Next.js 14) + Laravel Sanctum, Next.js App Router, Filament Admin, FastAPI AI Service
 
 <!-- MANUAL ADDITIONS START -->
 

@@ -158,16 +158,16 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 ltr:right-0 rtl:left-0 w-80 sm:w-96 bg-white dark:bg-gov-forest rounded-2xl shadow-2xl border border-gray-100 dark:border-gov-gold/20 overflow-hidden z-50 animate-fade-in">
+        <div className="absolute top-full mt-2 ltr:right-0 rtl:left-0 w-80 sm:w-96 bg-white dark:bg-dm-surface rounded-2xl shadow-2xl border border-gray-100 dark:border-gov-border/25 overflow-hidden z-50 animate-fade-in">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/10">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
             <h3 className="font-bold text-gov-charcoal dark:text-white">
               {language === 'ar' ? 'الإشعارات' : 'Notifications'}
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-gov-teal dark:text-gov-gold font-bold hover:underline"
+                className="text-xs text-gov-teal dark:text-gov-teal font-bold hover:underline"
               >
                 {language === 'ar' ? 'تحديد الكل كمقروء' : 'Mark all as read'}
               </button>
@@ -193,7 +193,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
                   <div
                     key={notification.id}
                     className={`p-4 border-b border-gray-50 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${
-                      !notification.is_read ? 'bg-gov-gold/5 dark:bg-gov-gold/10' : ''
+                      !notification.is_read ? 'bg-gov-gold/5 dark:bg-gov-emerald/10' : ''
                     }`}
                   >
                     <div className="flex gap-3">
@@ -209,11 +209,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
                               className="shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded"
                               title={language === 'ar' ? 'تحديد كمقروء' : 'Mark as read'}
                             >
-                              <Check size={14} className="text-gov-teal dark:text-gov-gold" />
+                              <Check size={14} className="text-gov-teal dark:text-gov-teal" />
                             </button>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2">
                           {notification.body}
                         </p>
                         <div className="flex items-center justify-between mt-2">
@@ -225,7 +225,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
                                 markAsRead(notification.id);
                                 setIsOpen(false);
                               }}
-                              className="text-xs text-gov-teal dark:text-gov-gold font-bold hover:underline"
+                              className="text-xs text-gov-teal dark:text-gov-teal font-bold hover:underline"
                             >
                               {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                             </Link>
@@ -240,11 +240,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
           </div>
 
           {/* Footer */}
-          <div className="p-3 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+          <div className="p-3 border-t border-gray-100 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10">
             <Link
               href="/dashboard?tab=notifications"
               onClick={() => setIsOpen(false)}
-              className="block text-center text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
+              className="block text-center text-sm font-bold text-gov-teal dark:text-gov-teal hover:underline"
             >
               {language === 'ar' ? 'عرض جميع الإشعارات' : 'View All Notifications'}
             </Link>

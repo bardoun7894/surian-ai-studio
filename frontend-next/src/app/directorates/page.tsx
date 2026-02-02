@@ -4,10 +4,10 @@ import DirectoratesList from '@/components/DirectoratesList';
 
 export default function DirectoratesPage() {
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16 overflow-hidden animate-fade-in-up">
+            <main className="flex-grow pt-20 md:pt-24 overflow-hidden animate-fade-in-up">
                 <DirectoratesList />
             </main>
 

@@ -45,6 +45,7 @@ services:
     volumes:
       - ./backend:/var/www
       - /var/www/vendor  # Exclude vendor from mount to use container's vendor
+      - ./backend/docker/php-uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     environment:
       - APP_ENV=local
       - APP_DEBUG=true

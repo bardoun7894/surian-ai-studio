@@ -28,13 +28,19 @@
 }
 
 :root {
-  --background: #edebe0; /* gov-beige */
-  --foreground: #161616; /* gov-charcoal */
+  --background: #f5f5f5; /* Light gray background */
+  --foreground: #ffffff; /* White text */
+  --card-bg: #b3a3d; /* Gray cards */
+  --button-bg: #094239; /* Dark green buttons */
+  --title-color: #b9a779; /* Gold titles */
 }
 
 .dark {
-  --background: #094239; /* gov-forest */
-  --foreground: #edebe0; /* gov-beige */
+  --background: #1a1a1a; /* Dark background */
+  --foreground: #ffffff; /* White text */
+  --card-bg: #b3a3d; /* Gray cards */
+  --button-bg: #094239; /* Dark green buttons */
+  --title-color: #b9a779; /* Gold titles */
 }
 
 body {
@@ -43,44 +49,44 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* Glass Card Effect */
+/* Glass Card Effect - Updated with new color scheme */
 .glass-card {
-  background: rgba(237, 235, 224, 0.9);
+  background: rgba(179, 163, 208, 0.9); /* Gray cards */
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(185, 167, 121, 0.2);
+  border: 1px solid rgba(185, 167, 121, 0.3); /* Gold border */
 }
 
 .dark .glass-card {
-  background: rgba(9, 66, 57, 0.9);
-  border: 1px solid rgba(185, 167, 121, 0.2);
+  background: rgba(179, 163, 208, 0.9); /* Gray cards */
+  border: 1px solid rgba(185, 167, 121, 0.3); /* Gold border */
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Updated */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #edebe0;
+  background: #f5f5f5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b9a779;
+  background: #094239; /* Dark green */
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #988561;
+  background: #115E59; /* Dark green hover */
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #094239;
+  background: #1a1a1a;
 }
 
-/* Selection Colors */
+/* Selection Colors - Updated */
 ::selection {
-  background-color: #b9a779;
-  color: #094239;
+  background-color: #b9a779; /* Gold */
+  color: #ffffff; /* White text */
 }
 
 /* RTL Support */
@@ -95,23 +101,42 @@ body {
 }
 
 @layer components {
-  /* Button styles */
+  /* Button styles - Dark Green (أخضر غامق) */
   .btn-primary {
-    @apply bg-gov-teal text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl;
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emeraldLight transition-all shadow-lg hover:shadow-xl;
   }
 
   .btn-secondary {
-    @apply bg-gov-gold text-gov-forest font-bold py-3 px-6 rounded-xl hover:bg-gov-sand transition-all;
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emeraldLight transition-all;
   }
 
-  /* Card styles */
+  /* Card styles - Gray (#b3a3d) */
   .card {
-    @apply bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10;
+    @apply bg-[#b3a3d] rounded-2xl p-6 shadow-lg border border-gray-300;
   }
 
   /* Input styles */
   .input {
-    @apply w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gov-gold/20 focus:border-gov-emerald outline-none transition-all;
+    @apply w-full py-3 px-4 rounded-xl bg-white border border-gray-300 focus:border-gov-forest outline-none transition-all;
+  }
+  
+  /* Main Titles - Gold (ذهبي) */
+  .title-main {
+    @apply text-gov-gold font-bold text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  /* Subtitles and Text - White (أبيض) */
+  .text-content {
+    @apply text-white;
+  }
+  
+  .subtitle {
+    @apply text-white text-lg md:text-xl;
+  }
+  
+  /* Icons - Dark Green */
+  .icon-primary {
+    @apply text-gov-forest;
   }
 }
 

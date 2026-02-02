@@ -117,7 +117,7 @@ function SuggestionTrackPageContent() {
     };
 
     return (
-        <div className="min-h-screen bg-gov-beige dark:bg-gov-forest py-12 px-4">
+        <div className="min-h-screen bg-gov-beige dark:bg-dm-bg py-12 px-4">
             <div className="max-w-2xl mx-auto">
                 {/* Back Link */}
                 <Link
@@ -136,15 +136,15 @@ function SuggestionTrackPageContent() {
                     <h1 className="text-3xl font-bold text-gov-forest dark:text-white mb-2">
                         متابعة حالة المقترح
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-gray-600 dark:text-white/70">
                         أدخل رقم المتابعة للاطلاع على آخر المستجدات
                     </p>
                 </div>
 
                 {/* Search Form */}
                 <form onSubmit={handleSearch} className="mb-8 print:hidden">
-                    <div className="bg-white dark:bg-gov-forest/50 rounded-2xl p-6 shadow-lg border border-gov-gold/20">
-                        <label className="block text-sm font-bold text-gov-forest dark:text-gray-300 mb-2">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gov-gold/20">
+                        <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
                             رقم المتابعة
                         </label>
                         <div className="flex gap-3">
@@ -153,12 +153,12 @@ function SuggestionTrackPageContent() {
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
                                 placeholder="SUG-XXXXXXXX"
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-lg"
+                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-lg"
                             />
                             <button
                                 type="submit"
                                 disabled={loading || !trackingNumber.trim()}
-                                className="px-6 py-3 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-gold/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="px-6 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {loading ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
                                 بحث
@@ -177,15 +177,15 @@ function SuggestionTrackPageContent() {
 
                 {/* Result Card */}
                 {result && (
-                    <div className="bg-white dark:bg-gov-forest/50 rounded-2xl shadow-lg border border-gov-gold/20 overflow-hidden animate-fade-in print:shadow-none print:border-none">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-lg border border-gov-gold/20 overflow-hidden animate-fade-in print:shadow-none print:border-none">
                         {/* Status Header */}
                         <div className={`${getStatusInfo(result.status).bg} p-6 flex justify-between items-start`}>
                             <div className="flex items-center gap-4">
-                                <div className={`w-14 h-14 rounded-full bg-white dark:bg-black/20 flex items-center justify-center ${getStatusInfo(result.status).color}`}>
+                                <div className={`w-14 h-14 rounded-full bg-white dark:bg-dm-surface flex items-center justify-center ${getStatusInfo(result.status).color}`}>
                                     {getStatusInfo(result.status).icon}
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">حالة المقترح</p>
+                                    <p className="text-sm text-gray-600 dark:text-white/70 mb-1">حالة المقترح</p>
                                     <h2 className={`text-2xl font-bold ${getStatusInfo(result.status).color}`}>
                                         {getStatusInfo(result.status).label}
                                     </h2>
@@ -205,15 +205,15 @@ function SuggestionTrackPageContent() {
 
                         {/* Details */}
                         <div className="p-6 space-y-4">
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-white/10">
-                                <span className="text-gray-600 dark:text-gray-400">رقم المتابعة</span>
+                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gov-border/15">
+                                <span className="text-gray-600 dark:text-white/70">رقم المتابعة</span>
                                 <span className="font-bold font-mono text-gov-forest dark:text-gov-gold">
                                     {result.tracking_number}
                                 </span>
                             </div>
 
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-white/10">
-                                <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gov-border/15">
+                                <span className="text-gray-600 dark:text-white/70 flex items-center gap-2">
                                     <Calendar size={16} />
                                     تاريخ التقديم
                                 </span>
@@ -222,8 +222,8 @@ function SuggestionTrackPageContent() {
                                 </span>
                             </div>
 
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-white/10">
-                                <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gov-border/15">
+                                <span className="text-gray-600 dark:text-white/70 flex items-center gap-2">
                                     <Clock size={16} />
                                     آخر تحديث
                                 </span>
@@ -239,12 +239,12 @@ function SuggestionTrackPageContent() {
                                         <User size={18} />
                                         رد الجهة المختصة
                                     </h3>
-                                    <div className="bg-gov-beige/50 dark:bg-white/5 rounded-xl p-4 border border-gov-gold/20">
-                                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                    <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl p-4 border border-gov-gold/20">
+                                        <p className="text-gray-700 dark:text-white/70 whitespace-pre-wrap">
                                             {result.response}
                                         </p>
                                         {result.reviewed_at && (
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                                            <p className="text-xs text-gray-500 dark:text-white/70 mt-3">
                                                 تاريخ الرد: {formatDate(result.reviewed_at)}
                                             </p>
                                         )}

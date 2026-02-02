@@ -40,7 +40,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Directorates
   'dir_title_full': { ar: 'دليل الجهات الحكومية', en: 'Government Directory' },
-  'dir_subtitle_full': { ar: 'تصفح الدليل الشامل للوزارات والهيئات الحكومية والخدمات الرقمية.', en: 'Browse the comprehensive directory of ministries, agencies, and digital services.' },
+  'dir_subtitle_full': { ar: 'تصفح الدليل الشامل للوزارات والهيئات الحكومية والخدمات الرقمية.', en: 'Browse the comprehensive directory of ministries, agencies, and Services.' },
   'dir_title_compact': { ar: 'الوصول السريع للجهات', en: 'Quick Access' },
   'dir_subtitle_compact': { ar: 'الإدارات التابعة لوزارة الاقتصاد والصناعة', en: 'Directorates of the Ministry of Economy and Industry' },
   'dir_services_selected': { ar: 'خدمات مختارة', en: 'Selected Services' },
@@ -521,10 +521,10 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Directorate Detail
   'directorate_back': { ar: 'العودة إلى الدليل', en: 'Back to Directory' },
-  'directorate_services': { ar: 'الخدمات المتاحة', en: 'Available E-Services' },
-  'directorate_digital': { ar: 'خدمة رقمية فورية', en: 'Instant digital service' },
+  'directorate_services': { ar: 'الخدمات المتاحة', en: 'Available Services' },
+  'directorate_digital': { ar: 'خدمة  فورية', en: 'Instant Service' },
   'directorate_in_person': { ar: 'تتطلب مراجعة المركز', en: 'Requires center visit' },
-  'directorate_no_services': { ar: 'لا توجد خدمات مضافة حالياً.', en: 'No e-services added currently.' },
+  'directorate_no_services': { ar: 'لا توجد خدمات مضافة حالياً.', en: 'No services added currently.' },
   'directorate_paper_guide': { ar: 'عرض دليل المعاملات الورقية', en: 'View Paper Transactions Guide' },
   'directorate_news': { ar: 'آخر أخبار الوزارة', en: 'Latest Ministry News' },
   'directorate_contact': { ar: 'معلومات التواصل', en: 'Contact Information' },
@@ -867,6 +867,26 @@ const translations: Record<string, Record<Language, string>> = {
   'rating_comments_placeholder': { ar: 'أخبرنا المزيد عن تجربتك...', en: 'Tell us more about your experience...' },
   'rating_sending': { ar: 'جاري الإرسال...', en: 'Sending...' },
   'rating_submit': { ar: 'إرسال التقييم', en: 'Submit Rating' },
+  // UI Amendments - Additional translations
+  'view_all': { ar: 'عرض الكل', en: 'View All' },
+  'copied': { ar: 'تم النسخ', en: 'Copied' },
+  'ai_summary': { ar: 'ملخص ذكي', en: 'AI Summary' },
+  'loading_summary': { ar: 'جاري التلخيص...', en: 'Generating summary...' },
+  'share': { ar: 'مشاركة', en: 'Share' },
+  'link_copied': { ar: 'تم نسخ الرابط', en: 'Link copied' },
+  'general_form': { ar: 'النموذج العام', en: 'General Form' },
+  'suggestion_failed': { ar: 'فشل في تقديم الاقتراح', en: 'Failed to submit suggestion' },
+  'published_at': { ar: 'نُشر في', en: 'Published at' },
+  'time_ago': { ar: 'منذ', en: 'ago' },
+  'announcements_title': { ar: 'الإعلانات', en: 'Announcements' },
+  'directorates_subtitle': { ar: 'الإدارات العامة لوزارة الاقتصاد والصناعة', en: 'General Directorates of the Ministry of Economy and Industry' },
+  'directorate_subtitle': { ar: 'إدارة عامة', en: 'General Directorate' },
+  'newsletter_subscribed': { ar: 'تم الاشتراك بنجاح في النشرة الإخبارية', en: 'Successfully subscribed to the newsletter' },
+  'print': { ar: 'طباعة', en: 'Print' },
+  'current_password_required': { ar: 'كلمة المرور الحالية مطلوبة', en: 'Current password is required' },
+  'my_complaints': { ar: 'شكاواي', en: 'My Complaints' },
+  'no_complaints': { ar: 'لا توجد شكاوى مسجلة', en: 'No complaints registered' },
+  'clear_filters': { ar: 'مسح الفلاتر', en: 'Clear Filters' },
 };
 
 

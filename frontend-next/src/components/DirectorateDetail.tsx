@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
     ArrowRight,
     MapPin,
@@ -53,9 +54,13 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
         return content[language as 'ar' | 'en'] || '';
     };
 
-    // Helper to get localized field from an API object with _ar/_en suffixes
+    // Helper to get localized field - handles LocalizedString objects AND _ar/_en suffixed fields
     const loc = (obj: any, field: string): string => {
-        const ar = obj?.[`${field}_ar`] || obj?.[field] || '';
+        const val = obj?.[field];
+        if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
+            return val[language] || val['ar'] || '';
+        }
+        const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
         const en = obj?.[`${field}_en`] || ar;
         return language === 'ar' ? ar : en;
     };
@@ -110,7 +115,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     );
 
     return (
-        <div className="animate-fade-in min-h-screen bg-gray-50 dark:bg-gov-forest pb-20">
+        <div className="animate-fade-in min-h-screen bg-gray-50 dark:bg-dm-bg pb-20 pt-24 md:pt-28">
 
             {/* Hero Header */}
             <div className="bg-gov-forest text-white pt-12 pb-24 relative overflow-hidden">
@@ -136,6 +141,9 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                             {getIcon(directorate.icon)}
                         </div>
                         <div>
+                            <p className="text-sm text-gov-gold/90 font-bold mb-2">
+                                {t('directorate_subtitle')}
+                            </p>
                             <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">
                                 {loc(directorate, 'name')}
                             </h1>
@@ -154,37 +162,37 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                     <div className="lg:col-span-2 space-y-8">
 
                         {/* Services Section */}
-                        <div className="bg-white dark:bg-gov-charcoal/80 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 p-8">
+                        <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-8">
                             <h2 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
-                                <FileCheck className="text-gov-forest dark:text-gov-gold" />
+                                <FileCheck className="text-gov-forest dark:text-gov-teal" />
                                 {t('directorate_services')}
                             </h2>
 
                             {services.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {services.map(service => (
-                                        <div key={service.id} className="p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-forest dark:hover:border-gov-gold hover:shadow-md transition-all group bg-gray-50 dark:bg-white/5 cursor-pointer">
+                                        <div key={service.id} className="p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-forest dark:hover:border-gov-gold hover:shadow-md transition-all group bg-gray-50 dark:bg-gov-card/10 cursor-pointer">
                                             <div className="flex items-start justify-between mb-2">
-                                                <div className={`w-2 h-2 rounded-full mt-1.5 ${service.isDigital ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
-                                                <ExternalLink size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors" />
+                                                <div className={`w-2 h-2 rounded-full mt-1.5 ${service.isDigital ? 'bg-gov-teal' : 'bg-gray-300 dark:bg-dm-surface'}`}></div>
+                                                <ExternalLink size={16} className="text-gray-300 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors" />
                                             </div>
                                             <h3 className="font-bold text-gray-800 dark:text-white group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
                                                 {loc(service, 'title')}
                                             </h3>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            <p className="text-xs text-gray-500 dark:text-white/70 mt-2">
                                                 {service.isDigital ? t('directorate_digital') : t('directorate_in_person')}
                                             </p>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                                <div className="text-center py-8 text-gray-400 dark:text-white/50">
                                     {t('directorate_no_services')}
                                 </div>
                             )}
 
-                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 text-center">
-                                <button className="text-gov-forest dark:text-gov-gold font-bold text-sm hover:underline">
+                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 text-center">
+                                <button className="text-gov-forest dark:text-gov-teal font-bold text-sm hover:underline">
                                     {t('directorate_paper_guide')}
                                 </button>
                             </div>
@@ -192,11 +200,11 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
 
                         {/* Sub-Directorates Section (FR-50) */}
                         {directorate.subDirectorates && directorate.subDirectorates.length > 0 && (
-                            <div className="bg-white dark:bg-gov-charcoal/80 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 p-8">
+                            <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-8">
                                 <h2 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
-                                    <Building2 className="text-gov-forest dark:text-gov-gold" />
+                                    <Building2 className="text-gov-forest dark:text-gov-teal" />
                                     {language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}
-                                    <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
+                                    <span className="text-sm font-normal text-gray-400 dark:text-white/50">
                                         ({directorate.subDirectorates.length})
                                     </span>
                                 </h2>
@@ -211,14 +219,14 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                                                 href={href}
                                                 target={isExternal ? '_blank' : undefined}
                                                 rel={isExternal ? 'noopener noreferrer' : undefined}
-                                                className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-forest dark:hover:border-gov-gold hover:shadow-md transition-all group bg-gray-50 dark:bg-white/5"
+                                                className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-forest dark:hover:border-gov-gold hover:shadow-md transition-all group bg-gray-50 dark:bg-gov-card/10"
                                             >
-                                                <Building2 size={18} className="text-gray-400 dark:text-gray-500 group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors flex-shrink-0" />
+                                                <Building2 size={18} className="text-gray-400 dark:text-white/50 group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors flex-shrink-0" />
                                                 <span className="text-sm font-bold text-gray-700 dark:text-white group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors flex-1">
                                                     {subName}
                                                 </span>
                                                 {isExternal && (
-                                                    <ExternalLink size={14} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                                                    <ExternalLink size={14} className="text-gray-400 dark:text-white/50 flex-shrink-0" />
                                                 )}
                                             </Link>
                                         );
@@ -228,32 +236,32 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                         )}
 
                         {/* News Section for this Ministry (FR-11) */}
-                        <div className="bg-white dark:bg-gov-charcoal/80 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 p-8">
+                        <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-8">
                             <h2 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
-                                <Newspaper className="text-gov-forest dark:text-gov-gold" />
+                                <Newspaper className="text-gov-forest dark:text-gov-teal" />
                                 {t('directorate_news')}
                             </h2>
                             {relatedNews.length > 0 ? (
                                 <div className="space-y-6">
                                     {relatedNews.map(news => (
                                         <Link key={news.id} href={`/news/${news.id}`} className="flex gap-4 group cursor-pointer">
-                                            <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-gray-100 dark:bg-white/5">
+                                            <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-gray-100 dark:bg-gov-card/10">
                                                 {news.imageUrl ? (
-                                                    <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                    <Image src={news.imageUrl} alt={news.title} width={96} height={96} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
-                                                        <Newspaper className="text-gray-300 dark:text-gray-600" size={32} />
+                                                        <Newspaper className="text-gray-300 dark:text-white/50" size={32} />
                                                     </div>
                                                 )}
                                             </div>
                                             <div>
-                                                <span className="text-xs text-gov-forest dark:text-gov-gold font-bold mb-1 block">
+                                                <span className="text-xs text-gov-forest dark:text-gov-teal font-bold mb-1 block">
                                                     {news.category || (language === 'ar' ? 'أخبار' : 'News')}
                                                 </span>
                                                 <h3 className="font-bold text-gray-800 dark:text-white mb-2 leading-tight group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
                                                     {loc(news, 'title')}
                                                 </h3>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                                                <p className="text-xs text-gray-500 dark:text-white/70 line-clamp-2">
                                                     {loc(news, 'summary')}
                                                 </p>
                                             </div>
@@ -261,14 +269,14 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                                <div className="text-center py-8 text-gray-400 dark:text-white/50">
                                     <Newspaper className="mx-auto mb-2 opacity-30" size={32} />
                                     <p>{language === 'ar' ? 'لا توجد أخبار متعلقة بهذه الإدارة حالياً' : 'No related news currently available'}</p>
                                 </div>
                             )}
                             {relatedNews.length > 0 && (
-                                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 text-center">
-                                    <Link href="/news" className="text-gov-forest dark:text-gov-gold font-bold text-sm hover:underline">
+                                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 text-center">
+                                    <Link href="/news" className="text-gov-forest dark:text-gov-teal font-bold text-sm hover:underline">
                                         {language === 'ar' ? 'عرض جميع الأخبار' : 'View All News'}
                                     </Link>
                                 </div>
@@ -281,25 +289,25 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                     <div className="space-y-6">
 
                         {/* Contact Card */}
-                        <div className="bg-white dark:bg-gov-charcoal/80 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 p-6">
-                            <h3 className="font-bold text-gov-charcoal dark:text-white mb-6 border-b border-gray-100 dark:border-white/10 pb-2">
+                        <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-6">
+                            <h3 className="font-bold text-gov-charcoal dark:text-white mb-6 border-b border-gray-100 dark:border-gov-border/15 pb-2">
                                 {t('directorate_contact')}
                             </h3>
                             <div className="space-y-4">
-                                <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                    <MapPin className="shrink-0 text-gov-forest dark:text-gov-gold" size={18} />
+                                <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-white/70">
+                                    <MapPin className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
                                     <span>{t('directorate_address')}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                    <Phone className="shrink-0 text-gov-forest dark:text-gov-gold" size={18} />
+                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
+                                    <Phone className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
                                     <span dir="ltr">{t('directorate_phone')}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                    <Mail className="shrink-0 text-gov-forest dark:text-gov-gold" size={18} />
+                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
+                                    <Mail className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
                                     <span>{t('directorate_email')}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                    <Globe className="shrink-0 text-gov-forest dark:text-gov-gold" size={18} />
+                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
+                                    <Globe className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
                                     <a href="#" className="hover:text-gov-forest dark:hover:text-gov-gold underline">
                                         {t('directorate_website')}
                                     </a>

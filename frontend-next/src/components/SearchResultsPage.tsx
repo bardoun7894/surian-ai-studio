@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, FileText, Scale, Megaphone, ChevronLeft, ChevronRight, Calendar, Filter, X, ChevronDown, Loader2, HelpCircle, Monitor, Building2 } from 'lucide-react';
+import { Search, FileText, Scale, Megaphone, ChevronLeft, ChevronRight, Calendar, Filter, X, ChevronDown, Loader2, HelpCircle, Monitor, Building2, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { SearchResults, Directorate } from '@/types';
 import { getLocalizedField, getLocalizedName } from '@/lib/utils';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface SearchResultsPageProps {
     initialQuery?: string;
@@ -14,10 +15,12 @@ interface SearchResultsPageProps {
 
 const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = '' }) => {
     const { t, language } = useLanguage();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [query, setQuery] = useState(initialQuery);
-    const [activeTab, setActiveTab] = useState<'all' | 'news' | 'decrees' | 'announcements' | 'services' | 'faq'>('all');
+    const [activeTab, setActiveTab] = useState<'all' | 'news' | 'decrees' | 'announcements' | 'services' | 'faq' | 'pages'>('all');
     const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState<SearchResults & { services?: any[]; faqs?: any[] }>({ news: [], decrees: [], announcements: [], total: 0, services: [], faqs: [] });
+    const [results, setResults] = useState<SearchResults>({ news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 });
 
     const [showFilters, setShowFilters] = useState(true);
     const [filters, setFilters] = useState({
@@ -34,17 +37,33 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
             .catch(err => console.error('Failed to load directorates:', err));
     }, []);
 
+    // Sync URL when query changes
+    useEffect(() => {
+        const current = searchParams.get('q') || '';
+        if (query !== current) {
+            const params = new URLSearchParams(searchParams.toString());
+            if (query.trim()) {
+                params.set('q', query);
+            } else {
+                params.delete('q');
+            }
+            router.replace(`/search?${params.toString()}`, { scroll: false });
+        }
+    }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const emptyResults: SearchResults = { news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 };
+
     const performSearch = useCallback(async () => {
         if (!query.trim()) {
-            setResults({ news: [], decrees: [], announcements: [], total: 0 });
+            setResults(emptyResults);
             return;
         }
         setLoading(true);
         try {
-            const type = activeTab === 'all' ? undefined : activeTab;
+            const tabType = activeTab === 'all' ? undefined : activeTab === 'faq' ? 'faq' : activeTab;
             const data = await API.search.search(
                 query,
-                type,
+                tabType,
                 filters.dateFrom || undefined,
                 filters.dateTo || undefined,
                 filters.entity || undefined
@@ -52,11 +71,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
             setResults(data);
         } catch (error) {
             console.error('Search failed:', error);
-            setResults({ news: [], decrees: [], announcements: [], total: 0 });
+            setResults(emptyResults);
         } finally {
             setLoading(false);
         }
-    }, [query, activeTab, filters.dateFrom, filters.dateTo, filters.entity]);
+    }, [query, activeTab, filters.dateFrom, filters.dateTo, filters.entity]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -72,14 +91,15 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
         { id: 'announcements', label: language === 'ar' ? 'إعلانات' : 'Announcements', count: results.announcements?.length || 0 },
         { id: 'services', label: language === 'ar' ? 'خدمات' : 'Services', count: results.services?.length || 0 },
         { id: 'faq', label: language === 'ar' ? 'أسئلة شائعة' : 'FAQ', count: results.faqs?.length || 0 },
+        { id: 'pages', label: language === 'ar' ? 'صفحات' : 'Pages', count: results.pages?.length || 0 },
     ];
 
     return (
-        <div className="min-h-screen bg-gov-beige dark:bg-black pb-20 pt-10">
+        <div className="min-h-screen bg-gov-beige dark:bg-dm-surface pb-20 pt-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Search Header */}
-                <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl p-8 mb-8 border border-gray-100 dark:border-white/10 shadow-sm">
+                <div className="bg-white dark:bg-dm-surface rounded-2xl p-8 mb-8 border border-gray-100 dark:border-gov-border/15 shadow-sm">
                     <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-6">
                         {language === 'ar' ? 'نتائج البحث' : 'Search Results'}
                     </h1>
@@ -89,7 +109,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder={t('search_placeholder')}
-                            className="w-full py-4 pl-14 pr-14 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-gold transition-colors text-right rtl:text-right ltr:text-left"
+                            className="w-full py-4 pl-14 pr-14 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-gold transition-colors text-right rtl:text-right ltr:text-left"
                             dir={language === 'ar' ? 'rtl' : 'ltr'}
                         />
                         <Search className="absolute left-4 rtl:right-4 rtl:left-auto top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -117,39 +137,39 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                     </button>
 
                     {showFilters && (
-                        <div className="mt-4 p-6 bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gray-100 dark:border-gray-600 animate-fade-in">
+                        <div className="mt-4 p-6 bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 animate-fade-in">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 uppercase mb-2">
                                         {language === 'ar' ? 'من تاريخ' : 'From Date'}
                                     </label>
                                     <input
                                         type="date"
                                         value={filters.dateFrom}
                                         onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-black dark:text-white border border-gray-200 dark:border-gray-600 text-gov-charcoal outline-none focus:border-gov-gold transition-colors"
+                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white border border-gray-200 dark:border-gov-border/15 text-gov-charcoal outline-none focus:border-gov-gold transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 uppercase mb-2">
                                         {language === 'ar' ? 'إلى تاريخ' : 'To Date'}
                                     </label>
                                     <input
                                         type="date"
                                         value={filters.dateTo}
                                         onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-black dark:text-white border border-gray-200 dark:border-gray-600 text-gov-charcoal outline-none focus:border-gov-gold transition-colors"
+                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white border border-gray-200 dark:border-gov-border/15 text-gov-charcoal outline-none focus:border-gov-gold transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase mb-2 flex items-center gap-1">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 uppercase mb-2 flex items-center gap-1">
                                         <Building2 size={12} />
                                         {language === 'ar' ? 'الجهة' : 'Directorate'}
                                     </label>
                                     <select
                                         value={filters.entity}
                                         onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
-                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-black dark:text-white border border-gray-200 dark:border-gray-600 text-gov-charcoal outline-none focus:border-gov-gold transition-colors appearance-none cursor-pointer"
+                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white border border-gray-200 dark:border-gov-border/15 text-gov-charcoal outline-none focus:border-gov-gold transition-colors appearance-none cursor-pointer"
                                     >
                                         <option value="">{language === 'ar' ? 'جميع الجهات' : 'All Directorates'}</option>
                                         {directorates.map(d => (
@@ -162,9 +182,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                 <div className="flex items-end">
                                     <button
                                         onClick={() => setFilters({ dateFrom: '', dateTo: '', entity: '' })}
-                                        className="text-gov-cherry text-sm font-bold hover:underline flex items-center gap-1"
+                                        className="px-5 py-3 bg-gov-gold text-white text-sm font-bold rounded-xl border-2 border-gov-gold hover:bg-gov-gold/85 hover:border-gov-gold/85 shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                                     >
-                                        <X size={14} /> {language === 'ar' ? 'إعادة تعيين' : 'Reset'}
+                                        <X size={16} /> {language === 'ar' ? 'مسح الفلاتر' : 'Clear Filters'}
                                     </button>
                                 </div>
                             </div>
@@ -206,7 +226,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === tab.id
                                 ? 'bg-gov-teal text-white shadow-md'
-                                : 'bg-white dark:bg-gov-emeraldStatic text-gov-charcoal dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/10'
+                                : 'bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/10'
                                 }`}
                         >
                             <span>{tab.label}</span>
@@ -232,16 +252,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {/* News Section */}
                         {(activeTab === 'all' || activeTab === 'news') && results.news?.length > 0 && (
                             <section>
-                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
                                     <FileText size={20} />
                                     {language === 'ar' ? 'الأخبار' : 'News'}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {(results.news || []).map(item => (
-                                        <Link key={item.id} href={item.url || `/news/${item.id}`} className="block bg-white dark:bg-gov-emeraldStatic p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
+                                        <Link key={item.id} href={item.url || `/news/${item.id}`} className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{getLocalizedField(item, 'title', language as 'ar' | 'en')}</h3>
                                             <p className="text-sm text-gray-500 dark:text-white/60 mb-2 line-clamp-2">{getLocalizedField(item, 'description', language as 'ar' | 'en') || getLocalizedField(item, 'summary', language as 'ar' | 'en')}</p>
-                                            <span className="text-xs text-gov-teal dark:text-gov-gold">{item.date}</span>
+                                            <span className="text-xs text-gov-teal dark:text-gov-teal">{item.date}</span>
                                         </Link>
                                     ))}
                                 </div>
@@ -251,13 +271,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {/* Decrees Section */}
                         {(activeTab === 'all' || activeTab === 'decrees') && results.decrees?.length > 0 && (
                             <section>
-                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
                                     <Scale size={20} />
                                     {language === 'ar' ? 'المراسيم والقوانين' : 'Decrees & Laws'}
                                 </h2>
                                 <div className="space-y-3">
                                     {(results.decrees || []).map(item => (
-                                        <Link key={item.id} href={item.url || '/decrees'} className="bg-white dark:bg-gov-emeraldStatic p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors flex items-center justify-between cursor-pointer">
+                                        <Link key={item.id} href={item.url || '/decrees'} className="bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors flex items-center justify-between cursor-pointer">
                                             <div>
                                                 <h3 className="font-bold text-gov-charcoal dark:text-white">{getLocalizedField(item, 'title', language as 'ar' | 'en')}</h3>
                                                 <div className="flex items-center gap-4 mt-1 text-xs text-gray-500 dark:text-white/60">
@@ -275,13 +295,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {/* Announcements Section */}
                         {(activeTab === 'all' || activeTab === 'announcements') && results.announcements?.length > 0 && (
                             <section>
-                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
                                     <Megaphone size={20} />
                                     {language === 'ar' ? 'الإعلانات' : 'Announcements'}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {(results.announcements || []).map(item => (
-                                        <Link key={item.id} href={item.url || '/announcements'} className="block bg-white dark:bg-gov-emeraldStatic p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
+                                        <Link key={item.id} href={item.url || '/announcements'} className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <div className="flex items-start justify-between mb-2">
                                                 <span className="px-2 py-1 rounded bg-gov-teal/10 dark:bg-gov-teal/20 text-gov-teal dark:text-gov-emeraldLight text-xs font-bold">
                                                     {item.category || item.type}
@@ -299,13 +319,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {/* Services Section */}
                         {(activeTab === 'all' || activeTab === 'services') && results.services && results.services.length > 0 && (
                             <section>
-                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
                                     <Monitor size={20} />
                                     {language === 'ar' ? 'الخدمات' : 'Services'}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {results.services.map((service: any) => (
-                                        <Link key={service.id} href={`/services/${service.id}`} className="block bg-white dark:bg-gov-emeraldStatic p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
+                                        <Link key={service.id} href={`/services/${service.id}`} className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <div className="flex items-start justify-between mb-2">
                                                 <span className={`px-2 py-1 rounded text-xs font-bold ${service.isDigital ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
                                                     {service.isDigital ? (language === 'ar' ? 'إلكترونية' : 'Digital') : (language === 'ar' ? 'حضورية' : 'In-Person')}
@@ -322,15 +342,33 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {/* FAQ Section */}
                         {(activeTab === 'all' || activeTab === 'faq') && results.faqs && results.faqs.length > 0 && (
                             <section>
-                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
                                     <HelpCircle size={20} />
                                     {language === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}
                                 </h2>
                                 <div className="space-y-3">
                                     {results.faqs.map((faq: any) => (
-                                        <Link key={faq.id} href="/faq" className="block bg-white dark:bg-gov-emeraldStatic p-4 rounded-xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-colors cursor-pointer">
+                                        <Link key={faq.id} href="/faq" className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{language === 'ar' ? faq.question_ar : faq.question_en}</h3>
                                             <p className="text-sm text-gray-500 dark:text-white/60 line-clamp-2">{language === 'ar' ? faq.answer_ar : faq.answer_en}</p>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Pages Section */}
+                        {(activeTab === 'all' || activeTab === 'pages') && results.pages && results.pages.length > 0 && (
+                            <section>
+                                <h2 className="text-xl font-bold text-gov-forest dark:text-gov-teal mb-4 flex items-center gap-2">
+                                    <Globe size={20} />
+                                    {language === 'ar' ? 'صفحات' : 'Pages'}
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {results.pages.map((item) => (
+                                        <Link key={item.id} href={item.url || `/${item.id}`} className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
+                                            <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{item.title}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-white/60 line-clamp-2">{item.description}</p>
                                         </Link>
                                     ))}
                                 </div>
@@ -341,7 +379,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         {results.total === 0 && query.trim() && (
                             <div className="text-center py-16">
                                 <div className="w-20 h-20 bg-gray-100 dark:bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                    <Search size={32} className="text-gray-300 dark:text-gray-400" />
+                                    <Search size={32} className="text-gray-300 dark:text-white/70" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
                                     {language === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching results'}

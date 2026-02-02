@@ -74,7 +74,7 @@ const Footer: React.FC<FooterProps> = ({
     : (contactInfo.contact_address_ar || t('damascus_address'));
 
   return (
-    <footer className="bg-white dark:bg-gov-emeraldStatic text-gov-forest dark:text-gov-gold pt-14 md:pt-16 pb-8 border-t-4 border-gov-gold dark:border-gov-gold relative overflow-hidden transition-colors duration-500">
+    <footer className="bg-white dark:bg-dm-surface text-gov-forest dark:text-gov-teal pt-14 md:pt-16 pb-8 border-t-4 border-gov-gold dark:border-gov-teal relative overflow-hidden transition-colors duration-500">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
 
@@ -92,7 +92,7 @@ const Footer: React.FC<FooterProps> = ({
                 className="h-28 object-contain drop-shadow-xl"
               />
             </div>
-            <p className="text-gov-stone dark:text-gov-gold/80 text-sm leading-relaxed max-w-xs transition-colors">
+            <p className="text-gov-stone dark:text-gov-teal/80 text-sm leading-relaxed max-w-xs transition-colors">
               {t('footer_desc')}
             </p>
           </div>
@@ -102,7 +102,7 @@ const Footer: React.FC<FooterProps> = ({
               {t('quick_links')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-gold rounded-full`}></span>
             </h4>
-            <ul className="space-y-3 text-sm text-gov-stone dark:text-gray-300 transition-colors">
+            <ul className="space-y-3 text-sm text-gov-stone dark:text-white/70 transition-colors">
               {footerLinks.length > 0 ? (
                 footerLinks.map((link) => (
                   <li key={link.id}>
@@ -129,12 +129,12 @@ const Footer: React.FC<FooterProps> = ({
               {t('contact_us')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-gold rounded-full`}></span>
             </h4>
-            <ul className="space-y-4 text-sm text-gov-stone dark:text-gray-300 transition-colors">
+            <ul className="space-y-4 text-sm text-gov-stone dark:text-white/70 transition-colors">
               <li className="flex items-start gap-3">
                 <Phone size={16} className="text-gov-gold mt-1" />
                 <div>
                   <span className="block text-xs text-gov-gold/70">{t('contact_center')}</span>
-                  <span className="font-bold text-gov-forest dark:text-gov-gold text-lg transition-colors">{phone}</span>
+                  <span className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors">{phone}</span>
                 </div>
               </li>
               <li className="flex items-center gap-3">
@@ -162,21 +162,21 @@ const Footer: React.FC<FooterProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={handleIncreaseFont}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40"
                 title="Increase Font"
               >
                 A+
               </button>
               <button
                 onClick={handleDecreaseFont}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40"
                 title="Decrease Font"
               >
                 A-
               </button>
               <button
                 onClick={handleToggleContrast}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40"
                 title="High Contrast"
               >
                 {language === 'ar' ? 'تباين' : 'Contrast'}

@@ -51,7 +51,7 @@ const ServiceStages = ({ service, language }: { service: Service; language: stri
     ];
 
   return (
-    <div className="flex items-center justify-between gap-1 px-2 py-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+    <div className="flex items-center justify-between gap-1 px-2 py-3 bg-gray-50 dark:bg-gov-card/10 rounded-lg">
       {stages.map((stage, idx) => (
         <div key={stage.id} className="flex items-center flex-1">
           <div className="flex flex-col items-center gap-1 flex-1">
@@ -68,7 +68,7 @@ const ServiceStages = ({ service, language }: { service: Service; language: stri
             </span>
           </div>
           {idx < stages.length - 1 && (
-            <div className={`h-0.5 flex-1 mx-1 ${stage.completed ? 'bg-gov-teal' : 'bg-gray-200 dark:bg-gray-700'}`} />
+            <div className={`h-0.5 flex-1 mx-1 ${stage.completed ? 'bg-gov-teal' : 'bg-gray-200 dark:bg-dm-surface'}`} />
           )}
         </div>
       ))}
@@ -144,10 +144,10 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-14 md:pt-16">
+      <main className="flex-grow pt-20 md:pt-24">
         {/* Header */}
         <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
           <div className="max-w-7xl mx-auto">
@@ -171,7 +171,7 @@ export default function ServicesPage() {
               <select
                 value={selectedDirectorate || ''}
                 onChange={(e) => setSelectedDirectorate(e.target.value || null)}
-                className="appearance-none bg-white dark:bg-gov-emeraldStatic border border-gray-200 dark:border-gov-gold/20 rounded-xl px-4 py-3 pr-10 rtl:pr-4 rtl:pl-10 text-gov-charcoal dark:text-gov-gold font-medium focus:outline-none focus:border-gov-gold transition-colors cursor-pointer"
+                className="appearance-none bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl px-4 py-3 pr-10 rtl:pr-4 rtl:pl-10 text-gov-charcoal dark:text-gov-gold font-medium focus:outline-none focus:border-gov-gold transition-colors cursor-pointer"
               >
                 <option value="">{language === 'ar' ? 'جميع الجهات' : 'All Agencies'}</option>
                 {directorates.map(d => (
@@ -186,7 +186,7 @@ export default function ServicesPage() {
               onClick={() => setShowStages(!showStages)}
               className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${showStages
                 ? 'bg-gov-gold text-white'
-                : 'bg-white dark:bg-gov-emeraldStatic text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-gold/20'
+                : 'bg-white dark:bg-dm-surface text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-border/25'
                 }`}
             >
               <CheckCircle2 size={16} />
@@ -211,7 +211,7 @@ export default function ServicesPage() {
               <Link
                 key={service.id}
                 href={`/services/${service.id}`}
-                className="group bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gray-100 dark:border-gov-gold/10 p-6 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 flex flex-col"
+                className="group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 p-6 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 flex flex-col"
               >
                 {/* Service Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -233,7 +233,7 @@ export default function ServicesPage() {
                 </h3>
 
                 {/* Service Description */}
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-white/70 mb-4 line-clamp-2">
                   {getLocalizedField(service, 'description', language as 'ar' | 'en')}
                 </p>
 
@@ -245,14 +245,10 @@ export default function ServicesPage() {
                 )}
 
                 {/* Service Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/10 mt-auto">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gov-border/15 mt-auto">
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gov-gold/50">
                     <Clock size={14} />
                     <span>{language === 'ar' ? 'فوري' : 'Instant'}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline">
-                    {language === 'ar' ? 'تقديم الطلب' : 'Apply'}
-                    {language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
                   </div>
                 </div>
               </Link>
@@ -262,7 +258,7 @@ export default function ServicesPage() {
           {/* Empty State */}
           {filteredServices.length === 0 && (
             <div className="text-center py-20">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-gov-emeraldStatic/50 flex items-center justify-center mb-4">
+              <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-dm-surface/50 flex items-center justify-center mb-4">
                 <Search size={32} className="text-gray-400" />
               </div>
               <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">

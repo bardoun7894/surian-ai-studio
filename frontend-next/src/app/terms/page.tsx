@@ -10,10 +10,10 @@ export default function TermsOfUsePage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
@@ -42,7 +42,7 @@ export default function TermsOfUsePage() {
 
                     <div className="space-y-8">
                         {/* Section 1 - Acceptance */}
-                        <section className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-dm-surface p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <UserCheck size={20} />
@@ -51,7 +51,7 @@ export default function TermsOfUsePage() {
                                     {language === 'ar' ? 'قبول الشروط' : 'Acceptance of Terms'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'باستخدامك لهذه البوابة الإلكترونية، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي من هذه الشروط، يرجى عدم استخدام البوابة.'
@@ -66,7 +66,7 @@ export default function TermsOfUsePage() {
                         </section>
 
                         {/* Section 2 - Permitted Use */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
                                     <Scale size={20} />
@@ -75,7 +75,7 @@ export default function TermsOfUsePage() {
                                     {language === 'ar' ? 'الاستخدام المسموح' : 'Permitted Use'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'يُسمح لك باستخدام هذه البوابة للأغراض التالية فقط:'
@@ -91,7 +91,7 @@ export default function TermsOfUsePage() {
                         </section>
 
                         {/* Section 3 - Prohibited Actions */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
                                     <AlertTriangle size={20} />
@@ -100,7 +100,7 @@ export default function TermsOfUsePage() {
                                     {language === 'ar' ? 'الأفعال المحظورة' : 'Prohibited Actions'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'يُحظر عليك القيام بأي من الأفعال التالية:'
@@ -116,7 +116,7 @@ export default function TermsOfUsePage() {
                         </section>
 
                         {/* Section 4 - Intellectual Property */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                                     <Shield size={20} />
@@ -125,7 +125,7 @@ export default function TermsOfUsePage() {
                                     {language === 'ar' ? 'الملكية الفكرية' : 'Intellectual Property'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'جميع المحتويات المنشورة على هذه البوابة، بما في ذلك النصوص والصور والشعارات والتصاميم، هي ملك لوزارة الاقتصاد والصناعة أو مرخصة لها.'
@@ -135,7 +135,7 @@ export default function TermsOfUsePage() {
                         </section>
 
                         {/* Section 5 - Service Availability */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
                                     <Clock size={20} />
@@ -144,7 +144,7 @@ export default function TermsOfUsePage() {
                                     {language === 'ar' ? 'توفر الخدمة' : 'Service Availability'}
                                 </h2>
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
+                            <div className="text-gray-600 dark:text-white/70 leading-relaxed space-y-4 pr-14 rtl:pr-14 rtl:pl-0 ltr:pl-14">
                                 <p>
                                     {language === 'ar'
                                         ? 'نسعى لضمان توفر البوابة على مدار الساعة، إلا أننا لا نضمن عدم انقطاع الخدمة بسبب أعمال الصيانة أو الظروف الطارئة.'

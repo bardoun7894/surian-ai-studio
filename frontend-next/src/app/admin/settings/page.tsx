@@ -309,14 +309,14 @@ export default function SystemSettingsPage() {
     switch (setting.type) {
       case 'boolean':
         return (
-          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
+          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-1">
                   {label}
                 </label>
                 {description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+                  <p className="text-xs text-gray-500 dark:text-white/70">{description}</p>
                 )}
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -326,7 +326,7 @@ export default function SystemSettingsPage() {
                   onChange={(e) => handleValueChange(setting.key, e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-teal"></div>
               </label>
             </div>
           </div>
@@ -334,7 +334,7 @@ export default function SystemSettingsPage() {
 
       case 'integer':
         return (
-          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
+          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
             <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
               {label}
               {setting.is_encrypted && (
@@ -344,20 +344,20 @@ export default function SystemSettingsPage() {
               )}
             </label>
             {description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{description}</p>
+              <p className="text-xs text-gray-500 dark:text-white/70 mb-2">{description}</p>
             )}
             <input
               type="number"
               value={currentValue || ''}
               onChange={(e) => handleValueChange(setting.key, parseInt(e.target.value) || 0)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
         );
 
       case 'json':
         return (
-          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
+          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
             <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
               {label}
               {setting.is_encrypted && (
@@ -367,7 +367,7 @@ export default function SystemSettingsPage() {
               )}
             </label>
             {description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{description}</p>
+              <p className="text-xs text-gray-500 dark:text-white/70 mb-2">{description}</p>
             )}
             <textarea
               rows={4}
@@ -380,14 +380,14 @@ export default function SystemSettingsPage() {
                   handleValueChange(setting.key, e.target.value);
                 }
               }}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none font-mono text-sm"
             />
           </div>
         );
 
       default: // string
         return (
-          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
+          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
             <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
               {label}
               {setting.is_encrypted && (
@@ -397,13 +397,13 @@ export default function SystemSettingsPage() {
               )}
             </label>
             {description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{description}</p>
+              <p className="text-xs text-gray-500 dark:text-white/70 mb-2">{description}</p>
             )}
             <input
               type={setting.is_encrypted ? 'password' : 'text'}
               value={currentValue || ''}
               onChange={(e) => handleValueChange(setting.key, e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
         );
@@ -412,14 +412,14 @@ export default function SystemSettingsPage() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -430,7 +430,7 @@ export default function SystemSettingsPage() {
               <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? 'إعدادات النظام' : 'System Settings'}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-white/70">
                 {language === 'ar'
                   ? 'تكوين إعدادات النظام والخدمات'
                   : 'Configure system settings and services'}
@@ -460,7 +460,7 @@ export default function SystemSettingsPage() {
             <div className="flex gap-6">
               {/* Sidebar - Settings Groups */}
               <div className="w-64 flex-shrink-0">
-                <div className="bg-white dark:bg-white/5 rounded-3xl p-4 shadow-xl border border-gray-100 dark:border-gov-gold/10 sticky top-28">
+                <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-4 shadow-xl border border-gray-100 dark:border-gov-border/15 sticky top-28">
                   <nav className="space-y-2">
                     {allGroups.map((group) => {
                       const Icon = getGroupIcon(group);
@@ -486,7 +486,7 @@ export default function SystemSettingsPage() {
 
               {/* Main Content - Settings Form */}
               <div className="flex-1">
-                <div className="bg-white dark:bg-white/5 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+                <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gov-border/15">
                   <div className="mb-6 flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                       {getGroupLabel(activeGroup)}
@@ -505,12 +505,12 @@ export default function SystemSettingsPage() {
                     {activeGroup === 'channels' ? (
                       <>
                         {/* External Channel Toggles UI */}
-                        <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-xl">
+                        <div className="p-6 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
                           <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-4 flex items-center gap-2">
                             <Send size={20} className="text-gov-gold" />
                             {language === 'ar' ? 'تمكين/تعطيل قنوات الإرسال' : 'Enable/Disable Notification Channels'}
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                          <p className="text-sm text-gray-500 dark:text-white/70 mb-6">
                             {language === 'ar'
                               ? 'حدد القنوات التي ترغب في استخدامها لإرسال الإشعارات للمستخدمين'
                               : 'Select the channels you want to use for sending notifications to users'}
@@ -518,7 +518,7 @@ export default function SystemSettingsPage() {
 
                           <div className="space-y-4">
                             {/* Email Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-gov-border/25">
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                   <Mail size={24} className="text-blue-600 dark:text-blue-400" />
@@ -527,7 +527,7 @@ export default function SystemSettingsPage() {
                                   <h4 className="font-bold text-gov-charcoal dark:text-white">
                                     {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
                                   </h4>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500 dark:text-white/70">
                                     {language === 'ar' ? 'إرسال الإشعارات عبر البريد الإلكتروني' : 'Send notifications via email'}
                                   </p>
                                 </div>
@@ -539,12 +539,12 @@ export default function SystemSettingsPage() {
                                   onChange={(e) => handleChannelToggle('email_enabled', e.target.checked)}
                                   className="sr-only peer"
                                 />
-                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-teal"></div>
                               </label>
                             </div>
 
                             {/* SMS Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-gov-border/25">
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                                   <Smartphone size={24} className="text-green-600 dark:text-green-400" />
@@ -553,7 +553,7 @@ export default function SystemSettingsPage() {
                                   <h4 className="font-bold text-gov-charcoal dark:text-white">
                                     {language === 'ar' ? 'الرسائل القصيرة (SMS)' : 'SMS'}
                                   </h4>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500 dark:text-white/70">
                                     {language === 'ar' ? 'إرسال الإشعارات عبر الرسائل القصيرة' : 'Send notifications via SMS'}
                                   </p>
                                 </div>
@@ -565,12 +565,12 @@ export default function SystemSettingsPage() {
                                   onChange={(e) => handleChannelToggle('sms_enabled', e.target.checked)}
                                   className="sr-only peer"
                                 />
-                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-teal"></div>
                               </label>
                             </div>
 
                             {/* WhatsApp Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-white/20">
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-white/10 rounded-xl border border-gray-200 dark:border-gov-border/25">
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                                   <MessageCircle size={24} className="text-emerald-600 dark:text-emerald-400" />
@@ -579,7 +579,7 @@ export default function SystemSettingsPage() {
                                   <h4 className="font-bold text-gov-charcoal dark:text-white">
                                     {language === 'ar' ? 'واتساب' : 'WhatsApp'}
                                   </h4>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500 dark:text-white/70">
                                     {language === 'ar' ? 'إرسال الإشعارات عبر واتساب' : 'Send notifications via WhatsApp'}
                                   </p>
                                 </div>
@@ -591,7 +591,7 @@ export default function SystemSettingsPage() {
                                   onChange={(e) => handleChannelToggle('whatsapp_enabled', e.target.checked)}
                                   className="sr-only peer"
                                 />
-                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-teal"></div>
                               </label>
                             </div>
                           </div>
@@ -612,7 +612,7 @@ export default function SystemSettingsPage() {
                   </div>
 
                   {/* Save Button */}
-                  <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-white/10">
+                  <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gov-border/15">
                     <button
                       onClick={handleSaveSettings}
                       disabled={isSaving || Object.keys(changedValues).length === 0}

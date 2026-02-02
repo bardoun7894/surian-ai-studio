@@ -57,31 +57,31 @@ export default function AdminComplaintsPage() {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">إدارة الشكاوى</h1>
-                    <p className="text-gray-500 dark:text-gray-400">متابعة ومعالجة شكاوى المواطنين</p>
+                    <p className="text-gray-500 dark:text-white/70">متابعة ومعالجة شكاوى المواطنين</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-gov-gold/20 rounded-lg text-sm font-bold text-gov-charcoal dark:text-white">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/25 rounded-lg text-sm font-bold text-gov-charcoal dark:text-white">
                         <Filter size={16} />
                         تصفية
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest rounded-lg text-sm font-bold">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-gov-forest dark:bg-gov-button text-white rounded-lg text-sm font-bold">
                         <Search size={16} />
                         بحث
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-white/5 rounded-2xl shadow-sm border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
+            <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-right">
-                        <thead className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-gov-gold/10">
+                        <thead className="bg-gray-50 dark:bg-gov-card/10 border-b border-gray-100 dark:border-gov-border/15">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">رقم التذكرة</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">العنوان</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">الحالة</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">الأولوية</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">التاريخ</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">إجراءات</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">رقم التذكرة</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">العنوان</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">الحالة</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">الأولوية</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">التاريخ</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
@@ -144,17 +144,17 @@ export default function AdminComplaintsPage() {
                     <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="px-4 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                        className="px-4 py-2 rounded-lg bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                     >
                         {language === 'ar' ? 'السابق' : 'Previous'}
                     </button>
-                    <span className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="px-4 py-2 text-sm text-gray-600 dark:text-white/70">
                         {language === 'ar' ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
                     </span>
                     <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                        className="px-4 py-2 rounded-lg bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                     >
                         {language === 'ar' ? 'التالي' : 'Next'}
                     </button>

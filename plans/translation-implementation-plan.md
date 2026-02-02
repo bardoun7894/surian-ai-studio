@@ -377,7 +377,7 @@ Add comprehensive translation keys organized by category:
 // Directorate Detail
 'directorate_back': { ar: 'العودة إلى الدليل', en: 'Back to Directory' },
 'directorate_services': { ar: 'الخدمات الإلكترونية المتاحة', en: 'Available E-Services' },
-'directorate_digital': { ar: 'خدمة رقمية فورية', en: 'Instant digital service' },
+'directorate_digital': { ar: 'خدمة  فورية', en: 'Instant Service' },
 'directorate_in_person': { ar: 'تتطلب مراجعة المركز', en: 'Requires center visit' },
 'directorate_no_services': { ar: 'لا توجد خدمات إلكترونية مضافة حالياً.', en: 'No e-services added currently.' },
 'directorate_paper_guide': { ar: 'عرض دليل المعاملات الورقية', en: 'View Paper Transactions Guide' },

@@ -137,7 +137,7 @@ export default function BackupManagementPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">{t.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t.subtitle}</p>
+          <p className="text-gray-500 dark:text-white/70">{t.subtitle}</p>
         </div>
         <button
           onClick={handleCreate}
@@ -154,19 +154,19 @@ export default function BackupManagementPage() {
           <Loader2 className="animate-spin text-gov-gold" size={40} />
         </div>
       ) : backups.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
-          <Database size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 text-lg font-bold">{t.noBackups}</p>
+        <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
+          <Database size={64} className="mx-auto text-gray-300 dark:text-white/70 mb-4" />
+          <p className="text-gray-500 dark:text-white/70 text-lg font-bold">{t.noBackups}</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+        <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10">
+            <thead className="bg-gray-50 dark:bg-gov-card/10 border-b border-gray-100 dark:border-gov-border/15">
               <tr>
-                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-gray-400">{t.filename}</th>
-                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-gray-400">{t.size}</th>
-                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-gray-400">{t.date}</th>
-                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-gray-400">{t.actions}</th>
+                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-white/70">{t.filename}</th>
+                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-white/70">{t.size}</th>
+                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-white/70">{t.date}</th>
+                <th className="text-right p-4 text-sm font-bold text-gray-600 dark:text-white/70">{t.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -178,8 +178,8 @@ export default function BackupManagementPage() {
                       <span className="font-mono text-sm text-gov-charcoal dark:text-white">{backup.filename}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-sm text-gray-600 dark:text-gray-400">{backup.size}</td>
-                  <td className="p-4 text-sm text-gray-600 dark:text-gray-400">
+                  <td className="p-4 text-sm text-gray-600 dark:text-white/70">{backup.size}</td>
+                  <td className="p-4 text-sm text-gray-600 dark:text-white/70">
                     <div className="flex items-center gap-1">
                       <Clock size={14} />
                       {new Date(backup.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}

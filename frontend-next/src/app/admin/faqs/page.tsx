@@ -211,7 +211,7 @@ export default function AdminFaqsPage() {
           <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">
             {language === 'ar' ? 'إدارة الأسئلة الشائعة' : 'FAQ Management'}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-white/70">
             {language === 'ar' ? 'مراجعة واقتراحات الأسئلة الجديدة' : 'Review and manage FAQ suggestions'}
           </p>
         </div>
@@ -219,10 +219,10 @@ export default function AdminFaqsPage() {
 
       {/* Tab Buttons */}
       <div className="flex gap-2 mb-6">
-        <button onClick={() => setActiveView('faqs')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeView === 'faqs' ? 'bg-gov-teal text-white shadow-lg' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10'}`}>
+        <button onClick={() => setActiveView('faqs')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeView === 'faqs' ? 'bg-gov-teal text-white shadow-lg' : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/15'}`}>
           {language === 'ar' ? 'الأسئلة الشائعة' : 'FAQs'}
         </button>
-        <button onClick={() => setActiveView('suggestions')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeView === 'suggestions' ? 'bg-gov-teal text-white shadow-lg' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10'}`}>
+        <button onClick={() => setActiveView('suggestions')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeView === 'suggestions' ? 'bg-gov-teal text-white shadow-lg' : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/15'}`}>
           {language === 'ar' ? 'اقتراحات الأسئلة' : 'FAQ Suggestions'}
         </button>
       </div>
@@ -246,20 +246,20 @@ export default function AdminFaqsPage() {
           {faqLoading ? (
             <div className="flex justify-center py-12"><Loader2 className="animate-spin text-gov-gold" size={32} /></div>
           ) : faqList.length === 0 ? (
-            <div className="text-center py-16 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+            <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
               <HelpCircle size={48} className="mx-auto text-gray-300 mb-4" />
               <p className="text-gray-500">{language === 'ar' ? 'لا توجد أسئلة شائعة' : 'No FAQs found'}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {faqList.map((faq) => (
-                <div key={faq.id} className="bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-5">
+                <div key={faq.id} className="bg-white dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15 p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">
                         {language === 'ar' ? faq.question_ar : (faq.question_en || faq.question_ar)}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2">
                         {language === 'ar' ? faq.answer_ar : (faq.answer_en || faq.answer_ar)}
                       </p>
                       <div className="flex items-center gap-3 mt-3">
@@ -288,8 +288,8 @@ export default function AdminFaqsPage() {
       {/* FAQ Create/Edit Modal */}
       {showFaqModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+          <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gov-charcoal dark:text-white">
                 {editingFaq ? (language === 'ar' ? 'تعديل السؤال' : 'Edit FAQ') : (language === 'ar' ? 'إضافة سؤال جديد' : 'Add New FAQ')}
               </h3>
@@ -299,28 +299,28 @@ export default function AdminFaqsPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{language === 'ar' ? 'السؤال (عربي)' : 'Question (Arabic)'} *</label>
-                <input type="text" value={faqForm.question_ar} onChange={(e) => setFaqForm({ ...faqForm, question_ar: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{language === 'ar' ? 'السؤال (عربي)' : 'Question (Arabic)'} *</label>
+                <input type="text" value={faqForm.question_ar} onChange={(e) => setFaqForm({ ...faqForm, question_ar: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{language === 'ar' ? 'السؤال (إنجليزي)' : 'Question (English)'}</label>
-                <input type="text" value={faqForm.question_en} onChange={(e) => setFaqForm({ ...faqForm, question_en: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{language === 'ar' ? 'السؤال (إنجليزي)' : 'Question (English)'}</label>
+                <input type="text" value={faqForm.question_en} onChange={(e) => setFaqForm({ ...faqForm, question_en: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{language === 'ar' ? 'الإجابة (عربي)' : 'Answer (Arabic)'} *</label>
-                <textarea rows={4} value={faqForm.answer_ar} onChange={(e) => setFaqForm({ ...faqForm, answer_ar: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal resize-none" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{language === 'ar' ? 'الإجابة (عربي)' : 'Answer (Arabic)'} *</label>
+                <textarea rows={4} value={faqForm.answer_ar} onChange={(e) => setFaqForm({ ...faqForm, answer_ar: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal resize-none" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{language === 'ar' ? 'الإجابة (إنجليزي)' : 'Answer (English)'}</label>
-                <textarea rows={4} value={faqForm.answer_en} onChange={(e) => setFaqForm({ ...faqForm, answer_en: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal resize-none" />
+                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-1">{language === 'ar' ? 'الإجابة (إنجليزي)' : 'Answer (English)'}</label>
+                <textarea rows={4} value={faqForm.answer_en} onChange={(e) => setFaqForm({ ...faqForm, answer_en: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white outline-none focus:border-gov-teal resize-none" />
               </div>
               <div className="flex items-center gap-3">
                 <input type="checkbox" checked={faqForm.is_published} onChange={(e) => setFaqForm({ ...faqForm, is_published: e.target.checked })} className="w-5 h-5 rounded" />
-                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{language === 'ar' ? 'منشور' : 'Published'}</label>
+                <label className="text-sm font-bold text-gray-700 dark:text-white/70">{language === 'ar' ? 'منشور' : 'Published'}</label>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3">
-              <button onClick={() => setShowFaqModal(false)} className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 font-bold text-sm">
+            <div className="p-6 border-t border-gray-100 dark:border-gov-border/15 flex justify-end gap-3">
+              <button onClick={() => setShowFaqModal(false)} className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/70 font-bold text-sm">
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
               <button onClick={handleSaveFaq} disabled={savingFaq || !faqForm.question_ar || !faqForm.answer_ar} className="px-5 py-2.5 rounded-xl bg-gov-teal text-white font-bold text-sm hover:bg-gov-emerald transition-colors disabled:opacity-50 flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function AdminFaqsPage() {
                 placeholder={language === 'ar' ? 'بحث في الاقتراحات...' : 'Search suggestions...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-white/5 border border-gov-stone/20 dark:border-gov-gold/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-gov-gold/50 transition-all text-gov-charcoal dark:text-white placeholder-gov-stone/50"
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gov-card/10 border border-gov-stone/20 dark:border-gov-border/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-gov-gold/50 transition-all text-gov-charcoal dark:text-white placeholder-gov-stone/50"
               />
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -353,8 +353,8 @@ export default function AdminFaqsPage() {
                   key={f}
                   onClick={() => setFilter(f as typeof filter)}
                   className={`px-4 py-2 rounded-xl font-bold text-sm transition-all border ${filter === f
-                      ? 'bg-gov-charcoal dark:bg-gov-gold text-white dark:text-gov-charcoal border-transparent shadow-lg shadow-gov-charcoal/10'
-                      : 'bg-white dark:bg-white/5 text-gov-stone dark:text-gov-beige border-gov-stone/10 dark:border-white/10 hover:bg-gov-stone/5 dark:hover:bg-white/10'
+                      ? 'bg-gov-charcoal dark:bg-gov-button text-white border-transparent shadow-lg shadow-gov-charcoal/10'
+                      : 'bg-white dark:bg-gov-card/10 text-gov-stone dark:text-gov-beige border-gov-stone/10 dark:border-gov-border/15 hover:bg-gov-stone/5 dark:hover:bg-white/10'
                     }`}
                 >
                   {f === 'all' && (language === 'ar' ? 'الكل' : 'All')}
@@ -368,12 +368,12 @@ export default function AdminFaqsPage() {
           </div>
 
           {/* Suggestions List */}
-          <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-gov-gold/10 overflow-hidden">
-            <div className="p-6 border-b border-gov-stone/10 dark:border-gov-gold/10 bg-gov-stone/5 dark:bg-white/5">
+          <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-gov-border/15 overflow-hidden">
+            <div className="p-6 border-b border-gov-stone/10 dark:border-gov-border/15 bg-gov-stone/5 dark:bg-gov-card/10">
               <h2 className="font-display font-bold text-lg text-gov-charcoal dark:text-white flex items-center gap-2">
                 <MessageCircle size={20} className="text-gov-gold" />
                 {language === 'ar' ? 'اقتراحات الأسئلة الشائعة' : 'FAQ Suggestions'}
-                <span className="text-sm font-normal text-gov-stone bg-white dark:bg-white/10 px-2 py-0.5 rounded-full border border-gov-stone/10 dark:border-white/10">
+                <span className="text-sm font-normal text-gov-stone bg-white dark:bg-white/10 px-2 py-0.5 rounded-full border border-gov-stone/10 dark:border-gov-border/15">
                   {filteredFaqs.length}
                 </span>
               </h2>
@@ -385,7 +385,7 @@ export default function AdminFaqsPage() {
               </div>
             ) : filteredFaqs.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gov-stone/5 dark:bg-white/5 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-full flex items-center justify-center">
                   <MessageCircle size={32} className="text-gov-stone/40" />
                 </div>
                 <p className="text-gov-stone dark:text-gov-beige/60">
@@ -395,7 +395,7 @@ export default function AdminFaqsPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-right">
-                  <thead className="bg-white dark:bg-white/5 border-b border-gov-stone/10 dark:border-white/5">
+                  <thead className="bg-white dark:bg-gov-card/10 border-b border-gov-stone/10 dark:border-white/5">
                     <tr>
                       <th className="px-6 py-4 text-xs font-bold text-gov-stone uppercase tracking-wider">
                         {language === 'ar' ? 'السؤال المقترح' : 'Suggested Question'}

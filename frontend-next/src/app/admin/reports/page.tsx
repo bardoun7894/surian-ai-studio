@@ -122,7 +122,7 @@ function ReportsDashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => router.push(`/search?q=${encodeURIComponent(q)}`)} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -144,7 +144,7 @@ function ReportsDashboard() {
                 <select
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
-                  className="appearance-none bg-white dark:bg-white/5 border border-gov-stone/20 dark:border-white/10 rounded-lg px-4 py-2 pe-10 text-gov-charcoal dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-gov-gold transition-colors"
+                  className="appearance-none bg-white dark:bg-gov-card/10 border border-gov-stone/20 dark:border-gov-border/15 rounded-lg px-4 py-2 pe-10 text-gov-charcoal dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-gov-gold transition-colors"
                 >
                   <option value="today">{language === 'ar' ? 'اليوم' : 'Today'}</option>
                   <option value="week">{language === 'ar' ? 'هذا الأسبوع' : 'This Week'}</option>
@@ -158,7 +158,7 @@ function ReportsDashboard() {
               <button
                 onClick={fetchStatistics}
                 disabled={isLoading}
-                className="p-2 bg-white dark:bg-white/5 border border-gov-stone/20 dark:border-white/10 rounded-lg hover:bg-gov-stone/5 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                className="p-2 bg-white dark:bg-gov-card/10 border border-gov-stone/20 dark:border-gov-border/15 rounded-lg hover:bg-gov-stone/5 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
               >
                 <RefreshCw size={20} className={`text-gov-forest dark:text-gov-gold ${isLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -167,12 +167,12 @@ function ReportsDashboard() {
               <div className="relative group">
                 <button
                   disabled={isExporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-charcoal rounded-lg font-bold hover:bg-gov-forest/90 dark:hover:bg-gov-gold/90 transition-colors disabled:opacity-50 text-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-gov-forest dark:bg-gov-button text-white rounded-lg font-bold hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors disabled:opacity-50 text-sm"
                 >
                   {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   {language === 'ar' ? 'تصدير' : 'Export'}
                 </button>
-                <div className="absolute left-0 rtl:left-auto rtl:right-0 mt-2 w-48 bg-white dark:bg-gov-charcoal rounded-lg shadow-xl shadow-gov-charcoal/5 border border-gov-stone/10 dark:border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 translate-y-2 group-hover:translate-y-0">
+                <div className="absolute left-0 rtl:left-auto rtl:right-0 mt-2 w-48 bg-white dark:bg-dm-surface rounded-lg shadow-xl shadow-gov-charcoal/5 border border-gov-stone/10 dark:border-gov-border/15 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 translate-y-2 group-hover:translate-y-0">
                   <button
                     onClick={() => handleExport('complaints')}
                     className="w-full text-start px-4 py-3 hover:bg-gov-stone/5 dark:hover:bg-white/5 text-gov-charcoal dark:text-white transition-colors text-sm rounded-t-lg"
@@ -213,9 +213,9 @@ function ReportsDashboard() {
               {/* Quick Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {/* Total Complaints */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-gov-card/10 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
                       <FileText className="text-gov-forest dark:text-gov-gold group-hover:text-gov-gold" size={20} />
                     </div>
                     <span className="text-xs font-bold text-gov-forest dark:text-gov-gold flex items-center gap-1 bg-gov-forest/5 dark:bg-gov-gold/10 px-2 py-1 rounded-full">
@@ -230,9 +230,9 @@ function ReportsDashboard() {
                 </div>
 
                 {/* Active Users */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-gov-card/10 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
                       <Users className="text-gov-forest dark:text-gov-gold group-hover:text-gov-gold" size={20} />
                     </div>
                     <span className="text-xs text-gov-stone dark:text-gov-beige/60">
@@ -246,9 +246,9 @@ function ReportsDashboard() {
                 </div>
 
                 {/* SLA Compliance */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-gov-card/10 flex items-center justify-center group-hover:bg-gov-gold/10 transition-colors">
                       <CheckCircle className="text-gov-forest dark:text-gov-gold group-hover:text-gov-gold" size={20} />
                     </div>
                   </div>
@@ -261,9 +261,9 @@ function ReportsDashboard() {
                 </div>
 
                 {/* Overdue Complaints */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5 hover:border-gov-gold/20 transition-colors group">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-gov-stone/5 dark:bg-gov-card/10 flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
                       <AlertTriangle className="text-gov-forest dark:text-gov-gold group-hover:text-red-500" size={20} />
                     </div>
                   </div>
@@ -277,7 +277,7 @@ function ReportsDashboard() {
               {/* Main Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Complaints by Status */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
                     <BarChart3 size={20} className="text-gov-gold" />
                     {language === 'ar' ? 'الشكاوى حسب الحالة' : 'Complaints by Status'}
@@ -300,7 +300,7 @@ function ReportsDashboard() {
                               {formatNumber(count)} <span className="text-xs font-normal opacity-70">({percentage.toFixed(1)}%)</span>
                             </span>
                           </div>
-                          <div className="w-full bg-gov-stone/10 dark:bg-white/5 rounded-full h-1.5">
+                          <div className="w-full bg-gov-stone/10 dark:bg-gov-card/10 rounded-full h-1.5">
                             <div
                               className={`h-1.5 rounded-full transition-all ${isGold ? 'bg-gov-gold' : 'bg-gov-forest'}`}
                               style={{ width: `${percentage}%` }}
@@ -313,7 +313,7 @@ function ReportsDashboard() {
                 </div>
 
                 {/* Complaints by Priority */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
                     <AlertTriangle size={20} className="text-gov-gold" />
                     {language === 'ar' ? 'الشكاوى حسب الأولوية' : 'Complaints by Priority'}
@@ -335,7 +335,7 @@ function ReportsDashboard() {
                               {formatNumber(count)} <span className="text-xs font-normal opacity-70">({percentage.toFixed(1)}%)</span>
                             </span>
                           </div>
-                          <div className="w-full bg-gov-stone/10 dark:bg-white/5 rounded-full h-1.5">
+                          <div className="w-full bg-gov-stone/10 dark:bg-gov-card/10 rounded-full h-1.5">
                             <div
                               className={`h-1.5 rounded-full transition-all ${isHigh ? 'bg-gov-gold' : 'bg-gov-forest'}`}
                               style={{ width: `${percentage}%` }}
@@ -351,7 +351,7 @@ function ReportsDashboard() {
               {/* Directorates and Performance */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* By Directorate */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
                     <Building2 size={20} className="text-gov-gold" />
                     {language === 'ar' ? 'الشكاوى حسب المديرية' : 'Complaints by Directorate'}
@@ -371,7 +371,7 @@ function ReportsDashboard() {
                                 {formatNumber(dir.count)}
                               </span>
                             </div>
-                            <div className="w-full bg-gov-stone/10 dark:bg-white/5 rounded-full h-1.5">
+                            <div className="w-full bg-gov-stone/10 dark:bg-gov-card/10 rounded-full h-1.5">
                               <div
                                 className="h-1.5 rounded-full bg-gov-forest dark:bg-gov-gold transition-all"
                                 style={{ width: `${percentage}%` }}
@@ -385,13 +385,13 @@ function ReportsDashboard() {
                 </div>
 
                 {/* Performance Metrics */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
                     <Clock size={20} className="text-gov-gold" />
                     {language === 'ar' ? 'مقاييس الأداء' : 'Performance Metrics'}
                   </h3>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl border border-gov-stone/5 dark:border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl border border-gov-stone/5 dark:border-white/5">
                       <div>
                         <p className="text-sm text-gov-stone dark:text-gov-beige/70">
                           {language === 'ar' ? 'متوسط وقت الرد الأول' : 'Avg First Response Time'}
@@ -405,7 +405,7 @@ function ReportsDashboard() {
                       <Clock size={24} className="text-gov-forest/20 dark:text-white/20" />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl border border-gov-stone/5 dark:border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl border border-gov-stone/5 dark:border-white/5">
                       <div>
                         <p className="text-sm text-gov-stone dark:text-gov-beige/70">
                           {language === 'ar' ? 'متوسط وقت الحل' : 'Avg Resolution Time'}
@@ -419,7 +419,7 @@ function ReportsDashboard() {
                       <CheckCircle size={24} className="text-gov-forest/20 dark:text-white/20" />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl border border-gov-stone/5 dark:border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl border border-gov-stone/5 dark:border-white/5">
                       <div>
                         <p className="text-sm text-gov-stone dark:text-gov-beige/70">
                           {language === 'ar' ? 'شكاوى اليوم' : "Today's Complaints"}
@@ -437,24 +437,24 @@ function ReportsDashboard() {
               {/* Content & Users Summary */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Content Stats */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6">
                     {language === 'ar' ? 'إحصائيات المحتوى' : 'Content Statistics'}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
+                    <div className="p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
                       <p className="text-2xl font-display font-bold text-gov-charcoal dark:text-white">{formatNumber(stats.content.total)}</p>
                       <p className="text-xs text-gov-stone dark:text-gov-beige/70 mt-1 uppercase tracking-wider">{language === 'ar' ? 'إجمالي' : 'Total'}</p>
                     </div>
-                    <div className="p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
+                    <div className="p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
                       <p className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">{formatNumber(stats.content.published)}</p>
                       <p className="text-xs text-gov-stone dark:text-gov-beige/70 mt-1 uppercase tracking-wider">{language === 'ar' ? 'منشور' : 'Published'}</p>
                     </div>
-                    <div className="p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
+                    <div className="p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
                       <p className="text-2xl font-display font-bold text-gov-stone dark:text-gov-beige">{formatNumber(stats.content.draft)}</p>
                       <p className="text-xs text-gov-stone dark:text-gov-beige/70 mt-1 uppercase tracking-wider">{language === 'ar' ? 'مسودة' : 'Draft'}</p>
                     </div>
-                    <div className="p-4 bg-gov-stone/5 dark:bg-white/5 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
+                    <div className="p-4 bg-gov-stone/5 dark:bg-gov-card/10 rounded-xl text-center border border-gov-stone/5 dark:border-white/5">
                       <p className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">{formatNumber(stats.content.by_type.news || 0)}</p>
                       <p className="text-xs text-gov-stone dark:text-gov-beige/70 mt-1 uppercase tracking-wider">{language === 'ar' ? 'أخبار' : 'News'}</p>
                     </div>
@@ -462,7 +462,7 @@ function ReportsDashboard() {
                 </div>
 
                 {/* Users by Role */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
+                <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gov-stone/10 dark:border-white/5">
                   <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6">
                     {language === 'ar' ? 'المستخدمون حسب الدور' : 'Users by Role'}
                   </h3>
@@ -482,7 +482,7 @@ function ReportsDashboard() {
                             {language === 'ar' ? label.ar : label.en}
                           </div>
                           <div className="flex-1">
-                            <div className="w-full bg-gov-stone/10 dark:bg-white/5 rounded-full h-1.5">
+                            <div className="w-full bg-gov-stone/10 dark:bg-gov-card/10 rounded-full h-1.5">
                               <div
                                 className="h-1.5 rounded-full bg-gov-forest dark:bg-gov-gold transition-all"
                                 style={{ width: `${percentage}%` }}
@@ -500,7 +500,7 @@ function ReportsDashboard() {
               </div>
 
               {/* AI Complaint Summaries */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10 mt-8">
+              <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15 mt-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                     <Sparkles className="text-purple-600 dark:text-purple-400" size={20} />
@@ -518,7 +518,7 @@ function ReportsDashboard() {
                   </div>
                 ) : aiSummary ? (
                   <div className="space-y-4">
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{aiSummary.summary}</p>
+                    <p className="text-gray-700 dark:text-white/70 leading-relaxed whitespace-pre-wrap">{aiSummary.summary}</p>
                     {aiSummary.key_findings && aiSummary.key_findings.length > 0 && (
                       <div className="bg-purple-50 dark:bg-purple-900/10 rounded-xl p-4">
                         <h4 className="text-sm font-bold text-purple-700 dark:text-purple-400 mb-2">
@@ -526,7 +526,7 @@ function ReportsDashboard() {
                         </h4>
                         <ul className="space-y-2">
                           {aiSummary.key_findings.map((finding, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-white/70">
                               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
                               {finding}
                             </li>
@@ -539,7 +539,7 @@ function ReportsDashboard() {
                     </p>
                   </div>
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  <p className="text-gray-500 dark:text-white/70 text-center py-8">
                     {language === 'ar' ? 'لا يوجد ملخص متاح حالياً' : 'No summary available'}
                   </p>
                 )}

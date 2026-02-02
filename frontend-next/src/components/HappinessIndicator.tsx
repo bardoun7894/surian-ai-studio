@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Smile, Meh, Frown, X, Heart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { API } from '@/lib/repository';
 
 const HappinessIndicator: React.FC = () => {
     const { t, language } = useLanguage();
@@ -16,9 +17,14 @@ const HappinessIndicator: React.FC = () => {
         { icon: <Smile className="w-8 h-8" />, label: 'happy', color: 'hover:text-green-500', value: 3 },
     ];
 
-    const handleRate = (value: number) => {
+    const handleRate = async (value: number) => {
         setSelected(value);
         setSubmitted(true);
+
+        // Submit to backend
+        const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
+        await API.happiness.submit(value, page);
+
         setTimeout(() => {
             setIsOpen(false);
             setSubmitted(false);
@@ -29,7 +35,7 @@ const HappinessIndicator: React.FC = () => {
     return (
         <div className={`fixed bottom-24 ${language === 'ar' ? 'left-6' : 'right-6'} z-50`}>
             {isOpen ? (
-                <div className="bg-white dark:bg-gov-charcoal border border-gov-gold/20 shadow-2xl rounded-3xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 w-72">
+                <div className="bg-white dark:bg-dm-surface border border-gov-gold/20 shadow-2xl rounded-3xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 w-72">
                     <button
                         onClick={() => setIsOpen(false)}
                         className="absolute top-4 right-4 text-gov-stone/40 hover:text-gov-stone transition-colors"

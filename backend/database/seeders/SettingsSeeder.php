@@ -182,7 +182,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'about_mission_en',
-                'value' => 'The Ministry of Economy and Industry works to promote sustainable economic growth and support productive sectors through effective economic policies, a stimulating investment environment, and advanced digital services.',
+                'value' => 'The Ministry of Economy and Industry works to promote sustainable economic growth and support productive sectors through effective economic policies, a stimulating investment environment, and advanced Services.',
                 'type' => 'text',
                 'group' => 'about',
                 'label_ar' => 'الرسالة بالإنجليزية',

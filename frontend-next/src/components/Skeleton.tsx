@@ -57,7 +57,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
 // Predefined skeleton patterns
 export const CardSkeleton: React.FC = () => (
-  <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10">
+  <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15">
     <Skeleton variant="rounded" height={200} className="mb-4" />
     <Skeleton variant="text" className="mb-2" height={24} width="60%" />
     <Skeleton variant="text" className="mb-2" height={16} />
@@ -77,7 +77,7 @@ export const ArticleSkeleton: React.FC = () => (
 );
 
 export const TableRowSkeleton: React.FC = () => (
-  <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-white/10">
+  <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gov-border/15">
     <Skeleton variant="circular" width={40} height={40} />
     <Skeleton variant="text" width="30%" height={16} />
     <Skeleton variant="text" width="20%" height={16} />

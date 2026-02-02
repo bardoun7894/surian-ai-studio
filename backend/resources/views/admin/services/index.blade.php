@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <!-- Digital Services -->
+        <!-- Services -->
         <div class="bg-surface-light dark:bg-surface-dark p-5 rounded border-r-4 border-primary dark:border-primary shadow-sm relative overflow-hidden group">
             <div class="absolute left-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <span class="material-symbols-outlined text-primary text-[64px]">devices</span>

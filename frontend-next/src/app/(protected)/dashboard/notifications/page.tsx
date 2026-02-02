@@ -176,14 +176,14 @@ export default function NotificationPreferencesPage() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -193,7 +193,7 @@ export default function NotificationPreferencesPage() {
             <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
               {language === 'ar' ? 'تفضيلات الإشعارات' : 'Notification Preferences'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-500 dark:text-white/70">
               {language === 'ar'
                 ? 'قم بتخصيص كيفية تلقي الإشعارات والتحديثات'
                 : 'Customize how you receive notifications and updates'}
@@ -213,7 +213,7 @@ export default function NotificationPreferencesPage() {
           {/* Preference Groups */}
           <div className="space-y-6">
             {preferenceGroups.map((group, index) => (
-              <div key={index} className="bg-white dark:bg-white/5 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+              <div key={index} className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-border/15">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-teal/20 flex items-center justify-center text-gov-teal">
@@ -223,7 +223,7 @@ export default function NotificationPreferencesPage() {
                       <h3 className="text-lg font-bold text-gov-charcoal dark:text-white">
                         {group.title}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-white/70">
                         {group.description}
                       </p>
                     </div>
@@ -235,12 +235,12 @@ export default function NotificationPreferencesPage() {
                       onChange={() => togglePreference(group.masterToggle)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-teal/20 dark:peer-focus:ring-gov-teal/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-teal"></div>
                   </label>
                 </div>
 
                 {preferences[group.masterToggle] && (
-                  <div className="space-y-3 mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
+                  <div className="space-y-3 mt-6 pt-6 border-t border-gray-200 dark:border-gov-border/15">
                     {group.items.map((item) => (
                       <label key={item.key} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors">
                         <span className="text-gov-charcoal dark:text-gov-beige">
@@ -250,7 +250,7 @@ export default function NotificationPreferencesPage() {
                           type="checkbox"
                           checked={preferences[item.key as keyof NotificationPreferences] as boolean}
                           onChange={() => togglePreference(item.key as keyof NotificationPreferences)}
-                          className="w-5 h-5 text-gov-teal bg-gray-100 border-gray-300 rounded focus:ring-gov-teal/20 dark:focus:ring-gov-teal/40 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          className="w-5 h-5 text-gov-teal bg-gray-100 border-gray-300 rounded focus:ring-gov-teal/20 dark:focus:ring-gov-teal/40 dark:ring-offset-gray-800 focus:ring-2 dark:bg-dm-surface dark:border-gov-border/15"
                         />
                       </label>
                     ))}
@@ -260,7 +260,7 @@ export default function NotificationPreferencesPage() {
             ))}
 
             {/* Digest Settings */}
-            <div className="bg-white dark:bg-white/5 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+            <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-border/15">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gov-gold/10 dark:bg-gov-gold/20 flex items-center justify-center text-gov-gold">
@@ -270,7 +270,7 @@ export default function NotificationPreferencesPage() {
                     <h3 className="text-lg font-bold text-gov-charcoal dark:text-white">
                       {language === 'ar' ? 'ملخص الإشعارات' : 'Notification Digest'}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500 dark:text-white/70">
                       {language === 'ar'
                         ? 'احصل على ملخص دوري للإشعارات'
                         : 'Receive periodic summary of notifications'}
@@ -284,12 +284,12 @@ export default function NotificationPreferencesPage() {
                     onChange={() => togglePreference('digest_enabled')}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-gold/20 dark:peer-focus:ring-gov-gold/40 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gov-gold"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gov-gold/20 dark:peer-focus:ring-gov-gold/40 rounded-full peer dark:bg-dm-surface peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gov-border/15 peer-checked:bg-gov-gold"></div>
                 </label>
               </div>
 
               {preferences.digest_enabled && (
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gov-border/15">
                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3">
                     {language === 'ar' ? 'التكرار' : 'Frequency'}
                   </label>
@@ -301,7 +301,7 @@ export default function NotificationPreferencesPage() {
                         className={`p-3 rounded-xl font-bold text-sm transition-all ${
                           preferences.digest_frequency === freq
                             ? 'bg-gov-gold text-white shadow-lg'
-                            : 'bg-gray-100 dark:bg-white/5 text-gov-charcoal dark:text-white hover:bg-gov-gold/10'
+                            : 'bg-gray-100 dark:bg-gov-card/10 text-gov-charcoal dark:text-white hover:bg-gov-gold/10'
                         }`}
                       >
                         {freq === 'daily' && (language === 'ar' ? 'يومي' : 'Daily')}

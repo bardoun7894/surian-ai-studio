@@ -53,14 +53,14 @@ const UnsubscribeContent = () => {
   };
 
   return (
-    <div className="max-w-md w-full bg-white dark:bg-white/5 rounded-3xl shadow-xl border border-gray-100 dark:border-white/10 p-8 text-center">
+    <div className="max-w-md w-full bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-8 text-center">
       {status === 'success' ? (
         <>
           <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle size={40} className="text-green-500" />
           </div>
           <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">{t.success}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">{t.successDesc}</p>
+          <p className="text-gray-500 dark:text-white/70 mb-6">{t.successDesc}</p>
           <a href="/" className="inline-block px-6 py-3 bg-gov-teal text-white rounded-xl font-bold hover:bg-gov-emerald transition-colors">
             {t.backHome}
           </a>
@@ -71,7 +71,7 @@ const UnsubscribeContent = () => {
             <AlertCircle size={40} className="text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">{t.error}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">{message || t.error}</p>
+          <p className="text-gray-500 dark:text-white/70 mb-6">{message || t.error}</p>
           <a href="/" className="inline-block px-6 py-3 bg-gov-teal text-white rounded-xl font-bold hover:bg-gov-emerald transition-colors">
             {t.backHome}
           </a>
@@ -82,7 +82,7 @@ const UnsubscribeContent = () => {
             <MailX size={40} className="text-gov-gold" />
           </div>
           <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">{t.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">{t.desc}</p>
+          <p className="text-gray-500 dark:text-white/70 mb-8">{t.desc}</p>
           {!token && (
             <p className="text-sm text-red-500 mb-4">{t.noToken}</p>
           )}
@@ -102,7 +102,7 @@ const UnsubscribeContent = () => {
 
 export default function NewsletterUnsubscribePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 pt-20">
         <React.Suspense fallback={<Loader2 className="animate-spin text-gov-gold" size={40} />}>

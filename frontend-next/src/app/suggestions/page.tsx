@@ -10,18 +10,18 @@ export default function SuggestionsPage() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow pt-14 md:pt-16 overflow-hidden">
+      <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
         {/* Complaints Navigation Banner */}
         <div className="max-w-4xl mx-auto px-4 pt-8">
-          <div className="bg-white dark:bg-gov-emeraldStatic border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
             <div className="text-center sm:text-right">
               <p className="text-gov-forest dark:text-white font-bold text-sm">
                 {t('suggestion_have_complaint')}
               </p>
-              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+              <p className="text-gray-500 dark:text-white/70 text-xs mt-1">
                 {t('suggestion_complaint_desc')}
               </p>
             </div>

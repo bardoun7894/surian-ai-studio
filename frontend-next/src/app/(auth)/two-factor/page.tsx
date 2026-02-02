@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { Shield, ArrowLeft, ArrowRight, ChevronRight, ChevronLeft, Loader2, Mail } from 'lucide-react';
+import { Shield, ChevronRight, ChevronLeft, Loader2, Mail } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -23,6 +23,22 @@ const TwoFactorContent = () => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const BackIcon = language === 'ar' ? ChevronRight : ChevronLeft;
+
+    // Block access if no email (not coming from login) or already verified
+    useEffect(() => {
+        // If we have no email, we must go back to login
+        if (!email) {
+            router.replace('/login');
+            return;
+        }
+
+        // If we are already verified for this email, skip to dashboard
+        const verified = sessionStorage.getItem('2fa_verified');
+        if (verified === email) {
+            router.replace('/dashboard');
+        }
+        // otherwise, stay here and let user enter code
+    }, [email, router]);
 
     // Auto-focus first input
     useEffect(() => {
@@ -73,7 +89,9 @@ const TwoFactorContent = () => {
 
         try {
             await verify2fa({ email, otp });
-            window.location.href = '/dashboard';
+            sessionStorage.setItem('2fa_verified', email);
+            window.history.replaceState(null, '', '/dashboard');
+            router.replace('/dashboard');
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);
@@ -155,7 +173,7 @@ const TwoFactorContent = () => {
             </div>
 
             {/* Right Panel - 2FA Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-gov-charcoal flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
                 <div className="w-full max-w-md">
                     {/* Back Button */}
                     <Link
@@ -185,7 +203,7 @@ const TwoFactorContent = () => {
                         <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                             {t('twofa_title')}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-white/70">
                             {t('twofa_subtitle')}
                         </p>
                         {email && (
@@ -197,7 +215,7 @@ const TwoFactorContent = () => {
                     </div>
 
                     {/* 2FA Card */}
-                    <div className="bg-white dark:bg-white/5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
                         {/* Error Message */}
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
@@ -229,7 +247,7 @@ const TwoFactorContent = () => {
                                             value={digit}
                                             onChange={(e) => handleInputChange(index, e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(index, e)}
-                                            className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                            className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                         />
                                     ))}
                                 </div>
@@ -253,7 +271,7 @@ const TwoFactorContent = () => {
                         </form>
 
                         {/* Resend Code */}
-                        <div className="text-center mt-6 pt-4 border-t border-gray-100 dark:border-white/10">
+                        <div className="text-center mt-6 pt-4 border-t border-gray-100 dark:border-gov-border/15">
                             <button
                                 onClick={handleResend}
                                 className="text-sm text-gov-teal hover:text-gov-forest hover:underline transition-colors font-medium"

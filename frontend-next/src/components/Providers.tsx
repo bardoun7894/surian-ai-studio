@@ -6,7 +6,8 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
-import ChatBot from '@/components/ChatBot';
+import dynamic from 'next/dynamic';
+const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false });
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {

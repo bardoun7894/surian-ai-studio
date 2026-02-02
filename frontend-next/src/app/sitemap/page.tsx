@@ -65,16 +65,16 @@ export default function SitemapPage() {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 <div className="bg-gov-forest text-white py-12 px-4 shadow-lg animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                             {language === 'ar' ? 'خريطة الموقع' : 'Site Map'}
                         </h1>
-                        <p className="text-gray-300">
+                        <p className="text-white/70">
                             {language === 'ar'
                                 ? 'فهرس شامل لجميع صفحات وأقسام البوابة الإلكترونية'
                                 : 'A comprehensive index of all portal pages and sections'}
@@ -85,8 +85,8 @@ export default function SitemapPage() {
                 <div className="max-w-7xl mx-auto px-4 py-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {sections.map((section, idx) => (
-                            <div key={idx} className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
-                                <div className="flex items-center gap-3 mb-6 border-b border-gray-100 dark:border-white/10 pb-4">
+                            <div key={idx} className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 border border-gray-100 dark:border-gov-border/15 hover:shadow-lg transition-all duration-300">
+                                <div className="flex items-center gap-3 mb-6 border-b border-gray-100 dark:border-gov-border/15 pb-4">
                                     <div className="w-10 h-10 rounded-lg bg-gov-teal/10 flex items-center justify-center text-gov-teal">
                                         {section.icon}
                                     </div>
@@ -99,7 +99,7 @@ export default function SitemapPage() {
                                         <li key={linkIdx}>
                                             <Link
                                                 href={link.href}
-                                                className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gov-teal dark:hover:text-gov-gold font-medium transition-colors"
+                                                className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-gov-teal dark:hover:text-gov-gold font-medium transition-colors"
                                             >
                                                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-white/30"></div>
                                                 {language === 'ar' ? link.labelAr : link.labelEn}

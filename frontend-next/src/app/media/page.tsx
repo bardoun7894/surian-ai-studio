@@ -13,7 +13,8 @@ import {
   Share2,
   Grid,
   List,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,6 +33,7 @@ export default function MediaPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -72,6 +74,27 @@ export default function MediaPage() {
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
+  const getYouTubeId = (url: string): string | null => {
+    const match = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
+  };
+
+  const isYouTubeUrl = (url: string): boolean => {
+    return /(?:youtube\.com|youtu\.be)/.test(url);
+  };
+
+  const handleMediaClick = (item: MediaItem) => {
+    if (item.type === 'video' && item.url) {
+      setSelectedMedia(item);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedMedia(null);
+  };
+
   const filters: { key: MediaType; label: string; icon: React.ReactNode }[] = [
     { key: 'all', label: language === 'ar' ? 'الكل' : 'All', icon: <Grid size={16} /> },
     { key: 'video', label: language === 'ar' ? 'فيديو' : 'Videos', icon: <Play size={16} /> },
@@ -80,11 +103,11 @@ export default function MediaPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-14 md:pt-16">
-        <div className="min-h-screen bg-gov-beige dark:bg-black pb-20">
+      <main className="flex-grow pt-20 md:pt-24">
+        <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
             <div className="max-w-7xl mx-auto">
@@ -110,7 +133,7 @@ export default function MediaPage() {
                     onClick={() => setActiveFilter(filter.key)}
                     className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${activeFilter === filter.key
                       ? 'bg-gov-teal text-white shadow-lg'
-                      : 'bg-white dark:bg-gov-emeraldStatic text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-gold/20 hover:border-gov-gold/50'
+                      : 'bg-white dark:bg-dm-surface text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-border/25 hover:border-gov-gold/50'
                       }`}
                   >
                     {filter.icon}
@@ -120,7 +143,7 @@ export default function MediaPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex gap-2 bg-white dark:bg-gov-emeraldStatic rounded-xl p-1 border border-gray-200 dark:border-gov-gold/20">
+              <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
@@ -162,7 +185,8 @@ export default function MediaPage() {
 
                 <div
                   key={item.id}
-                  className={`group bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden hover:border-gov-gold/50 hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex' : ''
+                  onClick={() => handleMediaClick(item)}
+                  className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden hover:border-gov-gold/50 hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex' : ''
                     }`}
                 >
                   {/* Thumbnail */}
@@ -234,7 +258,10 @@ export default function MediaPage() {
 
                       {viewMode === 'list' && (
                         <div className="flex items-center gap-3">
-                          <button className="flex items-center gap-1 hover:text-gov-teal transition-colors">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleMediaClick(item); }}
+                            className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                          >
                             <Eye size={14} />
                             {language === 'ar' ? 'مشاهدة' : 'View'}
                           </button>
@@ -257,7 +284,7 @@ export default function MediaPage() {
             {/* Empty State */}
             {filteredMedia.length === 0 && (
               <div className="text-center py-20">
-                <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-gov-emeraldStatic/50 flex items-center justify-center mb-4">
+                <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-dm-surface/50 flex items-center justify-center mb-4">
                   <ImageIcon size={32} className="text-gray-400" />
                 </div>
                 <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
@@ -272,6 +299,72 @@ export default function MediaPage() {
             )}
           </div>
         </div>
+        {/* Video Player Modal */}
+        {selectedMedia && selectedMedia.url && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={closeModal}
+          >
+            <div
+              className="relative w-full max-w-4xl bg-gov-forest rounded-2xl overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                aria-label={language === 'ar' ? 'إغلاق' : 'Close'}
+              >
+                <X size={20} />
+              </button>
+
+              {/* Video Player */}
+              <div className="aspect-video w-full">
+                {isYouTubeUrl(selectedMedia.url) ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(selectedMedia.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                    title={selectedMedia.title}
+                    allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                ) : (
+                  <video
+                    src={selectedMedia.url}
+                    poster={selectedMedia.thumbnailUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    controlsList="nodownload"
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-contain bg-black"
+                  >
+                    {language === 'ar'
+                      ? 'المتصفح الخاص بك لا يدعم تشغيل الفيديو.'
+                      : 'Your browser does not support the video tag.'}
+                  </video>
+                )}
+              </div>
+
+              {/* Video Title */}
+              <div className="p-4 bg-gov-forest text-white">
+                <h3 className="text-lg font-bold">{selectedMedia.title}</h3>
+                <div className="flex items-center gap-3 mt-2 text-sm text-gray-300">
+                  <span className="flex items-center gap-1">
+                    <Calendar size={14} />
+                    {selectedMedia.date}
+                  </span>
+                  {selectedMedia.duration && (
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} />
+                      {selectedMedia.duration}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

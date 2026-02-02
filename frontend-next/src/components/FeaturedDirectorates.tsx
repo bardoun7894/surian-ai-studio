@@ -28,11 +28,11 @@ export default function FeaturedDirectorates() {
 
     if (loading) {
         return (
-            <section className="py-12 bg-gov-beige/50 dark:bg-gov-forest/90 relative overflow-hidden">
+            <section className="py-12 bg-gov-beige/50 dark:bg-dm-bg relative overflow-hidden transition-colors">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-64 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                            <div key={i} className="h-64 rounded-xl bg-gray-200 dark:bg-dm-surface animate-pulse"></div>
                         ))}
                     </div>
                 </div>
@@ -43,7 +43,7 @@ export default function FeaturedDirectorates() {
     if (directorates.length === 0) return null;
 
     return (
-        <section id="featured-directorates" className="py-16 bg-gov-beige/50 dark:bg-gov-brand/10 relative overflow-hidden scroll-mt-24">
+        <section id="featured-directorates" className="py-16 bg-gov-beige/50 dark:bg-dm-bg relative overflow-hidden scroll-mt-24">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none"
                 style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #b9a779 1px, transparent 1px)', backgroundSize: '24px 24px' }}
@@ -54,7 +54,7 @@ export default function FeaturedDirectorates() {
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gov-gold/10 text-gov-gold text-sm font-bold mb-4">
                         <span>{t('dir_title_compact')}</span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gov-forest dark:text-gov-gold mb-3">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gov-forest dark:text-gov-teal mb-3">
                         {t('dir_subtitle_compact')}
                     </h2>
                     <div className="h-1 bg-gov-gold mx-auto rounded-full w-24 transition-all duration-1000 ease-out"></div>

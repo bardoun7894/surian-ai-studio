@@ -44,9 +44,14 @@ const DirectoratesList: React.FC = () => {
         return content[language as 'ar' | 'en'] || '';
     };
 
-    // Helper to get localized field from an API object with _ar/_en suffixes
+    // Helper to get localized field - handles LocalizedString objects AND _ar/_en suffixed fields
     const loc = (obj: any, field: string): string => {
-        const ar = obj?.[`${field}_ar`] || obj?.[field] || '';
+        const val = obj?.[field];
+        // Handle LocalizedString objects { ar: '...', en: '...' }
+        if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
+            return val[language] || val['ar'] || '';
+        }
+        const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
         const en = obj?.[`${field}_en`] || ar;
         return language === 'ar' ? ar : en;
     };
@@ -68,7 +73,7 @@ const DirectoratesList: React.FC = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center py-20">
-                <Loader2 className="animate-spin text-gov-teal" size={40} />
+                <Loader2 className="animate-spin text-gov-forest" size={40} />
             </div>
         );
     }
@@ -91,13 +96,13 @@ const DirectoratesList: React.FC = () => {
 
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                            <LayoutGrid size={32} className="text-gov-gold" />
+                            <LayoutGrid size={32} className="text-gov-forest" />
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-display font-bold">
+                            <h1 className="text-3xl md:text-4xl font-display font-bold text-gov-gold">
                                 {language === 'ar' ? 'الإدارات العامة' : 'General Directorates'}
                             </h1>
-                            <p className="text-gray-300 mt-1">
+                            <p className="text-white mt-1">
                                 {language === 'ar'
                                     ? 'الإدارات الرئيسية التابعة لوزارة الاقتصاد والصناعة'
                                     : 'Main directorates of the Ministry of Economy and Industry'}
@@ -124,12 +129,12 @@ const DirectoratesList: React.FC = () => {
             {/* Directorates List */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {filteredDirectorates.length === 0 ? (
-                    <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl">
-                        <Building2 size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
-                        <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">
+                    <div className="text-center py-16 bg-gov-card dark:bg-dm-surface rounded-3xl">
+                        <Building2 size={48} className="mx-auto text-gov-forest mb-4" />
+                        <h3 className="text-xl font-bold text-gov-gold mb-2">
                             {language === 'ar' ? 'لا توجد نتائج' : 'No Results'}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-white">
                             {language === 'ar'
                                 ? 'لم يتم العثور على إدارات مطابقة لبحثك'
                                 : 'No directorates found matching your search'}
@@ -138,13 +143,13 @@ const DirectoratesList: React.FC = () => {
                 ) : (
                     <div className="space-y-8">
                         {filteredDirectorates.map((dir) => (
-                            <div key={dir.id} className="bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gov-gold/10 dark:border-gov-gold/10 shadow-sm overflow-hidden">
+                            <div key={dir.id} className="bg-gov-card dark:bg-dm-surface rounded-2xl border border-gray-300 dark:border-gov-border/15 shadow-sm overflow-hidden">
                                 {/* Directorate Header */}
                                 <Link
                                     href={`/directorates/${dir.id}`}
-                                    className="flex items-center gap-4 p-6 bg-gov-beige/30 dark:bg-gov-emeraldStatic border-b border-gov-gold/10 dark:border-gov-gold/10 hover:bg-gov-beige/50 dark:hover:bg-gov-gold/5 transition-colors group"
+                                    className="flex items-center gap-4 p-6 bg-white/50 dark:bg-white/5 border-b border-gray-300 dark:border-gov-border/15 hover:bg-white/70 dark:hover:bg-white/10 transition-colors group"
                                 >
-                                    <div className="w-20 h-20 rounded-xl bg-gov-teal/10 dark:bg-gov-gold/20 flex items-center justify-center group-hover:bg-gov-teal dark:group-hover:bg-gov-gold transition-all p-2">
+                                    <div className="w-20 h-20 rounded-xl bg-gov-forest/10 flex items-center justify-center group-hover:bg-gov-forest/20 transition-all p-2">
                                         <Image
                                             src="/assets/logo/eagle.png"
                                             alt="Ministry Emblem"
@@ -154,16 +159,16 @@ const DirectoratesList: React.FC = () => {
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                                        <h3 className="text-xl font-bold text-gov-gold group-hover:text-gov-forest transition-colors">
                                             {loc(dir, 'name')}
                                         </h3>
-                                        <p className="text-sm text-gov-stone/60 dark:text-gray-300 mt-1">
+                                        <p className="text-sm text-white mt-1">
                                             {loc(dir, 'description')}
                                         </p>
                                     </div>
                                     {/* Service Count Badge */}
                                     {dir.servicesCount !== undefined && dir.servicesCount > 0 && (
-                                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gov-teal/10 dark:bg-gov-gold/10 text-gov-teal dark:text-gov-gold text-sm font-bold">
+                                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gov-forest/20 text-gov-forest text-sm font-bold">
                                             <Hash size={14} />
                                             <span>{dir.servicesCount}</span>
                                             <span className="text-xs">
@@ -171,16 +176,16 @@ const DirectoratesList: React.FC = () => {
                                             </span>
                                         </div>
                                     )}
-                                    <ArrowRight size={20} className={`text-gov-teal dark:text-gov-gold opacity-0 group-hover:opacity-100 transition-opacity ${language === 'ar' ? 'rotate-180' : ''}`} />
+                                    <ArrowRight size={20} className={`text-gov-forest opacity-0 group-hover:opacity-100 transition-opacity ${language === 'ar' ? 'rotate-180' : ''}`} />
                                 </Link>
 
                                 {/* Sub-Directorates Grid */}
                                 {dir.subDirectorates && dir.subDirectorates.length > 0 && (
                                     <div className="p-6">
-                                        <h4 className="text-xs font-bold text-gov-sand dark:text-gov-beige/50 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <Building2 size={14} />
+                                        <h4 className="text-xs font-bold text-gov-gold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <Building2 size={14} className="text-gov-forest" />
                                             {language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}
-                                            <span className="text-gov-stone/40 dark:text-gov-beige/30">
+                                            <span className="text-gov-forest/60">
                                                 ({dir.subDirectorates.length})
                                             </span>
                                         </h4>
@@ -195,14 +200,14 @@ const DirectoratesList: React.FC = () => {
                                                         href={href}
                                                         target={isExternal ? '_blank' : undefined}
                                                         rel={isExternal ? 'noopener noreferrer' : undefined}
-                                                        className="flex items-center gap-3 p-3 rounded-xl bg-gov-beige/20 dark:bg-gov-emeraldStatic border border-transparent hover:border-gov-gold/20 dark:hover:border-gov-gold/20 hover:shadow-md transition-all group/sub"
+                                                        className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md transition-all group/sub"
                                                     >
-                                                        <Building2 size={16} className="text-gov-sand dark:text-gov-gold/40 group-hover/sub:text-gov-teal dark:group-hover/sub:text-gov-gold transition-colors flex-shrink-0" />
-                                                        <span className="text-sm text-gov-charcoal dark:text-gov-gold font-medium flex-1 leading-tight">
+                                                        <Building2 size={16} className="text-gov-forest group-hover/sub:text-gov-forest transition-colors flex-shrink-0" />
+                                                        <span className="text-sm text-gov-charcoal dark:text-white font-medium flex-1 leading-tight">
                                                             {subName}
                                                         </span>
                                                         {isExternal && (
-                                                            <ExternalLink size={12} className="text-gov-sand dark:text-gov-beige/40 flex-shrink-0" />
+                                                            <ExternalLink size={12} className="text-gov-forest flex-shrink-0" />
                                                         )}
                                                     </Link>
                                                 );
@@ -217,27 +222,27 @@ const DirectoratesList: React.FC = () => {
 
                 {/* Summary Stats */}
                 <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gov-gold/10 dark:border-gov-gold/10 p-6 text-center">
-                        <div className="text-3xl font-bold text-gov-teal dark:text-gov-gold mb-1">
+                    <div className="bg-gov-card dark:bg-dm-surface rounded-2xl border border-gray-300 dark:border-gov-border/15 p-6 text-center">
+                        <div className="text-3xl font-bold text-gov-gold mb-1">
                             {directorates.length}
                         </div>
-                        <div className="text-sm text-gov-stone/60 dark:text-gray-300">
+                        <div className="text-sm text-white">
                             {language === 'ar' ? 'إدارة عامة' : 'General Directorates'}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gov-gold/10 dark:border-gov-gold/10 p-6 text-center">
-                        <div className="text-3xl font-bold text-gov-teal dark:text-gov-gold mb-1">
+                    <div className="bg-gov-card dark:bg-dm-surface rounded-2xl border border-gray-300 dark:border-gov-border/15 p-6 text-center">
+                        <div className="text-3xl font-bold text-gov-gold mb-1">
                             {directorates.reduce((acc, dir) => acc + (dir.subDirectorates?.length || 0), 0)}
                         </div>
-                        <div className="text-sm text-gov-stone/60 dark:text-gray-300">
+                        <div className="text-sm text-white">
                             {language === 'ar' ? 'مديرية فرعية' : 'Sub-Directorates'}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gov-gold/10 dark:border-gov-gold/10 p-6 text-center">
-                        <div className="text-3xl font-bold text-gov-teal dark:text-gov-gold mb-1">
+                    <div className="bg-gov-card dark:bg-dm-surface rounded-2xl border border-gray-300 dark:border-gov-border/15 p-6 text-center">
+                        <div className="text-3xl font-bold text-gov-gold mb-1">
                             {directorates.reduce((acc, dir) => acc + (dir.servicesCount || 0), 0)}
                         </div>
-                        <div className="text-sm text-gov-stone/60 dark:text-gray-300">
+                        <div className="text-sm text-white">
                             {language === 'ar' ? 'خدمة' : 'E-Services'}
                         </div>
                     </div>

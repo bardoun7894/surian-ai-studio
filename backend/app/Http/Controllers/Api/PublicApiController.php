@@ -7,6 +7,7 @@ use App\Models\ComplaintTemplate;
 use App\Models\Content;
 use App\Models\Directorate;
 use App\Models\Faq;
+use App\Models\HappinessFeedback;
 use App\Models\QuickLink;
 use App\Models\Service;
 use App\Services\VectorSearchService;
@@ -326,7 +327,7 @@ class PublicApiController extends Controller
             'author_en' => $article->author?->name ?? 'Ministry',
             'readTime' => ceil(str_word_count(strip_tags($article->content_ar ?? '')) / 200) . ' دقائق',
             'readTime_en' => ceil(str_word_count(strip_tags($article->content_en ?? '')) / 200) . ' minutes',
-            'imageUrl' => $article->metadata['image'] ?? '/assets/hero-bg.jpg',
+            'imageUrl' => $this->normalizeImageUrl($article->metadata['image'] ?? null) ?? '/assets/hero-bg.jpg',
         ]);
     }
 
@@ -356,7 +357,7 @@ class PublicApiController extends Controller
                 'author_en' => $a->author?->name ?? 'Ministry',
                 'readTime' => '3 دقائق',
                 'readTime_en' => '3 minutes',
-                'imageUrl' => $a->metadata['image'] ?? '/assets/news-placeholder.jpg',
+                'imageUrl' => $this->normalizeImageUrl($a->metadata['image'] ?? null) ?? '/assets/news-placeholder.jpg',
             ]);
 
         return response()->json($articles);
@@ -783,8 +784,18 @@ class PublicApiController extends Controller
     }
 
     // Helper methods
+    private function normalizeImageUrl(?string $path): ?string
+    {
+        if (!$path) return null;
+        if (str_starts_with($path, '/storage/') || str_starts_with($path, 'http')) return $path;
+        return '/storage/' . $path;
+    }
+
     private function formatNews($n): array
     {
+        $images = $n->metadata['images'] ?? [];
+        $normalizedImages = array_map(fn($img) => $this->normalizeImageUrl($img), $images);
+
         return [
             'id' => (string) $n->id,
             'title' => $n->title_ar,
@@ -798,8 +809,8 @@ class PublicApiController extends Controller
             'summary_en' => $n->seo_description_en ?? mb_substr(strip_tags($n->content_en ?? ''), 0, 200),
             'content_ar' => $n->content_ar,
             'content_en' => $n->content_en,
-            'imageUrl' => $n->metadata['image'] ?? null,
-            'images' => $n->metadata['images'] ?? [],
+            'imageUrl' => $this->normalizeImageUrl($n->metadata['image'] ?? null),
+            'images' => $normalizedImages,
             'author' => $n->metadata['author'] ?? null,
             'read_time' => $n->metadata['read_time'] ?? null,
             'category_label' => $n->metadata['category_label'] ?? null,
@@ -965,5 +976,82 @@ class PublicApiController extends Controller
             'content_en' => $page->content_en,
             'updated_at' => $page->updated_at?->format('Y-m-d'),
         ]);
+    }
+
+    /**
+     * Submit happiness feedback (مؤشر الرضا)
+     * POST /api/v1/public/happiness-feedback
+     */
+    public function submitHappinessFeedback(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:3',
+            'page' => 'nullable|string|max:255',
+        ]);
+
+        // Rate limit: 1 submission per session/IP per hour
+        $sessionId = $request->header('X-Session-Id', $request->ip());
+        $recentExists = HappinessFeedback::where('session_id', $sessionId)
+            ->where('created_at', '>=', now()->subHour())
+            ->exists();
+
+        if ($recentExists) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل تقييمك سابقاً',
+                'message_en' => 'Your feedback was already recorded',
+            ]);
+        }
+
+        HappinessFeedback::create([
+            'rating' => $validated['rating'],
+            'page' => $validated['page'] ?? null,
+            'session_id' => $sessionId,
+            'user_id' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'شكراً لتقييمك!',
+            'message_en' => 'Thank you for your feedback!',
+        ]);
+    }
+
+    /**
+     * Get happiness feedback analytics (for admin dashboard)
+     * GET /api/v1/public/happiness-feedback/stats
+     */
+    public function getHappinessFeedbackStats(): JsonResponse
+    {
+        $stats = Cache::remember('happiness_feedback_stats', 300, function () {
+            $total = HappinessFeedback::count();
+            if ($total === 0) {
+                return [
+                    'total' => 0,
+                    'average' => 0,
+                    'satisfaction_rate' => 0,
+                    'distribution' => ['happy' => 0, 'neutral' => 0, 'sad' => 0],
+                ];
+            }
+
+            $distribution = [
+                'happy' => HappinessFeedback::where('rating', 3)->count(),
+                'neutral' => HappinessFeedback::where('rating', 2)->count(),
+                'sad' => HappinessFeedback::where('rating', 1)->count(),
+            ];
+
+            $average = HappinessFeedback::avg('rating');
+            $satisfactionRate = round(($distribution['happy'] / $total) * 100, 1);
+
+            return [
+                'total' => $total,
+                'average' => round($average, 2),
+                'satisfaction_rate' => $satisfactionRate,
+                'distribution' => $distribution,
+            ];
+        });
+
+        return response()->json($stats);
     }
 }

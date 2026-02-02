@@ -17,7 +17,7 @@ const ExternalLinkModal: React.FC<ExternalLinkModalProps> = ({ isOpen, url, onCl
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-gov-charcoal/60 backdrop-blur-sm animate-fade-in">
             <div className="bg-white dark:bg-gov-emerald/10 w-full max-w-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-scale-in">
-                <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gov-beige/50 dark:bg-white/5">
+                <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex justify-between items-center bg-gov-beige/50 dark:bg-gov-card/10">
                     <h2 className="text-xl font-display font-bold text-gov-forest dark:text-white flex items-center gap-2">
                         <AlertTriangle className="text-gov-gold" />
                         {t('external_link_warning_title')}
@@ -26,10 +26,10 @@ const ExternalLinkModal: React.FC<ExternalLinkModalProps> = ({ isOpen, url, onCl
                 </div>
 
                 <div className="p-6">
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                    <p className="text-gray-600 dark:text-white/70 mb-4 leading-relaxed">
                         {t('external_link_warning_desc')}
                     </p>
-                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/10 mb-6 flex items-center gap-2 text-sm text-gov-teal break-all">
+                    <div className="bg-gray-50 dark:bg-gov-card/10 p-3 rounded-xl border border-gray-100 dark:border-gov-border/15 mb-6 flex items-center gap-2 text-sm text-gov-teal break-all">
                         <ExternalLink size={16} className="shrink-0" />
                         <span dir="ltr">{url}</span>
                     </div>

@@ -60,18 +60,18 @@ export default function ContactPage() {
     const phone = contactInfo.contact_phone || '19999';
     const email = contactInfo.contact_email || 'info@moe.gov.sy';
     const supportEmail = contactInfo.contact_support_email || 'support@moe.gov.sy';
-    const address = language === 'en' && contactInfo.contact_address_en
-        ? contactInfo.contact_address_en
-        : (contactInfo.contact_address_ar || 'دمشق - الجمارك مقابل الأمن الجنائي');
+    const address = language === 'en'
+        ? (contactInfo.contact_address_en || 'Damascus - Customs, opposite Criminal Security')
+        : 'دمشق - الجمارك مقابل الأمن الجنائي';
     const workingHours = language === 'en' && contactInfo.contact_working_hours_en
         ? contactInfo.contact_working_hours_en
         : (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 صباحاً - 3:30 عصراً');
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 {/* Header */}
                 <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
@@ -92,37 +92,37 @@ export default function ContactPage() {
                         {/* Contact Info Cards */}
                         <div className="space-y-4 lg:col-span-1">
                             {/* Phone */}
-                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
                                     <Phone size={24} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
-                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-gray-200">{phone}</p>
+                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-white/70">{phone}</p>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>
 
                             {/* Email */}
-                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <Mail size={24} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">{email}</p>
-                                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">{supportEmail}</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{email}</p>
+                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{supportEmail}</p>
                                 </div>
                             </div>
 
                             {/* Address */}
-                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
                                     <MapPin size={24} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                    <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                                         {address}
                                     </p>
                                 </div>
@@ -149,13 +149,13 @@ export default function ContactPage() {
                         <div className="lg:col-span-2 space-y-8">
 
                             {/* Form */}
-                            <div className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/10">
+                            <div className="bg-white dark:bg-dm-surface p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15">
                                 <div className="mb-8">
                                     <h2 className="text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
                                         <MessageSquare className="text-gov-gold" />
                                         {language === 'ar' ? 'أرسل لنا رسالة' : 'Send Us a Message'}
                                     </h2>
-                                    <p className="text-gray-500 dark:text-gray-400">
+                                    <p className="text-gray-500 dark:text-white/70">
                                         {language === 'ar' ? 'يرجى ملء النموذج أدناه وسيتم الرد عليكم في أقرب وقت ممكن.' : 'Please fill out the form below and we will reply as soon as possible.'}
                                     </p>
                                 </div>
@@ -166,7 +166,7 @@ export default function ContactPage() {
                                             <CheckCircle size={40} />
                                         </div>
                                         <h3 className="text-2xl font-bold text-gov-forest dark:text-white mb-2">{language === 'ar' ? 'تم الإرسال بنجاح' : 'Message Sent Successfully'}</h3>
-                                        <p className="text-gray-600 dark:text-gray-300 mb-6">{language === 'ar' ? 'شكراً لتواصلك معنا. سنقوم بالرد عليك قريباً.' : 'Thank you for contacting us. We will reply shortly.'}</p>
+                                        <p className="text-gray-600 dark:text-white/70 mb-6">{language === 'ar' ? 'شكراً لتواصلك معنا. سنقوم بالرد عليك قريباً.' : 'Thank you for contacting us. We will reply shortly.'}</p>
                                         <button onClick={() => setIsSuccess(false)} className="px-6 py-2 bg-gov-teal text-white rounded-lg font-bold">
                                             {language === 'ar' ? 'إرسال رسالة أخرى' : 'Send Another Message'}
                                         </button>
@@ -180,44 +180,44 @@ export default function ContactPage() {
                                         )}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
+                                                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 focus:border-gov-teal outline-none transition-colors"
+                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                                                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
                                                 <input
                                                     type="email"
                                                     required
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 focus:border-gov-teal outline-none transition-colors"
+                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
                                                 />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{language === 'ar' ? 'الموضوع' : 'Subject'}</label>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الموضوع' : 'Subject'}</label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={formData.subject}
                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 focus:border-gov-teal outline-none transition-colors"
+                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{language === 'ar' ? 'الرسالة' : 'Message'}</label>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الرسالة' : 'Message'}</label>
                                             <textarea
                                                 required
                                                 rows={5}
                                                 value={formData.message}
                                                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 focus:border-gov-teal outline-none transition-colors resize-none"
+                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors resize-none"
                                             />
                                         </div>
                                         <button
@@ -230,15 +230,6 @@ export default function ContactPage() {
                                         </button>
                                     </form>
                                 )}
-                            </div>
-
-                            {/* Map Placeholder */}
-                            <div className="bg-gray-200 dark:bg-gray-800 rounded-3xl h-[400px] overflow-hidden relative shadow-inner flex items-center justify-center group">
-                                <div className="absolute inset-0 bg-cover bg-center opacity-50 grayscale transition-all duration-500 group-hover:grayscale-0" style={{ backgroundImage: "url('/assets/map-placeholder.jpg')" }}></div>
-                                <div className="bg-white/90 dark:bg-black/70 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-2 text-gov-forest dark:text-white font-bold z-10 shadow-lg">
-                                    <MapIcon />
-                                    <span>{language === 'ar' ? 'الخريطة التفاعلية (قريباً)' : 'Interactive Map (Coming Soon)'}</span>
-                                </div>
                             </div>
 
                         </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Calendar, ChevronLeft, Loader2, Sparkles, X, Clock, Search, Landmark, Building2, LayoutGrid } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { NewsItem, Directorate } from '@/types';
@@ -18,11 +19,20 @@ const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 export default function NewsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gov-beige dark:bg-dm-bg" />}>
+      <NewsPageContent />
+    </Suspense>
+  );
+}
+
+function NewsPageContent() {
   const { language } = useLanguage();
+  const searchParams = useSearchParams();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dirFilter, setDirFilter] = useState('all');
+  const [dirFilter, setDirFilter] = useState(() => searchParams.get('directorate') || 'all');
   const [timeFilter, setTimeFilter] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -147,10 +157,10 @@ export default function NewsPage() {
   const isAr = language === 'ar';
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-14 md:pt-16">
+      <main className="flex-grow pt-20 md:pt-24">
         {/* Hero Header */}
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">
@@ -175,8 +185,8 @@ export default function NewsPage() {
                   key={df.key}
                   onClick={() => { setDirFilter(df.key); setVisibleCount(12); }}
                   className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
-                    ? 'bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest shadow-lg shadow-gov-forest/20 dark:shadow-gov-gold/20'
-                    : 'bg-white dark:bg-white/5 text-gov-charcoal dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
+                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-lg shadow-gov-forest/20 dark:shadow-gov-button/20'
+                    : 'bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white/70 border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
                     }`}
                 >
                   <Icon size={16} className={isActive ? '' : 'text-gov-teal dark:text-gov-gold'} />
@@ -187,7 +197,7 @@ export default function NewsPage() {
           </div>
 
           {/* Time Filter + Count */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-4">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-4">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
                 <Clock size={16} />
@@ -200,8 +210,8 @@ export default function NewsPage() {
                 <button
                   onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); }}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
-                    ? 'bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
                 >
                   {selectedMonth !== null
@@ -210,7 +220,7 @@ export default function NewsPage() {
                   <Calendar size={12} />
                 </button>
                 {showMonthDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-gov-charcoal rounded-xl shadow-xl border border-gray-200 dark:border-white/10 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
                     <button
                       onClick={() => { setSelectedMonth(null); setShowMonthDropdown(false); setVisibleCount(12); }}
                       className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
@@ -235,15 +245,15 @@ export default function NewsPage() {
                 <button
                   onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); }}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
-                    ? 'bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
                 >
                   {selectedYear !== null ? selectedYear : (isAr ? 'السنة' : 'Year')}
                   <Calendar size={12} />
                 </button>
                 {showYearDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-gov-charcoal rounded-xl shadow-xl border border-gray-200 dark:border-white/10 py-1 w-32 z-50">
+                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-32 z-50">
                     <button
                       onClick={() => { setSelectedYear(null); setShowYearDropdown(false); setVisibleCount(12); }}
                       className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
@@ -274,7 +284,7 @@ export default function NewsPage() {
                 </button>
               )}
             </div>
-            <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">
+            <span className="text-sm text-gray-400 dark:text-white/50 font-medium">
               {allFiltered.length} {isAr ? 'خبر' : 'articles'}
             </span>
           </div>
@@ -285,12 +295,12 @@ export default function NewsPage() {
               <Loader2 className="animate-spin text-gov-teal" size={40} />
             </div>
           ) : filteredNews.length === 0 ? (
-            <div className="text-center py-20 bg-white dark:bg-white/5 rounded-2xl border border-dashed border-gray-300 dark:border-white/20">
-              <Search size={40} className="mx-auto text-gray-300 dark:text-gray-500 mb-4" />
+            <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
+              <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
               <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
                 {isAr ? 'لا توجد نتائج' : 'No Results'}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-gray-500 dark:text-white/70 text-sm">
                 {isAr ? 'لم يتم العثور على أخبار مطابقة للبحث أو الفلتر المحدد.' : 'No news found matching your search or filter.'}
               </p>
             </div>
@@ -299,7 +309,7 @@ export default function NewsPage() {
               {filteredNews.map((item, index) => (
                 <div
                   key={`${item.id}-${index}`}
-                  className="bg-white dark:bg-gov-emeraldStatic rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col"
+                  className="bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col"
                 >
                   <Link href={`/news/${item.id}`} className="h-48 overflow-hidden relative block">
                     {item.imageUrl ? (
@@ -323,7 +333,7 @@ export default function NewsPage() {
                     )}
                   </Link>
                   <div className="p-5 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-3">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} className="text-gov-gold" />
                         {item.date}
@@ -342,7 +352,7 @@ export default function NewsPage() {
                         {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 flex-1">
+                    <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-3 mb-4 flex-1">
                       {isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary)}
                     </p>
                     <Link href={`/news/${item.id}`} className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto">
@@ -359,42 +369,42 @@ export default function NewsPage() {
             <div className="mt-12 flex justify-center">
               <button
                 onClick={() => setVisibleCount(prev => prev + 12)}
-                className="px-8 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                className="px-8 py-3 bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
               >
                 {isAr ? 'تحميل المزيد' : 'Load More'}
               </button>
             </div>
           )}
           {/* FAQ Section */}
-          <div className="mt-16 bg-white dark:bg-gov-emeraldStatic rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+          <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
             <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
               {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
             </h2>
             <div className="space-y-4">
               <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                   {isAr ? 'كيف أبقى على اطلاع بآخر الأخبار؟' : 'How do I stay updated with latest news?'}
                   <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                   {isAr ? 'يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة.' : 'You can follow the latest news through this page or subscribe to the ministry newsletter.'}
                 </p>
               </details>
               <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                   {isAr ? 'هل يمكنني تصفية الأخبار حسب المديرية؟' : 'Can I filter news by directorate?'}
                   <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                   {isAr ? 'نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية.' : 'Yes, use the filter buttons above to filter news by directorate or time period.'}
                 </p>
               </details>
               <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                   {isAr ? 'ما هو الملخص الذكي؟' : 'What is AI Summary?'}
                   <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                   {isAr ? 'خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد.' : 'An AI-powered service that summarizes long news content into a concise and useful format.'}
                 </p>
               </details>
@@ -413,8 +423,8 @@ export default function NewsPage() {
       {/* AI Summary Modal */}
       {summaryModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-gov-forest rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/10">
+          <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
               <div className="flex items-center gap-2 text-gov-gold">
                 <Sparkles size={20} />
                 <h3 className="font-bold">{isAr ? 'ملخص ذكي' : 'AI Summary'}</h3>
@@ -433,8 +443,8 @@ export default function NewsPage() {
                   <Loader2 className="animate-spin text-gov-gold" size={32} />
                 </div>
               ) : (
-                <div className="bg-gov-beige/50 dark:bg-white/5 rounded-xl p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{summaryModal.summary}</p>
+                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl p-4">
+                  <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">{summaryModal.summary}</p>
                 </div>
               )}
             </div>

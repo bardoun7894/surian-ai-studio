@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { API, getComplaintTemplates } from '@/lib/repository';
 import { Directorate } from '@/types';
-import { getLocalizedName } from '@/lib/utils';
+import { getLocalizedName, copyToClipboard } from '@/lib/utils';
 import ComplaintPrintButton from './ComplaintPrintButton';
 import { Ticket } from '@/types';
 import { focusPulse } from '@/lib/animations';
@@ -381,11 +381,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'new': return 'bg-gov-ocean/10 text-gov-ocean dark:bg-gov-ocean/20 dark:text-gov-oceanLight';
-            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-gold/20';
+            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-emerald/20';
             case 'processing': return 'bg-gov-cornflower/10 text-gov-cornflower dark:bg-gov-cornflower/20';
             case 'resolved': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
             case 'rejected': return 'bg-gov-cherry/10 text-gov-cherry dark:bg-gov-cherry/20';
-            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-gray-300';
+            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-white/70';
         }
     };
 
@@ -401,15 +401,15 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto px-4 pt-24 md:pt-28 pb-12">
 
             {/* Tabs */}
-            <div className="flex bg-white dark:bg-gray-900/50 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-gold/20 mb-8 max-w-md mx-auto">
+            <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
                     onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setShowTermsScreen(true); setHasAgreedToTerms(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
-                        ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest shadow-md'
-                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                        ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                        : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                 >
                     {t('complaint_submit_tab')}
@@ -417,23 +417,23 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 <button
                     onClick={() => { setActiveTab('track'); setSubmittedTicket(null); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'track'
-                        ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest shadow-md'
-                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                        ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                        : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                 >
                     {t('complaint_track_tab')}
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-gov-emeraldStatic rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-gold/20 overflow-hidden backdrop-blur-sm">
+            <div className="bg-white dark:bg-dm-surface rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-border/25 overflow-hidden backdrop-blur-sm">
 
                 {/* SUBMIT TAB - TERMS AGREEMENT SCREEN */}
                 {activeTab === 'submit' && !submittedTicket && showTermsScreen && (
                     <div className="p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Scale size={32} className="text-gov-forest dark:text-gov-gold" />
+                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Scale size={32} className="text-gov-forest dark:text-gov-teal" />
                             </div>
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {t('nav_complaints')}
@@ -456,18 +456,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         {/* Terms Section */}
-                        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-gov-gold/20 rounded-xl p-6 mb-6">
-                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-4">
+                        <div className="bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/25 rounded-xl p-6 mb-6">
+                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
                                 {t('complaint_review_guidelines')}
                             </h3>
 
-                            <p className="text-gov-charcoal dark:text-gray-200 text-sm mb-6 leading-relaxed">
+                            <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
                                 {t('complaint_review_desc')}
                             </p>
 
                             {/* Conditions List */}
-                            <div className="bg-gov-beige/50 dark:bg-white/5 rounded-lg p-4 mb-4">
-                                <p className="text-gov-forest dark:text-gov-gold font-bold text-sm mb-3">
+                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
                                     {t('complaint_condition_intro')}
                                 </p>
                                 <ul className="space-y-3">
@@ -500,13 +500,13 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         {/* Agreement Checkbox */}
-                        <div className="bg-gov-forest/5 dark:bg-gov-gold/10 rounded-xl p-5 mb-6">
+                        <div className="bg-gov-forest/5 dark:bg-gov-emerald/10 rounded-xl p-5 mb-6">
                             <label className="flex items-start gap-3 cursor-pointer select-none">
                                 <input
                                     type="checkbox"
                                     checked={hasAgreedToTerms}
                                     onChange={(e) => setHasAgreedToTerms(e.target.checked)}
-                                    className="w-5 h-5 mt-0.5 rounded border-gov-forest dark:border-gov-gold text-gov-forest dark:text-gov-gold focus:ring-gov-gold transition-colors cursor-pointer"
+                                    className="w-5 h-5 mt-0.5 rounded border-gov-forest dark:border-gov-teal text-gov-forest dark:text-gov-teal focus:ring-gov-gold transition-colors cursor-pointer"
                                 />
                                 <p className="text-gov-forest dark:text-white font-bold text-sm">
                                     {t('complaint_agree_terms')}
@@ -519,7 +519,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             type="button"
                             onClick={() => setShowTermsScreen(false)}
                             disabled={!hasAgreedToTerms}
-                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-gold"
+                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-button"
                         >
                             <span>{t('complaint_start_new')}</span>
                             <ChevronLeft size={20} className="rtl:rotate-180" />
@@ -534,29 +534,29 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => setShowTermsScreen(true)}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
                             <ChevronRight size={16} className="rtl:rotate-180" />
                             <span>{t('complaint_back_terms')}</span>
                         </button>
 
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_form_title')}</h2>
-                            <p className="text-gray-600 dark:text-gray-400">{t('complaint_subtitle')}</p>
+                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('general_form')}</h2>
+                            <p className="text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
 
 
                             {/* Anonymous / Known User Toggle */}
-                            <div className="bg-gov-beige/50 dark:bg-white/5 p-4 rounded-xl border border-gov-gold/20">
+                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20">
                                 <div className="flex items-center justify-center gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(false)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
                                     >
                                         <User size={16} />
@@ -566,8 +566,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         type="button"
                                         onClick={() => setIsAnonymous(true)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
                                     >
                                         <UserX size={16} />
@@ -577,7 +577,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             </div>
 
                             {/* Complaint Template Selection (T019) */}
-                            <div className="bg-gov-gold/5 dark:bg-gov-gold/10 rounded-xl border border-gov-gold/30">
+                            <div className="bg-gov-gold/5 dark:bg-gov-emerald/10 rounded-xl border border-gov-gold/30">
                                 {/* Clickable Header / Trigger */}
                                 <button
                                     type="button"
@@ -585,12 +585,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     className="w-full p-4 flex items-center justify-between gap-3 text-start"
                                 >
                                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        <FileCheck size={18} className="text-gov-forest dark:text-gov-gold flex-shrink-0" />
+                                        <FileCheck size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
                                         {selectedTemplateId ? (() => {
                                             const tmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                             return (
                                                 <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="font-bold text-sm text-gov-forest dark:text-gov-gold truncate">
+                                                    <span className="font-bold text-sm text-gov-forest dark:text-gov-teal truncate">
                                                         {tmpl ? (isAr ? tmpl.name : (tmpl.name_en || tmpl.name)) : ''}
                                                     </span>
                                                     <CheckCircle2 size={16} className="text-gov-emerald flex-shrink-0" />
@@ -617,7 +617,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 {t('complaint_loading_templates')}
                                             </div>
                                         ) : complaintTemplates.filter(tmpl => !isAnonymous || tmpl.type !== 'open').length === 0 ? (
-                                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                            <div className="text-center py-8 text-gray-500 dark:text-white/70">
                                                 <FileText size={36} className="mx-auto mb-3 opacity-50" />
                                                 <p className="text-sm">{t('complaint_no_templates')}</p>
                                             </div>
@@ -641,17 +641,17 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                                     setTemplateListOpen(false);
                                                                 }}
                                                                 className={`w-full p-4 rounded-xl border transition-all text-start ${isSelected
-                                                                    ? 'bg-gov-forest/5 dark:bg-gov-gold/20 border-gov-forest dark:border-gov-gold shadow-sm'
-                                                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10'
+                                                                    ? 'bg-gov-forest/5 dark:bg-gov-emerald/20 border-gov-forest dark:border-gov-teal shadow-sm'
+                                                                    : 'bg-white dark:bg-gov-card/10 border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10'
                                                                     }`}
                                                             >
                                                                 <div className="flex items-start justify-between gap-3">
                                                                     <div className="flex-1 min-w-0">
-                                                                        <h4 className={`font-bold mb-1 text-sm ${isSelected ? 'text-gov-forest dark:text-gov-gold' : 'text-gov-charcoal dark:text-white'}`}>
+                                                                        <h4 className={`font-bold mb-1 text-sm ${isSelected ? 'text-gov-forest dark:text-gov-teal' : 'text-gov-charcoal dark:text-white'}`}>
                                                                             {isAr ? tmpl.name : (tmpl.name_en || tmpl.name)}
                                                                         </h4>
                                                                         {(tmpl.description || tmpl.description_en) && (
-                                                                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                                                                            <p className="text-xs text-gray-500 dark:text-white/70 line-clamp-2">
                                                                                 {isAr ? tmpl.description : (tmpl.description_en || tmpl.description)}
                                                                             </p>
                                                                         )}
@@ -661,7 +661,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    <div className={`flex-shrink-0 mt-0.5 ${isSelected ? 'text-gov-forest dark:text-gov-gold' : 'text-gray-300 dark:text-gray-600'}`}>
+                                                                    <div className={`flex-shrink-0 mt-0.5 ${isSelected ? 'text-gov-forest dark:text-gov-teal' : 'text-gray-300 dark:text-white/70'}`}>
                                                                         {isSelected ? <CheckCircle2 size={20} /> : <ClipboardList size={18} />}
                                                                     </div>
                                                                 </div>
@@ -685,8 +685,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 // Skip if fields are old format (plain strings)
                                 if (fields.length > 0 && typeof fields[0] === 'string') return null;
                                 return (
-                                    <div className="space-y-4 p-4 bg-gov-beige/30 dark:bg-white/5 rounded-xl border border-gov-gold/20">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold flex items-center gap-2">
+                                    <div className="space-y-4 p-4 bg-gov-beige/30 dark:bg-gov-card/10 rounded-xl border border-gov-gold/20">
+                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal flex items-center gap-2">
                                             <FileText size={16} />
                                             {isAr ? 'بيانات النموذج' : 'Form Fields'}
                                         </h3>
@@ -708,18 +708,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             rows={4}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none text-sm"
+                                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none text-sm"
                                                         />
                                                     ) : field.type === 'select' && field.options ? (
                                                         <select
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none text-sm"
+                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none text-sm"
                                                         >
-                                                            <option value="" className="dark:bg-gray-800">{isAr ? 'اختر...' : 'Select...'}</option>
+                                                            <option value="" className="dark:bg-dm-surface">{isAr ? 'اختر...' : 'Select...'}</option>
                                                             {field.options.map(opt => (
-                                                                <option key={opt.value} value={opt.value} className="dark:bg-gray-800">
+                                                                <option key={opt.value} value={opt.value} className="dark:bg-dm-surface">
                                                                     {isAr ? opt.label : (opt.label_en || opt.label)}
                                                                 </option>
                                                             ))}
@@ -730,7 +730,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
+                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
                                                         />
                                                     ) : field.type === 'number' ? (
                                                         <input
@@ -739,7 +739,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
+                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
                                                         />
                                                     ) : (
                                                         <input
@@ -748,7 +748,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
+                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
                                                         />
                                                     )}
                                                 </div>
@@ -758,27 +758,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 );
                             })()}
 
-                            {/* Directorate Selector */}
-                            <div>
-                                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                    {isAr ? 'الجهة المعنية' : 'Directorate'}
-                                </label>
-                                <select
-                                    value={formData.directorate}
-                                    onChange={(e) => setFormData({ ...formData, directorate: e.target.value })}
-                                    className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none text-sm"
-                                >
-                                    <option value="" className="dark:bg-gray-800">{isAr ? 'اختر الجهة المعنية...' : 'Select directorate...'}</option>
-                                    {directoratesList.map(d => (
-                                        <option key={d.id} value={d.id} className="dark:bg-gray-800">
-                                            {getLocalizedName(d.name, language)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
                             {/* Document Upload / OCR */}
-                            <div className="bg-gov-beige/50 dark:bg-white/5 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
+                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
                                 <input
                                     type="file"
                                     accept="image/*,.pdf,.doc,.docx"
@@ -788,19 +769,19 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 />
                                 {!selectedFile ? (
                                     <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-gold/20 flex items-center justify-center text-gov-forest dark:text-gov-gold shadow-sm">
+                                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
                                             <Upload size={24} />
                                         </div>
                                         <div>
                                             <span className="block font-bold text-gov-charcoal dark:text-white text-sm">{t('complaint_ocr_attach')}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, JPG, PNG</span>
+                                            <span className="text-xs text-gray-500 dark:text-white/70">PDF, DOC, JPG, PNG</span>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-lg border border-gov-gold/20">
+                                        <div className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
                                             <div className="flex items-center gap-3">
-                                                <FileText size={20} className="text-gov-forest dark:text-gov-gold" />
+                                                <FileText size={20} className="text-gov-forest dark:text-gov-teal" />
                                                 <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate max-w-[200px]">{selectedFile.name}</span>
                                                 <span className="text-xs text-gray-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
                                             </div>
@@ -824,45 +805,44 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                             {/* Personal Information - Hidden for anonymous submissions */}
                             {!isAnonymous && (
-                                <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">
+                                <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">
                                         {t('complaint_personal_info')}
-                                        {isAuthenticated && <span className="text-xs text-gov-teal mr-2">({t('ui_smart_summary')})</span>}
                                     </h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.firstName}
                                                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.fatherName}
                                                     onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.lastName}
                                                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
@@ -871,7 +851,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required maxLength={11} minLength={11} placeholder={t('complaint_national_id_hint')}
@@ -880,19 +860,19 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                         const val = e.target.value.replace(/\D/g, '');
                                                         setFormData({ ...formData, nationalId: val });
                                                     }}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
                                                 />
                                                 <Fingerprint className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="date" required
                                                     value={formData.dob}
                                                     onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
@@ -902,27 +882,27 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     {/* Email & Phone - moved up to applicant section per item 13 */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="tel"
                                                     required={!isAnonymous}
                                                     value={formData.phone}
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="email"
                                                     required={!isAnonymous}
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
@@ -945,81 +925,16 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             value={formData.details}
                                             onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                                             rows={6}
-                                            className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
+                                            className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
                                             placeholder={t('complaint_placeholder')}
                                         />
                                     </div>
                                 )}
 
 
-                            {/* OTP Identity Verification - For unauthenticated non-anonymous users */}
-                            {!isAuthenticated && !isAnonymous && (
-                                <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-6 rounded-xl border border-gov-ocean/20">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2 flex items-center gap-2">
-                                        <Fingerprint size={20} />
-                                        {t('complaint_otp_title')}
-                                    </h3>
-
-                                    {otpStep === 'verified' ? (
-                                        <div className="flex items-center gap-3 text-gov-emerald">
-                                            <CheckCircle2 size={24} />
-                                            <span className="font-bold">{t('complaint_otp_identity_verified')}</span>
-                                        </div>
-                                    ) : otpStep === 'sent' || otpStep === 'verifying' ? (
-                                        <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                                                {t('complaint_otp_enter_code')}
-                                            </p>
-                                            <div className="flex gap-3">
-                                                <input
-                                                    type="text"
-                                                    maxLength={6}
-                                                    value={otpCode}
-                                                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                                                    placeholder="000000"
-                                                    className="flex-1 py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono text-center text-lg tracking-widest"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={handleVerifyOtp}
-                                                    disabled={otpStep === 'verifying' || otpCode.length < 4}
-                                                    className="px-6 py-3 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold disabled:opacity-50 transition-colors"
-                                                >
-                                                    {otpStep === 'verifying' ? <Loader2 size={20} className="animate-spin" /> : t('complaint_otp_verify')}
-                                                </button>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={handleSendOtp}
-                                                className="text-sm text-gov-teal dark:text-gov-gold hover:underline"
-                                            >
-                                                {t('complaint_otp_resend')}
-                                            </button>
-                                            {otpError && <p className="text-sm text-gov-cherry">{otpError}</p>}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                                                {t('complaint_otp_desc')}
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={handleSendOtp}
-                                                disabled={otpStep === 'sending' || !formData.phone || !formData.nationalId}
-                                                className="w-full py-3 rounded-xl bg-gov-ocean dark:bg-gov-ocean/80 text-white font-bold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {otpStep === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                                                {otpStep === 'sending' ? t('complaint_sending') : t('complaint_otp_send')}
-                                            </button>
-                                            {otpError && <p className="text-sm text-gov-cherry">{otpError}</p>}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
                             {/* Previous Complaint Field (Added for V2) */}
-                            <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
-                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">{t('complaint_details')} ({t('sitemap_previous')})</h3>
+                            <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">{t('complaint_details')} ({t('sitemap_previous')})</h3>
 
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
@@ -1047,11 +962,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     value={formData.previousTrackingNumber || ''}
                                                     onChange={(e) => setFormData({ ...formData, previousTrackingNumber: e.target.value })}
                                                     placeholder={t('complaint_prev_ticket_placeholder')}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
                                                 />
                                                 <History className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            <p className="text-xs text-gray-500 dark:text-white/70 mt-2">
                                                 {t('complaint_prev_ticket_hint')}
                                             </p>
                                         </div>
@@ -1062,8 +977,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             <div className="pt-4">
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || (!isAuthenticated && !isAnonymous && otpStep !== 'verified')}
-                                    className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-white transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    disabled={isSubmitting}
+                                    className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
                                     {isSubmitting ? t('complaint_sending') : t('complaint_submit')}
@@ -1082,24 +997,26 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 <CheckCircle size={40} />
                             </div>
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_success')}</h2>
-                            <p className="text-gray-500 dark:text-gray-400 mb-4 max-w-md">{t('complaint_success_desc')}</p>
-                            <p className="text-sm text-gov-teal dark:text-gov-gold mb-8 max-w-md font-bold">
+                            <p className="text-gray-500 dark:text-white/70 mb-4 max-w-md">{t('complaint_success_desc')}</p>
+                            <p className="text-sm text-gov-teal dark:text-gov-teal mb-8 max-w-md font-bold">
                                 {isAr ? 'تم تسجيل شكواك بنجاح وسيتم مراجعتها في أقرب وقت ممكن.' : 'Your complaint has been registered and will be reviewed as soon as possible.'}
                             </p>
 
                             <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-6 w-full max-w-sm">
-                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('complaint_ticket_number')}</span>
+                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_number')}</span>
                                 <div className="flex items-center justify-center gap-3">
-                                    <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold tracking-wider">{submittedTicket}</span>
+                                    <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket}</span>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(submittedTicket);
-                                            setCopied(true);
-                                            toast.success(isAr ? 'تم النسخ' : 'Copied');
-                                            setTimeout(() => setCopied(false), 2000);
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(submittedTicket);
+                                            if (success) {
+                                                setCopied(true);
+                                                toast.success(t('copied'));
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }
                                         }}
-                                        className="p-2 rounded-lg bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold hover:bg-gov-forest/20 dark:hover:bg-gov-gold/30 transition-colors"
+                                        className="p-2 rounded-lg bg-gov-forest/10 dark:bg-gov-emerald/20 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/20 dark:hover:bg-gov-gold/30 transition-colors"
                                         title={isAr ? 'نسخ رقم التتبع' : 'Copy tracking number'}
                                     >
                                         {copied ? <Check size={18} /> : <Copy size={18} />}
@@ -1110,12 +1027,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             {/* Satisfaction Rating */}
                             <div className="w-full max-w-sm mb-8">
                                 <ImportedSatisfactionRating
-                                    entityType="complaint"
-                                    entityId={submittedTicket}
+                                    trackingNumber={submittedTicket!}
                                 />
                             </div>
 
-                            <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-gold font-bold hover:underline">
+                            <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
                                 {t('complaint_track_now')}
                             </button>
                         </div>
@@ -1128,23 +1044,23 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         <div className="p-8 md:p-12 animate-fade-in">
                             <div className="text-center mb-10">
                                 <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_track_title')}</h2>
-                                <p className="text-gray-500 dark:text-gray-400">{t('complaint_track_subtitle')}</p>
+                                <p className="text-gray-500 dark:text-white/70">{t('complaint_track_subtitle')}</p>
                             </div>
 
                             <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_ticket_label')}</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
                                     <input
                                         type="text"
                                         placeholder={t('complaint_ticket_placeholder')}
                                         value={trackId}
                                         onChange={(e) => setTrackId(e.target.value)}
-                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_national_id_verify')}</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
                                     <input
                                         type="text"
                                         inputMode="numeric"
@@ -1154,11 +1070,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         placeholder={t('complaint_national_id_placeholder')}
                                         value={trackNationalId}
                                         onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
-                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
                                         required
                                     />
                                 </div>
-                                <button type="submit" className="w-full bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-white transition-colors flex items-center justify-center gap-2">
+                                <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>
                                 </button>
@@ -1166,8 +1082,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             </form>
 
                             {trackingResult && (
-                                <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gov-gold/20 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
-                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-white/10">
+                                <div className="bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/25 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
+                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">
                                         <span className="font-bold text-gov-charcoal dark:text-white">{t('complaint_ticket_prefix')} {trackingResult.tracking_number || trackingResult.id}</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
                                             {getStatusLabel(trackingResult.status)}
@@ -1177,7 +1093,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         <div className="flex items-start gap-3">
                                             <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
                                             <div>
-                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('complaint_last_update')}</span>
+                                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
                                                     {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString() : 'غير متوفر'}
                                                 </span>
@@ -1187,24 +1103,24 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
                                                 <div className="mt-1 text-gray-400"><FileText size={18} /></div>
                                                 <div>
-                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('complaint_details')}</span>
-                                                    <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{trackingResult.description}</span>
+                                                    <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_details')}</span>
+                                                    <span className="text-sm text-gray-700 dark:text-white/70 line-clamp-2">{trackingResult.description}</span>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
 
                                     {trackingResult.responses && trackingResult.responses.length > 0 && (
-                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 animate-fade-in">
-                                            <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold mb-4">{t('complaint_responses')}</h3>
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                            <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
                                             <div className="space-y-4">
                                                 {trackingResult.responses.map((response) => (
                                                     <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || t('complaint_responses_subtitle')}</span>
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(response.created_at).toLocaleString('ar-SY')}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString('ar-SY')}</span>
                                                         </div>
-                                                        <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap">{response.content}</p>
+                                                        <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1212,7 +1128,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     )}
 
                                     {/* FR-28: Print Complaint Button & Delete Button */}
-                                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/10 flex flex-col sm:flex-row justify-center gap-3">
+                                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gov-border/15 flex flex-col sm:flex-row justify-center gap-3">
                                         <ComplaintPrintButton
                                             trackingNumber={trackingResult.tracking_number || trackingResult.id}
                                         />
@@ -1237,11 +1153,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             )}
 
                             {trackingResult && trackingResult.status === 'resolved' && (
-                                <ImportedSatisfactionRating trackingNumber={trackingResult.id} />
+                                <ImportedSatisfactionRating trackingNumber={trackingResult.tracking_number || trackingResult.id} />
                             )}
 
                             <div className="mt-8 text-center animate-fade-in">
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('complaint_need_help')}</p>
+                                <p className="text-sm text-gray-500 dark:text-white/70 mb-3">{t('complaint_need_help')}</p>
                                 <a
                                     href={`https://wa.me/${whatsappNumber}`}
                                     target="_blank"

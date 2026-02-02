@@ -52,10 +52,10 @@ const ServiceCategoryPage: React.FC<ServiceCategoryPageProps> = ({
 
   const filteredServices = category.services.filter(service => {
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchQuery.toLowerCase());
+      service.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterDigital === 'all' ||
-                         (filterDigital === 'digital' && service.isDigital) ||
-                         (filterDigital === 'physical' && !service.isDigital);
+      (filterDigital === 'digital' && service.isDigital) ||
+      (filterDigital === 'physical' && !service.isDigital);
     return matchesSearch && matchesFilter;
   });
 
@@ -132,11 +132,10 @@ const ServiceCategoryPage: React.FC<ServiceCategoryPageProps> = ({
               className="group bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  service.isDigital
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                    : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                }`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold ${service.isDigital
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                  : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                  }`}>
                   {service.isDigital
                     ? (language === 'ar' ? 'رقمية' : 'Digital')
                     : (language === 'ar' ? 'حضورية' : 'In-Person')
@@ -189,13 +188,12 @@ const ServiceCategoryPage: React.FC<ServiceCategoryPageProps> = ({
             >
               <div className={`p-6 bg-gradient-to-br ${category.color} rounded-t-3xl`}>
                 <div className="flex items-center justify-between">
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    selectedService.isDigital
-                      ? 'bg-white/20 text-white'
-                      : 'bg-white/20 text-white'
-                  }`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${selectedService.isDigital
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white/20 text-white'
+                    }`}>
                     {selectedService.isDigital
-                      ? (language === 'ar' ? 'خدمة رقمية' : 'Digital Service')
+                      ? (language === 'ar' ? 'خدمة ' : 'Service')
                       : (language === 'ar' ? 'خدمة حضورية' : 'In-Person Service')
                     }
                   </div>

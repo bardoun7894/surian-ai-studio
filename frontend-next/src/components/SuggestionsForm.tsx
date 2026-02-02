@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
-import { getLocalizedName } from '@/lib/utils';
+import { getLocalizedName, copyToClipboard } from '@/lib/utils';
 import { focusPulse } from '@/lib/animations';
 import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
@@ -156,12 +156,14 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }));
     };
 
-    const copyTrackingNumber = () => {
+    const copyTrackingNumber = async () => {
         if (submittedTicket) {
-            navigator.clipboard.writeText(submittedTicket);
-            setCopied(true);
-            toast.success(isAr ? 'تم النسخ' : 'Copied');
-            setTimeout(() => setCopied(false), 2000);
+            const success = await copyToClipboard(submittedTicket);
+            if (success) {
+                setCopied(true);
+                toast.success(t('copied'));
+                setTimeout(() => setCopied(false), 2000);
+            }
         }
     };
 
@@ -273,7 +275,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             setGuestToken(null);
         } catch (err: any) {
             console.error('Submission failed', err);
-            toast.error(t('suggestion_submit_fail'), {
+            toast.error(t('suggestion_failed'), {
                 description: err?.message || t('complaint_try_again'),
             });
         } finally {
@@ -309,12 +311,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'new': return 'bg-gov-ocean/10 text-gov-ocean dark:bg-gov-ocean/20 dark:text-gov-oceanLight';
-            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-gold/20';
+            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-emerald/20';
             case 'processing': return 'bg-gov-cornflower/10 text-gov-cornflower dark:bg-gov-cornflower/20';
             case 'reviewed': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
             case 'implemented': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
             case 'rejected': return 'bg-gov-cherry/10 text-gov-cherry dark:bg-gov-cherry/20';
-            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-gray-300';
+            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-white/70';
         }
     };
 
@@ -334,12 +336,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         <div className="max-w-4xl mx-auto px-4 py-12">
 
             {/* Tabs */}
-            <div className="flex bg-white dark:bg-gray-900/50 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-gold/20 mb-8 max-w-md mx-auto">
+            <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
                     onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setShowTermsScreen(true); setHasAgreedToTerms(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
-                        ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest shadow-md'
-                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                        ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                        : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                 >
                     {t('suggestion_submit_tab')}
@@ -347,46 +349,46 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                 <button
                     onClick={() => { setActiveTab('track'); setSubmittedTicket(null); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'track'
-                        ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest shadow-md'
-                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                        ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                        : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                 >
                     {t('suggestion_track_tab')}
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-900/30 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-gold/20 overflow-hidden backdrop-blur-sm">
+            <div className="bg-white dark:bg-dm-surface rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-border/25 overflow-hidden backdrop-blur-sm">
 
                 {/* SUBMIT TAB - TERMS AGREEMENT SCREEN */}
                 {activeTab === 'submit' && !submittedTicket && showTermsScreen && (
                     <div className="p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Lightbulb size={32} className="text-gov-forest dark:text-gov-gold" />
+                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Lightbulb size={32} className="text-gov-forest dark:text-gov-teal" />
                             </div>
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {t('suggestion_terms_title')}
                             </h2>
-                            <p className="text-gray-600 dark:text-gray-400">
+                            <p className="text-gray-600 dark:text-white/70">
                                 {t('suggestion_terms_info')}
                             </p>
                         </div>
 
 
                         {/* Terms Section */}
-                        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-gov-gold/20 rounded-xl p-6 mb-6">
-                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-4">
+                        <div className="bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/25 rounded-xl p-6 mb-6">
+                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
                                 {t('suggestion_terms_guidelines')}
                             </h3>
 
-                            <p className="text-gov-charcoal dark:text-gray-200 text-sm mb-6 leading-relaxed">
+                            <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
                                 {t('suggestion_terms_desc')}
                             </p>
 
                             {/* Conditions List */}
-                            <div className="bg-gov-beige/50 dark:bg-white/5 rounded-lg p-4 mb-4">
-                                <p className="text-gov-forest dark:text-gov-gold font-bold text-sm mb-3">
+                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
                                     {t('suggestion_condition_intro')}
                                 </p>
                                 <ul className="space-y-3">
@@ -413,13 +415,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </div>
 
                         {/* Agreement Checkbox */}
-                        <div className="bg-gov-forest/5 dark:bg-gov-gold/10 rounded-xl p-5 mb-6">
+                        <div className="bg-gov-forest/5 dark:bg-gov-emerald/10 rounded-xl p-5 mb-6">
                             <label className="flex items-start gap-3 cursor-pointer select-none">
                                 <input
                                     type="checkbox"
                                     checked={hasAgreedToTerms}
                                     onChange={(e) => setHasAgreedToTerms(e.target.checked)}
-                                    className="w-5 h-5 mt-0.5 rounded border-gov-forest dark:border-gov-gold text-gov-forest dark:text-gov-gold focus:ring-gov-gold transition-colors cursor-pointer"
+                                    className="w-5 h-5 mt-0.5 rounded border-gov-forest dark:border-gov-teal text-gov-forest dark:text-gov-teal focus:ring-gov-gold transition-colors cursor-pointer"
                                 />
                                 <p className="text-gov-forest dark:text-white font-bold text-sm">
                                     {t('suggestion_agree_terms')}
@@ -432,7 +434,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             type="button"
                             onClick={() => setShowTermsScreen(false)}
                             disabled={!hasAgreedToTerms}
-                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-gold"
+                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-button"
                         >
                             <span>{t('suggestion_start_new')}</span>
                             <ChevronLeft size={20} className="rtl:rotate-180" />
@@ -447,7 +449,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => setShowTermsScreen(true)}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
                             <ChevronRight size={16} className="rtl:rotate-180" />
                             <span>{t('suggestion_back_terms')}</span>
@@ -455,20 +457,20 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_form_title')}</h2>
-                            <p className="text-gray-600 dark:text-gray-400">{t('suggestion_form_subtitle')}</p>
+                            <p className="text-gray-600 dark:text-white/70">{t('suggestion_form_subtitle')}</p>
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
 
                             {/* Anonymous / Known Identity Toggle */}
-                            <div className="bg-gov-beige/50 dark:bg-white/5 p-4 rounded-xl border border-gov-gold/20">
+                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20">
                                 <div className="flex items-center justify-center gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(false)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
                                     >
                                         <User size={16} />
@@ -478,8 +480,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         type="button"
                                         onClick={() => setIsAnonymous(true)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/20'
+                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
                                     >
                                         <UserX size={16} />
@@ -497,13 +499,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     <select
                                         value={formData.directorate_id}
                                         onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
-                                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none"
+                                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none"
                                     >
-                                        <option value="" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">
+                                        <option value="" className="bg-white text-gov-charcoal dark:bg-dm-surface dark:text-white">
                                             {t('suggestion_directorate_placeholder')}
                                         </option>
                                         {directoratesList.map(d => (
-                                            <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">
+                                            <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-dm-surface dark:text-white">
                                                 {isAr ? getLocalizedName(d.name, 'ar') : getLocalizedName(d.name, 'en')}
                                             </option>
                                         ))}
@@ -517,7 +519,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                                     {t('suggestion_attachments')} <span className="text-xs text-gray-400">({t('suggestion_optional')})</span>
                                 </label>
-                                <div className="bg-gov-beige/50 dark:bg-white/5 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
                                     <input
                                         type="file"
                                         multiple
@@ -527,12 +529,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         onChange={handleFileChange}
                                     />
                                     <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-gold/20 flex items-center justify-center text-gov-forest dark:text-gov-gold shadow-sm">
+                                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
                                             <Upload size={24} />
                                         </div>
                                         <div>
                                             <span className="block font-bold text-gov-charcoal dark:text-white text-sm">{t('suggestion_attachments_hint')}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{t('suggestion_attachments_types')}</span>
+                                            <span className="text-xs text-gray-500 dark:text-white/70">{t('suggestion_attachments_types')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -543,10 +545,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         {formData.files.map((file, idx) => (
                                             <div
                                                 key={`${file.name}-${idx}`}
-                                                className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-lg border border-gov-gold/20"
+                                                className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20"
                                             >
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <File size={18} className="text-gov-forest dark:text-gov-gold flex-shrink-0" />
+                                                    <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
                                                     <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
                                                     <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                                                 </div>
@@ -563,7 +565,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 {/* Upload Progress */}
                                 {isSubmitting && uploadProgress > 0 && (
                                     <div className="mt-3">
-                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-1">
                                             <span>{t('suggestion_sending')}</span>
                                             <span>{uploadProgress}%</span>
                                         </div>
@@ -579,45 +581,45 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
                             {/* Personal Information - Hidden for anonymous submissions */}
                             {!isAnonymous && (
-                                <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-gray-100 dark:border-white/10">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2">
+                                <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">
                                         {t('suggestion_personal_info')}
                                     </h3>
 
                                     {/* 3-column: First Name, Father Name, Last Name */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.firstName}
                                                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.fatherName}
                                                     onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required
                                                     value={formData.lastName}
                                                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
@@ -627,7 +629,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     {/* 2-column: National ID, Date of Birth */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="text" required maxLength={11} minLength={11} placeholder={t('complaint_national_id_hint')}
@@ -636,19 +638,19 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         const val = e.target.value.replace(/\D/g, '');
                                                         setFormData({ ...formData, nationalId: val });
                                                     }}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
                                                 />
                                                 <Fingerprint className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="date" required
                                                     value={formData.dob}
                                                     onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                 />
                                                 <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
@@ -658,28 +660,28 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     {/* Email & Phone - moved up to applicant section per item 13 */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="tel"
                                                     required={!isAnonymous}
                                                     value={formData.phone}
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                     placeholder="09xxxxxxxx"
                                                 />
                                                 <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
                                             <div className="relative">
                                                 <input
                                                     type="email"
                                                     required={!isAnonymous}
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
                                                     placeholder="example@email.com"
                                                 />
                                                 <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -699,7 +701,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     rows={6}
-                                    className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
+                                    className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
                                     placeholder={t('suggestion_description_placeholder')}
                                 />
                             </div>
@@ -708,7 +710,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             {/* OTP Identity Verification - For unauthenticated non-anonymous users */}
                             {!isAuthenticated && !isAnonymous && (
                                 <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-6 rounded-xl border border-gov-ocean/20">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-gold mb-4 text-base border-b border-gov-gold/20 dark:border-white/10 pb-2 flex items-center gap-2">
+                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2 flex items-center gap-2">
                                         <Fingerprint size={20} />
                                         {t('complaint_otp_title')}
                                     </h3>
@@ -720,7 +722,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </div>
                                     ) : otpStep === 'sent' || otpStep === 'verifying' ? (
                                         <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                            <p className="text-sm text-gray-600 dark:text-white/70">
                                                 {t('complaint_otp_enter_code')}
                                             </p>
                                             <div className="flex gap-3">
@@ -730,13 +732,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     value={otpCode}
                                                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                                                     placeholder="000000"
-                                                    className="flex-1 py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono text-center text-lg tracking-widest"
+                                                    className="flex-1 py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono text-center text-lg tracking-widest"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleVerifyOtp}
                                                     disabled={otpStep === 'verifying' || otpCode.length < 4}
-                                                    className="px-6 py-3 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold disabled:opacity-50 transition-colors"
+                                                    className="px-6 py-3 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold disabled:opacity-50 transition-colors"
                                                 >
                                                     {otpStep === 'verifying' ? <Loader2 size={20} className="animate-spin" /> : t('complaint_otp_verify')}
                                                 </button>
@@ -744,7 +746,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={handleSendOtp}
-                                                className="text-sm text-gov-teal dark:text-gov-gold hover:underline"
+                                                className="text-sm text-gov-teal dark:text-gov-teal hover:underline"
                                             >
                                                 {t('complaint_otp_resend')}
                                             </button>
@@ -752,7 +754,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                            <p className="text-sm text-gray-600 dark:text-white/70">
                                                 {t('complaint_otp_desc')}
                                             </p>
                                             <button
@@ -775,7 +777,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || (!isAuthenticated && !isAnonymous && otpStep !== 'verified')}
-                                    className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-white transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
                                     {isSubmitting ? t('suggestion_sending') : t('suggestion_submit')}
@@ -792,22 +794,22 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             <CheckCircle size={40} />
                         </div>
                         <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_success')}</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('suggestion_success_desc')}</p>
+                        <p className="text-gray-500 dark:text-white/70 mb-8 max-w-md">{t('suggestion_success_desc')}</p>
 
                         <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-8 w-full max-w-sm">
-                            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('suggestion_tracking_number')}</span>
+                            <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</span>
                             <div className="flex items-center justify-center gap-3">
-                                <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold tracking-wider">{submittedTicket}</span>
+                                <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket}</span>
                                 <button
                                     onClick={copyTrackingNumber}
-                                    className="p-2 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
+                                    className="p-2 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
                                 >
                                     {copied ? <Check size={18} className="text-gov-emerald" /> : <Copy size={18} className="text-gray-500" />}
                                 </button>
                             </div>
                         </div>
 
-                        <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="text-gov-forest dark:text-gov-gold font-bold hover:underline">
+                        <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
                             {t('suggestion_track_now')}
                         </button>
                     </div>
@@ -818,33 +820,37 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     <div className="p-8 md:p-12 animate-fade-in">
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_track_title')}</h2>
-                            <p className="text-gray-500 dark:text-gray-400">{t('suggestion_track_subtitle')}</p>
+                            <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
                         </div>
 
                         <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('suggestion_tracking_number')}</label>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</label>
                                 <input
                                     type="text"
                                     placeholder={t('suggestion_track_placeholder')}
                                     value={trackId}
                                     onChange={(e) => setTrackId(e.target.value)}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{t('complaint_national_id_verify')}</label>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
                                 <input
                                     type="text"
+                                    inputMode="numeric"
+                                    pattern="\d{11}"
+                                    maxLength={11}
+                                    minLength={11}
                                     placeholder={t('complaint_national_id_placeholder')}
                                     value={trackNationalId}
-                                    onChange={(e) => setTrackNationalId(e.target.value)}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                    onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
+                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
                                     required
                                 />
                             </div>
-                            <button type="submit" className="w-full bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-white transition-colors flex items-center justify-center gap-2">
+                            <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
                                 {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                 <span>{t('ui_search')}</span>
                             </button>
@@ -852,8 +858,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </form>
 
                         {trackingResult && (
-                            <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gov-gold/20 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
-                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-white/10">
+                            <div className="bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/25 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
+                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">
                                     <span className="font-bold text-gov-charcoal dark:text-white">{t('suggestion_tracking_number')}: {trackingResult.tracking_number || trackingResult.id}</span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
                                         {getStatusLabel(trackingResult.status)}
@@ -863,7 +869,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     <div className="flex items-start gap-3">
                                         <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
                                         <div>
-                                            <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('complaint_last_update')}</span>
+                                            <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                             <span className="text-sm font-medium text-gov-charcoal dark:text-white">
                                                 {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
                                             </span>
@@ -873,33 +879,33 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
                                             <div className="mt-1 text-gray-400"><FileText size={18} /></div>
                                             <div>
-                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{t('suggestion_description')}</span>
-                                                <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{trackingResult.description}</span>
+                                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_description')}</span>
+                                                <span className="text-sm text-gray-700 dark:text-white/70 line-clamp-2">{trackingResult.description}</span>
                                             </div>
                                         </div>
                                     )}
                                 </div>
 
                                 {trackingResult.response && (
-                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 animate-fade-in">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold mb-4">{t('complaint_responses')}</h3>
+                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
                                         <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
-                                            <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap">{trackingResult.response}</p>
+                                            <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{trackingResult.response}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {trackingResult.responses && trackingResult.responses.length > 0 && (
-                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/10 animate-fade-in">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-gold mb-4">{t('complaint_responses')}</h3>
+                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
                                         <div className="space-y-4">
                                             {trackingResult.responses.map((response: any) => (
                                                 <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
                                                     <div className="flex justify-between items-center mb-2">
                                                         <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || (isAr ? 'فريق المراجعة' : 'Review Team')}</span>
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY' : 'en-US')}</span>
+                                                        <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY' : 'en-US')}</span>
                                                     </div>
-                                                    <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap">{response.content}</p>
+                                                    <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -909,7 +915,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         )}
 
                         <div className="mt-8 text-center animate-fade-in">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('complaint_need_help')}</p>
+                            <p className="text-sm text-gray-500 dark:text-white/70 mb-3">{t('complaint_need_help')}</p>
                             <a
                                 href={`https://wa.me/${whatsappNumber}`}
                                 target="_blank"

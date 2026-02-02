@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Search, ChevronDown, Loader2 } from 'lucide-react';
+import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Search, ChevronDown, Loader2, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { getLocalizedField } from '@/lib/utils';
@@ -18,6 +18,11 @@ interface Announcement {
   description: string;
   category: string;
 }
+
+const MONTHS_AR = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const MOCK_ANNOUNCEMENTS: Announcement[] = [
   {
@@ -109,6 +114,11 @@ export default function AnnouncementsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+  const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const isAr = language === 'ar';
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -147,36 +157,36 @@ export default function AnnouncementsPage() {
     switch (type) {
       case 'urgent':
         return {
-          bg: 'bg-gov-red/5 dark:bg-gov-emeraldStatic',
+          bg: 'bg-gov-red/5 dark:bg-dm-surface',
           border: 'border-gov-red/20 dark:border-gov-red/30',
           badge: 'bg-gov-red text-white',
           icon: <AlertCircle size={14} />
         };
       case 'important':
         return {
-          bg: 'bg-gov-gold/10 dark:bg-gov-emeraldStatic',
-          border: 'border-gov-gold/30 dark:border-gov-gold/30',
+          bg: 'bg-gov-gold/10 dark:bg-dm-surface',
+          border: 'border-gov-gold/30 dark:border-gov-border/35',
           badge: 'bg-gov-gold text-gov-forest',
           icon: <Bell size={14} />
         };
       case 'tender':
         return {
-          bg: 'bg-gov-teal/5 dark:bg-gov-emeraldStatic',
+          bg: 'bg-gov-teal/5 dark:bg-dm-surface',
           border: 'border-gov-teal/20 dark:border-gov-teal/30',
           badge: 'bg-gov-teal text-white',
           icon: <Megaphone size={14} />
         };
       case 'job':
         return {
-          bg: 'bg-gov-emeraldLight/5 dark:bg-gov-emeraldStatic',
+          bg: 'bg-gov-emeraldLight/5 dark:bg-dm-surface',
           border: 'border-gov-emeraldLight/20 dark:border-gov-emeraldLight/30',
           badge: 'bg-gov-emeraldLight text-white',
           icon: <Megaphone size={14} />
         };
       default:
         return {
-          bg: 'bg-gov-sand/5 dark:bg-gov-emeraldStatic',
-          border: 'border-gov-sand/20 dark:border-white/10',
+          bg: 'bg-gov-sand/5 dark:bg-dm-surface',
+          border: 'border-gov-sand/20 dark:border-gov-border/15',
           badge: 'bg-gov-sand text-white',
           icon: <Megaphone size={14} />
         };
@@ -217,17 +227,23 @@ export default function AnnouncementsPage() {
     const matchesSearch = !searchQuery.trim() || title.includes(searchQuery) || description.includes(searchQuery);
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
     const matchesCategory = selectedCategory === 'all' || announcement.category === selectedCategory;
-    return matchesSearch && matchesType && matchesCategory;
+
+    // Month/Year filtering
+    const date = new Date(announcement.date);
+    const matchesMonth = selectedMonth === null || date.getMonth() === selectedMonth;
+    const matchesYear = selectedYear === null || date.getFullYear() === selectedYear;
+
+    return matchesSearch && matchesType && matchesCategory && matchesMonth && matchesYear;
   });
 
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-14 md:pt-16">
-        <div className="min-h-screen bg-gov-beige dark:bg-black pb-16">
+      <main className="flex-grow pt-20 md:pt-24">
+        <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-16">
           {/* Hero Header */}
           <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -250,17 +266,17 @@ export default function AnnouncementsPage() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Search & Filters */}
-            <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 p-6 mb-8">
+            <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 p-6 mb-8">
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Type Filter */}
                 <div className="relative min-w-[180px]">
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full py-3 px-4 pr-10 rtl:pr-4 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal transition-colors appearance-none cursor-pointer"
+                    className="w-full py-3 px-4 pr-10 rtl:pr-4 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal transition-colors appearance-none cursor-pointer"
                   >
                     {types.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
+                      <option key={type.value} value={type.value} className="bg-white dark:bg-dm-surface dark:text-white">{type.label}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
@@ -271,10 +287,10 @@ export default function AnnouncementsPage() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full py-3 px-4 pr-10 rtl:pr-4 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal transition-colors appearance-none cursor-pointer"
+                    className="w-full py-3 px-4 pr-10 rtl:pr-4 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal transition-colors appearance-none cursor-pointer"
                   >
                     {categories.map(cat => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      <option key={cat.value} value={cat.value} className="bg-white dark:bg-dm-surface dark:text-white">{cat.label}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
@@ -283,7 +299,7 @@ export default function AnnouncementsPage() {
 
               {/* Results Count */}
               {!loading && (
-                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-4 text-sm text-gray-500 dark:text-white/70">
                   {language === 'ar'
                     ? `عرض ${filteredAnnouncements.length} من ${announcements.length} إعلان`
                     : `Showing ${filteredAnnouncements.length} of ${announcements.length} announcements`}
@@ -291,6 +307,99 @@ export default function AnnouncementsPage() {
               )}
             </div>
 
+
+            {/* Time Filter Bar - matching news page */}
+            <div className="flex items-center justify-between mb-8 flex-wrap gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
+                  <Calendar size={16} />
+                  <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>
+                </div>
+                <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+
+                {/* Month Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); }}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
+                      ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
+                      : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
+                      }`}
+                  >
+                    {selectedMonth !== null
+                      ? (isAr ? MONTHS_AR[selectedMonth] : MONTHS_EN[selectedMonth])
+                      : (isAr ? 'الشهر' : 'Month')}
+                    <Calendar size={12} />
+                  </button>
+                  {showMonthDropdown && (
+                    <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                      <button
+                        onClick={() => { setSelectedMonth(null); setShowMonthDropdown(false); }}
+                        className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
+                      >
+                        {isAr ? 'الكل' : 'All'}
+                      </button>
+                      {(isAr ? MONTHS_AR : MONTHS_EN).map((m, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setSelectedMonth(i); setShowMonthDropdown(false); }}
+                          className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${selectedMonth === i ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gov-charcoal dark:text-white'}`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Year Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); }}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
+                      ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
+                      : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
+                      }`}
+                  >
+                    {selectedYear !== null ? selectedYear : (isAr ? 'السنة' : 'Year')}
+                    <Calendar size={12} />
+                  </button>
+                  {showYearDropdown && (
+                    <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-32 z-50">
+                      <button
+                        onClick={() => { setSelectedYear(null); setShowYearDropdown(false); }}
+                        className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
+                      >
+                        {isAr ? 'الكل' : 'All'}
+                      </button>
+                      {YEARS.map(y => (
+                        <button
+                          key={y}
+                          onClick={() => { setSelectedYear(y); setShowYearDropdown(false); }}
+                          className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${selectedYear === y ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gov-charcoal dark:text-white'}`}
+                        >
+                          {y}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Clear filters */}
+                {(selectedMonth !== null || selectedYear !== null) && (
+                  <button
+                    onClick={() => { setSelectedMonth(null); setSelectedYear(null); }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
+                  >
+                    <X size={12} />
+                    {isAr ? 'مسح' : 'Clear'}
+                  </button>
+                )}
+              </div>
+              <span className="text-sm text-gray-400 dark:text-white/50 font-medium">
+                {filteredAnnouncements.length} {isAr ? 'إعلان' : 'announcements'}
+              </span>
+            </div>
 
             {/* Announcements List - 3x3 Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -312,7 +421,7 @@ export default function AnnouncementsPage() {
                         {styles.icon}
                         {getTypeLabel(announcement.type)}
                       </span>
-                      <span className="px-2.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 border border-transparent dark:border-white/10">
+                      <span className="px-2.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/70 border border-transparent dark:border-gov-border/15">
                         {announcement.category}
                       </span>
                     </div>
@@ -323,13 +432,13 @@ export default function AnnouncementsPage() {
                     </h3>
 
                     {/* Description */}
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                    <p className="text-gray-600 dark:text-white/70 text-sm mb-4 line-clamp-3">
                       {getLocalizedField(announcement, 'description', language as 'ar' | 'en')}
                     </p>
 
                     {/* Footer (Date & CTA) - Push to bottom */}
                     <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-400 text-xs">
+                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/70 text-xs">
                         <Calendar size={14} />
                         <span>{formatDate(announcement.date)}</span>
                       </div>
@@ -349,11 +458,11 @@ export default function AnnouncementsPage() {
             {/* Empty State */}
             {filteredAnnouncements.length === 0 && (
               <div className="text-center py-16">
-                <Megaphone className="mx-auto text-gray-300 dark:text-gray-400 mb-4" size={64} />
-                <h3 className="text-xl font-bold text-gray-500 dark:text-gray-400 mb-2">
+                <Megaphone className="mx-auto text-gray-300 dark:text-white/70 mb-4" size={64} />
+                <h3 className="text-xl font-bold text-gray-500 dark:text-white/70 mb-2">
                   {language === 'ar' ? 'لا توجد إعلانات' : 'No Announcements Found'}
                 </h3>
-                <p className="text-gray-400 dark:text-gray-400">
+                <p className="text-gray-400 dark:text-white/70">
                   {language === 'ar' ? 'جرب تغيير معايير البحث' : 'Try changing your search criteria'}
                 </p>
               </div>
@@ -361,26 +470,26 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 bg-white dark:bg-gov-emeraldStatic rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+          <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
             <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
               {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
             </h2>
             <div className="space-y-4">
               <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                   {language === 'ar' ? 'كيف أتابع الإعلانات الجديدة؟' : 'How do I follow new announcements?'}
                   <ChevronDown size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                   {language === 'ar' ? 'يمكنك زيارة هذه الصفحة بانتظام أو الاشتراك في النشرة البريدية للحصول على إشعارات بالإعلانات الجديدة.' : 'You can visit this page regularly or subscribe to the newsletter for new announcement notifications.'}
                 </p>
               </details>
               <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                   {language === 'ar' ? 'ما الفرق بين أنواع الإعلانات؟' : 'What is the difference between announcement types?'}
                   <ChevronDown size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
                   {language === 'ar' ? 'تتنوع الإعلانات بين عاجلة وهامة ومناقصات ووظائف وعامة، ويمكنك تصفيتها باستخدام القوائم أعلاه.' : 'Announcements vary between urgent, important, tenders, jobs, and general. You can filter them using the menus above.'}
                 </p>
               </details>

@@ -37,9 +37,9 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Directorates
   'dir_title_full': { ar: 'دليل الجهات الحكومية', en: 'Government Directory' },
-  'dir_subtitle_full': { ar: 'تصفح الدليل الشامل للوزارات والهيئات الحكومية والخدمات الرقمية.', en: 'Browse the comprehensive directory of ministries, agencies, and digital services.' },
+  'dir_subtitle_full': { ar: 'تصفح الدليل الشامل للوزارات والهيئات الحكومية والخدمات الرقمية.', en: 'Browse the comprehensive directory of ministries, agencies, and Services.' },
   'dir_title_compact': { ar: 'الوصول السريع للجهات', en: 'Quick Access' },
-  'dir_subtitle_compact': { ar: 'أكثر الجهات الحكومية طلباً وخدماتها الرقمية.', en: 'Most requested government agencies and their digital services.' },
+  'dir_subtitle_compact': { ar: 'أكثر الجهات الحكومية طلباً وخدماتها الرقمية.', en: 'Most requested government agencies and their Services.' },
   'dir_services_selected': { ar: 'خدمات مختارة', en: 'Selected Services' },
   'search_placeholder': { ar: 'بحث عن وزارة أو هيئة...', en: 'Search for a ministry or agency...' },
   'view_details': { ar: 'تصفح', en: 'View' },
@@ -495,7 +495,7 @@ const translations: Record<string, Record<Language, string>> = {
   // Directorate Detail
   'directorate_back': { ar: 'العودة إلى الدليل', en: 'Back to Directory' },
   'directorate_services': { ar: 'الخدمات الإلكترونية المتاحة', en: 'Available E-Services' },
-  'directorate_digital': { ar: 'خدمة رقمية فورية', en: 'Instant digital service' },
+  'directorate_digital': { ar: 'خدمة  فورية', en: 'Instant Service' },
   'directorate_in_person': { ar: 'تتطلب مراجعة المركز', en: 'Requires center visit' },
   'directorate_no_services': { ar: 'لا توجد خدمات إلكترونية مضافة حالياً.', en: 'No e-services added currently.' },
   'directorate_paper_guide': { ar: 'عرض دليل المعاملات الورقية', en: 'View Paper Transactions Guide' },

@@ -306,4 +306,20 @@ export const badgePulse = (element: HTMLElement) => {
         ease: 'sine.inOut'
     });
 };
+/**
+ * Emblem Horizontal Pan (Right-Left)
+ */
+export const panEmblem = (element: string | HTMLElement) => {
+    return gsap.fromTo(element,
+        { x: -5 },
+        {
+            x: 5,
+            duration: 1.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+        }
+    );
+};
+
 export default gsap;

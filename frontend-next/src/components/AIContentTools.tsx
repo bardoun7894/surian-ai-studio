@@ -200,14 +200,14 @@ export const AIContentTools: React.FC<AIContentToolsProps> = ({
 
       {/* Result Panel */}
       {activeResult && (
-        <div className="p-4 bg-gov-beige dark:bg-white/5 rounded-xl border border-gov-gold/20 space-y-3">
+        <div className="p-4 bg-gov-beige dark:bg-gov-card/10 rounded-xl border border-gov-gold/20 space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold text-gov-charcoal dark:text-white">
             <Sparkles size={16} className="text-gov-gold" />
             {language === 'ar' ? 'نتيجة ' : 'Result: '}
             {labels[activeResult.type][lang]}
           </div>
 
-          <div className="p-3 bg-white dark:bg-white/10 rounded-lg text-sm text-gov-charcoal dark:text-gray-200 whitespace-pre-wrap">
+          <div className="p-3 bg-white dark:bg-white/10 rounded-lg text-sm text-gov-charcoal dark:text-white/70 whitespace-pre-wrap">
             {activeResult.result}
           </div>
 

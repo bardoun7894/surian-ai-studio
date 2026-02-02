@@ -70,9 +70,9 @@ export default function InvestmentPage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-14 md:pt-16">
+            <main className="flex-grow pt-20 md:pt-24">
                 {/* Hero Section */}
                 <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-10">
@@ -97,10 +97,10 @@ export default function InvestmentPage() {
                 <div className="max-w-6xl mx-auto px-4 -mt-12 relative z-20">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {stats.map((stat, idx) => (
-                            <div key={idx} className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 text-center">
+                            <div key={idx} className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 text-center">
                                 <IconRenderer name={stat.iconName} size={32} className="text-gov-gold mx-auto mb-3" />
                                 <div className="text-3xl font-bold text-gov-forest dark:text-white">{stat.value}</div>
-                                <div className="text-gray-600 dark:text-gray-400">
+                                <div className="text-gray-600 dark:text-white/70">
                                     {language === 'ar' ? stat.label_ar : stat.label_en}
                                 </div>
                             </div>
@@ -119,7 +119,7 @@ export default function InvestmentPage() {
                             <Link
                                 key={idx}
                                 href={`/investment/${cat.slug}`}
-                                className="group bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500"
+                                className="group bg-white dark:bg-dm-surface p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500"
                             >
                                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gov-teal to-gov-emerald dark:from-gov-gold/90 dark:to-gov-sand flex items-center justify-center text-white dark:text-gov-forest mb-6 group-hover:scale-110 transition-transform shadow-lg">
                                     <IconRenderer name={cat.iconName} size={40} />
@@ -127,7 +127,7 @@ export default function InvestmentPage() {
                                 <h3 className="text-2xl font-bold text-gov-forest dark:text-white mb-4">
                                     {language === 'ar' ? cat.title_ar : cat.title_en}
                                 </h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                                <p className="text-gray-600 dark:text-white/70 mb-6 leading-relaxed">
                                     {language === 'ar' ? cat.desc_ar : cat.desc_en}
                                 </p>
                                 <span className="text-gov-teal dark:text-gov-gold font-bold flex items-center gap-2 group-hover:gap-4 transition-all">
@@ -146,7 +146,7 @@ export default function InvestmentPage() {
                         <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-4">
                             {language === 'ar' ? 'ابدأ رحلتك الاستثمارية اليوم' : 'Start Your Investment Journey Today'}
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                        <p className="text-gray-600 dark:text-white/70 text-lg mb-8 max-w-2xl mx-auto">
                             {language === 'ar'
                                 ? 'فريقنا المتخصص جاهز لمساعدتك في كل خطوة من خطوات الاستثمار'
                                 : 'Our specialized team is ready to help you at every step of your investment'}

@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images } from 'lucide-react';
+import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images, Sparkles, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { API } from '@/lib/repository';
+import { formatRelativeTime } from '@/lib/utils';
 
 interface ArticleDetailProps {
     title: string;
@@ -41,8 +44,35 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     backLink,
     relatedItems
 }) => {
+    const { language: ctxLanguage } = useLanguage();
+    const lang = language || ctxLanguage || 'ar';
+
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
+
+    // T047: AI Smart Summary state
+    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [summaryText, setSummaryText] = useState<string | null>(null);
+    const [summaryError, setSummaryError] = useState<string | null>(null);
+    const [summaryOpen, setSummaryOpen] = useState(true);
+
+    const handleSmartSummary = async () => {
+        if (summaryText) {
+            setSummaryOpen((prev) => !prev);
+            return;
+        }
+        setSummaryLoading(true);
+        setSummaryError(null);
+        try {
+            const result = await API.ai.summarize(content);
+            setSummaryText(result.summary);
+            setSummaryOpen(true);
+        } catch {
+            setSummaryError(lang === 'ar' ? 'فشل في إنشاء الملخص' : 'Failed to generate summary');
+        } finally {
+            setSummaryLoading(false);
+        }
+    };
 
     // Gallery images: use images array if available, otherwise just featured
     const galleryImages = images && images.length > 1 ? images : [];
@@ -63,19 +93,19 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     };
 
     return (
-        <div className="bg-gov-beige dark:bg-gov-forest/30 min-h-screen pb-20">
+        <div className="bg-gov-beige dark:bg-dm-bg min-h-screen pb-20">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
                 {/* Back Link */}
                 <Link
                     href={backLink.href}
-                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-gold font-bold mb-8 hover:gap-3 transition-all"
+                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-teal font-bold mb-8 hover:gap-3 transition-all"
                 >
                     <ChevronRight size={20} className="rtl:rotate-0 rotate-180" />
                     {backLink.label}
                 </Link>
 
-                <article className="bg-white dark:bg-white/5 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-white/10">
+                <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15">
 
                     {/* Featured Image */}
                     {imageUrl && (
@@ -108,10 +138,10 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                     <div className="p-8 md:p-12">
                         {/* Meta Data */}
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-gray-400 mb-8 pb-8 border-b border-gray-100 dark:border-white/10">
-                            <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
+                            <div className="flex items-center gap-2" title={new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}>
                                 <Calendar size={18} />
-                                {date}
+                                {formatRelativeTime(date, lang as 'ar' | 'en')}
                             </div>
                             {author && (
                                 <div className="flex items-center gap-2">
@@ -137,11 +167,46 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </div>
 
                         {/* Content Body */}
-                        <h1 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-white mb-8 leading-tight">
+                        <h1 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-white mb-4 leading-tight">
                             {title}
                         </h1>
 
-                        <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gray-600 dark:prose-p:text-gray-300">
+                        {/* T047: AI Smart Summary */}
+                        <div className="mb-8">
+                            <button
+                                onClick={handleSmartSummary}
+                                disabled={summaryLoading}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-gov-gold/10 text-gov-gold hover:bg-gov-gold/20 dark:bg-gov-gold/20 dark:hover:bg-gov-gold/30 transition-colors disabled:opacity-60"
+                            >
+                                {summaryLoading ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <Sparkles size={16} />
+                                )}
+                                {lang === 'ar' ? 'ملخص ذكي' : 'Smart Summary'}
+                                {summaryText && (summaryOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                            </button>
+
+                            {summaryError && (
+                                <div className="mt-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+                                    {summaryError}
+                                </div>
+                            )}
+
+                            {summaryText && summaryOpen && (
+                                <div className="mt-3 p-5 rounded-2xl bg-gov-gold/5 dark:bg-gov-gold/10 border border-gov-gold/20 dark:border-gov-gold/30">
+                                    <div className="flex items-center gap-2 text-gov-gold font-bold text-sm mb-2">
+                                        <Sparkles size={14} />
+                                        {lang === 'ar' ? 'ملخص ذكي' : 'AI Summary'}
+                                    </div>
+                                    <p className="text-gray-700 dark:text-white/70 leading-relaxed text-sm">
+                                        {summaryText}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gray-600 dark:prose-p:text-white/70">
                             {content.split('\n\n').map((paragraph, idx) => (
                                 <p key={idx} className="mb-4 leading-relaxed">
                                     {paragraph}
@@ -151,7 +216,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                         {/* Image Gallery */}
                         {galleryImages.length > 1 && (
-                            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/10">
+                            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gov-border/15">
                                 <h2 className="text-xl font-display font-bold text-gov-forest dark:text-white mb-6 flex items-center gap-2">
                                     <Images size={22} className="text-gov-gold" />
                                     {language === 'ar' ? 'معرض الصور' : 'Photo Gallery'}
@@ -161,7 +226,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                     {galleryImages.map((img, idx) => (
                                         <div
                                             key={idx}
-                                            className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all"
+                                            className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-all"
                                             onClick={() => openLightbox(idx)}
                                         >
                                             <Image
@@ -193,7 +258,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                 <Link
                                     key={item.id}
                                     href={item.href}
-                                    className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-lg transition-all overflow-hidden group"
+                                    className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-lg transition-all overflow-hidden group"
                                 >
                                     {item.imageUrl && (
                                         <div className="relative h-40 w-full overflow-hidden">
@@ -210,9 +275,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                         <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
                                             {item.title}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}>
                                             <Calendar size={14} />
-                                            {item.date}
+                                            {formatRelativeTime(item.date, lang as 'ar' | 'en')}
                                         </div>
                                     </div>
                                 </Link>

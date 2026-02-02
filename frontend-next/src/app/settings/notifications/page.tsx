@@ -140,7 +140,7 @@ function NotificationPreferencesContent() {
           {label}
         </p>
         {description && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+          <p className="text-sm text-gray-500 dark:text-white/70 mt-1">{description}</p>
         )}
       </div>
       <button
@@ -158,7 +158,7 @@ function NotificationPreferencesContent() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => router.push(`/search?q=${encodeURIComponent(q)}`)} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -175,7 +175,7 @@ function NotificationPreferencesContent() {
               <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'إعدادات الإشعارات' : 'Notification Settings'}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-white/70">
                 {language === 'ar'
                   ? 'تحكم في كيفية تلقيك للإشعارات'
                   : 'Control how you receive notifications'}
@@ -190,10 +190,10 @@ function NotificationPreferencesContent() {
           ) : (
             <div className="space-y-6">
               {/* Email Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+              <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
                 <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-gov-card/10 text-gov-forest dark:text-gov-gold">
                       <Mail size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
@@ -256,10 +256,10 @@ function NotificationPreferencesContent() {
               </div>
 
               {/* Push Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+              <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
                 <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-gov-card/10 text-gov-forest dark:text-gov-gold">
                       <Bell size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
@@ -306,10 +306,10 @@ function NotificationPreferencesContent() {
               </div>
 
               {/* SMS Notifications */}
-              <div className="bg-white dark:bg-white/5 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
+              <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
                 <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-white/5 text-gov-forest dark:text-gov-gold">
+                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-gov-card/10 text-gov-forest dark:text-gov-gold">
                       <Smartphone size={24} strokeWidth={1.5} />
                     </div>
                     <div className="flex-1">
@@ -378,7 +378,7 @@ function NotificationPreferencesContent() {
                 <button
                   onClick={savePreferences}
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-8 py-3 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-charcoal font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-gold/90 transition-colors disabled:opacity-50 shadow-lg shadow-gov-forest/10"
+                  className="flex items-center gap-2 px-8 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors disabled:opacity-50 shadow-lg shadow-gov-forest/10"
                 >
                   {isSaving ? (
                     <Loader2 size={18} className="animate-spin" />

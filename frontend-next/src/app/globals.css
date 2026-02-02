@@ -28,11 +28,12 @@
 }
 
 :root {
-  /* Core Colors */
-  --background: #edebe0;
-  /* gov-beige */
-  --foreground: #161616;
-  /* gov-charcoal */
+  /* Core Colors - Updated */
+  --background: #f5f5f5; /* Light gray background */
+  --foreground: #ffffff; /* White text */
+  --card-bg: #b3a3d3; /* Gray cards */
+  --button-bg: #094239; /* Dark green buttons */
+  --title-color: #b9a779; /* Gold titles */
 
   /* Brand Colors - Light Mode Defaults (RGB Channels) */
   --color-gov-forest: 9 66 57;
@@ -40,36 +41,43 @@
   --color-gov-emerald-light: 17 94 89;
   --color-gov-teal: 66 129 119;
   --color-mofa-teal: 5 66 57;
-  --color-mofa-teal: 5 66 57;
   --color-surface-dark: 15 23 42;
 
-  /* Persistent Brand Colors (Do not change in Dark Mode) */
+  /* Persistent Brand Colors */
   --color-gov-brand-green: 9 66 57;
-  /* Same as Emerald Light Mode */
+
+  /* Semantic Colors */
+  --color-gov-border: 185 167 121; /* Gold border */
+  --color-gov-button: 9 66 57; /* Dark green button */
 }
 
 .dark {
-  /* Core Colors */
-  --background: #000000;
-  /* black */
-  --foreground: #edebe0;
-  /* gov-beige */
+  --background: #1a1a1a;
+  --foreground: #ffffff;
 
-  /* Brand Colors - Dark Mode Replacement (Black & Gold RGB Channels) */
-  --color-gov-forest: 0 0 0;
-  /* Black - Matches body background */
-  --color-gov-emerald: 185 167 121;
-  /* Gold - Replaces Emerald */
-  --color-gov-emerald-light: 185 167 121;
-  /* Gold - Replaces Emerald Light */
-  --color-gov-teal: 185 167 121;
-  /* Gold - Replaces Teal */
-  --color-mofa-teal: 0 0 0;
-  /* Black - Replaces Mofa Teal */
-  /* Chocolate/Umber - For cards/surfaces */
+  /* Brand Colors - Dark Mode */
+  --color-gov-forest: 9 66 57; /* Keep dark green */
+  --color-gov-emerald: 9 66 57;
+  --color-gov-emerald-light: 17 94 89;
+  --color-gov-teal: 185 167 121; /* Gold */
+  --color-mofa-teal: 9 66 57;
 
   --color-gov-brand-green: 9 66 57;
-  /* Stays Green in Dark Mode */
+
+  /* Semantic Colors */
+  --color-gov-border: 185 167 121; /* Gold border */
+  --color-gov-button: 9 66 57; /* Dark green button */
+
+  /* Unified Dark Mode Tokens */
+  --dm-background: #1a1a1a;
+  --dm-surface: #2a2a2a;
+  --dm-card: rgba(179, 163, 211, 0.1);
+  --dm-button: #094239;
+  --dm-title: #b9a779;
+  --dm-text: #ffffff;
+  --dm-text-secondary: rgba(255, 255, 255, 0.7);
+  --dm-border: rgba(185, 167, 121, 0.15);
+  --dm-input-bg: rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -78,19 +86,30 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* Glass Card Effect */
+/* Glass Card Effect - Updated with new color scheme */
 .glass-card {
-  background: rgba(237, 235, 224, 0.7);
+  background: rgba(179, 163, 208, 0.9); /* Gray cards */
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(185, 167, 121, 0.3);
+  border: 1px solid rgba(185, 167, 121, 0.3); /* Gold border */
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 .dark .glass-card {
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(185, 167, 121, 0.2);
+  background: var(--dm-surface);
+  border: 1px solid var(--dm-border);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode fix for native select/option elements */
+.dark select {
+  background-color: var(--dm-surface);
+  color: #ffffff;
+}
+
+.dark select option {
+  background-color: var(--dm-surface);
+  color: #ffffff;
 }
 
 .gold-gradient {
@@ -136,37 +155,37 @@ body {
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Updated */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #edebe0;
+  background: #f5f5f5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b9a779;
+  background: #094239; /* Dark green */
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #988561;
+  background: #115E59; /* Dark green hover */
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #1a1a1a;
 }
 
-/* Selection Colors */
+/* Selection Colors - Updated */
 ::selection {
-  background-color: #b9a779;
-  color: #094239;
+  background-color: #b9a779; /* Gold */
+  color: #ffffff; /* White text */
 }
 
 .dark ::selection {
-  background-color: #b9a779;
-  color: #ffffff;
+  background-color: #b9a779; /* Gold */
+  color: #ffffff; /* White text */
 }
 
 /* RTL Support */
@@ -206,23 +225,42 @@ body {
 
 @layer components {
 
-  /* Button styles */
+  /* Button styles - Dark Green (أخضر غامق) */
   .btn-primary {
-    @apply bg-gov-teal text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl;
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald-light transition-all shadow-lg hover:shadow-xl;
   }
 
   .btn-secondary {
-    @apply bg-gov-gold text-gov-forest font-bold py-3 px-6 rounded-xl hover:bg-gov-sand transition-all;
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald-light transition-all;
   }
 
-  /* Card styles */
+  /* Card styles - Gray (#b3a3d) */
   .card {
-    @apply bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10;
+    @apply bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gray-300 dark:border-dm-border;
   }
 
   /* Input styles */
   .input {
-    @apply w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gov-gold/20 focus:border-gov-emerald outline-none transition-all;
+    @apply w-full py-3 px-4 rounded-xl bg-white dark:bg-dm-input border border-gray-300 dark:border-dm-border dark:text-white focus:border-gov-forest outline-none transition-all;
+  }
+  
+  /* Main Titles - Gold (ذهبي) */
+  .title-main {
+    @apply text-gov-gold font-bold text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  /* Subtitles and Text - White (أبيض) */
+  .text-content {
+    @apply text-white;
+  }
+  
+  .subtitle {
+    @apply text-white text-lg md:text-xl;
+  }
+  
+  /* Icons - Dark Green */
+  .icon-primary {
+    @apply text-gov-forest;
   }
 }
 
@@ -332,6 +370,23 @@ body {
   }
 }
 
+/* Print Styles */
+@media print {
+  nav, footer, .chatbot-container, .fixed, .sticky,
+  button:not(.print-visible), [role="dialog"] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .glass-card {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+}
+
 body.high-contrast {
   background-color: #000000 !important;
   color: #FFFF00 !important;
@@ -370,4 +425,13 @@ body.high-contrast {
 
 .high-contrast ::placeholder {
   color: #AAAAAA !important;
+}
+
+.high-contrast svg path {
+  fill: #000000 !important;
+  stroke: #FFFFFF !important;
+}
+
+.high-contrast svg path:hover {
+  fill: #FFFF00 !important;
 }

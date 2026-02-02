@@ -31,11 +31,23 @@ const config: Config = {
           cherry: '#4a151e',
           red: '#6b1f2a',
           charcoal: '#161616',
-          stone: '#3d3a3b'
+          stone: '#3d3a3b',
+          border: 'rgb(var(--color-gov-border) / <alpha-value>)',
+          button: 'rgb(var(--color-gov-button) / <alpha-value>)',
+          card: '#b3a3d3',
         },
         mofa: {
           teal: 'rgb(var(--color-mofa-teal) / <alpha-value>)',
           light: '#f0fdfa'
+        },
+        dm: {
+          bg: 'var(--dm-background)',
+          surface: 'var(--dm-surface)',
+          card: 'var(--dm-card)',
+          text: 'var(--dm-text)',
+          'text-secondary': 'var(--dm-text-secondary)',
+          border: 'var(--dm-border)',
+          input: 'var(--dm-input-bg)',
         }
       },
       backgroundImage: {

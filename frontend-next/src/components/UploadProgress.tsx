@@ -19,7 +19,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
   error
 }) => {
   return (
-    <div className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl p-3 mb-3">
+    <div className="w-full bg-gray-50 dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/15 rounded-xl p-3 mb-3">
       <div className="flex items-center gap-3 mb-2">
         {/* Icon based on status */}
         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${status === 'completed' ? 'bg-gov-emerald/10 text-gov-emerald' :
@@ -43,7 +43,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
           </div>
 
           {/* Status Text / Size */}
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/70">
             <span>{fileSize}</span>
             {status === 'uploading' && (
               <>

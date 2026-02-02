@@ -219,7 +219,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Right Panel - Register Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-gov-emeraldStatic flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto">
+            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto">
                 <div className="w-full max-w-lg">
                     {/* Back Button */}
                     <Link
@@ -246,7 +246,7 @@ const RegisterPage = () => {
                         <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
                             {t('auth_register_title')}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-300">
+                        <p className="text-gray-500 dark:text-white/70">
                             {t('auth_register_subtitle')}
                         </p>
                     </div>
@@ -260,7 +260,7 @@ const RegisterPage = () => {
                                         ? 'bg-gov-gold text-gov-forest'
                                         : currentStep === step.num
                                             ? 'bg-gov-teal text-white shadow-lg shadow-gov-teal/20'
-                                            : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-300'
+                                            : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-white/70'
                                         }`}>
                                         {currentStep > step.num ? <CheckCircle size={18} /> : step.num}
                                     </div>
@@ -278,7 +278,7 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Register Card */}
-                    <div className="bg-white dark:bg-gov-emeraldStatic/50 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-gold/10 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
@@ -302,7 +302,7 @@ const RegisterPage = () => {
                                                 value={formData.nationalId}
                                                 onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
                                                 placeholder={t('auth_enter_national_id')}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                                 maxLength={11}
                                             />
@@ -321,7 +321,7 @@ const RegisterPage = () => {
                                                 value={formData.firstName}
                                                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -339,7 +339,7 @@ const RegisterPage = () => {
                                                 value={formData.fatherName}
                                                 onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'اسم الأب' : 'Father Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -357,7 +357,7 @@ const RegisterPage = () => {
                                                 value={formData.lastName}
                                                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'الكنية' : 'Last Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -374,7 +374,7 @@ const RegisterPage = () => {
                                                 type="date"
                                                 value={formData.birthDate}
                                                 onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -393,12 +393,12 @@ const RegisterPage = () => {
                                             <select
                                                 value={formData.governorate}
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-black dark:text-white dark:border-gray-600 border border-gray-200 text-gov-charcoal focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white dark:border-gov-border/15 border border-gray-200 text-gov-charcoal focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
                                                 required
                                             >
-                                                <option value="" className="dark:bg-black dark:text-white">{t('reg_select_governorate')}</option>
+                                                <option value="" className="dark:bg-dm-surface dark:text-white">{t('reg_select_governorate')}</option>
                                                 {governorates.map((gov) => (
-                                                    <option key={gov} value={gov} className="dark:bg-black dark:text-white">{gov}</option>
+                                                    <option key={gov} value={gov} className="dark:bg-dm-surface dark:text-white">{gov}</option>
                                                 ))}
                                             </select>
                                             <MapPin className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -421,7 +421,7 @@ const RegisterPage = () => {
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="example@email.com"
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -442,7 +442,7 @@ const RegisterPage = () => {
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                                 placeholder="09xxxxxxxx"
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                                 maxLength={10}
                                             />
@@ -473,7 +473,7 @@ const RegisterPage = () => {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 placeholder={t('reg_password_placeholder')}
-                                                className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                                 minLength={8}
                                             />
@@ -498,7 +498,7 @@ const RegisterPage = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                                 placeholder={t('reg_reenter_password')}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
                                             <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -506,11 +506,11 @@ const RegisterPage = () => {
                                     </div>
 
                                     {/* Password Requirements */}
-                                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl space-y-2 border border-gray-100 dark:border-white/5">
+                                    <div className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl space-y-2 border border-gray-100 dark:border-white/5">
                                         <p className="text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                                             {t('reg_password_requirements')}
                                         </p>
-                                        <ul className="text-sm text-gray-500 dark:text-gray-300 space-y-2">
+                                        <ul className="text-sm text-gray-500 dark:text-white/70 space-y-2">
                                             <li className="flex items-center gap-2">
                                                 <div className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.password.length >= 8 ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
@@ -541,7 +541,7 @@ const RegisterPage = () => {
                                             className="w-5 h-5 mt-0.5 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer"
                                             required
                                         />
-                                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                                        <span className="text-sm text-gray-600 dark:text-white/70">
                                             {t('reg_agree_terms')}
                                         </span>
                                     </label>
@@ -582,15 +582,15 @@ const RegisterPage = () => {
                         </form>
 
                         {/* Security Badge */}
-                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-white/10 text-xs text-gray-500 dark:text-gray-300">
+                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-gov-border/15 text-xs text-gray-500 dark:text-white/70">
                             <Shield size={14} className="text-gov-teal" />
                             {t('reg_protected')}
                         </div>
                     </div>
 
                     {/* Login Link */}
-                    <div className="text-center mt-6 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                        <span className="text-gray-500 dark:text-gray-300">
+                    <div className="text-center mt-6 p-4 bg-white/50 dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                        <span className="text-gray-500 dark:text-white/70">
                             {t('reg_already_account')}
                         </span>
                         <Link

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Mail,
     Lock,
@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ApiError } from '@/lib/api';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const LoginPage = () => {
     const { language } = useLanguage();
@@ -37,11 +38,26 @@ const LoginPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && isLoading) {
+                abortControllerRef.current?.abort();
+                setIsLoading(false);
+                setError(language === 'ar' ? 'تم إلغاء تسجيل الدخول' : 'Login cancelled');
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [isLoading, language]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         try {
             // Prepare credentials based on method
@@ -60,7 +76,7 @@ const LoginPage = () => {
                 router.push(`/two-factor?email=${encodeURIComponent(loginIdentifier)}`);
                 return;
             }
-            window.location.href = '/dashboard';
+            router.push('/dashboard');
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);
@@ -149,7 +165,7 @@ const LoginPage = () => {
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-gov-emeraldStatic flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
                 <div className="w-full max-w-md" ref={formRef}>
                     {/* Back Button */}
                     <Link
@@ -176,7 +192,7 @@ const LoginPage = () => {
                         <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
                             {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-300">
+                        <p className="text-gray-500 dark:text-white/70">
                             {language === 'ar'
                                 ? 'سجل دخولك للوصول إلى خدماتك الحكومية'
                                 : 'Sign in to access your government services'}
@@ -184,7 +200,13 @@ const LoginPage = () => {
                     </div>
 
                     {/* Login Card */}
-                    <div className="bg-white dark:bg-gov-emeraldStatic/50 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-gold/10 p-6 sm:p-8">
+                    <div className="relative bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
+                        {/* Loading Overlay */}
+                        {isLoading && (
+                            <div className="absolute inset-0 z-50 bg-white/80 dark:bg-dm-surface/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                <LoadingSpinner size={64} />
+                            </div>
+                        )}
                         {/* Error Message */}
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
@@ -204,7 +226,7 @@ const LoginPage = () => {
                                     onClick={() => setLoginMethod(key as typeof loginMethod)}
                                     className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${loginMethod === key
                                         ? 'bg-white dark:bg-gov-teal text-gov-forest dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-300 hover:text-gov-forest dark:hover:text-white'
+                                        : 'text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-white'
                                         }`}
                                 >
                                     <Icon size={15} />
@@ -216,7 +238,7 @@ const LoginPage = () => {
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Dynamic Input Field */}
                             <div>
-                                <label className="block text-sm font-medium text-gov-charcoal dark:text-gray-200 mb-2">
+                                <label className="block text-sm font-medium text-gov-charcoal dark:text-white/70 mb-2">
                                     {loginMethod === 'email' && (language === 'ar' ? 'البريد الإلكتروني' : 'Email Address')}
                                     {loginMethod === 'phone' && (language === 'ar' ? 'رقم الهاتف' : 'Phone Number')}
                                     {loginMethod === 'national' && (language === 'ar' ? 'الرقم الوطني' : 'National ID')}
@@ -236,7 +258,7 @@ const LoginPage = () => {
                                                     ? '09xxxxxxxx'
                                                     : (language === 'ar' ? 'أدخل الرقم الوطني' : 'Enter your national ID')
                                         }
-                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                         required
                                     />
                                     {loginMethod === 'email' && <Mail className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />}
@@ -247,7 +269,7 @@ const LoginPage = () => {
 
                             {/* Password Input */}
                             <div>
-                                <label className="block text-sm font-medium text-gov-charcoal dark:text-gray-200 mb-2">
+                                <label className="block text-sm font-medium text-gov-charcoal dark:text-white/70 mb-2">
                                     {language === 'ar' ? 'كلمة المرور' : 'Password'}
                                 </label>
                                 <div className="relative">
@@ -256,7 +278,7 @@ const LoginPage = () => {
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                         required
                                     />
                                     <button
@@ -276,7 +298,7 @@ const LoginPage = () => {
                                         type="checkbox"
                                         className="w-4 h-4 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer"
                                     />
-                                    <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
+                                    <span className="text-sm text-gray-600 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
                                         {language === 'ar' ? 'تذكرني' : 'Remember me'}
                                     </span>
                                 </label>
@@ -294,27 +316,23 @@ const LoginPage = () => {
                                 disabled={isLoading}
                                 className="w-full py-4 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
-                                {isLoading ? (
-                                    <div className="w-5 h-5 border-2 border-gov-forest/30 border-t-gov-forest rounded-full animate-spin" />
-                                ) : (
-                                    <>
-                                        {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
-                                        <ArrowIcon size={18} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-                                    </>
-                                )}
+                                <>
+                                    {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
+                                    <ArrowIcon size={18} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                                </>
                             </button>
                         </form>
 
                         {/* Security Badge */}
-                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-white/10 text-xs text-gray-500 dark:text-gray-300">
+                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-gov-border/15 text-xs text-gray-500 dark:text-white/70">
                             <Shield size={14} className="text-gov-teal" />
                             {language === 'ar' ? 'اتصال آمن ومشفر بتقنية SSL' : 'Secure SSL encrypted connection'}
                         </div>
                     </div>
 
                     {/* Register Link */}
-                    <div className="text-center mt-6 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                        <span className="text-gray-500 dark:text-gray-300">
+                    <div className="text-center mt-6 p-4 bg-white/50 dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                        <span className="text-gray-500 dark:text-white/70">
                             {language === 'ar' ? 'ليس لديك حساب؟' : "Don't have an account?"}
                         </span>
                         <Link

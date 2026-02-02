@@ -31,6 +31,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/repository';
 import AIContentTools from '@/components/AIContentTools';
+import { DIRECTORATES } from '@/constants';
 
 interface ContentItem {
   id: number;
@@ -301,14 +302,14 @@ export default function ContentManagementPage() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-gov-forest">
+      <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
         <Loader2 className="animate-spin text-gov-gold" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
       <main className="flex-grow pt-24 pb-12">
@@ -319,7 +320,7 @@ export default function ContentManagementPage() {
               <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? 'إدارة المحتوى' : 'Content Management'}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-white/70">
                 {language === 'ar'
                   ? 'إدارة الأخبار والمقالات والمراسيم'
                   : 'Manage news, articles, and decrees'}
@@ -335,7 +336,7 @@ export default function ContentManagementPage() {
           </div>
 
           {/* Filters */}
-          <div className="mb-6 bg-white dark:bg-white/5 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-gold/10">
+          <div className="mb-6 bg-white dark:bg-gov-card/10 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-border/15">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Search */}
               <form onSubmit={handleSearch} className="md:col-span-2">
@@ -346,7 +347,7 @@ export default function ContentManagementPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder={language === 'ar' ? 'البحث في المحتوى...' : 'Search content...'}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
               </form>
@@ -355,7 +356,7 @@ export default function ContentManagementPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
               >
                 <option value="">{language === 'ar' ? 'كل الفئات' : 'All Categories'}</option>
                 {categories.map(cat => (
@@ -369,7 +370,7 @@ export default function ContentManagementPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
               >
                 <option value="">{language === 'ar' ? 'كل الحالات' : 'All Status'}</option>
                 {statuses.map(st => (
@@ -382,19 +383,19 @@ export default function ContentManagementPage() {
           </div>
 
           {/* Contents Table */}
-          <div className="bg-white dark:bg-white/5 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden">
+          <div className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="animate-spin text-gov-gold" size={40} />
               </div>
             ) : contents.length === 0 ? (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-12 text-gray-500 dark:text-white/70">
                 {language === 'ar' ? 'لا يوجد محتوى' : 'No content found'}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-white/5">
+                  <thead className="bg-gray-50 dark:bg-gov-card/10">
                     <tr>
                       <th className="px-6 py-4 text-right text-sm font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'العنوان' : 'Title'}
@@ -437,10 +438,10 @@ export default function ContentManagementPage() {
                             {getStatusLabel(content.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 text-gray-600 dark:text-white/70">
                           {content.view_count.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300 text-sm">
+                        <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
                           {content.published_at
                             ? new Date(content.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
                             : '-'}
@@ -479,11 +480,11 @@ export default function ContentManagementPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-white/10">
+              <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gov-border/15">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gov-card/10 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   {language === 'ar' ? 'السابق' : 'Previous'}
                 </button>
@@ -493,7 +494,7 @@ export default function ContentManagementPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gov-card/10 text-gov-charcoal dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   {language === 'ar' ? 'التالي' : 'Next'}
                 </button>
@@ -506,7 +507,7 @@ export default function ContentManagementPage() {
       {/* Create Content Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-4xl w-full my-8">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-4xl w-full my-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'إضافة محتوى جديد' : 'Add New Content'}
@@ -554,7 +555,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.title_ar}
                     onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -567,7 +568,7 @@ export default function ContentManagementPage() {
                     rows={6}
                     value={formData.content_ar}
                     onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                   {/* FR-14: AI Content Tools for Arabic content */}
                   <AIContentTools
@@ -598,7 +599,7 @@ export default function ContentManagementPage() {
                     type="text"
                     value={formData.title_en}
                     onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -610,7 +611,7 @@ export default function ContentManagementPage() {
                     rows={6}
                     value={formData.content_en}
                     onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                   {/* AI Content Tools for English content - translate to Arabic */}
                   <AIContentTools
@@ -637,7 +638,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     {categories.map(cat => (
                       <option key={cat.value} value={cat.value}>
@@ -655,7 +656,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     {statuses.map(st => (
                       <option key={st.value} value={st.value}>
@@ -673,7 +674,7 @@ export default function ContentManagementPage() {
                     type="date"
                     value={formData.published_at}
                     onChange={(e) => setFormData({ ...formData, published_at: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -738,7 +739,7 @@ export default function ContentManagementPage() {
       {/* Edit Content Modal */}
       {showEditModal && selectedContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-4xl w-full my-8">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-4xl w-full my-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                 {language === 'ar' ? 'تعديل المحتوى' : 'Edit Content'}
@@ -787,7 +788,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.title_ar}
                     onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -800,7 +801,7 @@ export default function ContentManagementPage() {
                     rows={6}
                     value={formData.content_ar}
                     onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                   {/* FR-14: AI Content Tools for Arabic content */}
                   <AIContentTools
@@ -831,7 +832,7 @@ export default function ContentManagementPage() {
                     type="text"
                     value={formData.title_en}
                     onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -843,7 +844,7 @@ export default function ContentManagementPage() {
                     rows={6}
                     value={formData.content_en}
                     onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                   {/* AI Content Tools for English content - translate to Arabic */}
                   <AIContentTools
@@ -870,7 +871,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     {categories.map(cat => (
                       <option key={cat.value} value={cat.value}>
@@ -888,7 +889,7 @@ export default function ContentManagementPage() {
                     required
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   >
                     {statuses.map(st => (
                       <option key={st.value} value={st.value}>
@@ -906,7 +907,7 @@ export default function ContentManagementPage() {
                     type="date"
                     value={formData.published_at}
                     onChange={(e) => setFormData({ ...formData, published_at: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
                   />
                 </div>
 
@@ -972,7 +973,7 @@ export default function ContentManagementPage() {
       {/* Version History Modal */}
       {showHistoryModal && selectedContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gov-charcoal rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-6 shrink-0">
               <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white flex items-center gap-3">
                 <History size={28} className="text-gov-gold" />
@@ -994,7 +995,7 @@ export default function ContentManagementPage() {
 
             <div className="flex-grow flex gap-6 min-h-0">
               {/* Versions List */}
-              <div className="w-80 shrink-0 border-r border-gray-100 dark:border-white/10 pr-4 overflow-y-auto ltr:border-r ltr:pr-4 rtl:border-l rtl:pl-4">
+              <div className="w-80 shrink-0 border-r border-gray-100 dark:border-gov-border/15 pr-4 overflow-y-auto ltr:border-r ltr:pr-4 rtl:border-l rtl:pl-4">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
                   {language === 'ar' ? 'الإصدارات السابقة' : 'Past Versions'}
                 </h3>
@@ -1014,7 +1015,7 @@ export default function ContentManagementPage() {
                         onClick={() => setCompareVersion(version)}
                         className={`w-full text-right rtl:text-right ltr:text-left p-3 rounded-xl transition-all border ${compareVersion?.version_number === version.version_number
                           ? 'bg-gov-gold/10 border-gov-gold'
-                          : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200'
+                          : 'bg-gray-50 dark:bg-gov-card/10 border-transparent hover:border-gray-200'
                           }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -1057,9 +1058,9 @@ export default function ContentManagementPage() {
                         <p className="text-xs font-bold text-gray-400 uppercase">
                           {language === 'ar' ? 'المحتوى الحالي' : 'Current Content'}
                         </p>
-                        <div className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl text-sm min-h-[200px]">
+                        <div className="p-4 bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/15 rounded-2xl text-sm min-h-[200px]">
                           <h4 className="font-bold mb-2">{selectedContent.title_ar}</h4>
-                          <div className="whitespace-pre-wrap text-gray-600 dark:text-gray-300">
+                          <div className="whitespace-pre-wrap text-gray-600 dark:text-white/70">
                             {selectedContent.content_ar}
                           </div>
                         </div>
@@ -1072,7 +1073,7 @@ export default function ContentManagementPage() {
                         </p>
                         <div className="p-4 bg-gov-gold/5 border border-gov-gold/20 rounded-2xl text-sm min-h-[200px]">
                           <h4 className="font-bold mb-2">{compareVersion.title_ar}</h4>
-                          <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-200">
+                          <div className="whitespace-pre-wrap text-gray-700 dark:text-white/70">
                             {compareVersion.content_ar}
                           </div>
                         </div>

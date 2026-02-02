@@ -52,9 +52,13 @@ const GovernmentPartners: React.FC = () => {
         ShieldCheck: <ShieldCheck size={24} />
     };
 
-    // Helper to get localized field from an API object with _ar/_en suffixes
+    // Helper to get localized field - handles LocalizedString objects AND _ar/_en suffixed fields
     const loc = (obj: any, field: string): string => {
-        const ar = obj?.[`${field}_ar`] || obj?.[field] || '';
+        const val = obj?.[field];
+        if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
+            return val[language] || val['ar'] || '';
+        }
+        const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
         const en = obj?.[`${field}_en`] || ar;
         return language === 'ar' ? ar : en;
     };
@@ -143,11 +147,11 @@ const GovernmentPartners: React.FC = () => {
 
     if (loading || directorates.length === 0) {
         return (
-            <section className="py-16 bg-gov-beige/30 dark:bg-gov-forest/30 border-t border-gov-gold/20 dark:border-gov-gold/10 transition-colors">
+            <section className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex gap-6 overflow-hidden py-4">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-56 h-56 rounded-3xl bg-gray-200 dark:bg-gray-700 animate-pulse flex-shrink-0" />
+                            <div key={i} className="w-56 h-56 rounded-3xl bg-gray-200 dark:bg-dm-surface animate-pulse flex-shrink-0" />
                         ))}
                     </div>
                 </div>
@@ -156,19 +160,21 @@ const GovernmentPartners: React.FC = () => {
     }
 
     return (
-        <section className="py-16 bg-gov-beige/30 dark:bg-gov-forest/30 border-t border-gov-gold/20 dark:border-gov-gold/10 transition-colors">
+        <section className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Section Header */}
-                <div className="text-center mb-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gov-teal/10 dark:bg-gov-gold/10 text-gov-teal dark:text-gov-gold text-sm font-bold mb-4">
-                        <Handshake size={16} />
-                        <span>{t('partners_title')}</span>
+                {/* Centered Header - matching Announcements pattern */}
+                <div className="text-center mb-16">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-6">
+                        <Handshake className="text-gov-gold" size={20} />
+                        <span className="text-gov-gold font-bold text-sm tracking-wide">
+                            {t('partners_title')}
+                        </span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">
+                    <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
                         {t('partners_title')}
                     </h2>
-                    <p className="text-gov-stone/60 dark:text-gray-300 max-w-2xl mx-auto">
+                    <p className="text-gov-stone/60 dark:text-white/70 max-w-2xl mx-auto text-lg leading-relaxed">
                         {t('partners_subtitle')}
                     </p>
                 </div>
@@ -189,17 +195,17 @@ const GovernmentPartners: React.FC = () => {
                                 className="flex-shrink-0"
                                 onClick={() => setSelectedDirectorate(directorate)}
                             >
-                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-gov-emeraldStatic border border-gov-gold/10 dark:border-gov-gold/10 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
+                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
                                     {/* Glass reflection effect */}
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
 
                                     {/* Icon */}
-                                    <div className="w-16 h-16 rounded-2xl bg-gov-forest/5 dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold flex items-center justify-center mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm">
+                                    <div className="w-16 h-16 rounded-2xl bg-gov-forest/5 dark:bg-gov-emerald/10 text-gov-forest dark:text-gov-teal flex items-center justify-center mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm">
                                         {iconMap[directorate.icon] || <Building2 size={28} />}
                                     </div>
 
                                     {/* Name */}
-                                    <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-gov-gold text-center leading-tight line-clamp-2 px-2">
+                                    <h3 className="text-sm md:text-base font-bold text-gov-forest dark:text-gov-teal text-center leading-tight line-clamp-2 px-2">
                                         {loc(directorate, 'name')}
                                     </h3>
 
@@ -219,15 +225,15 @@ const GovernmentPartners: React.FC = () => {
                     </div>
 
                     {/* Enhanced Gradient Masks */}
-                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-gov-beige dark:from-gov-forest to-transparent z-10 pointer-events-none"></div>
-                    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-gov-beige dark:from-gov-forest to-transparent z-10 pointer-events-none"></div>
+                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-dm-bg to-transparent z-10 pointer-events-none"></div>
+                    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-dm-bg to-transparent z-10 pointer-events-none"></div>
                 </div>
 
                 {/* View Full Guide Button */}
                 <div className="flex justify-center">
                     <Link
                         href="/directorates"
-                        className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gov-forest text-white hover:bg-gov-forest/90 dark:bg-gov-gold dark:text-gov-forest dark:hover:bg-gov-gold/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 font-bold text-sm md:text-base group"
+                        className="inline-flex items-center gap-2 px-10 py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-gov-forest/20 dark:hover:shadow-gov-gold/20 transition-all duration-300 group hover:-translate-y-1 active:translate-y-0"
                     >
                         <span>{language === 'ar' ? 'عرض دليل الجهات الكامل' : 'View Full Directorates Guide'}</span>
                         <BookOpen size={18} className="group-hover:scale-110 transition-transform" />
@@ -249,7 +255,7 @@ const GovernmentPartners: React.FC = () => {
                     {/* Modal Content */}
                     <div
                         ref={modalRef}
-                        className="relative w-full max-w-3xl bg-white dark:bg-gov-emeraldStatic rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-white dark:bg-dm-surface rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
                     >
                         {/* Header / Sidebar Image */}
                         <div className="w-full md:w-1/3 bg-gov-forest relative p-8 flex flex-col items-center justify-center text-center">
@@ -271,10 +277,10 @@ const GovernmentPartners: React.FC = () => {
                         <div className="flex-1 p-8 md:p-10 overflow-y-auto bg-gray-50 dark:bg-zinc-900/50">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <h4 className="text-lg font-bold text-gov-forest dark:text-gov-gold mb-2">
+                                    <h4 className="text-lg font-bold text-gov-forest dark:text-gov-teal mb-2">
                                         {language === 'ar' ? 'المديريات والهيئات التابعة' : 'Affiliated Directorates & Bodies'}
                                     </h4>
-                                    <p className="text-sm text-gov-stone dark:text-gray-400">
+                                    <p className="text-sm text-gov-stone dark:text-white/70">
                                         {loc(selectedDirectorate, 'description')}
                                     </p>
                                 </div>
@@ -295,11 +301,11 @@ const GovernmentPartners: React.FC = () => {
                                             href={sub.isExternal ? (sub.url || '#') : `/directorates/${selectedDirectorate.id}/sub-directorates`}
                                             target={sub.isExternal ? '_blank' : '_self'}
                                             rel="noreferrer"
-                                            className="modal-item group flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-gov-gold/10 dark:border-white/5 rounded-xl hover:border-gov-gold/40 hover:shadow-md transition-all duration-300"
+                                            className="modal-item group flex items-center justify-between p-4 bg-white dark:bg-gov-card/10 border border-gov-gold/10 dark:border-white/5 rounded-xl hover:border-gov-gold/40 hover:shadow-md transition-all duration-300"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-gov-gold group-hover:scale-150 transition-transform"></div>
-                                                <span className="font-medium text-gov-forest dark:text-gray-200 group-hover:text-gov-gold transition-colors">
+                                                <span className="font-medium text-gov-forest dark:text-white/70 group-hover:text-gov-gold transition-colors">
                                                     {loc(sub, 'name')}
                                                 </span>
                                             </div>
@@ -313,7 +319,7 @@ const GovernmentPartners: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/10 flex justify-end">
+                            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gov-border/15 flex justify-end">
                                 <button
                                     onClick={handleClose}
                                     className="px-6 py-2 rounded-lg bg-gray-200 dark:bg-white/10 text-gov-forest dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"

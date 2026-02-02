@@ -103,6 +103,10 @@ Route::prefix('v1')->group(function () {
         // Contact Form
         Route::post('contact', [\App\Http\Controllers\Api\PublicApiController::class, 'submitContactForm']);
 
+        // Happiness Feedback (مؤشر الرضا)
+        Route::post('happiness-feedback', [\App\Http\Controllers\Api\PublicApiController::class, 'submitHappinessFeedback']);
+        Route::get('happiness-feedback/stats', [\App\Http\Controllers\Api\PublicApiController::class, 'getHappinessFeedbackStats']);
+
         // Open Data
         Route::get('open-data', [\App\Http\Controllers\Api\PublicApiController::class, 'openData']);
 

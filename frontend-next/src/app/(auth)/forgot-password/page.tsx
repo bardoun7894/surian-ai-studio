@@ -68,7 +68,7 @@ const ForgotPasswordPage = () => {
             </div>
 
             {/* Right Panel - Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-gov-charcoal flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
                 <div className="w-full max-w-md">
                     <Link
                         href="/login"
@@ -82,14 +82,14 @@ const ForgotPasswordPage = () => {
                         <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                             {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-white/70">
                             {language === 'ar'
                                 ? 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور'
                                 : 'Enter your email to receive a password reset link'}
                         </p>
                     </div>
 
-                    <div className="bg-white dark:bg-white/5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
                         {isSent ? (
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -126,7 +126,7 @@ const ForgotPasswordPage = () => {
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                            className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                             placeholder="example@domain.com"
                                             required
                                         />
@@ -150,7 +150,7 @@ const ForgotPasswordPage = () => {
                                 </button>
                             </form>
                         )}
-                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-white/10 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-gov-border/15 text-xs text-gray-500 dark:text-white/70">
                             <Shield size={14} className="text-gov-teal" />
                             {language === 'ar' ? 'اتصال آمن ومشفر بتقنية SSL' : 'Secure SSL encrypted connection'}
                         </div>

@@ -1024,13 +1024,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Satisfaction Rating */}
-                            <div className="w-full max-w-sm mb-8">
-                                <ImportedSatisfactionRating
-                                    trackingNumber={submittedTicket!}
-                                />
-                            </div>
-
                             <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
                                 {t('complaint_track_now')}
                             </button>
@@ -1152,7 +1145,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             )}
 
-                            {trackingResult && trackingResult.status === 'resolved' && (
+                            {trackingResult && trackingResult.status === 'resolved' && !trackingResult.rating && (
                                 <ImportedSatisfactionRating trackingNumber={trackingResult.tracking_number || trackingResult.id} />
                             )}
 

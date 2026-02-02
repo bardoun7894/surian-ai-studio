@@ -43,7 +43,7 @@ export default function FeaturedDirectorates() {
     if (directorates.length === 0) return null;
 
     return (
-        <section id="featured-directorates" className="py-16 bg-gov-beige/50 dark:bg-gov-forest/90 relative overflow-hidden scroll-mt-24">
+        <section id="featured-directorates" className="py-16 bg-gov-beige/50 dark:bg-gov-brand/10 relative overflow-hidden scroll-mt-24">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none"
                 style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #b9a779 1px, transparent 1px)', backgroundSize: '24px 24px' }}

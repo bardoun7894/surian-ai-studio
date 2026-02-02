@@ -28,17 +28,48 @@
 }
 
 :root {
+  /* Core Colors */
   --background: #edebe0;
   /* gov-beige */
   --foreground: #161616;
   /* gov-charcoal */
+
+  /* Brand Colors - Light Mode Defaults (RGB Channels) */
+  --color-gov-forest: 9 66 57;
+  --color-gov-emerald: 9 66 57;
+  --color-gov-emerald-light: 17 94 89;
+  --color-gov-teal: 66 129 119;
+  --color-mofa-teal: 5 66 57;
+  --color-mofa-teal: 5 66 57;
+  --color-surface-dark: 15 23 42;
+
+  /* Persistent Brand Colors (Do not change in Dark Mode) */
+  --color-gov-brand-green: 9 66 57;
+  /* Same as Emerald Light Mode */
 }
 
 .dark {
-  --background: #094239;
-  /* gov-forest */
+  /* Core Colors */
+  --background: #000000;
+  /* black */
   --foreground: #edebe0;
   /* gov-beige */
+
+  /* Brand Colors - Dark Mode Replacement (Black & Gold RGB Channels) */
+  --color-gov-forest: 0 0 0;
+  /* Black - Matches body background */
+  --color-gov-emerald: 185 167 121;
+  /* Gold - Replaces Emerald */
+  --color-gov-emerald-light: 185 167 121;
+  /* Gold - Replaces Emerald Light */
+  --color-gov-teal: 185 167 121;
+  /* Gold - Replaces Teal */
+  --color-mofa-teal: 0 0 0;
+  /* Black - Replaces Mofa Teal */
+  /* Chocolate/Umber - For cards/surfaces */
+
+  --color-gov-brand-green: 9 66 57;
+  /* Stays Green in Dark Mode */
 }
 
 body {
@@ -57,7 +88,7 @@ body {
 }
 
 .dark .glass-card {
-  background: rgba(9, 66, 57, 0.75);
+  background: rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(185, 167, 121, 0.2);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
@@ -124,7 +155,7 @@ body {
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #094239;
+  background: #000000;
 }
 
 /* Selection Colors */

@@ -5,6 +5,7 @@ import {
   Sparkles,
   FileText,
   Heading,
+  Languages,
   Loader2,
   Check,
   X,
@@ -18,16 +19,21 @@ interface AIContentToolsProps {
   onAcceptProofread?: (text: string) => void;
   onAcceptSummary?: (summary: string) => void;
   onAcceptTitle?: (title: string) => void;
+  onAcceptTranslation?: (text: string) => void;
+  /** Source language for translation (default: auto-detect based on content) */
+  translateFrom?: 'ar' | 'en';
   className?: string;
 }
 
-type ToolType = 'proofread' | 'summarize' | 'title';
+type ToolType = 'proofread' | 'summarize' | 'title' | 'translate';
 
 export const AIContentTools: React.FC<AIContentToolsProps> = ({
   content,
   onAcceptProofread,
   onAcceptSummary,
   onAcceptTitle,
+  onAcceptTranslation,
+  translateFrom,
   className = ''
 }) => {
   const { language } = useLanguage();
@@ -38,16 +44,32 @@ export const AIContentTools: React.FC<AIContentToolsProps> = ({
   const [loading, setLoading] = useState<ToolType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Detect source language: if translateFrom is set use it, otherwise guess from content
+  const detectSourceLang = (): 'ar' | 'en' => {
+    if (translateFrom) return translateFrom;
+    // Simple heuristic: check for Arabic characters
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(content) ? 'ar' : 'en';
+  };
+
+  const sourceLang = detectSourceLang();
+  const targetLang = sourceLang === 'ar' ? 'en' : 'ar';
+
   const labels = {
     proofread: { ar: 'تدقيق لغوي', en: 'Proofread' },
     summarize: { ar: 'إنشاء ملخص', en: 'Summarize' },
-    title: { ar: 'اقتراح عناوين', en: 'Suggest Titles' }
+    title: { ar: 'اقتراح عناوين', en: 'Suggest Titles' },
+    translate: {
+      ar: targetLang === 'en' ? 'ترجمة إلى الإنجليزية' : 'ترجمة إلى العربية',
+      en: targetLang === 'en' ? 'Translate to English' : 'Translate to Arabic'
+    }
   };
 
   const minChars = {
     proofread: 10,
     summarize: 100,
-    title: 50
+    title: 50,
+    translate: 5
   };
 
   const handleTool = async (type: ToolType) => {
@@ -75,6 +97,9 @@ export const AIContentTools: React.FC<AIContentToolsProps> = ({
         case 'title':
           result = await aiService.suggestTitle(content);
           break;
+        case 'translate':
+          result = await aiService.translate(content, sourceLang, targetLang);
+          break;
       }
       setActiveResult({ type, result });
     } catch (e) {
@@ -99,6 +124,9 @@ export const AIContentTools: React.FC<AIContentToolsProps> = ({
         break;
       case 'title':
         onAcceptTitle?.(activeResult.result);
+        break;
+      case 'translate':
+        onAcceptTranslation?.(activeResult.result);
         break;
     }
     setActiveResult(null);
@@ -145,6 +173,20 @@ export const AIContentTools: React.FC<AIContentToolsProps> = ({
           {loading === 'title' ? <Loader2 size={16} className="animate-spin" /> : <Heading size={16} />}
           {labels.title[lang]}
         </button>
+
+        {onAcceptTranslation && (
+          <button
+            type="button"
+            onClick={() => handleTool('translate')}
+            disabled={loading !== null}
+            className="flex items-center gap-2 px-3 py-2 bg-purple-500/10 text-purple-600 dark:text-purple-400
+              rounded-lg text-sm font-bold hover:bg-purple-500/20 transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading === 'translate' ? <Loader2 size={16} className="animate-spin" /> : <Languages size={16} />}
+            {labels.translate[lang]}
+          </button>
+        )}
       </div>
 
       {/* Error Message */}

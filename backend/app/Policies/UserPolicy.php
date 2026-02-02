@@ -10,30 +10,26 @@ class UserPolicy
     use HandlesAuthorization;
 
     /**
-     * Super admin bypass - grants all permissions.
+     * Super admin bypass - grants all permissions via wildcard in hasPermission().
      * Note: Some actions like delete self are still restricted in their specific methods.
      */
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
+            // Still fall through for self-protection checks
+            if (in_array($ability, ['delete', 'changeRole', 'toggleActive'])) {
+                return null;
+            }
             return true;
         }
-        return null; // Fall through to normal checks
+        return null;
     }
 
-    /**
-     * Determine whether the user can view any users.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('users.view') ||
-               $user->hasPermission('users.*') ||
-               $user->hasRole('super_admin');
+        return $user->hasPermission('users.view');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, User $model): bool
     {
         // Users can always view themselves
@@ -41,11 +37,7 @@ class UserPolicy
             return true;
         }
 
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('users.view') && !$user->hasPermission('users.*')) {
+        if (!$user->hasPermission('users.view')) {
             return false;
         }
 
@@ -57,19 +49,11 @@ class UserPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can create users.
-     */
     public function create(User $user): bool
     {
-        return $user->hasPermission('users.create') ||
-               $user->hasPermission('users.*') ||
-               $user->hasRole('super_admin');
+        return $user->hasPermission('users.create');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, User $model): bool
     {
         // Users can update their own profile (limited fields)
@@ -77,17 +61,13 @@ class UserPolicy
             return true;
         }
 
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('users.update') && !$user->hasPermission('users.*')) {
+        if (!$user->hasPermission('users.edit')) {
             return false;
         }
 
         // Cannot update super admins unless you are super admin
-        if ($model->hasRole('super_admin')) {
-            return false;
+        if (in_array('*', $model->role?->permissions ?? [])) {
+            return in_array('*', $user->role?->permissions ?? []);
         }
 
         // Directorate admins can only update users in their directorate
@@ -98,9 +78,6 @@ class UserPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, User $model): bool
     {
         // Cannot delete yourself
@@ -108,22 +85,18 @@ class UserPolicy
             return false;
         }
 
-        // Only super admins can delete users
-        if (!$user->hasRole('super_admin')) {
+        if (!$user->hasPermission('users.delete')) {
             return false;
         }
 
-        // Cannot delete other super admins
-        if ($model->hasRole('super_admin')) {
+        // Cannot delete super admins
+        if (in_array('*', $model->role?->permissions ?? [])) {
             return false;
         }
 
         return true;
     }
 
-    /**
-     * Determine whether the user can change role of the model.
-     */
     public function changeRole(User $user, User $model): bool
     {
         // Cannot change your own role
@@ -131,13 +104,10 @@ class UserPolicy
             return false;
         }
 
-        // Only super admins can change roles
-        return $user->hasRole('super_admin');
+        // Only users with wildcard or roles permissions can change roles
+        return $user->hasPermission('roles.edit');
     }
 
-    /**
-     * Determine whether the user can toggle active status of the model.
-     */
     public function toggleActive(User $user, User $model): bool
     {
         // Cannot deactivate yourself
@@ -145,16 +115,12 @@ class UserPolicy
             return false;
         }
 
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('users.update') && !$user->hasPermission('users.*')) {
+        if (!$user->hasPermission('users.edit')) {
             return false;
         }
 
         // Cannot toggle super admin status
-        if ($model->hasRole('super_admin')) {
+        if (in_array('*', $model->role?->permissions ?? [])) {
             return false;
         }
 

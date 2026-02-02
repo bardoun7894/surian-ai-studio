@@ -18,10 +18,13 @@ class SuggestionService
         return DB::transaction(function () use ($data, $files) {
             // Create the suggestion
             $suggestion = Suggestion::create([
-                'name' => $data['name'],
-                'job_title' => $data['job_title'] ?? null,
+                'name' => $data['name'] ?? 'مجهول الهوية',
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
+                'national_id' => $data['national_id'] ?? null,
+                'dob' => $data['dob'] ?? null,
+                'directorate_id' => $data['directorate_id'] ?? null,
+                'is_anonymous' => $data['is_anonymous'] ?? false,
                 'description' => $data['description'],
                 'status' => Suggestion::STATUS_PENDING,
                 'user_id' => auth()->id(),

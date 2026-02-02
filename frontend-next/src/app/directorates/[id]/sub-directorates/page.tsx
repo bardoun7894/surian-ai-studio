@@ -9,7 +9,7 @@ import { API } from '@/lib/repository';
 import { Directorate, SubDirectorate } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { getLocalizedName } from '@/lib/utils';
+import { getLocalizedField } from '@/lib/utils';
 
 export default function SubDirectoratesPage() {
     const params = useParams();
@@ -84,7 +84,7 @@ export default function SubDirectoratesPage() {
                             </Link>
                             <ChevronLeft size={16} className="rtl:rotate-180" />
                             <Link href={`/directorates/${directorate.id}`} className="hover:text-gov-gold transition-colors">
-                                {getLocalizedName(directorate.name, language)}
+                                {getLocalizedField(directorate, 'name', language)}
                             </Link>
                             <ChevronLeft size={16} className="rtl:rotate-180" />
                             <span className="text-gov-gold">
@@ -101,7 +101,7 @@ export default function SubDirectoratesPage() {
                                     {language === 'ar' ? 'المديريات الفرعية' : 'Sub-Directorates'}
                                 </h1>
                                 <p className="text-gray-300 mt-1">
-                                    {getLocalizedName(directorate.name, language)}
+                                    {getLocalizedField(directorate, 'name', language)}
                                 </p>
                             </div>
                         </div>
@@ -112,7 +112,7 @@ export default function SubDirectoratesPage() {
                 <div className="max-w-6xl mx-auto px-4 py-12">
                     {subDirectorates.length === 0 ? (
                         <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl">
-                            <Building2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                            <Building2 size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
                             <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">
                                 {language === 'ar' ? 'لا توجد مديريات فرعية' : 'No Sub-Directorates'}
                             </h3>
@@ -141,7 +141,7 @@ export default function SubDirectoratesPage() {
                                     </div>
 
                                     <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-3 group-hover:text-gov-gold transition-colors">
-                                        {getLocalizedName(sub.name, language)}
+                                        {getLocalizedField(sub, 'name', language)}
                                     </h3>
 
                                     {sub.isExternal ? (
@@ -156,7 +156,7 @@ export default function SubDirectoratesPage() {
                                         </a>
                                     ) : (
                                         <Link
-                                            href={sub.url}
+                                            href={`/directorates/${params.id}`}
                                             className="inline-flex items-center gap-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
                                         >
                                             {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}

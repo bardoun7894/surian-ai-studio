@@ -10,37 +10,22 @@ class SuggestionPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Super admin bypass - grants all permissions.
-     */
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
             return true;
         }
-        return null; // Fall through to normal checks
+        return null;
     }
 
-    /**
-     * Determine whether the user can view any suggestions.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('suggestions.view') ||
-               $user->hasPermission('suggestions.*') ||
-               $user->hasRole('super_admin');
+        return $user->hasPermission('suggestions.view');
     }
 
-    /**
-     * Determine whether the user can view the suggestion.
-     */
     public function view(User $user, Suggestion $suggestion): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('suggestions.view') && !$user->hasPermission('suggestions.*')) {
+        if (!$user->hasPermission('suggestions.view')) {
             return false;
         }
 
@@ -52,26 +37,14 @@ class SuggestionPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can create suggestions.
-     */
     public function create(User $user): bool
     {
-        return $user->hasPermission('suggestions.create') ||
-               $user->hasPermission('suggestions.*') ||
-               $user->hasRole('super_admin');
+        return $user->hasPermission('suggestions.manage');
     }
 
-    /**
-     * Determine whether the user can update the suggestion.
-     */
     public function update(User $user, Suggestion $suggestion): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('suggestions.update') && !$user->hasPermission('suggestions.*')) {
+        if (!$user->hasPermission('suggestions.manage')) {
             return false;
         }
 
@@ -83,33 +56,19 @@ class SuggestionPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can delete the suggestion.
-     */
     public function delete(User $user, Suggestion $suggestion): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('suggestions.delete') && !$user->hasPermission('suggestions.*')) {
+        if (!$user->hasPermission('suggestions.manage')) {
             return false;
         }
 
-        // Only super admin and ministry-level users can delete
+        // Only ministry-level users can delete
         return !$user->directorate_id;
     }
 
-    /**
-     * Determine whether the user can respond to the suggestion.
-     */
     public function respond(User $user, Suggestion $suggestion): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('suggestions.respond') && !$user->hasPermission('suggestions.*')) {
+        if (!$user->hasPermission('suggestions.respond')) {
             return false;
         }
 
@@ -121,9 +80,6 @@ class SuggestionPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can change status of the suggestion.
-     */
     public function changeStatus(User $user, Suggestion $suggestion): bool
     {
         return $this->update($user, $suggestion);

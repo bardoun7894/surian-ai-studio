@@ -80,11 +80,11 @@ export default function MediaPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
       <Navbar />
 
       <main className="flex-grow pt-14 md:pt-16">
-        <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-20">
+        <div className="min-h-screen bg-gov-beige dark:bg-black pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
             <div className="max-w-7xl mx-auto">
@@ -110,7 +110,7 @@ export default function MediaPage() {
                     onClick={() => setActiveFilter(filter.key)}
                     className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${activeFilter === filter.key
                       ? 'bg-gov-teal text-white shadow-lg'
-                      : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20 hover:border-gov-gold/50'
+                      : 'bg-white dark:bg-gov-emeraldStatic text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-gold/20 hover:border-gov-gold/50'
                       }`}
                   >
                     {filter.icon}
@@ -120,7 +120,7 @@ export default function MediaPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex gap-2 bg-white dark:bg-white/10 rounded-xl p-1 border border-gray-200 dark:border-white/20">
+              <div className="flex gap-2 bg-white dark:bg-gov-emeraldStatic rounded-xl p-1 border border-gray-200 dark:border-gov-gold/20">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
@@ -143,7 +143,7 @@ export default function MediaPage() {
             </div>
 
             {/* Results Count */}
-            <div className="mb-6 text-gov-stone dark:text-gray-400">
+            <div className="mb-6 text-gov-stone dark:text-gov-gold/60">
               {language === 'ar'
                 ? `${filteredMedia.length} عنصر`
                 : `${filteredMedia.length} items`}
@@ -162,7 +162,7 @@ export default function MediaPage() {
 
                 <div
                   key={item.id}
-                  className={`group bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden hover:border-gov-gold/50 hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex' : ''
+                  className={`group bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gray-100 dark:border-gov-gold/10 overflow-hidden hover:border-gov-gold/50 hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex' : ''
                     }`}
                 >
                   {/* Thumbnail */}
@@ -222,11 +222,11 @@ export default function MediaPage() {
 
                   {/* Content */}
                   <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
-                    <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2">
+                    <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2">
                       {item.title}
                     </h3>
 
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gov-gold/50">
                       <div className="flex items-center gap-1">
                         <Calendar size={12} />
                         {item.date}
@@ -257,13 +257,13 @@ export default function MediaPage() {
             {/* Empty State */}
             {filteredMedia.length === 0 && (
               <div className="text-center py-20">
-                <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center mb-4">
+                <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-gov-emeraldStatic/50 flex items-center justify-center mb-4">
                   <ImageIcon size={32} className="text-gray-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
                   {language === 'ar' ? 'لا توجد عناصر' : 'No Items Found'}
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500 dark:text-gov-gold/60">
                   {language === 'ar'
                     ? 'لا يوجد محتوى في هذه الفئة حالياً'
                     : 'No content in this category currently'}

@@ -23,7 +23,9 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('id');
 
         return [
-            'name' => 'sometimes|required|string|max:255',
+            'first_name' => 'sometimes|required|string|max:255',
+            'father_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
             'email' => "sometimes|required|email|unique:users,email,{$userId}|max:255",
             'phone' => "nullable|string|regex:/^09[0-9]{8}$/|unique:users,phone,{$userId}",
             'national_id' => "nullable|string|size:11|unique:users,national_id,{$userId}",
@@ -40,7 +42,9 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'الاسم مطلوب',
+            'first_name.required' => 'الاسم الأول مطلوب',
+            'father_name.required' => 'اسم الأب مطلوب',
+            'last_name.required' => 'الكنية مطلوبة',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني مستخدم مسبقاً',
             'phone.unique' => 'رقم الهاتف مستخدم مسبقاً',

@@ -18,7 +18,8 @@ import {
   Plus,
   Trash2,
   AlertTriangle,
-  Lightbulb
+  Lightbulb,
+  CheckCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -77,12 +78,15 @@ export default function UserDashboard() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', password: '' });
+  const [profileData, setProfileData] = useState({ first_name: '', father_name: '', last_name: '', email: '', phone: '', birth_date: '', governorate: '', password: '' });
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; complaint: Ticket | null }>({ open: false, complaint: null });
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
+  const [notifPrefsLoading, setNotifPrefsLoading] = useState(false);
+  const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
 
   const ForwardArrow = language === 'ar' ? ChevronLeft : ChevronRight;
 
@@ -97,9 +101,13 @@ export default function UserDashboard() {
   useEffect(() => {
     if (authUser) {
       setProfileData({
-        name: authUser.name || '',
+        first_name: authUser.first_name || '',
+        father_name: authUser.father_name || '',
+        last_name: authUser.last_name || '',
         email: authUser.email || '',
         phone: authUser.phone || '',
+        birth_date: authUser.birth_date ? new Date(authUser.birth_date).toISOString().split('T')[0] : '',
+        governorate: authUser.governorate || '',
         password: ''
       });
     }
@@ -173,6 +181,25 @@ export default function UserDashboard() {
     fetchNotifications();
   }, [activeTab, language, isAuthenticated]);
 
+  useEffect(() => {
+    const fetchNotifPrefs = async () => {
+      if (!isAuthenticated || activeTab !== 'settings') return;
+      setNotifPrefsLoading(true);
+      try {
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch('/api/v1/user/notification-preferences', {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifPrefs(data.preferences || data.data || {});
+        }
+      } catch (e) { console.error('Failed to fetch notification preferences:', e); }
+      finally { setNotifPrefsLoading(false); }
+    };
+    fetchNotifPrefs();
+  }, [activeTab, isAuthenticated]);
+
   // Show loading while checking authentication
   if (authLoading) {
     return (
@@ -218,9 +245,13 @@ export default function UserDashboard() {
     setIsUpdating(true);
     try {
       const data: Record<string, string> = {
-        name: profileData.name,
+        first_name: profileData.first_name,
+        father_name: profileData.father_name,
+        last_name: profileData.last_name,
         email: profileData.email,
-        phone: profileData.phone
+        phone: profileData.phone,
+        birth_date: profileData.birth_date,
+        governorate: profileData.governorate,
       };
       if (profileData.password) data.password = profileData.password;
 
@@ -235,6 +266,67 @@ export default function UserDashboard() {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleMarkRead = async (notificationId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`/api/v1/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
+      }
+    } catch (e) {
+      console.error('Error marking notification read:', e);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/notifications/read-all', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }
+    } catch (e) {
+      console.error('Error marking all read:', e);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`/api/v1/notifications/${notificationId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      }
+    } catch (e) {
+      console.error('Error deleting notification:', e);
+    }
+  };
+
+  const handleSaveNotifPrefs = async () => {
+    setNotifPrefsSaving(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/user/notification-preferences', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ preferences: notifPrefs })
+      });
+      if (res.ok) {
+        alert(language === 'ar' ? 'تم حفظ تفضيلات الإشعارات' : 'Notification preferences saved');
+      }
+    } catch (e) { console.error('Error saving notification preferences:', e); }
+    finally { setNotifPrefsSaving(false); }
   };
 
   const stats = [
@@ -317,7 +409,7 @@ export default function UserDashboard() {
           >
             <div>
               <h1 className="text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
-                {language === 'ar' ? `مرحباً، ${authUser?.name || 'مستخدم'}` : `Welcome, ${authUser?.name || 'User'}`}
+                {language === 'ar' ? `مرحباً، ${authUser?.first_name || 'مستخدم'}` : `Welcome, ${authUser?.first_name || 'User'}`}
               </h1>
               <p className="text-gov-stone dark:text-gray-300 text-lg">
                 {language === 'ar' ? 'إدارة شكاواك واقتراحاتك وإعدادات حسابك' : 'Manage your complaints, suggestions, and account settings'}
@@ -474,7 +566,7 @@ export default function UserDashboard() {
                           </div>
                           <div>
                             <span className="block font-bold text-lg text-gov-charcoal dark:text-white">{language === 'ar' ? 'تتبع الحالة' : 'Track Status'}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{language === 'ar' ? 'تابع طلباتك' : 'Follow up on requests'}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{language === 'ar' ? 'تابع شكاواك' : 'Follow up on complaints'}</span>
                           </div>
                         </motion.div>
                       </Link>
@@ -659,9 +751,20 @@ export default function UserDashboard() {
               {/* Notifications Tab */}
               {activeTab === 'notifications' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
-                  <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-8">
-                    {language === 'ar' ? 'الإشعارات' : 'Notifications'}
-                  </h3>
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white">
+                      {language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                    </h3>
+                    {notifications.some(n => !n.read) && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:bg-gov-teal/10 dark:hover:bg-gov-gold/10 rounded-xl transition-colors"
+                      >
+                        <CheckCheck size={18} />
+                        {language === 'ar' ? 'قراءة الكل' : 'Mark All Read'}
+                      </button>
+                    )}
+                  </div>
                   {notificationsLoading ? (
                     <div className="flex justify-center py-8">
                       <Loader2 className="animate-spin text-gov-gold" size={32} />
@@ -698,9 +801,27 @@ export default function UserDashboard() {
                                 </p>
                               </div>
                             </div>
-                            {!notification.read && (
-                              <span className="w-3 h-3 bg-gov-gold rounded-full shadow-lg shadow-gov-gold/50"></span>
-                            )}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {!notification.read && (
+                                <button
+                                  onClick={() => handleMarkRead(notification.id)}
+                                  className="p-1.5 rounded-lg hover:bg-gov-teal/10 text-gov-teal dark:text-gov-gold transition-colors"
+                                  title={language === 'ar' ? 'تحديد كمقروء' : 'Mark as read'}
+                                >
+                                  <CheckCheck size={16} />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteNotification(notification.id)}
+                                className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"
+                                title={language === 'ar' ? 'حذف' : 'Delete'}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                              {!notification.read && (
+                                <span className="w-3 h-3 bg-gov-gold rounded-full shadow-lg shadow-gov-gold/50"></span>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       ))}
@@ -716,16 +837,40 @@ export default function UserDashboard() {
                     {language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'}
                   </h3>
                   <div className="max-w-xl mx-auto space-y-8 bg-white/50 dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10">
-                    <div>
-                      <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
-                        {language === 'ar' ? 'الاسم الكامل' : 'Full Name'}
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'الاسم الأول' : 'First Name'}
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.first_name}
+                          onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'اسم الأب' : 'Father Name'}
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.father_name}
+                          onChange={(e) => setProfileData({ ...profileData, father_name: e.target.value })}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'الكنية' : 'Last Name'}
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.last_name}
+                          onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
@@ -738,6 +883,60 @@ export default function UserDashboard() {
                         className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                        placeholder="09xxxxxxxx"
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'}
+                        </label>
+                        <input
+                          type="date"
+                          value={profileData.birth_date}
+                          onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'المحافظة' : 'Governorate'}
+                        </label>
+                        <select
+                          value={profileData.governorate}
+                          onChange={(e) => setProfileData({ ...profileData, governorate: e.target.value })}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white appearance-none"
+                        >
+                          <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
+                          {['دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس', 'دير الزور', 'الحسكة', 'الرقة', 'إدلب', 'درعا', 'السويداء', 'القنيطرة'].map((gov) => (
+                            <option key={gov} value={gov}>{gov}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {authUser?.national_id && (
+                      <div>
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          {language === 'ar' ? 'الرقم الوطني' : 'National ID'}
+                        </label>
+                        <input
+                          type="text"
+                          value={authUser.national_id}
+                          readOnly
+                          className="w-full px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none font-bold text-gov-charcoal dark:text-white cursor-default"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'الرقم الوطني لا يمكن تغييره' : 'National ID cannot be changed'}</p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
                         {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
@@ -763,6 +962,54 @@ export default function UserDashboard() {
                         : (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')
                       }
                     </motion.button>
+                    {/* Notification Preferences */}
+                    <div className="mt-10 pt-8 border-t border-gray-200 dark:border-white/10">
+                      <h4 className="text-xl font-display font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
+                        <Bell size={20} className="text-gov-gold" />
+                        {language === 'ar' ? 'تفضيلات الإشعارات' : 'Notification Preferences'}
+                      </h4>
+                      {notifPrefsLoading ? (
+                        <div className="flex justify-center py-6">
+                          <Loader2 className="animate-spin text-gov-gold" size={24} />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {[
+                            { key: 'email_complaint_updates', label: language === 'ar' ? 'تحديثات الشكاوى عبر البريد' : 'Complaint updates via email' },
+                            { key: 'sms_complaint_updates', label: language === 'ar' ? 'تحديثات الشكاوى عبر SMS' : 'Complaint updates via SMS' },
+                            { key: 'email_suggestion_updates', label: language === 'ar' ? 'تحديثات الاقتراحات عبر البريد' : 'Suggestion updates via email' },
+                            { key: 'email_newsletter', label: language === 'ar' ? 'النشرة البريدية' : 'Newsletter emails' },
+                            { key: 'push_notifications', label: language === 'ar' ? 'إشعارات الموقع' : 'Push notifications' },
+                          ].map((pref) => (
+                            <label key={pref.key} className="flex items-center justify-between p-4 bg-white dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 cursor-pointer hover:border-gov-teal/30 transition-colors">
+                              <span className="font-bold text-sm text-gov-charcoal dark:text-white">{pref.label}</span>
+                              <div className="relative">
+                                <input
+                                  type="checkbox"
+                                  checked={notifPrefs[pref.key] ?? true}
+                                  onChange={(e) => setNotifPrefs({ ...notifPrefs, [pref.key]: e.target.checked })}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:ring-4 peer-focus:ring-gov-teal/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gov-teal"></div>
+                              </div>
+                            </label>
+                          ))}
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleSaveNotifPrefs}
+                            disabled={notifPrefsSaving}
+                            className="w-full py-3 bg-gov-gold text-gov-forest font-bold rounded-xl hover:bg-gov-sand transition-colors flex items-center justify-center gap-3 shadow-lg shadow-gov-gold/20 mt-4"
+                          >
+                            {notifPrefsSaving ? <Loader2 className="animate-spin" size={18} /> : <Bell size={18} />}
+                            {notifPrefsSaving
+                              ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...')
+                              : (language === 'ar' ? 'حفظ تفضيلات الإشعارات' : 'Save Notification Preferences')
+                            }
+                          </motion.button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               )}

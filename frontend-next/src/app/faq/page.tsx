@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Search, HelpCircle, FileQuestion, Monitor, UserCheck, Loader2 } from 'lucide-react';
+import { ChevronDown, Search, HelpCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { FAQ } from '@/types';
@@ -12,7 +12,6 @@ export default function FAQPage() {
     const { language } = useLanguage();
     const [openIndex, setOpenIndex] = useState<number | null>(0);
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState('all');
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,17 +38,11 @@ export default function FAQPage() {
 
     const filteredFaqs = faqs.filter(faq => {
         const question = getQuestion(faq);
-        const matchesSearch = question.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = activeCategory === 'all';
-        return matchesSearch && matchesCategory;
+        return question.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-    const categories = [
-        { id: 'all', labelEn: 'All Questions', labelAr: 'جميع الأسئلة', icon: <HelpCircle size={18} /> },
-    ];
-
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
             <Navbar />
 
             <main className="flex-grow pt-14 md:pt-16">
@@ -79,23 +72,6 @@ export default function FAQPage() {
 
                 <div className="max-w-4xl mx-auto px-4 py-12">
 
-                    {/* Categories */}
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">
-                        {categories.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-xl border font-bold transition-all ${activeCategory === cat.id
-                                    ? 'bg-gov-teal text-white border-gov-teal shadow-lg'
-                                    : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gov-teal'
-                                    }`}
-                            >
-                                {cat.icon}
-                                {language === 'ar' ? cat.labelAr : cat.labelEn}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* FAQ List */}
                     {loading ? (
                         <div className="flex justify-center py-16">
@@ -106,7 +82,7 @@ export default function FAQPage() {
                             {filteredFaqs.length > 0 ? filteredFaqs.map((faq, index) => (
                                 <div
                                     key={faq.id}
-                                    className={`bg-white dark:bg-white/5 rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
+                                    className={`bg-white dark:bg-gov-emeraldStatic rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                                         ? 'border-gov-gold/50 shadow-md'
                                         : 'border-gray-100 dark:border-white/10 hover:border-gov-gold/30'
                                         }`}

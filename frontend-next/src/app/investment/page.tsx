@@ -70,7 +70,7 @@ export default function InvestmentPage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
             <Navbar />
             <main className="flex-grow pt-14 md:pt-16">
                 {/* Hero Section */}
@@ -97,7 +97,7 @@ export default function InvestmentPage() {
                 <div className="max-w-6xl mx-auto px-4 -mt-12 relative z-20">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {stats.map((stat, idx) => (
-                            <div key={idx} className="bg-white dark:bg-gov-charcoal p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 text-center">
+                            <div key={idx} className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 text-center">
                                 <IconRenderer name={stat.iconName} size={32} className="text-gov-gold mx-auto mb-3" />
                                 <div className="text-3xl font-bold text-gov-forest dark:text-white">{stat.value}</div>
                                 <div className="text-gray-600 dark:text-gray-400">
@@ -119,7 +119,7 @@ export default function InvestmentPage() {
                             <Link
                                 key={idx}
                                 href={`/investment/${cat.slug}`}
-                                className="group bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500"
+                                className="group bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500"
                             >
                                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gov-teal to-gov-emerald dark:from-gov-gold/90 dark:to-gov-sand flex items-center justify-center text-white dark:text-gov-forest mb-6 group-hover:scale-110 transition-transform shadow-lg">
                                     <IconRenderer name={cat.iconName} size={40} />

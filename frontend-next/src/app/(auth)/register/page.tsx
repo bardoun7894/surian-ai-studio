@@ -27,7 +27,7 @@ import { ApiError } from '@/lib/api';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 const RegisterPage = () => {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const { register } = useAuth();
     const router = useRouter();
 
@@ -35,19 +35,48 @@ const RegisterPage = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         nationalId: '',
-        fullName: '',
+        firstName: '',
+        fatherName: '',
+        lastName: '',
         email: '',
         phone: '',
         birthDate: '',
         governorate: '',
         password: '',
         confirmPassword: '',
-        agreeTerms: false,
-        twoFactorEnabled: false
+        agreeTerms: false
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const { executeRecaptcha } = useRecaptcha();
+
+    const validateStep = (step: number): boolean => {
+        const errors: Record<string, string> = {};
+
+        if (step === 1) {
+            // Date of birth validation
+            if (formData.birthDate) {
+                const dob = new Date(formData.birthDate);
+                if (isNaN(dob.getTime())) {
+                    errors.birthDate = t('validation_dob_invalid');
+                } else if (dob > new Date()) {
+                    errors.birthDate = t('validation_dob_future');
+                }
+            }
+        }
+
+        if (step === 2) {
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (formData.email && !emailRegex.test(formData.email)) {
+                errors.email = t('validation_email_invalid');
+            }
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const governorates = [
         'دمشق',
@@ -70,6 +99,10 @@ const RegisterPage = () => {
         e.preventDefault();
         setError(null);
 
+        if (!validateStep(currentStep)) {
+            return;
+        }
+
         if (currentStep < 3) {
             setCurrentStep(currentStep + 1);
             return;
@@ -79,8 +112,10 @@ const RegisterPage = () => {
 
         try {
             const recaptchaToken = await executeRecaptcha('register');
-            await register({
-                name: formData.fullName,
+            const response = await register({
+                first_name: formData.firstName,
+                father_name: formData.fatherName,
+                last_name: formData.lastName,
                 email: formData.email,
                 password: formData.password,
                 password_confirmation: formData.confirmPassword,
@@ -88,9 +123,14 @@ const RegisterPage = () => {
                 phone: formData.phone,
                 birth_date: formData.birthDate,
                 governorate: formData.governorate,
-                two_factor_enabled: formData.twoFactorEnabled,
-                recaptcha_token: recaptchaToken,
+                recaptcha_token: recaptchaToken || undefined,
             });
+
+            if (response.require_2fa) {
+                // Redirect to 2FA verification page
+                router.push(`/two-factor?email=${encodeURIComponent(formData.email)}`);
+                return;
+            }
 
             // Redirect to dashboard
             router.push('/dashboard');
@@ -100,7 +140,7 @@ const RegisterPage = () => {
             } else if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError('Registration failed');
+                setError(t('error_generic'));
             }
         } finally {
             setIsLoading(false);
@@ -111,9 +151,9 @@ const RegisterPage = () => {
     const BackIcon = language === 'ar' ? ChevronRight : ChevronLeft;
 
     const steps = [
-        { num: 1, title: language === 'ar' ? 'المعلومات الشخصية' : 'Personal Info' },
-        { num: 2, title: language === 'ar' ? 'معلومات الاتصال' : 'Contact Info' },
-        { num: 3, title: language === 'ar' ? 'كلمة المرور' : 'Password' }
+        { num: 1, title: t('reg_step_personal') },
+        { num: 2, title: t('reg_step_contact') },
+        { num: 3, title: t('reg_step_password') }
     ];
 
     return (
@@ -145,10 +185,10 @@ const RegisterPage = () => {
 
                     {/* Title */}
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
+                        {t('auth_ministry_name')}
                     </h1>
                     <p className="text-gov-gold text-lg text-center mb-8">
-                        {language === 'ar' ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}
+                        {t('republic_name')}
                     </p>
 
                     {/* Decorative Line */}
@@ -179,7 +219,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Right Panel - Register Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-gov-charcoal flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto">
+            <div className="flex-1 bg-gov-beige dark:bg-gov-emeraldStatic flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto">
                 <div className="w-full max-w-lg">
                     {/* Back Button */}
                     <Link
@@ -187,7 +227,7 @@ const RegisterPage = () => {
                         className="flex items-center gap-1 text-gray-500 hover:text-gov-teal transition-colors mb-6 group"
                     >
                         <BackIcon size={18} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform" />
-                        {language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
+                        {t('auth_back_home')}
                     </Link>
 
                     {/* Mobile Logo */}
@@ -203,13 +243,11 @@ const RegisterPage = () => {
 
                     {/* Header */}
                     <div className="mb-6 relative">
-                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
-                            {language === 'ar' ? 'إنشاء حساب جديد' : 'Create Account'}
+                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
+                            {t('auth_register_title')}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            {language === 'ar'
-                                ? 'سجل الآن للوصول إلى الخدمات الحكومية الإلكترونية'
-                                : 'Register now to access e-government services'}
+                        <p className="text-gray-500 dark:text-gray-300">
+                            {t('auth_register_subtitle')}
                         </p>
                     </div>
 
@@ -222,7 +260,7 @@ const RegisterPage = () => {
                                         ? 'bg-gov-gold text-gov-forest'
                                         : currentStep === step.num
                                             ? 'bg-gov-teal text-white shadow-lg shadow-gov-teal/20'
-                                            : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'
+                                            : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-300'
                                         }`}>
                                         {currentStep > step.num ? <CheckCircle size={18} /> : step.num}
                                     </div>
@@ -240,7 +278,7 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Register Card */}
-                    <div className="bg-white dark:bg-white/5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-gov-emeraldStatic/50 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-gold/10 p-6 sm:p-8">
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
@@ -256,32 +294,69 @@ const RegisterPage = () => {
                                     {/* National ID */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'الرقم الوطني' : 'National ID'} <span className="text-red-500">*</span>
+                                            {t('auth_national_id')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type="text"
                                                 value={formData.nationalId}
                                                 onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
-                                                placeholder={language === 'ar' ? 'أدخل الرقم الوطني' : 'Enter national ID'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                placeholder={t('auth_enter_national_id')}
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
+                                                maxLength={11}
                                             />
                                             <Fingerprint className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
                                     </div>
 
-                                    {/* Full Name */}
+                                    {/* First Name */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'الاسم الكامل' : 'Full Name'} <span className="text-red-500">*</span>
+                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type="text"
-                                                value={formData.fullName}
-                                                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                                placeholder={language === 'ar' ? 'الاسم الثلاثي' : 'Full name'}
+                                                value={formData.firstName}
+                                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'}
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                required
+                                            />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                        </div>
+                                    </div>
+
+                                    {/* Father Name */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                value={formData.fatherName}
+                                                onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                                placeholder={language === 'ar' ? 'اسم الأب' : 'Father Name'}
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                required
+                                            />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                        </div>
+                                    </div>
+
+                                    {/* Last Name */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                value={formData.lastName}
+                                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                placeholder={language === 'ar' ? 'الكنية' : 'Last Name'}
                                                 className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
@@ -292,7 +367,7 @@ const RegisterPage = () => {
                                     {/* Birth Date */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'} <span className="text-red-500">*</span>
+                                            {t('reg_birth_date')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -304,23 +379,26 @@ const RegisterPage = () => {
                                             />
                                             <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
+                                        {fieldErrors.birthDate && (
+                                            <p className="text-red-500 text-sm mt-1">{fieldErrors.birthDate}</p>
+                                        )}
                                     </div>
 
                                     {/* Governorate */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'المحافظة' : 'Governorate'} <span className="text-red-500">*</span>
+                                            {t('reg_governorate')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <select
                                                 value={formData.governorate}
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-black dark:text-white dark:border-gray-600 border border-gray-200 text-gov-charcoal focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
                                                 required
                                             >
-                                                <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
+                                                <option value="" className="dark:bg-black dark:text-white">{t('reg_select_governorate')}</option>
                                                 {governorates.map((gov) => (
-                                                    <option key={gov} value={gov}>{gov}</option>
+                                                    <option key={gov} value={gov} className="dark:bg-black dark:text-white">{gov}</option>
                                                 ))}
                                             </select>
                                             <MapPin className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
@@ -335,7 +413,7 @@ const RegisterPage = () => {
                                     {/* Email */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'} <span className="text-red-500">*</span>
+                                            {t('auth_email')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -348,12 +426,15 @@ const RegisterPage = () => {
                                             />
                                             <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
+                                        {fieldErrors.email && (
+                                            <p className="text-red-500 text-sm mt-1">{fieldErrors.email}</p>
+                                        )}
                                     </div>
 
                                     {/* Phone */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'} <span className="text-red-500">*</span>
+                                            {t('auth_phone')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -363,6 +444,7 @@ const RegisterPage = () => {
                                                 placeholder="09xxxxxxxx"
                                                 className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
+                                                maxLength={10}
                                             />
                                             <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
@@ -371,9 +453,7 @@ const RegisterPage = () => {
                                     <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/20 flex gap-3">
                                         <Shield className="shrink-0 text-blue-600 dark:text-blue-400" size={20} />
                                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                                            {language === 'ar'
-                                                ? 'سيتم إرسال رمز التحقق إلى هاتفك وبريدك الإلكتروني للتأكد من صحة البيانات.'
-                                                : 'A verification code will be sent to your phone and email to verify your information.'}
+                                            {t('reg_verification')}
                                         </p>
                                     </div>
                                 </div>
@@ -385,14 +465,14 @@ const RegisterPage = () => {
                                     {/* Password */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'كلمة المرور' : 'Password'} <span className="text-red-500">*</span>
+                                            {t('auth_password')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                placeholder={language === 'ar' ? 'أدخل كلمة مرور قوية' : 'Enter a strong password'}
+                                                placeholder={t('reg_password_placeholder')}
                                                 className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                                 minLength={8}
@@ -410,14 +490,14 @@ const RegisterPage = () => {
                                     {/* Confirm Password */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'} <span className="text-red-500">*</span>
+                                            {t('reg_confirm_password')} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                                placeholder={language === 'ar' ? 'أعد إدخال كلمة المرور' : 'Re-enter password'}
+                                                placeholder={t('reg_reenter_password')}
                                                 className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
@@ -428,56 +508,28 @@ const RegisterPage = () => {
                                     {/* Password Requirements */}
                                     <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl space-y-2 border border-gray-100 dark:border-white/5">
                                         <p className="text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'متطلبات كلمة المرور:' : 'Password requirements:'}
+                                            {t('reg_password_requirements')}
                                         </p>
-                                        <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                                        <ul className="text-sm text-gray-500 dark:text-gray-300 space-y-2">
                                             <li className="flex items-center gap-2">
                                                 <div className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.password.length >= 8 ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={formData.password.length >= 8 ? 'text-gov-emerald font-medium' : ''}>{language === 'ar' ? '8 أحرف على الأقل' : 'At least 8 characters'}</span>
+                                                <span className={formData.password.length >= 8 ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_length')}</span>
                                             </li>
                                             <li className="flex items-center gap-2">
                                                 <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.password) ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={/[A-Z]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{language === 'ar' ? 'حرف كبير واحد على الأقل' : 'At least one uppercase letter'}</span>
+                                                <span className={/[A-Z]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_uppercase')}</span>
                                             </li>
                                             <li className="flex items-center gap-2">
                                                 <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[0-9]/.test(formData.password) ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{language === 'ar' ? 'رقم واحد على الأقل' : 'At least one number'}</span>
+                                                <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_number')}</span>
                                             </li>
                                         </ul>
-                                    </div>
-
-                                    {/* 2FA Toggle */}
-                                    <div className="p-4 bg-gov-teal/5 dark:bg-gov-teal/10 rounded-xl border border-gov-teal/10 dark:border-gov-teal/20 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gov-teal/20 flex items-center justify-center">
-                                                    <Shield size={20} className="text-gov-teal" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gov-charcoal dark:text-white">
-                                                        {language === 'ar' ? 'المصادقة الثنائية (2FA)' : 'Two-Factor Authentication (2FA)'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {language === 'ar' ? 'طبقة حماية إضافية لحسابك' : 'Extra layer of security for your account'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.twoFactorEnabled}
-                                                    onChange={(e) => setFormData({ ...formData, twoFactorEnabled: e.target.checked })}
-                                                    className="sr-only peer"
-                                                />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] rtl:after:left-auto rtl:after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gov-teal"></div>
-                                            </label>
-                                        </div>
                                     </div>
 
                                     {/* Terms Agreement */}
@@ -489,10 +541,8 @@ const RegisterPage = () => {
                                             className="w-5 h-5 mt-0.5 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer"
                                             required
                                         />
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                                            {language === 'ar'
-                                                ? 'أوافق على شروط الاستخدام وسياسة الخصوصية'
-                                                : 'I agree to the Terms of Service and Privacy Policy'}
+                                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                                            {t('reg_agree_terms')}
                                         </span>
                                     </label>
                                 </div>
@@ -506,7 +556,7 @@ const RegisterPage = () => {
                                         onClick={() => setCurrentStep(currentStep - 1)}
                                         className="flex-1 py-4 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
                                     >
-                                        {language === 'ar' ? 'السابق' : 'Previous'}
+                                        {t('reg_previous')}
                                     </button>
                                 )}
                                 <button
@@ -518,12 +568,12 @@ const RegisterPage = () => {
                                         <div className="w-5 h-5 border-2 border-gov-forest/30 border-t-gov-forest rounded-full animate-spin" />
                                     ) : currentStep < 3 ? (
                                         <>
-                                            {language === 'ar' ? 'التالي' : 'Next'}
+                                            {t('reg_next')}
                                             <ArrowIcon size={18} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                                         </>
                                     ) : (
                                         <>
-                                            {language === 'ar' ? 'إنشاء الحساب' : 'Create Account'}
+                                            {t('reg_create')}
                                             <ArrowIcon size={18} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                                         </>
                                     )}
@@ -532,22 +582,22 @@ const RegisterPage = () => {
                         </form>
 
                         {/* Security Badge */}
-                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-white/10 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-white/10 text-xs text-gray-500 dark:text-gray-300">
                             <Shield size={14} className="text-gov-teal" />
-                            {language === 'ar' ? 'بياناتك محمية ومشفرة بتقنية SSL' : 'Your data is secured with SSL encryption'}
+                            {t('reg_protected')}
                         </div>
                     </div>
 
                     {/* Login Link */}
                     <div className="text-center mt-6 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                        <span className="text-gray-500 dark:text-gray-400">
-                            {language === 'ar' ? 'لديك حساب بالفعل؟' : 'Already have an account?'}
+                        <span className="text-gray-500 dark:text-gray-300">
+                            {t('reg_already_account')}
                         </span>
                         <Link
                             href="/login"
                             className="text-gov-teal font-bold hover:text-gov-forest hover:underline mr-2 rtl:mr-0 rtl:ml-2 transition-colors"
                         >
-                            {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
+                            {t('auth_sign_in_btn')}
                         </Link>
                     </div>
                 </div>

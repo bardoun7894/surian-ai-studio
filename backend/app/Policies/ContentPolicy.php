@@ -11,37 +11,24 @@ class ContentPolicy
     use HandlesAuthorization;
 
     /**
-     * Super admin bypass - grants all permissions.
+     * Super admin bypass - grants all permissions via wildcard in hasPermission().
      */
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
             return true;
         }
-        return null; // Fall through to normal checks
+        return null;
     }
 
-    /**
-     * Determine whether the user can view any content.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('content.view') ||
-               $user->hasPermission('content.*') ||
-               $user->hasRole('super_admin') ||
-               $user->hasRole('content_manager');
+        return $user->hasPermission('content.view');
     }
 
-    /**
-     * Determine whether the user can view the content.
-     */
     public function view(User $user, Content $content): bool
     {
-        if ($user->hasRole('super_admin') || $user->hasRole('content_manager')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('content.view') && !$user->hasPermission('content.*')) {
+        if (!$user->hasPermission('content.view')) {
             return false;
         }
 
@@ -53,27 +40,14 @@ class ContentPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can create content.
-     */
     public function create(User $user): bool
     {
-        return $user->hasPermission('content.create') ||
-               $user->hasPermission('content.*') ||
-               $user->hasRole('super_admin') ||
-               $user->hasRole('content_manager');
+        return $user->hasPermission('content.create');
     }
 
-    /**
-     * Determine whether the user can update the content.
-     */
     public function update(User $user, Content $content): bool
     {
-        if ($user->hasRole('super_admin') || $user->hasRole('content_manager')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('content.update') && !$user->hasPermission('content.*')) {
+        if (!$user->hasPermission('content.edit')) {
             return false;
         }
 
@@ -90,22 +64,10 @@ class ContentPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can delete the content.
-     */
     public function delete(User $user, Content $content): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (!$user->hasPermission('content.delete') && !$user->hasPermission('content.*')) {
+        if (!$user->hasPermission('content.delete')) {
             return false;
-        }
-
-        // Content managers can delete
-        if ($user->hasRole('content_manager')) {
-            return true;
         }
 
         // Authors can delete their own unpublished content
@@ -113,30 +75,21 @@ class ContentPolicy
             return true;
         }
 
+        // Users with full content access can delete
+        if ($user->hasPermission('content.*')) {
+            return true;
+        }
+
         return false;
     }
 
-    /**
-     * Determine whether the user can publish the content.
-     */
     public function publish(User $user, Content $content): bool
     {
-        if ($user->hasRole('super_admin') || $user->hasRole('content_manager')) {
-            return true;
-        }
-
-        return $user->hasPermission('content.publish') || $user->hasPermission('content.*');
+        return $user->hasPermission('content.publish');
     }
 
-    /**
-     * Determine whether the user can feature the content.
-     */
     public function feature(User $user, Content $content): bool
     {
-        if ($user->hasRole('super_admin') || $user->hasRole('content_manager')) {
-            return true;
-        }
-
-        return $user->hasPermission('content.feature') || $user->hasPermission('content.*');
+        return $user->hasPermission('content.feature');
     }
 }

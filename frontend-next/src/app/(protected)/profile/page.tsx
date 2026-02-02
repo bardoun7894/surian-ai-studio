@@ -14,7 +14,11 @@ import {
     Save,
     Loader2,
     ChevronLeft,
-    CheckCircle
+    CheckCircle,
+    Pencil,
+    X,
+    Send,
+    KeyRound
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,7 +28,7 @@ import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const { user: authUser, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth();
     const router = useRouter();
 
@@ -33,12 +37,24 @@ export default function ProfilePage() {
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
 
+    // Email edit state
+    const [emailEditMode, setEmailEditMode] = useState<'view' | 'input' | 'verify'>('view');
+    const [newEmail, setNewEmail] = useState('');
+    const [emailPassword, setEmailPassword] = useState('');
+    const [verificationCode, setVerificationCode] = useState('');
+    const [emailLoading, setEmailLoading] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+
     const [formData, setFormData] = useState({
-        name: '',
+        first_name: '',
+        father_name: '',
+        last_name: '',
         email: '',
         phone: '',
         birth_date: '',
         governorate: '',
+        current_password: '',
         password: '',
         password_confirmation: ''
     });
@@ -57,18 +73,73 @@ export default function ProfilePage() {
     useEffect(() => {
         if (authUser) {
             setFormData({
-                name: authUser.name || '',
+                first_name: authUser.first_name || '',
+                father_name: authUser.father_name || '',
+                last_name: authUser.last_name || '',
                 email: authUser.email || '',
                 phone: authUser.phone || '',
-                // @ts-ignore - birth_date added to Model but maybe not to User type yet
                 birth_date: authUser.birth_date ? new Date(authUser.birth_date).toISOString().split('T')[0] : '',
-                // @ts-ignore
                 governorate: authUser.governorate || '',
+                current_password: '',
                 password: '',
                 password_confirmation: ''
             });
         }
     }, [authUser]);
+
+    const handleRequestEmailChange = async () => {
+        if (!newEmail || !emailPassword) return;
+        setEmailLoading(true);
+        setEmailError(null);
+        setEmailSuccess(null);
+        try {
+            const result = await API.users.requestEmailChange(newEmail, emailPassword);
+            if (result.success) {
+                setEmailEditMode('verify');
+                setEmailSuccess(t('profile_email_verify_sent'));
+            } else {
+                setEmailError(result.message || t('error_generic'));
+            }
+        } catch {
+            setEmailError(t('error_generic'));
+        } finally {
+            setEmailLoading(false);
+        }
+    };
+
+    const handleVerifyEmailChange = async () => {
+        if (!verificationCode || verificationCode.length !== 6) return;
+        setEmailLoading(true);
+        setEmailError(null);
+        setEmailSuccess(null);
+        try {
+            const result = await API.users.verifyEmailChange(verificationCode);
+            if (result.success) {
+                setEmailSuccess(t('profile_email_updated'));
+                setEmailEditMode('view');
+                setNewEmail('');
+                setEmailPassword('');
+                setVerificationCode('');
+                await refreshUser();
+                setTimeout(() => setEmailSuccess(null), 5000);
+            } else {
+                setEmailError(result.message || t('twofa_invalid_code'));
+            }
+        } catch {
+            setEmailError(t('error_generic'));
+        } finally {
+            setEmailLoading(false);
+        }
+    };
+
+    const handleCancelEmailEdit = () => {
+        setEmailEditMode('view');
+        setNewEmail('');
+        setEmailPassword('');
+        setVerificationCode('');
+        setEmailError(null);
+        setEmailSuccess(null);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,8 +150,13 @@ export default function ProfilePage() {
         try {
             const updateData: any = { ...formData };
             if (!updateData.password) {
+                delete updateData.current_password;
                 delete updateData.password;
                 delete updateData.password_confirmation;
+            } else if (!updateData.current_password) {
+                setError(language === 'ar' ? 'يجب إدخال كلمة المرور الحالية' : 'Current password is required');
+                setIsLoading(false);
+                return;
             }
 
             await API.users.updateProfile(updateData);
@@ -146,13 +222,13 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'الاسم الكامل' : 'Full Name'}
+                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'}
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type="text"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                value={formData.first_name}
+                                                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                                                 className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
@@ -162,19 +238,208 @@ export default function ProfilePage() {
 
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
+                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'}
                                         </label>
                                         <div className="relative group">
                                             <input
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                type="text"
+                                                value={formData.father_name}
+                                                onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
                                                 className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
-                                            <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'الكنية' : 'Last Name'}
+                                        </label>
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                value={formData.last_name}
+                                                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                required
+                                            />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                        </div>
+                                    </div>
+
+                                    {/* Email field - read-only with edit button */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
+                                        </label>
+                                        <div className="relative group flex gap-2">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="email"
+                                                    value={formData.email}
+                                                    readOnly
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white cursor-default"
+                                                />
+                                                <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                            </div>
+                                            {emailEditMode === 'view' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEmailEditMode('input')}
+                                                    className="px-4 py-3 rounded-xl bg-gov-teal/10 text-gov-teal border border-gov-teal/20 hover:bg-gov-teal hover:text-white transition-all flex items-center gap-2 font-bold text-sm whitespace-nowrap"
+                                                >
+                                                    <Pencil size={16} />
+                                                    {t('profile_edit_email')}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Email edit inline panel */}
+                                    {emailEditMode !== 'view' && (
+                                        <div className="md:col-span-2 bg-gov-teal/5 dark:bg-gov-teal/10 border border-gov-teal/20 rounded-2xl p-6 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
+                                                    <Mail size={18} className="text-gov-teal" />
+                                                    {t('profile_edit_email')}
+                                                </h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCancelEmailEdit}
+                                                    className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 transition-colors"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+
+                                            {emailError && (
+                                                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                    <Shield size={16} />
+                                                    {emailError}
+                                                </div>
+                                            )}
+
+                                            {emailSuccess && (
+                                                <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                    <CheckCircle size={16} />
+                                                    {emailSuccess}
+                                                </div>
+                                            )}
+
+                                            {emailEditMode === 'input' && (
+                                                <>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                                            {t('profile_new_email')}
+                                                        </label>
+                                                        <div className="relative group">
+                                                            <input
+                                                                type="email"
+                                                                value={newEmail}
+                                                                onChange={(e) => setNewEmail(e.target.value)}
+                                                                placeholder="new@example.com"
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                                required
+                                                            />
+                                                            <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                                            {t('profile_current_password')}
+                                                        </label>
+                                                        <div className="relative group">
+                                                            <input
+                                                                type="password"
+                                                                value={emailPassword}
+                                                                onChange={(e) => setEmailPassword(e.target.value)}
+                                                                placeholder="********"
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                                required
+                                                            />
+                                                            <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-3 pt-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRequestEmailChange}
+                                                            disabled={emailLoading || !newEmail || !emailPassword}
+                                                            className="px-6 py-3 bg-gov-teal text-white font-bold rounded-xl hover:bg-gov-emerald transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg"
+                                                        >
+                                                            {emailLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                                                            {emailLoading ? t('profile_sending') : t('profile_send_verification')}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEmailEdit}
+                                                            className="px-6 py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-all"
+                                                        >
+                                                            {t('profile_cancel')}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {emailEditMode === 'verify' && (
+                                                <>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {t('profile_email_verify_sent')}
+                                                    </p>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                                            {t('profile_verify_code')}
+                                                        </label>
+                                                        <div className="relative group">
+                                                            <input
+                                                                type="text"
+                                                                value={verificationCode}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                                                    setVerificationCode(val);
+                                                                }}
+                                                                placeholder={t('profile_verify_code_placeholder')}
+                                                                maxLength={6}
+                                                                className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all text-center text-2xl tracking-[0.5em] font-mono"
+                                                            />
+                                                            <KeyRound className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-3 pt-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleVerifyEmailChange}
+                                                            disabled={emailLoading || verificationCode.length !== 6}
+                                                            className="px-6 py-3 bg-gov-teal text-white font-bold rounded-xl hover:bg-gov-emerald transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg"
+                                                        >
+                                                            {emailLoading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} />}
+                                                            {emailLoading ? t('profile_verifying') : t('profile_verify_and_update')}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setEmailEditMode('input');
+                                                                setVerificationCode('');
+                                                                setEmailError(null);
+                                                                setEmailSuccess(null);
+                                                            }}
+                                                            className="px-6 py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-all text-sm"
+                                                        >
+                                                            {t('profile_resend_code')}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEmailEdit}
+                                                            className="px-6 py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-all"
+                                                        >
+                                                            {t('profile_cancel')}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
@@ -235,6 +500,24 @@ export default function ProfilePage() {
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'كلمة المرور الحالية' : 'Current Password'}
+                                        </label>
+                                        <div className="relative group">
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                value={formData.current_password}
+                                                onChange={(e) => setFormData({ ...formData, current_password: e.target.value })}
+                                                placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
+                                                className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                            />
+                                            <Lock className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {language === 'ar' ? 'مطلوبة فقط عند تغيير كلمة المرور' : 'Required only when changing password'}
+                                        </p>
+                                    </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                                             {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}

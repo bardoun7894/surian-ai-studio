@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Mail\TwoFactorCode;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -45,7 +49,9 @@ class UserController extends Controller
         if ($request->has('search') && $request->search !== '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('father_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
             });
@@ -86,28 +92,36 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'phone' => 'nullable|string|max:20',
             'role_id' => 'nullable|exists:roles,id',
             'directorate_id' => 'nullable|exists:directorates,id',
             'national_id' => ['nullable', Rule::unique('users')->ignore($user->id)],
+            'birth_date' => 'nullable|date',
+            'governorate' => 'nullable|string|max:255',
         ]);
 
-        $oldData = $user->only(['name', 'email', 'phone', 'role_id', 'directorate_id']);
+        $oldData = $user->only(['first_name', 'father_name', 'last_name', 'email', 'phone', 'role_id', 'directorate_id', 'national_id', 'birth_date', 'governorate']);
 
         $user->update($request->only([
-            'name',
+            'first_name',
+            'father_name',
+            'last_name',
             'email',
             'phone',
             'role_id',
             'directorate_id',
-            'national_id'
+            'national_id',
+            'birth_date',
+            'governorate',
         ]));
 
         $this->auditService->log($request->user(), 'user_updated', 'user', $user->id, [
             'old' => $oldData,
-            'new' => $user->only(['name', 'email', 'phone', 'role_id', 'directorate_id'])
+            'new' => $user->only(['first_name', 'father_name', 'last_name', 'email', 'phone', 'role_id', 'directorate_id', 'national_id', 'birth_date', 'governorate'])
         ]);
 
         return response()->json([
@@ -122,7 +136,9 @@ class UserController extends Controller
         $this->authorize('create', User::class);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'role_id' => 'required|exists:roles,id',
             'directorate_id' => 'nullable|exists:directorates,id',
@@ -130,11 +146,13 @@ class UserController extends Controller
         ]);
 
         $role = Role::find($request->role_id);
-        
+
         $tempPassword = \Illuminate\Support\Str::random(10);
-        
+
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'father_name' => $request->father_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($tempPassword),
             'role_id' => $request->role_id,
@@ -143,7 +161,8 @@ class UserController extends Controller
         ]);
 
         $this->auditService->log($request->user(), 'user_created', 'user', $user->id, [
-            'name' => $user->name,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
             'email' => $user->email,
             'role_id' => $user->role_id
         ]);
@@ -164,18 +183,22 @@ class UserController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
             'password' => 'nullable|min:8|confirmed',
         ]);
-        
-        $oldData = $user->only(['name', 'phone', 'email', 'birth_date', 'governorate']);
+
+        $oldData = $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate']);
 
         $updateData = [
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'father_name' => $request->father_name,
+            'last_name' => $request->last_name,
             'phone' => $request->phone,
             'email' => $request->email,
             'birth_date' => $request->birth_date,
@@ -190,7 +213,7 @@ class UserController extends Controller
         
         $this->auditService->log($user, 'profile_updated', 'user', $user->id, [
             'old' => $oldData,
-            'new' => $user->only(['name', 'phone', 'email', 'birth_date', 'governorate'])
+            'new' => $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate'])
         ]);
 
         return response()->json([
@@ -306,23 +329,145 @@ class UserController extends Controller
         ]);
     }
 
+    // User: Request Email Change (T064)
+    public function requestEmailChange(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'password' => 'required|string',
+        ]);
+
+        if (!Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['كلمة المرور الحالية غير صحيحة'],
+            ]);
+        }
+
+        // Generate 6-digit OTP
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store pending email change data in cache (expires in 15 minutes)
+        \Illuminate\Support\Facades\Cache::put(
+            "email_change:{$user->id}",
+            [
+                'new_email' => $request->email,
+                'code' => $code,
+                'attempts' => 0,
+            ],
+            now()->addMinutes(15)
+        );
+
+        // Send verification code via email
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "رمز التحقق لتغيير البريد الإلكتروني: {$code}\nVerification code for email change: {$code}",
+                function ($message) use ($request) {
+                    $message->to($request->email)
+                        ->subject('رمز التحقق - Email Verification Code');
+                }
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send email change verification', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        $this->auditService->log($user, 'email_change_requested', 'user', $user->id, [
+            'new_email' => $request->email,
+        ]);
+
+        return response()->json([
+            'message' => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني الجديد',
+            'message_en' => 'Verification code sent to your new email',
+            'requires_verification' => true,
+        ]);
+    }
+
+    // User: Verify Email Change (T065)
+    public function verifyEmailChange(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'code' => 'required|string|size:6',
+        ]);
+
+        $cacheKey = "email_change:{$user->id}";
+        $pending = \Illuminate\Support\Facades\Cache::get($cacheKey);
+
+        if (!$pending) {
+            return response()->json([
+                'message' => 'لا يوجد طلب تغيير بريد إلكتروني أو انتهت صلاحية الرمز',
+                'message_en' => 'No pending email change request or code expired',
+            ], 422);
+        }
+
+        // Check attempts
+        if (($pending['attempts'] ?? 0) >= 5) {
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+            return response()->json([
+                'message' => 'تم تجاوز عدد المحاولات المسموحة. يرجى إعادة الطلب.',
+                'message_en' => 'Too many attempts. Please request a new code.',
+            ], 422);
+        }
+
+        if ($pending['code'] !== $request->code) {
+            // Increment attempts
+            $pending['attempts'] = ($pending['attempts'] ?? 0) + 1;
+            \Illuminate\Support\Facades\Cache::put($cacheKey, $pending, now()->addMinutes(15));
+
+            return response()->json([
+                'message' => 'رمز التحقق غير صحيح',
+                'message_en' => 'Invalid verification code',
+            ], 422);
+        }
+
+        $oldEmail = $user->email;
+        $user->email = $pending['new_email'];
+        $user->save();
+
+        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+
+        $this->auditService->log($user, 'email_changed', 'user', $user->id, [
+            'old_email' => $oldEmail,
+            'new_email' => $pending['new_email'],
+        ]);
+
+        return response()->json([
+            'message' => 'تم تحديث البريد الإلكتروني بنجاح',
+            'message_en' => 'Email updated successfully',
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+            ],
+        ]);
+    }
+
     // Public: Register Citizen
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
             'national_id' => 'required|unique:users,national_id',
             'phone' => 'required|string',
-            'birth_date' => 'nullable|date',
-            'governorate' => 'nullable|string|max:255',
+            'birth_date' => 'required|date',
+            'governorate' => 'required|string|max:255',
+            'recaptcha_token' => 'nullable|string',
         ]);
 
         $citizenRole = Role::where('name', 'citizen')->first();
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'father_name' => $request->father_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'national_id' => $request->national_id,
@@ -334,15 +479,21 @@ class UserController extends Controller
             'role_id' => $citizenRole ? $citizenRole->id : null,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-        
         $this->auditService->log($user, 'registered', 'user', $user->id);
 
+        // Generate OTP for 2FA verification
+        $otp = (string) random_int(100000, 999999);
+        $user->otp = Hash::make($otp);
+        $user->otp_expires_at = Carbon::now()->addMinutes(15);
+        $user->save();
+
+        Log::info("OTP for new user {$user->email}: {$otp}");
+        Mail::to($user->email)->send(new TwoFactorCode($otp));
+
         return response()->json([
-            'message' => 'Account created successfully.',
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user->load('role')
+            'message' => __('auth.register_success'),
+            'require_2fa' => true,
+            'email' => $user->email,
         ], 201);
     }
 }

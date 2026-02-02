@@ -62,13 +62,13 @@ export default function ContactPage() {
     const supportEmail = contactInfo.contact_support_email || 'support@moe.gov.sy';
     const address = language === 'en' && contactInfo.contact_address_en
         ? contactInfo.contact_address_en
-        : (contactInfo.contact_address_ar || 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة');
+        : (contactInfo.contact_address_ar || 'دمشق - الجمارك مقابل الأمن الجنائي');
     const workingHours = language === 'en' && contactInfo.contact_working_hours_en
         ? contactInfo.contact_working_hours_en
         : (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 صباحاً - 3:30 عصراً');
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
             <Navbar />
 
             <main className="flex-grow pt-14 md:pt-16">
@@ -92,36 +92,36 @@ export default function ContactPage() {
                         {/* Contact Info Cards */}
                         <div className="space-y-4 lg:col-span-1">
                             {/* Phone */}
-                            <div className="bg-white dark:bg-white/5 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
                                     <Phone size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
+                                    <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
                                     <p className="text-3xl font-display font-bold text-gov-forest dark:text-gray-200">{phone}</p>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>
 
                             {/* Email */}
-                            <div className="bg-white dark:bg-white/5 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <Mail size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
+                                    <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
                                     <p className="text-base font-bold text-gray-700 dark:text-gray-300">{email}</p>
                                     <p className="text-base font-bold text-gray-700 dark:text-gray-300">{supportEmail}</p>
                                 </div>
                             </div>
 
                             {/* Address */}
-                            <div className="bg-white dark:bg-white/5 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                            <div className="bg-white dark:bg-gov-emeraldStatic p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="w-12 h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
                                     <MapPin size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gov-forest dark:text-white mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
+                                    <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                                         {address}
                                     </p>
@@ -149,9 +149,9 @@ export default function ContactPage() {
                         <div className="lg:col-span-2 space-y-8">
 
                             {/* Form */}
-                            <div className="bg-white dark:bg-white/5 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/10">
+                            <div className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/10">
                                 <div className="mb-8">
-                                    <h2 className="text-2xl font-bold text-gov-forest dark:text-white mb-2 flex items-center gap-2">
+                                    <h2 className="text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
                                         <MessageSquare className="text-gov-gold" />
                                         {language === 'ar' ? 'أرسل لنا رسالة' : 'Send Us a Message'}
                                     </h2>

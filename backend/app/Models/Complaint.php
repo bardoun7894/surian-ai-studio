@@ -17,6 +17,7 @@ class Complaint extends Model
         'directorate_id',
         'related_complaint_id',
         'template_id',
+        'template_fields',
         'full_name',
         'national_id',
         'phone',
@@ -45,6 +46,7 @@ class Complaint extends Model
     ];
 
     protected $casts = [
+        'template_fields' => 'array',
         'ai_keywords' => 'array',
         'ai_confidence' => 'float',
         'rated_at' => 'datetime',

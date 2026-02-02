@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles, UserRound } from 'lucide-react';
 import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -27,6 +27,8 @@ const ChatBot: React.FC = () => {
     const [attachment, setAttachment] = useState<Attachment | null>(null);
     const [sessionId, setSessionId] = useState<string>('');
     const [showWelcome, setShowWelcome] = useState(false); // Default hidden, waits for timer
+    const [handoffRequested, setHandoffRequested] = useState(false);
+    const [requestingHandoff, setRequestingHandoff] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { language } = useLanguage();
@@ -94,10 +96,37 @@ const ChatBot: React.FC = () => {
         }
     };
 
+    const handleRequestHandoff = async () => {
+        if (!sessionId || handoffRequested) return;
+        setRequestingHandoff(true);
+        try {
+            const res = await fetch('/api/v1/chat/handoff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+            if (res.ok) {
+                setHandoffRequested(true);
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString(),
+                    role: 'assistant' as const,
+                    content: language === 'ar'
+                        ? 'تم إرسال طلبك للتحدث مع موظف. سيتم الرد عليك قريباً.'
+                        : 'Your request to talk to a staff member has been sent. You will be responded to shortly.',
+                    timestamp: new Date().toISOString()
+                }]);
+            }
+        } catch (err) {
+            console.error('Handoff request failed:', err);
+        } finally {
+            setRequestingHandoff(false);
+        }
+    };
+
     const resetChat = async () => {
         const welcomeMsg: ChatMessage = {
             id: 'welcome',
-            text: 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك في خدمات الصناعة والتجارة والاقتصاد؟',
+            text: language === 'ar' ? 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك في خدمات الصناعة والتجارة والاقتصاد؟' : 'Welcome to the Ministry of Economy and Industry portal. I am the smart assistant, how can I help you with industry, trade, and economy services?',
             sender: 'bot',
             timestamp: new Date()
         };
@@ -147,7 +176,7 @@ const ChatBot: React.FC = () => {
 
         // Limit file size (e.g., 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            alert("حجم الملف كبير جداً. يرجى اختيار ملف أقل من 5 ميغابايت.");
+            alert(language === 'ar' ? "حجم الملف كبير جداً. يرجى اختيار ملف أقل من 5 ميغابايت." : "File is too large. Please select a file under 5MB.");
             return;
         }
 
@@ -175,7 +204,7 @@ const ChatBot: React.FC = () => {
         e.preventDefault();
         if (!input.trim() && !attachment) return;
 
-        const attachmentLabel = attachment ? ` [مرفق: ${attachment.name}]` : '';
+        const attachmentLabel = attachment ? (language === 'ar' ? ` [مرفق: ${attachment.name}]` : ` [Attachment: ${attachment.name}]`) : '';
         const userMsg: ChatMessage = {
             id: Date.now().toString(),
             text: input + attachmentLabel,
@@ -200,16 +229,16 @@ const ChatBot: React.FC = () => {
                 const file = new File([blob], currentAttachment.name, { type: currentAttachment.mimeType });
 
                 const extractedText = await aiService.extractTextFromImage(file);
-                const prompt = currentInput || "قم بتحليل النص المستخرج من الصورة";
+                const prompt = currentInput || (language === 'ar' ? "قم بتحليل النص المستخرج من الصورة" : "Analyze the text extracted from the image");
 
                 // Send to backend API
                 const response = await fetch(`/api/v1/chat/message`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: `${prompt}\n\nالنص المستخرج: ${extractedText}`,
+                        message: language === 'ar' ? `${prompt}\n\nالنص المستخرج: ${extractedText}` : `${prompt}\n\nExtracted text: ${extractedText}`,
                         session_id: sessionId,
-                        language: 'ar'
+                        language: language === 'ar' ? 'ar' : 'en'
                     })
                 });
 
@@ -218,7 +247,7 @@ const ChatBot: React.FC = () => {
                 responseText = data.response;
             } else {
                 // Regular chat via backend API
-                const prompt = currentInput || (currentAttachment ? "قم بتحليل هذا الملف المرفق." : ".");
+                const prompt = currentInput || (currentAttachment ? (language === 'ar' ? "قم بتحليل هذا الملف المرفق." : "Analyze this attached file.") : ".");
 
                 const response = await fetch(`/api/v1/chat/message`, {
                     method: 'POST',
@@ -226,7 +255,7 @@ const ChatBot: React.FC = () => {
                     body: JSON.stringify({
                         message: prompt,
                         session_id: sessionId,
-                        language: 'ar'
+                        language: language === 'ar' ? 'ar' : 'en'
                     })
                 });
 
@@ -247,7 +276,7 @@ const ChatBot: React.FC = () => {
             console.error('Chat error:', error);
             const errorMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
-                text: 'عذراً، حدث خطأ في الاتصال بالخدمة. يرجى المحاولة مرة أخرى.',
+                text: language === 'ar' ? 'عذراً، حدث خطأ في الاتصال بالخدمة. يرجى المحاولة مرة أخرى.' : 'Sorry, there was an error connecting to the service. Please try again.',
                 sender: 'bot',
                 timestamp: new Date()
             };
@@ -265,34 +294,34 @@ const ChatBot: React.FC = () => {
     return (
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
-            <div className={`fixed bottom-4 z-40 flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'right-4 left-auto flex-row-reverse' : 'left-4 right-auto flex-row'} md:bottom-6`}>
-                {/* FR-59: Professional Flat Button */}
+            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'right-6 left-auto flex-row-reverse' : 'left-6 right-auto flex-row'} md:bottom-16`}>
+                {/* FR-59: Professional Flat Button - Larger size */}
                 <button
                     onClick={() => setIsOpen(true)}
-                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'}`}
+                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white w-20 h-20 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center`}
                 >
                     <div className="relative flex items-center justify-center">
-                        <MessageSquare size={28} />
+                        <MessageSquare size={40} />
                     </div>
-                    <span className="absolute bottom-1 right-1 flex h-3 w-3">
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
+                    <span className="absolute bottom-2 right-2 flex h-4 w-4">
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
                     </span>
                 </button>
 
                 {/* Hint bubble - appears to the left of button in Arabic, right in English */}
                 {!isOpen && showWelcome && (
-                <div
-                    className="pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
-                >
-                    <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
-                    <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
-                    <button
-                        onClick={() => setShowWelcome(false)}
-                        className="text-gray-400 hover:text-gray-600 ms-1"
+                    <div
+                        className="pointer-events-auto bg-white dark:bg-gov-charcoal text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
                     >
-                        <X size={14} />
-                    </button>
-                </div>
+                        <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
+                        <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
+                        <button
+                            onClick={() => setShowWelcome(false)}
+                            className="text-gray-400 hover:text-gray-600 ms-1"
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -300,9 +329,8 @@ const ChatBot: React.FC = () => {
             <div
                 className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
-            inset-0 sm:inset-auto sm:bottom-6 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
-            ${language === 'ar' ? 'sm:right-4 sm:left-auto' : 'sm:left-4 sm:right-auto'}
-            ${/* Ensure no conflicting auto margins */ ''}
+            inset-0 sm:inset-auto sm:bottom-8 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
+            ${language === 'ar' ? 'sm:right-6 sm:left-auto' : 'sm:left-6 sm:right-auto'}
         `}
             >
                 {/* Header */}
@@ -312,17 +340,25 @@ const ChatBot: React.FC = () => {
                             <Bot size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm tracking-wide">المساعد الحكومي الذكي</h3>
+                            <h3 className="font-bold text-sm tracking-wide">{language === 'ar' ? 'المساعد الحكومي الذكي' : 'Smart Government Assistant'}</h3>
                             <div className="flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                                <span className="text-[10px] opacity-80">متصل الآن</span>
+                                <span className="text-[10px] opacity-80">{language === 'ar' ? 'متصل الآن' : 'Online'}</span>
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
                         <button
+                            onClick={handleRequestHandoff}
+                            disabled={requestingHandoff || handoffRequested}
+                            className={`p-2 rounded-lg transition-colors ${handoffRequested ? 'text-green-500 bg-green-100 dark:bg-green-900/30' : 'text-gray-500 hover:text-gov-gold hover:bg-gov-gold/10'}`}
+                            title={language === 'ar' ? 'التحدث مع موظف' : 'Talk to a human'}
+                        >
+                            {requestingHandoff ? <Loader2 size={18} className="animate-spin" /> : <UserRound size={18} />}
+                        </button>
+                        <button
                             onClick={resetChat}
-                            title="مسح المحادثة والبدء من جديد"
+                            title={language === 'ar' ? 'مسح المحادثة والبدء من جديد' : 'Clear chat and start over'}
                             className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/80 hover:text-white"
                         >
                             <Trash2 size={18} />
@@ -371,7 +407,7 @@ const ChatBot: React.FC = () => {
                             </div>
                             <div className="overflow-hidden">
                                 <p className="text-xs font-bold text-gray-700 truncate max-w-[200px]">{attachment.name}</p>
-                                <p className="text-[10px] text-gray-400">جاهز للإرسال (OCR)</p>
+                                <p className="text-[10px] text-gray-400">{language === 'ar' ? 'جاهز للإرسال (OCR)' : 'Ready to send (OCR)'}</p>
                             </div>
                         </div>
                         <button onClick={removeAttachment} className="p-1 hover:bg-gray-200 rounded-full text-gray-500">
@@ -394,7 +430,7 @@ const ChatBot: React.FC = () => {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             className="p-3 rounded-xl bg-gov-beige/30 text-gov-sand hover:bg-gov-beige/50 hover:text-gov-teal border border-gov-gold/10 transition-colors"
-                            title="إرفاق صورة أو مستند"
+                            title={language === 'ar' ? 'إرفاق صورة أو مستند' : 'Attach image or document'}
                         >
                             <Paperclip size={18} />
                         </button>
@@ -402,7 +438,7 @@ const ChatBot: React.FC = () => {
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="اكتب استفسارك هنا..."
+                            placeholder={language === 'ar' ? 'اكتب استفسارك هنا...' : 'Type your question here...'}
                             className="flex-1 bg-gov-beige/20 dark:bg-white/5 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50"
                         />
                         <button
@@ -414,7 +450,7 @@ const ChatBot: React.FC = () => {
                         </button>
                     </div>
                     <div className="text-center mt-2 hidden sm:block">
-                        <p className="text-[10px] text-gov-sand">هذا النظام مدعوم بالذكاء الاصطناعي ويتذكر محادثاتك السابقة.</p>
+                        <p className="text-[10px] text-gov-sand">{language === 'ar' ? 'هذا النظام مدعوم بالذكاء الاصطناعي ويتذكر محادثاتك السابقة.' : 'This system is powered by AI and remembers your previous conversations.'}</p>
                     </div>
                 </form>
             </div>

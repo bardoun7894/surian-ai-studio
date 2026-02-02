@@ -249,7 +249,7 @@ export default function InvestmentCategoryPage() {
 
     if (!categoryMeta) {
         return (
-            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+            <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
                 <Navbar />
                 <main className="flex-grow pt-14 md:pt-16 flex items-center justify-center">
                     <div className="text-center">
@@ -293,7 +293,7 @@ export default function InvestmentCategoryPage() {
                             { value: '14', label_ar: 'محافظة', label_en: 'Governorates' },
                             { value: stats?.total_investment_value ? `$${(stats.total_investment_value / 1000000).toFixed(0)}M` : '$63M', label_ar: 'حجم الاستثمارات', label_en: 'Investment Volume' }
                         ].map((stat, idx) => (
-                            <div key={idx} className="bg-white dark:bg-white/5 p-4 rounded-xl text-center border border-gray-100 dark:border-white/10">
+                            <div key={idx} className="bg-white dark:bg-black p-4 rounded-xl text-center border border-gray-100 dark:border-gov-teal">
                                 <div className="text-2xl font-bold text-gov-teal dark:text-gov-gold">{stat.value}</div>
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
                                     {language === 'ar' ? stat.label_ar : stat.label_en}
@@ -316,7 +316,7 @@ export default function InvestmentCategoryPage() {
                             const isAvailable = isApiData ? (opp as Investment).status === 'available' : (statusLabel === 'متاح' || statusLabel === 'Available');
 
                             return (
-                                <div key={opp.id} className="group bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10 overflow-hidden hover:border-gov-gold/50 hover:shadow-2xl transition-all duration-500 relative">
+                                <div key={opp.id} className="group bg-white dark:bg-black rounded-3xl border border-gray-100 dark:border-gov-teal overflow-hidden hover:border-gov-teal/80 hover:shadow-2xl transition-all duration-500 relative">
                                     <div className={`h-1.5 bg-gradient-to-r ${categoryMeta.color}`}></div>
                                     <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #D4AF37 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
@@ -350,7 +350,7 @@ export default function InvestmentCategoryPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <button className="mt-8 w-full py-3 bg-white border-2 border-gov-teal text-gov-teal font-bold rounded-xl hover:bg-gov-teal hover:text-white dark:bg-white/5 dark:border-gov-gold dark:text-gov-gold dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all duration-300 shadow-sm hover:shadow-lg">
+                                        <button className="mt-8 w-full py-3 bg-white border-2 border-gov-teal text-gov-teal font-bold rounded-xl hover:bg-gov-teal hover:text-white dark:bg-white/5 dark:border-gov-teal dark:text-gov-teal dark:hover:bg-gov-teal dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg">
                                             {language === 'ar' ? 'عرض تفاصيل الفرصة' : 'View Opportunity Details'}
                                         </button>
                                     </div>
@@ -396,7 +396,7 @@ export default function InvestmentCategoryPage() {
                             const IconComponent = iconMap[iconName] || CheckCircle;
 
                             return (
-                                <div key={service.id} className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-xl transition-all">
+                                <div key={service.id} className="bg-white dark:bg-black p-6 rounded-2xl border border-gray-100 dark:border-gov-teal hover:border-gov-teal/80 hover:shadow-xl transition-all">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-gold/10 flex items-center justify-center">
                                             <IconComponent className="w-5 h-5 text-gov-teal dark:text-gov-gold" />
@@ -456,7 +456,7 @@ export default function InvestmentCategoryPage() {
                         const IconComponent = iconMap[iconName] || FileCheck;
 
                         return (
-                            <div key={license.id} className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+                            <div key={license.id} className="bg-white dark:bg-black rounded-2xl border border-gray-100 dark:border-gov-teal overflow-hidden">
                                 <div className={`h-1 bg-gradient-to-r ${categoryMeta.color}`}></div>
                                 <div className="p-6">
                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -503,7 +503,7 @@ export default function InvestmentCategoryPage() {
         const hasApiData = investments.length > 0;
         return (
             <div className="space-y-6">
-                <div className="bg-white dark:bg-white/5 p-8 rounded-2xl border border-gray-100 dark:border-white/10">
+                <div className="bg-white dark:bg-black p-8 rounded-2xl border border-gray-100 dark:border-gov-teal">
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                         {language === 'ar'
                             ? 'يوفر دليل المستثمر معلومات شاملة حول الاستثمار في سوريا، بما في ذلك القوانين واللوائح والإجراءات والفرص المتاحة.'
@@ -515,7 +515,7 @@ export default function InvestmentCategoryPage() {
                         {investments.map((item) => {
                             const IconComponent = iconMap[item.icon] || FileText;
                             return (
-                                <div key={item.id} className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-xl transition-all">
+                                <div key={item.id} className="bg-white dark:bg-black p-6 rounded-2xl border border-gray-100 dark:border-gov-teal hover:border-gov-teal/80 hover:shadow-xl transition-all">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-gold/10 flex items-center justify-center">
                                             <IconComponent className="w-5 h-5 text-gov-teal dark:text-gov-gold" />
@@ -537,7 +537,7 @@ export default function InvestmentCategoryPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
             <Navbar />
             <main className="flex-grow pt-14 md:pt-16">
                 {/* Hero Section */}

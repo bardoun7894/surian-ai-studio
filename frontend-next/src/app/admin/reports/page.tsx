@@ -16,7 +16,8 @@ import {
   Loader2,
   Calendar,
   Filter,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +36,8 @@ function ReportsDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string>('month');
   const [isExporting, setIsExporting] = useState(false);
+  const [aiSummary, setAiSummary] = useState<{ summary: string; generated_at: string; period: string; key_findings?: string[] } | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const fetchStatistics = async () => {
     setIsLoading(true);
@@ -52,6 +55,26 @@ function ReportsDashboard() {
 
   useEffect(() => {
     fetchStatistics();
+
+    // Fetch AI summary
+    const fetchAiSummary = async () => {
+      setSummaryLoading(true);
+      try {
+        const token = localStorage.getItem('auth_token');
+        const summaryRes = await fetch('/api/v1/reports/summaries/latest', {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (summaryRes.ok) {
+          const summaryData = await summaryRes.json();
+          setAiSummary(summaryData.data || summaryData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch AI summary:', err);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+    fetchAiSummary();
   }, [period]);
 
   const handleExport = async (type: string) => {
@@ -474,6 +497,52 @@ function ReportsDashboard() {
                     })}
                   </div>
                 </div>
+              </div>
+
+              {/* AI Complaint Summaries */}
+              <div className="bg-white dark:bg-white/5 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-gold/10 mt-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <Sparkles className="text-purple-600 dark:text-purple-400" size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gov-charcoal dark:text-white">
+                      {language === 'ar' ? 'ملخص الذكاء الاصطناعي' : 'AI Summary'}
+                    </h3>
+                    <p className="text-xs text-gray-500">{language === 'ar' ? 'تحليل تلقائي للشكاوى' : 'Automated complaint analysis'}</p>
+                  </div>
+                </div>
+                {summaryLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="animate-spin text-purple-500" size={32} />
+                  </div>
+                ) : aiSummary ? (
+                  <div className="space-y-4">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{aiSummary.summary}</p>
+                    {aiSummary.key_findings && aiSummary.key_findings.length > 0 && (
+                      <div className="bg-purple-50 dark:bg-purple-900/10 rounded-xl p-4">
+                        <h4 className="text-sm font-bold text-purple-700 dark:text-purple-400 mb-2">
+                          {language === 'ar' ? 'النتائج الرئيسية' : 'Key Findings'}
+                        </h4>
+                        <ul className="space-y-2">
+                          {aiSummary.key_findings.map((finding, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
+                              {finding}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400">
+                      {language === 'ar' ? 'تم الإنشاء:' : 'Generated:'} {new Date(aiSummary.generated_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                    {language === 'ar' ? 'لا يوجد ملخص متاح حالياً' : 'No summary available'}
+                  </p>
+                )}
               </div>
 
               {/* Last Updated */}

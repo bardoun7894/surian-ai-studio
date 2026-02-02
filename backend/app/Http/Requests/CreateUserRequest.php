@@ -21,7 +21,9 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'nullable|string|regex:/^09[0-9]{8}$/|unique:users,phone',
             'national_id' => 'nullable|string|size:11|unique:users,national_id',
@@ -38,7 +40,9 @@ class CreateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'الاسم مطلوب',
+            'first_name.required' => 'الاسم الأول مطلوب',
+            'father_name.required' => 'اسم الأب مطلوب',
+            'last_name.required' => 'الكنية مطلوبة',
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني مستخدم مسبقاً',
             'phone.unique' => 'رقم الهاتف مستخدم مسبقاً',

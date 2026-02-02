@@ -21,10 +21,11 @@ export default {
                 background: "var(--background)",
                 foreground: "var(--foreground)",
                 gov: {
-                    forest: '#094239',
-                    emerald: '#094239',
-                    emeraldLight: '#115E59',
-                    teal: '#428177',
+                    forest: 'rgb(var(--color-gov-forest) / <alpha-value>)',
+                    emerald: 'rgb(var(--color-gov-emerald) / <alpha-value>)',
+                    emeraldStatic: '#094239', // Always green, for original identity elements
+                    emeraldLight: 'rgb(var(--color-gov-emerald-light) / <alpha-value>)',
+                    teal: 'rgb(var(--color-gov-teal) / <alpha-value>)',
                     gold: '#b9a779',
                     sand: '#988561',
                     beige: '#edebe0',
@@ -35,18 +36,18 @@ export default {
                     stone: '#3d3a3b'
                 },
                 mofa: {
-                    teal: '#054239',
+                    teal: 'rgb(var(--color-mofa-teal) / <alpha-value>)',
                     light: '#f0fdfa'
                 },
                 primary: {
-                    DEFAULT: '#178282',
+                    DEFAULT: 'var(--color-primary)',
                     50: '#f2fafa',
                     100: '#e1f4f4',
                     200: '#c5eaea',
                     300: '#9cd9d9',
                     400: '#6ac0c0',
                     500: '#46a3a3',
-                    600: '#178282', // Base
+                    600: 'var(--color-primary)', // Base
                     700: '#126868',
                     800: '#125454',
                     900: '#124545',
@@ -68,7 +69,7 @@ export default {
                 },
                 surface: {
                     light: '#F8FAFC',
-                    dark: '#0F172A',
+                    dark: 'var(--color-surface-dark)',
                 }
             },
             borderRadius: {

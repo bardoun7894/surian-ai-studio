@@ -577,6 +577,8 @@ export default function ContentManagementPage() {
                     onAcceptSummary={(summary) => {
                       alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
                     }}
+                    onAcceptTranslation={(text) => setFormData({ ...formData, content_en: text })}
+                    translateFrom="ar"
                     className="mt-3"
                   />
                 </div>
@@ -609,6 +611,18 @@ export default function ContentManagementPage() {
                     value={formData.content_en}
                     onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  />
+                  {/* AI Content Tools for English content - translate to Arabic */}
+                  <AIContentTools
+                    content={formData.content_en}
+                    onAcceptProofread={(text) => setFormData({ ...formData, content_en: text })}
+                    onAcceptTitle={(title) => setFormData({ ...formData, title_en: title })}
+                    onAcceptSummary={(summary) => {
+                      alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
+                    }}
+                    onAcceptTranslation={(text) => setFormData({ ...formData, content_ar: text })}
+                    translateFrom="en"
+                    className="mt-3"
                   />
                 </div>
               </div>
@@ -796,6 +810,8 @@ export default function ContentManagementPage() {
                     onAcceptSummary={(summary) => {
                       alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
                     }}
+                    onAcceptTranslation={(text) => setFormData({ ...formData, content_en: text })}
+                    translateFrom="ar"
                     className="mt-3"
                   />
                 </div>
@@ -828,6 +844,18 @@ export default function ContentManagementPage() {
                     value={formData.content_en}
                     onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gov-charcoal/50 text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+                  />
+                  {/* AI Content Tools for English content - translate to Arabic */}
+                  <AIContentTools
+                    content={formData.content_en}
+                    onAcceptProofread={(text) => setFormData({ ...formData, content_en: text })}
+                    onAcceptTitle={(title) => setFormData({ ...formData, title_en: title })}
+                    onAcceptSummary={(summary) => {
+                      alert(language === 'ar' ? `ملخص المحتوى:\n${summary}` : `Content Summary:\n${summary}`);
+                    }}
+                    onAcceptTranslation={(text) => setFormData({ ...formData, content_ar: text })}
+                    translateFrom="en"
+                    className="mt-3"
                   />
                 </div>
               </div>
@@ -994,7 +1022,7 @@ export default function ContentManagementPage() {
                             {language === 'ar' ? `إصدار #${version.version_number}` : `Version #${version.version_number}`}
                           </span>
                           <span className="text-[10px] bg-gov-teal/10 text-gov-teal px-1.5 py-0.5 rounded">
-                            {version.user?.name || 'Admin'}
+                            {version.user?.full_name || 'Admin'}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">

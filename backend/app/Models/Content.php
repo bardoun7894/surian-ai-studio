@@ -31,6 +31,7 @@ class Content extends Model
         'tags',
         'view_count',
         'priority',
+        'directorate_id',
     ];
 
     protected $casts = [
@@ -74,6 +75,7 @@ class Content extends Model
     public const CATEGORY_FAQ = 'faq';
     public const CATEGORY_ABOUT = 'about';
     public const CATEGORY_MEDIA = 'media';
+    public const CATEGORY_PAGE = 'page';
 
     /**
      * Content statuses
@@ -88,6 +90,14 @@ class Content extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * Get the directorate this content belongs to.
+     */
+    public function directorate(): BelongsTo
+    {
+        return $this->belongsTo(Directorate::class);
     }
 
     /**

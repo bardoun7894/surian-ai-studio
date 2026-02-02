@@ -12,6 +12,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
         Route::post('verify-2fa', [\App\Http\Controllers\AuthController::class, 'verify2fa']);
+        Route::post('resend-2fa', [\App\Http\Controllers\AuthController::class, 'resend2fa'])
+            ->middleware('throttle:3,10');
         Route::post('register', [\App\Http\Controllers\UserController::class, 'register']);
 
         // T-NX-07: CSRF route for Next.js Sanctum integration
@@ -40,7 +42,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/', [\App\Http\Controllers\ComplaintController::class, 'store'])
             ->middleware(\App\Http\Middleware\ComplaintRateLimitMiddleware::class);
 
-        Route::get('track/{trackingNumber}', [\App\Http\Controllers\ComplaintController::class, 'track']); // T066
+        Route::post('track/{trackingNumber}', [\App\Http\Controllers\ComplaintController::class, 'track']); // T066
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\ComplaintController::class, 'print']); // FR-28
         Route::get('{trackingNumber}/pdf', [\App\Http\Controllers\ComplaintController::class, 'printPdf']); // FR-28: PDF Download
         Route::post('{trackingNumber}/rate', [\App\Http\Controllers\ComplaintController::class, 'rate']); // FR-25: User satisfaction rating
@@ -95,11 +97,20 @@ Route::prefix('v1')->group(function () {
         Route::get('settings', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettings']);
         Route::get('settings/group/{group}', [\App\Http\Controllers\Api\SettingsController::class, 'getPublicSettingsByGroup']);
 
+        // Complaint Templates
+        Route::get('complaint-templates', [\App\Http\Controllers\Api\PublicApiController::class, 'getComplaintTemplates']);
+
         // Contact Form
         Route::post('contact', [\App\Http\Controllers\Api\PublicApiController::class, 'submitContactForm']);
 
         // Open Data
         Route::get('open-data', [\App\Http\Controllers\Api\PublicApiController::class, 'openData']);
+
+        // Quick Links
+        Route::get('quick-links', [\App\Http\Controllers\Api\PublicApiController::class, 'quickLinks']);
+
+        // Static Pages (privacy, terms, about)
+        Route::get('pages/{slug}', [\App\Http\Controllers\Api\PublicApiController::class, 'staticPage']);
 
         // Investment Portal Routes
         Route::prefix('investments')->group(function () {
@@ -161,6 +172,12 @@ Route::prefix('v1')->group(function () {
 
         // User Routes
         Route::put('users/me', [\App\Http\Controllers\UserController::class, 'updateProfile']);
+
+        // T066: Email change routes (rate limited)
+        Route::post('users/me/email/request-change', [\App\Http\Controllers\UserController::class, 'requestEmailChange'])
+            ->middleware('throttle:5,15');
+        Route::post('users/me/email/verify-change', [\App\Http\Controllers\UserController::class, 'verifyEmailChange'])
+            ->middleware('throttle:10,15');
         Route::get('users/me/complaints', [\App\Http\Controllers\ComplaintController::class, 'myComplaints']); // T067
         Route::get('users/me/suggestions', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'mySuggestions']); // Get user's suggestions
         Route::delete('complaints/{id}', [\App\Http\Controllers\ComplaintController::class, 'destroy']); // FR-22: Delete complaint

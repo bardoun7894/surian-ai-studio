@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
-import { Directorate, LocalizedString } from '@/types';
+import { Directorate } from '@/types';
 import Link from 'next/link';
 
 const GovernmentPartners: React.FC = () => {
@@ -52,17 +52,18 @@ const GovernmentPartners: React.FC = () => {
         ShieldCheck: <ShieldCheck size={24} />
     };
 
-    // Helper to get localized string
-    const getLocalized = (content: LocalizedString | string) => {
-        if (typeof content === 'string') return content;
-        return content[language as 'ar' | 'en'];
+    // Helper to get localized field from an API object with _ar/_en suffixes
+    const loc = (obj: any, field: string): string => {
+        const ar = obj?.[`${field}_ar`] || obj?.[field] || '';
+        const en = obj?.[`${field}_en`] || ar;
+        return language === 'ar' ? ar : en;
     };
 
     useEffect(() => {
         const fetchDirectorates = async () => {
             try {
                 const data = await API.directorates.getAll();
-                setDirectorates(data);
+                setDirectorates(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error('Failed to load directorates:', error);
             } finally {
@@ -164,10 +165,10 @@ const GovernmentPartners: React.FC = () => {
                         <Handshake size={16} />
                         <span>{t('partners_title')}</span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">
                         {t('partners_title')}
                     </h2>
-                    <p className="text-gov-stone/60 dark:text-gov-beige/60 max-w-2xl mx-auto">
+                    <p className="text-gov-stone/60 dark:text-gray-300 max-w-2xl mx-auto">
                         {t('partners_subtitle')}
                     </p>
                 </div>
@@ -188,7 +189,7 @@ const GovernmentPartners: React.FC = () => {
                                 className="flex-shrink-0"
                                 onClick={() => setSelectedDirectorate(directorate)}
                             >
-                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-white/5 border border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
+                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-gov-emeraldStatic border border-gov-gold/10 dark:border-gov-gold/10 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
                                     {/* Glass reflection effect */}
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
 
@@ -198,8 +199,8 @@ const GovernmentPartners: React.FC = () => {
                                     </div>
 
                                     {/* Name */}
-                                    <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white text-center leading-tight line-clamp-2 px-2">
-                                        {getLocalized(directorate.name)}
+                                    <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-gov-gold text-center leading-tight line-clamp-2 px-2">
+                                        {loc(directorate, 'name')}
                                     </h3>
 
                                     {/* Service Count */}
@@ -248,7 +249,7 @@ const GovernmentPartners: React.FC = () => {
                     {/* Modal Content */}
                     <div
                         ref={modalRef}
-                        className="relative w-full max-w-3xl bg-white dark:bg-gov-charcoal rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-white dark:bg-gov-emeraldStatic rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
                     >
                         {/* Header / Sidebar Image */}
                         <div className="w-full md:w-1/3 bg-gov-forest relative p-8 flex flex-col items-center justify-center text-center">
@@ -261,7 +262,7 @@ const GovernmentPartners: React.FC = () => {
                                         React.cloneElement(iconMap[selectedDirectorate.icon] as React.ReactElement, { size: 48, className: "text-white" })
                                         : <Building2 size={48} className="text-white" />}
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2 leading-tight">{getLocalized(selectedDirectorate.name)}</h3>
+                                <h3 className="text-xl font-bold text-white mb-2 leading-tight">{loc(selectedDirectorate, 'name')}</h3>
                                 <div className="h-1 w-12 bg-gov-gold mx-auto rounded-full"></div>
                             </div>
                         </div>
@@ -274,7 +275,7 @@ const GovernmentPartners: React.FC = () => {
                                         {language === 'ar' ? 'المديريات والهيئات التابعة' : 'Affiliated Directorates & Bodies'}
                                     </h4>
                                     <p className="text-sm text-gov-stone dark:text-gray-400">
-                                        {getLocalized(selectedDirectorate.description)}
+                                        {loc(selectedDirectorate, 'description')}
                                     </p>
                                 </div>
                                 <button
@@ -291,7 +292,7 @@ const GovernmentPartners: React.FC = () => {
                                     {selectedDirectorate.subDirectorates.map((sub, idx) => (
                                         <a
                                             key={sub.id}
-                                            href={sub.url || '#'}
+                                            href={sub.isExternal ? (sub.url || '#') : `/directorates/${selectedDirectorate.id}/sub-directorates`}
                                             target={sub.isExternal ? '_blank' : '_self'}
                                             rel="noreferrer"
                                             className="modal-item group flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-gov-gold/10 dark:border-white/5 rounded-xl hover:border-gov-gold/40 hover:shadow-md transition-all duration-300"
@@ -299,7 +300,7 @@ const GovernmentPartners: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-gov-gold group-hover:scale-150 transition-transform"></div>
                                                 <span className="font-medium text-gov-forest dark:text-gray-200 group-hover:text-gov-gold transition-colors">
-                                                    {getLocalized(sub.name)}
+                                                    {loc(sub, 'name')}
                                                 </span>
                                             </div>
                                             {sub.isExternal ? <ExternalLink size={16} className="text-gray-400" /> : <TrendingUp size={16} className="text-gray-400 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 rtl:translate-x-2 rtl:group-hover:translate-x-0 transition-all" />}

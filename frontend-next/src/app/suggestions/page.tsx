@@ -1,35 +1,43 @@
-import React from 'react';
+'use client';
+
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import SuggestionsForm from '@/components/SuggestionsForm';
+import SuggestionPortal from '@/components/SuggestionsForm';
+import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SuggestionsPage() {
-    return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gov-forest flex flex-col">
-            <Navbar />
+  const { t } = useLanguage();
 
-            <main className="flex-grow pt-24 md:pt-32 pb-16">
-                {/* Hero Section */}
-                <div className="container mx-auto px-4 mb-12 text-center">
-                    <div className="max-w-3xl mx-auto animate-[fadeInUp_0.5s_ease-out]">
-                        <h1 className="text-4xl md:text-5xl font-bold text-gov-forest dark:text-gov-gold mb-6 mt-6">
-                            نستمع إليك .. لنبني المستقبل
-                        </h1>
-                        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                            تولي وزارة الاقتصاد أهمية بالغة لمقترحاتكم وأفكاركم. مشاركتك تساعدنا في تطوير خدماتنا وتحقيق التنمية الاقتصادية المستدامة.
-                        </p>
-                    </div>
-                </div>
+  return (
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
+      <Navbar />
 
-                {/* Form Section */}
-                <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto animate-[fadeInUp_0.5s_ease-out_0.2s_both]">
-                        <SuggestionsForm />
-                    </div>
-                </div>
-            </main>
-
-            <Footer />
+      <main className="flex-grow pt-14 md:pt-16 overflow-hidden">
+        {/* Complaints Navigation Banner */}
+        <div className="max-w-4xl mx-auto px-4 pt-8">
+          <div className="bg-white dark:bg-gov-emeraldStatic border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="text-center sm:text-right">
+              <p className="text-gov-forest dark:text-white font-bold text-sm">
+                {t('suggestion_have_complaint')}
+              </p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                {t('suggestion_complaint_desc')}
+              </p>
+            </div>
+            <Link
+              href="/complaints"
+              className="px-6 py-2.5 bg-gov-gold text-gov-forest font-bold text-sm rounded-xl hover:bg-gov-gold/90 transition-colors whitespace-nowrap shadow-sm"
+            >
+              {t('suggestion_go_complaints')}
+            </Link>
+          </div>
         </div>
-    );
+
+        <SuggestionPortal initialMode="submit" />
+      </main>
+
+      <Footer />
+    </div>
+  );
 }

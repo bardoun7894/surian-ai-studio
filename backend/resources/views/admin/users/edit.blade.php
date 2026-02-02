@@ -23,20 +23,74 @@
             @method('PUT')
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Name -->
-                <div class="col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم المستخدم</label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required 
-                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400">
-                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <!-- First Name -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الاسم الأول</label>
+                    <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="الاسم الأول">
+                    @error('first_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Father Name -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم الأب</label>
+                    <input type="text" name="father_name" value="{{ old('father_name', $user->father_name) }}" required
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="اسم الأب">
+                    @error('father_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Last Name -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الكنية</label>
+                    <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="الكنية">
+                    @error('last_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Email -->
                 <div class="col-span-2 md:col-span-1">
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">البريد الإلكتروني</label>
-                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required 
+                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required
                         class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400">
                     @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Phone -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رقم الهاتف</label>
+                    <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="09XXXXXXXX">
+                    @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- National ID -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الرقم الوطني</label>
+                    <input type="text" name="national_id" value="{{ old('national_id', $user->national_id) }}"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="الرقم الوطني">
+                    @error('national_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Birth Date -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ الميلاد</label>
+                    <input type="date" name="birth_date" value="{{ old('birth_date', $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary">
+                    @error('birth_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Governorate -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المحافظة</label>
+                    <input type="text" name="governorate" value="{{ old('governorate', $user->governorate) }}"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="المحافظة">
+                    @error('governorate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Role -->
@@ -79,6 +133,16 @@
                     <input type="password" name="password_confirmation" 
                         class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
                         placeholder="********">
+                </div>
+
+                <!-- Account Status -->
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">حالة الحساب</label>
+                    <label class="relative inline-flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}
+                            class="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary">
+                        <span class="text-sm text-slate-700 dark:text-slate-300">{{ $user->is_active ? 'مفعّل' : 'معطّل' }}</span>
+                    </label>
                 </div>
 
                 <!-- Directorate (Optional) -->

@@ -35,7 +35,7 @@ class ComplaintController extends Controller
     
     public function show(Complaint $complaint)
     {
-        $complaint->load(['directorate', 'user', 'attachments', 'responses.user']);
+        $complaint->load(['directorate', 'user', 'attachments', 'responses.user', 'template']);
         return view('admin.complaints.show', compact('complaint'));
     }
     

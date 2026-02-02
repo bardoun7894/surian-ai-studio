@@ -97,6 +97,12 @@ class PromotionalSectionController extends Controller
      */
     private function formatSection(PromotionalSection $section, bool $detailed = false): array
     {
+        // Build full video URL for uploaded videos
+        $videoUrl = $section->video_url;
+        if ($videoUrl && str_starts_with($videoUrl, '/storage/')) {
+            $videoUrl = asset(ltrim($videoUrl, '/'));
+        }
+
         $data = [
             'id' => $section->id,
             'title_ar' => $section->title_ar,
@@ -106,6 +112,7 @@ class PromotionalSectionController extends Controller
             'button_text_ar' => $section->button_text_ar,
             'button_text_en' => $section->button_text_en,
             'image' => $section->image_url,
+            'video_url' => $videoUrl,
             'background_color' => $section->background_color,
             'icon' => $section->icon,
             'button_url' => $section->button_url,
@@ -114,11 +121,11 @@ class PromotionalSectionController extends Controller
             'position' => $section->position,
             'position_label' => $section->position_label,
             'display_order' => $section->display_order,
+            'metadata' => $section->metadata,
         ];
 
         if ($detailed) {
             $data = array_merge($data, [
-                'metadata' => $section->metadata,
                 'published_at' => $section->published_at?->toISOString(),
                 'expires_at' => $section->expires_at?->toISOString(),
                 'created_at' => $section->created_at?->toISOString(),

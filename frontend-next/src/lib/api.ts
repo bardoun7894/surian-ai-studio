@@ -58,9 +58,15 @@ async function apiFetch<T>(
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
+  // Get current language from localStorage
+  const lang = typeof window !== 'undefined'
+    ? localStorage.getItem('gov_lang') || 'ar'
+    : 'ar';
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Accept-Language': lang,
     ...(options.headers || {}),
   };
 
@@ -86,7 +92,22 @@ async function apiFetch<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new ApiError(response.status, error.message || 'Request failed', error);
+    // Pick the locale-appropriate message
+    // Backend returns: { message: "Arabic msg", message_en: "English msg", errors: { field: ["msg"] } }
+    const baseMessage = lang === 'ar'
+      ? (error.message || error.message_en || 'فشل الطلب')
+      : (error.message_en || error.message || 'Request failed');
+    // Extract field-specific validation errors from Laravel's format
+    let errorMessage = baseMessage;
+    if (error.errors && typeof error.errors === 'object') {
+      const fieldMessages = Object.values(error.errors as Record<string, string[]>)
+        .flat()
+        .join('\n');
+      if (fieldMessages) {
+        errorMessage = fieldMessages;
+      }
+    }
+    throw new ApiError(response.status, errorMessage, error);
   }
 
   // Handle empty responses

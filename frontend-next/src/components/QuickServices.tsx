@@ -81,7 +81,7 @@ const QuickServices: React.FC = () => {
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <section id="quick-services" className="py-16 bg-white dark:bg-gov-forest/50 border-t border-gov-gold/10 dark:border-gov-gold/10 transition-colors scroll-mt-24">
+    <section id="quick-services" className="py-16 bg-white dark:bg-gov-emeraldStatic border-t border-gov-gold/10 dark:border-gov-gold/10 transition-colors scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
@@ -90,10 +90,10 @@ const QuickServices: React.FC = () => {
             <Zap size={16} />
             <span>{t('quick_services_title')}</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">
             {t('quick_services_title')}
           </h2>
-          <p className="text-gov-stone/60 dark:text-gov-beige/60 max-w-2xl mx-auto">
+          <p className="text-gov-stone/60 dark:text-gov-gold/60 max-w-2xl mx-auto">
             {t('quick_services_subtitle')}
           </p>
         </div>
@@ -104,7 +104,7 @@ const QuickServices: React.FC = () => {
             <Link
               key={service.id}
               href={service.href}
-              className="group relative flex flex-col items-center p-6 rounded-2xl bg-gov-beige/50 dark:bg-white/5 border border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="group relative flex flex-col items-center p-6 rounded-2xl bg-gov-beige/50 dark:bg-gov-emeraldStatic border border-gov-gold/10 dark:border-gov-gold/10 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               {/* Icon Container */}
               <div className={`w-16 h-16 rounded-2xl ${service.bgColor} ${service.color} flex items-center justify-center mb-4 transition-all duration-300`}>
@@ -112,7 +112,7 @@ const QuickServices: React.FC = () => {
               </div>
 
               {/* Service Title */}
-              <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white text-center leading-tight mb-3">
+              <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-gov-gold text-center leading-tight mb-3">
                 {t(service.titleKey)}
               </h3>
 

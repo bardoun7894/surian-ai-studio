@@ -16,7 +16,8 @@ import {
   Mail,
   Image,
   MessageSquare,
-  Lightbulb
+  Lightbulb,
+  HelpCircle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,6 +63,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       href: '/admin/content',
       label: { ar: 'إدارة المحتوى', en: 'Content' },
       icon: MessageSquare,
+    },
+    {
+      href: '/admin/faqs',
+      label: { ar: 'الأسئلة الشائعة', en: 'FAQ Management' },
+      icon: HelpCircle,
     },
     {
       href: '/admin/promotional',
@@ -163,7 +169,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gov-charcoal dark:text-white truncate">
-                  {user.name}
+                  {user.full_name}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {user.email}

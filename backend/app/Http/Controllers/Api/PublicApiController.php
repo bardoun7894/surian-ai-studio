@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ComplaintTemplate;
 use App\Models\Content;
 use App\Models\Directorate;
 use App\Models\Faq;
+use App\Models\QuickLink;
 use App\Models\Service;
 use App\Services\VectorSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class PublicApiController extends Controller
 {
@@ -24,18 +27,22 @@ class PublicApiController extends Controller
      */
     public function directorates(): JsonResponse
     {
-        $directorates = Directorate::all()->map(function ($d) {
-            return [
-                'id' => (string) $d->id,
-                'name' => $d->name_ar ?? $d->name,
-                'name_ar' => $d->name_ar ?? $d->name,
-                'name_en' => $d->name_en ?? $d->name,
-                'description' => $d->description_ar ?? $d->description ?? '',
-                'icon' => $d->icon ?? 'Building2',
-                'servicesCount' => Service::where('directorate_id', $d->id)
-                    ->where('is_active', true)
-                    ->count(),
-            ];
+        $directorates = Cache::remember('public.directorates', 600, function () {
+            return Directorate::withCount(['services' => function ($query) {
+                $query->where('is_active', true);
+            }])->get()->map(function ($d) {
+                return [
+                    'id' => (string) $d->id,
+                    'name' => $d->name_ar ?? $d->name,
+                    'name_ar' => $d->name_ar ?? $d->name,
+                    'name_en' => $d->name_en ?? $d->name,
+                    'description' => $d->description_ar ?? $d->description ?? '',
+                    'description_ar' => $d->description_ar ?? $d->description ?? '',
+                    'description_en' => $d->description_en ?? $d->description ?? '',
+                    'icon' => $d->icon ?? 'Building2',
+                    'servicesCount' => $d->services_count,
+                ];
+            })->values();
         });
 
         return response()->json($directorates);
@@ -59,10 +66,11 @@ class PublicApiController extends Controller
             ->map(function ($sub) {
                 return [
                     'id' => (string) $sub->id,
+                    'name' => $sub->name_ar,
                     'name_ar' => $sub->name_ar,
                     'name_en' => $sub->name_en ?? $sub->name_ar,
                     'url' => $sub->url,
-                    'is_external' => (bool) $sub->is_external,
+                    'isExternal' => (bool) $sub->is_external,
                 ];
             });
 
@@ -72,6 +80,8 @@ class PublicApiController extends Controller
             'name_ar' => $directorate->name_ar ?? $directorate->name,
             'name_en' => $directorate->name_en ?? $directorate->name,
             'description' => $directorate->description_ar ?? $directorate->description ?? '',
+            'description_ar' => $directorate->description_ar ?? $directorate->description ?? '',
+            'description_en' => $directorate->description_en ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
             'subDirectorates' => $subDirectorates,
         ]);
@@ -83,18 +93,20 @@ class PublicApiController extends Controller
      */
     public function featuredDirectorates(): JsonResponse
     {
-        $directorates = Directorate::featured()
-            ->with(['subDirectorates' => function ($query) {
-                $query->active()->ordered();
-            }])
-            ->get()
-            ->map(function ($d) {
+        $directorates = Cache::remember('public.featured_directorates', 600, function () {
+            return Directorate::featured()
+                ->with(['subDirectorates' => function ($query) {
+                    $query->active()->ordered();
+                }])
+                ->get()
+                ->map(function ($d) {
                 return [
                     'id' => (string) $d->id,
                     'name' => $d->name_ar ?? $d->name,
                     'name_ar' => $d->name_ar ?? $d->name,
                     'name_en' => $d->name_en ?? $d->name,
                     'description' => $d->description_ar ?? $d->description ?? '',
+                    'description_en' => $d->description_en ?? $d->description ?? '',
                     'icon' => $d->icon ?? 'Building2',
                     'featured' => true,
                     'subDirectorates' => $d->subDirectorates->map(function ($sub) {
@@ -102,13 +114,14 @@ class PublicApiController extends Controller
                             'id' => $sub->id,
                             'name' => $sub->name_ar,
                             'name_ar' => $sub->name_ar,
-                            'name_en' => $sub->name_en,
+                            'name_en' => $sub->name_en ?? $sub->name_ar,
                             'url' => $sub->url,
                             'isExternal' => $sub->is_external,
                         ];
                     }),
                 ];
             });
+        });
 
         return response()->json($directorates);
     }
@@ -156,15 +169,17 @@ class PublicApiController extends Controller
 
     /**
      * Get news by directorate (FR-11)
-     * Returns 3 latest news items per directorate
+     * Returns latest news items for a specific directorate
      */
     public function directorateNews(string $id): JsonResponse
     {
+        $limit = request()->integer('limit', 10);
+
         $news = Content::where('category', 'news')
             ->where('status', 'published')
-            ->whereJsonContains('metadata->directorate_id', $id)
+            ->where('directorate_id', $id)
             ->orderBy('published_at', 'desc')
-            ->limit(3)
+            ->limit($limit)
             ->get()
             ->map(fn($n) => $this->formatNews($n));
 
@@ -176,43 +191,48 @@ class PublicApiController extends Controller
      */
     public function newsByDirectorate(): JsonResponse
     {
-        $directorates = Directorate::all();
+        $directorates = Directorate::where('is_active', true)->get();
         $result = [];
 
         foreach ($directorates as $directorate) {
-             $news = Content::where('category', 'news')
+            $news = Content::where('category', 'news')
                 ->where('status', 'published')
-                ->whereJsonContains('metadata->directorate_id', $directorate->id)
+                ->where('directorate_id', $directorate->id)
                 ->orderBy('published_at', 'desc')
                 ->limit(3)
                 ->get()
-                ->map(fn($n) => $this->formatNews($n));
+                ->map(fn($n) => $this->formatNews($n))
+                ->values();
 
-             if ($news->isNotEmpty()) {
-                 $result[] = [
-                     'directorate' => [
-                         'id' => (string) $directorate->id,
-                         'name' => $directorate->name_ar ?? $directorate->name,
-                         'name_ar' => $directorate->name_ar ?? $directorate->name,
-                         'name_en' => $directorate->name_en ?? $directorate->name,
-                         'icon' => $directorate->icon ?? 'Building2',
-                     ],
-                     'news' => $news
-                 ];
-             }
+            if ($news->isNotEmpty()) {
+                $result[] = [
+                    'directorate' => [
+                        'id' => (string) $directorate->id,
+                        'name' => $directorate->name_ar,
+                        'name_ar' => $directorate->name_ar,
+                        'name_en' => $directorate->name_en,
+                        'icon' => $directorate->icon ?? 'Building2',
+                    ],
+                    'news' => $news,
+                ];
+            }
         }
 
         return response()->json($result);
     }
 
     /**
-     * Get all news
+     * Get all news (supports filtering by directorate)
      */
     public function news(Request $request): JsonResponse
     {
         $query = Content::where('category', 'news')
             ->where('status', 'published')
             ->orderBy('published_at', 'desc');
+
+        if ($request->has('directorate_id')) {
+            $query->where('directorate_id', $request->directorate_id);
+        }
 
         if ($request->has('limit')) {
             $query->limit((int) $request->limit);
@@ -228,7 +248,8 @@ class PublicApiController extends Controller
      */
     public function breakingNews(): JsonResponse
     {
-        $newsQuery = Content::where('category', 'news')
+        return response()->json(Cache::remember('public.breaking_news', 120, function () {
+            $newsQuery = Content::where('category', 'news')
             ->where('status', 'published')
             ->where('priority', '>=', 8)
             ->orderBy('published_at', 'desc')
@@ -245,12 +266,11 @@ class PublicApiController extends Controller
                 ->get(['title_ar', 'title_en']);
         }
 
-        $news = $newsItems->map(fn($n) => [
+        return $newsItems->map(fn($n) => [
             'title_ar' => $n->title_ar,
             'title_en' => $n->title_en,
         ])->toArray();
-
-        return response()->json($news);
+        }));
     }
 
     /**
@@ -273,6 +293,7 @@ class PublicApiController extends Controller
 
         if (!$article) {
             return response()->json([
+                'id' => null,
                 'title' => 'مرحباً بكم في البوابة الإلكترونية',
                 'title_ar' => 'مرحباً بكم في البوابة الإلكترونية',
                 'title_en' => 'Welcome to the E-Portal',
@@ -291,6 +312,7 @@ class PublicApiController extends Controller
         }
 
         return response()->json([
+            'id' => (string) $article->id,
             'title' => $article->title_ar,
             'title_ar' => $article->title_ar,
             'title_en' => $article->title_en,
@@ -436,6 +458,14 @@ class PublicApiController extends Controller
             });
         }
 
+        $typeEnMap = [
+            'مرسوم تشريعي' => 'Legislative Decree',
+            'قانون' => 'Law',
+            'قرار رئاسي' => 'Presidential Decree',
+            'تعميم' => 'Circular',
+            'decree' => 'Decree',
+        ];
+
         $decrees = $query->get()->map(fn($d) => [
             'id' => (string) $d->id,
             'number' => $d->metadata['number'] ?? $d->id,
@@ -444,6 +474,7 @@ class PublicApiController extends Controller
             'title_ar' => $d->title_ar,
             'title_en' => $d->title_en,
             'type' => $d->metadata['decree_type'] ?? 'decree',
+            'type_en' => $typeEnMap[$d->metadata['decree_type'] ?? 'decree'] ?? 'Decree',
             'date' => $d->published_at?->format('Y-m-d'),
             'description' => $d->seo_description_ar ?? mb_substr(strip_tags($d->content_ar), 0, 200),
             'description_ar' => $d->seo_description_ar ?? mb_substr(strip_tags($d->content_ar), 0, 200),
@@ -534,11 +565,12 @@ class PublicApiController extends Controller
      */
     public function faqs(): JsonResponse
     {
-        $faqs = Faq::where('is_active', true)
-            ->where('is_published', true)
-            ->orderBy('order')
-            ->get()
-            ->map(fn($f) => [
+        $faqs = Cache::remember('public.faqs', 600, function () {
+            return Faq::where('is_active', true)
+                ->where('is_published', true)
+                ->orderBy('order')
+                ->get()
+                ->map(fn($f) => [
                 'id' => (string) $f->id,
                 'question' => $f->question_ar,
                 'question_ar' => $f->question_ar,
@@ -548,6 +580,7 @@ class PublicApiController extends Controller
                 'answer_en' => $f->answer_en,
                 'category' => $f->category ?? 'general',
             ]);
+        });
 
         // If no FAQs in database, return defaults
         if ($faqs->isEmpty()) {
@@ -571,16 +604,6 @@ class PublicApiController extends Controller
                     'answer_ar' => 'نعم، النظام يتيح تقديم الشكاوى بشكل سري.',
                     'answer_en' => 'Yes, the system allows submitting complaints confidentially.',
                     'category' => 'complaints'
-                ],
-                [
-                    'id' => '3',
-                    'question' => 'كم تستغرق معالجة طلبات الخدمات الإلكترونية؟',
-                    'question_ar' => 'كم تستغرق معالجة طلبات الخدمات الإلكترونية؟',
-                    'question_en' => 'How long does it take to process e-service requests?',
-                    'answer' => 'تختلف المدة حسب نوع الخدمة، ولكن معظم الخدمات الإلكترونية الفورية تتم خلال دقائق.',
-                    'answer_ar' => 'تختلف المدة حسب نوع الخدمة، ولكن معظم الخدمات الإلكترونية الفورية تتم خلال دقائق.',
-                    'answer_en' => 'The duration varies depending on the service type, but most instant e-services are completed within minutes.',
-                    'category' => 'services'
                 ],
             ]);
         }
@@ -726,6 +749,39 @@ class PublicApiController extends Controller
         ]);
     }
 
+    /**
+     * Get complaint templates (public endpoint for complaint form)
+     */
+    public function getComplaintTemplates(Request $request): JsonResponse
+    {
+        $query = ComplaintTemplate::where('is_active', true);
+
+        // If anonymous=true, filter out templates requiring identification
+        if ($request->boolean('anonymous')) {
+            $query->where(function ($q) {
+                $q->where('requires_identification', false)
+                  ->orWhereNull('requires_identification');
+            });
+        }
+
+        $templates = $query->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($t) => [
+                'id' => (string) $t->id,
+                'name' => $t->name,
+                'name_en' => $t->name_en,
+                'description' => $t->description,
+                'description_en' => $t->description_en,
+                'type' => $t->type ?? 'standard',
+                'requires_identification' => (bool) $t->requires_identification,
+                'fields' => $t->fields,
+                'sort_order' => $t->sort_order ?? 0,
+            ]);
+
+        return response()->json(['data' => $templates]);
+    }
+
     // Helper methods
     private function formatNews($n): array
     {
@@ -743,7 +799,14 @@ class PublicApiController extends Controller
             'content_ar' => $n->content_ar,
             'content_en' => $n->content_en,
             'imageUrl' => $n->metadata['image'] ?? null,
+            'images' => $n->metadata['images'] ?? [],
+            'author' => $n->metadata['author'] ?? null,
+            'read_time' => $n->metadata['read_time'] ?? null,
+            'category_label' => $n->metadata['category_label'] ?? null,
             'isUrgent' => $n->priority >= 8,
+            'directorate_id' => $n->directorate_id,
+            'directorate_name' => $n->directorate?->name_ar,
+            'directorate_name_en' => $n->directorate?->name_en,
         ];
     }
 
@@ -843,6 +906,64 @@ class PublicApiController extends Controller
             'success' => true,
             'message' => 'تم إرسال رسالتك بنجاح. سنتواصل معك في أقرب وقت.',
             'message_en' => 'Your message has been sent successfully. We will contact you shortly.',
+        ]);
+    }
+
+    /**
+     * Get quick links by section
+     */
+    public function quickLinks(Request $request): JsonResponse
+    {
+        $section = $request->query('section', 'homepage');
+
+        $links = Cache::remember("public.quick_links.{$section}", 600, function () use ($section) {
+            return QuickLink::active()
+                ->section($section)
+                ->ordered()
+                ->get()
+                ->map(fn ($link) => [
+                    'id' => $link->id,
+                    'label_ar' => $link->label_ar,
+                    'label_en' => $link->label_en,
+                    'url' => $link->url,
+                    'icon' => $link->icon,
+                    'section' => $link->section,
+                ]);
+        });
+
+        return response()->json($links);
+    }
+
+    /**
+     * Get a static page by slug (privacy-policy, terms, about)
+     */
+    public function staticPage(string $slug): JsonResponse
+    {
+        $allowedSlugs = ['privacy-policy', 'terms', 'about'];
+
+        if (!in_array($slug, $allowedSlugs)) {
+            return response()->json(['error' => 'Page not found'], 404);
+        }
+
+        $page = Cache::remember("public.page.{$slug}", 600, function () use ($slug) {
+            return Content::where('slug', $slug)
+                ->where('category', 'page')
+                ->where('status', Content::STATUS_PUBLISHED)
+                ->first();
+        });
+
+        if (!$page) {
+            return response()->json(['error' => 'Page not found'], 404);
+        }
+
+        return response()->json([
+            'id' => (string) $page->id,
+            'slug' => $page->slug,
+            'title_ar' => $page->title_ar,
+            'title_en' => $page->title_en,
+            'content_ar' => $page->content_ar,
+            'content_en' => $page->content_en,
+            'updated_at' => $page->updated_at?->format('Y-m-d'),
         ]);
     }
 }

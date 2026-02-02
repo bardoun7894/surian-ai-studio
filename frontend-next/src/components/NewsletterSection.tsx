@@ -40,7 +40,7 @@ const NewsletterSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gov-forest via-gov-teal to-gov-forest relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-gov-forest via-gov-teal to-gov-forest dark:bg-gov-emeraldStatic dark:from-transparent dark:via-transparent dark:to-transparent relative overflow-hidden">
       <div className="absolute inset-0 opacity-10 bg-pattern-islamic bg-[length:400px] bg-repeat" />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full mb-6 backdrop-blur-sm border border-white/10">
@@ -48,10 +48,10 @@ const NewsletterSection: React.FC = () => {
           <span className="text-gov-gold font-bold text-sm">{t('nl_badge')}</span>
         </div>
 
-        <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+        <h2 className="text-3xl md:text-4xl font-display font-bold text-white dark:text-gov-gold mb-4">
           {t('nl_title')}
         </h2>
-        <p className="text-white/70 text-lg max-w-2xl mx-auto mb-10">
+        <p className="text-white/70 dark:text-gray-300 text-lg max-w-2xl mx-auto mb-10">
           {t('nl_subtitle')}
         </p>
 

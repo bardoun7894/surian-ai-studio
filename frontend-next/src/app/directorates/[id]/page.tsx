@@ -1,7 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DirectorateDetail from '@/components/DirectorateDetail';
-import ChatBot from '@/components/ChatBot';
 
 export default function DirectorateDetailPage({ params }: { params: { id: string } }) {
     return (
@@ -12,7 +11,6 @@ export default function DirectorateDetailPage({ params }: { params: { id: string
                 <DirectorateDetail directorateId={params.id} />
             </main>
 
-            <ChatBot />
             <Footer />
         </div>
     );

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API } from '@/lib/repository';
+import Link from 'next/link';
 
 interface Announcement {
     id: string;
@@ -47,22 +48,22 @@ const Announcements: React.FC = () => {
         switch (type) {
             case 'urgent':
                 return {
-                    bg: 'bg-gov-forest/5 dark:bg-white/5',
+                    bg: 'bg-gov-forest/5 dark:bg-gov-emeraldStatic',
                     border: 'border-gov-gold/30 dark:border-gov-gold/20',
                     badge: 'bg-gov-gold text-white',
                     icon: <AlertCircle size={14} />
                 };
             case 'important':
                 return {
-                    bg: 'bg-gov-forest/5 dark:bg-white/5',
+                    bg: 'bg-gov-forest/5 dark:bg-gov-emeraldStatic',
                     border: 'border-gov-gold/30 dark:border-gov-gold/20',
                     badge: 'bg-gov-gold/80 text-white',
                     icon: <Bell size={14} />
                 };
             default:
                 return {
-                    bg: 'bg-gov-forest/5 dark:bg-white/5',
-                    border: 'border-gov-forest/10 dark:border-white/10',
+                    bg: 'bg-gov-forest/5 dark:bg-gov-emeraldStatic',
+                    border: 'border-gov-forest/10 dark:border-gov-gold/10',
                     badge: 'bg-gov-forest text-white',
                     icon: <Megaphone size={14} />
                 };
@@ -102,7 +103,7 @@ const Announcements: React.FC = () => {
     }
 
     return (
-        <section className="py-24 bg-white dark:bg-gov-forest/30 relative overflow-hidden scroll-mt-24" id="announcements">
+        <section className="py-24 bg-white dark:bg-black relative overflow-hidden scroll-mt-24" id="announcements">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-gold/20 rounded-full mb-6">
@@ -111,10 +112,10 @@ const Announcements: React.FC = () => {
                             {t('announcements_latest')}
                         </span>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-white mb-6">
+                    <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
                         {t('announcements_title')}
                     </h2>
-                    <p className="text-gov-stone/60 dark:text-gov-beige/40 max-w-2xl mx-auto text-lg leading-relaxed">
+                    <p className="text-gov-stone/60 dark:text-gov-gold/40 max-w-2xl mx-auto text-lg leading-relaxed">
                         {t('announcements_subtitle')}
                     </p>
                 </div>
@@ -124,51 +125,56 @@ const Announcements: React.FC = () => {
                     {announcements.map((announcement) => {
                         const styles = getTypeStyles(announcement.type);
                         return (
-                            <article
+                            <Link
                                 key={announcement.id}
-                                className={`${styles.bg} ${styles.border} border rounded-[1.5rem] p-6 hover:shadow-2xl hover:shadow-gov-gold/10 transition-all duration-500 group cursor-pointer backdrop-blur-md relative overflow-hidden hover:-translate-y-2 hover:border-gov-gold/40`}
+                                href={`/announcements/${announcement.id}`}
+                                className="block"
                             >
-                                {/* Type Badge */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className={`${styles.badge} px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 uppercase tracking-wider border border-white/20`}>
-                                        {styles.icon}
-                                        {getTypeLabel(announcement.type)}
-                                    </span>
-                                    <div className="flex items-center gap-1.5 text-gov-gold/60 font-medium text-xs">
-                                        <Calendar size={12} />
-                                        <span>{formatDate(announcement.date)}</span>
+                                <article
+                                    className={`${styles.bg} ${styles.border} border rounded-[1.5rem] p-6 hover:shadow-2xl hover:shadow-gov-gold/10 transition-all duration-500 group cursor-pointer backdrop-blur-md relative overflow-hidden hover:-translate-y-2 hover:border-gov-gold/40`}
+                                >
+                                    {/* Type Badge */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <span className={`${styles.badge} px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 uppercase tracking-wider border border-white/20`}>
+                                            {styles.icon}
+                                            {getTypeLabel(announcement.type)}
+                                        </span>
+                                        <div className="flex items-center gap-1.5 text-gov-gold/60 font-medium text-xs">
+                                            <Calendar size={12} />
+                                            <span>{formatDate(announcement.date)}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Title */}
-                                <h3 className="text-lg font-display font-bold text-gov-forest dark:text-white mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 leading-snug">
-                                    {announcement.title}
-                                </h3>
+                                    {/* Title - Keep Gold/White distinction if needed, user said Gold for Head */}
+                                    <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-3 group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2 leading-snug">
+                                        {announcement.title}
+                                    </h3>
 
-                                {/* Description */}
-                                <p className="text-gov-stone/60 dark:text-gov-beige/60 text-sm mb-4 line-clamp-2 leading-relaxed">
-                                    {announcement.description}
-                                </p>
+                                    {/* Description - White */}
+                                    <p className="text-gov-stone/60 dark:text-gray-300 text-sm mb-4 line-clamp-2 leading-relaxed">
+                                        {announcement.description}
+                                    </p>
 
-                                {/* Read More */}
-                                <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold text-[10px] uppercase tracking-[0.15em] group-hover:gap-3 transition-all pt-3 border-t border-gov-gold/10 dark:border-white/5">
-                                    <span>{t('announcements_read_more')}</span>
-                                    <ArrowIcon size={14} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-                                </div>
-                            </article>
+                                    {/* Read More */}
+                                    <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold text-[10px] uppercase tracking-[0.15em] group-hover:gap-3 transition-all pt-3 border-t border-gov-gold/10 dark:border-white/5">
+                                        <span>{t('announcements_read_more')}</span>
+                                        <ArrowIcon size={14} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                                    </div>
+                                </article>
+                            </Link>
                         );
                     })}
                 </div>
 
                 {/* View All Button */}
                 <div className="text-center mt-12">
-                    <a
+                    <Link
                         href="/announcements"
-                        className="inline-flex items-center gap-2 px-10 py-4 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-2xl hover:shadow-lg hover:shadow-gov-forest/20 dark:hover:shadow-gov-gold/20 transition-all duration-300 group hover:-translate-y-1 active:translate-y-0"
+                        className="inline-flex items-center gap-2 px-10 py-4 bg-gov-forest dark:bg-gov-gold text-white dark:text-black font-bold rounded-2xl hover:shadow-lg hover:shadow-gov-forest/20 dark:hover:shadow-gov-gold/20 transition-all duration-300 group hover:-translate-y-1 active:translate-y-0"
                     >
                         <span>{t('announcements_view_all')}</span>
                         <ArrowIcon size={18} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-                    </a>
+                    </Link>
                 </div>
             </div>
         </section>

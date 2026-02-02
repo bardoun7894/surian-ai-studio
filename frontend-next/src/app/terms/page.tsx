@@ -10,7 +10,7 @@ export default function TermsOfUsePage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
             <Navbar />
 
             <main className="flex-grow pt-14 md:pt-16">
@@ -42,7 +42,7 @@ export default function TermsOfUsePage() {
 
                     <div className="space-y-8">
                         {/* Section 1 - Acceptance */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <UserCheck size={20} />
@@ -111,7 +111,6 @@ export default function TermsOfUsePage() {
                                     <li>{language === 'ar' ? 'انتحال شخصية الآخرين.' : 'Impersonating others.'}</li>
                                     <li>{language === 'ar' ? 'محاولة اختراق أو تعطيل النظام.' : 'Attempting to hack or disrupt the system.'}</li>
                                     <li>{language === 'ar' ? 'استخدام البوابة لأغراض غير قانونية.' : 'Using the portal for illegal purposes.'}</li>
-                                    <li>{language === 'ar' ? 'نشر محتوى مسيء أو غير لائق.' : 'Posting offensive or inappropriate content.'}</li>
                                 </ul>
                             </div>
                         </section>
@@ -131,11 +130,6 @@ export default function TermsOfUsePage() {
                                     {language === 'ar'
                                         ? 'جميع المحتويات المنشورة على هذه البوابة، بما في ذلك النصوص والصور والشعارات والتصاميم، هي ملك لوزارة الاقتصاد والصناعة أو مرخصة لها.'
                                         : 'All content published on this portal, including text, images, logos, and designs, is owned by or licensed to the Ministry of Economy & Industry.'}
-                                </p>
-                                <p>
-                                    {language === 'ar'
-                                        ? 'لا يجوز نسخ أو توزيع أو تعديل أي محتوى دون إذن خطي مسبق.'
-                                        : 'No content may be copied, distributed, or modified without prior written permission.'}
                                 </p>
                             </div>
                         </section>

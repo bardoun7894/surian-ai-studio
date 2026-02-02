@@ -98,10 +98,10 @@ const FAQSection: React.FC = () => {
             <HelpCircle size={14} />
             <span>{language === 'ar' ? 'مركز المساعدة' : 'Help Center'}</span>
           </div>
-          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-4">
+          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">
             {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
           </h2>
-          <p className="text-gov-stone/60 dark:text-gov-beige/60">
+          <p className="text-gov-stone/60 dark:text-gray-300">
             {language === 'ar' ? 'إجابات على أكثر الاستفسارات شيوعاً حول الخدمات والبوابة.' : 'Answers to the most common questions about services and the portal.'}
           </p>
         </div>
@@ -111,13 +111,13 @@ const FAQSection: React.FC = () => {
             <div
               key={faq.id}
               className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
-                ? 'bg-gov-beige/30 dark:bg-white/10 border-gov-gold/50 shadow-md'
-                : 'bg-white dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30'
+                ? 'bg-gov-beige/30 dark:bg-gov-brand border-gov-gold/50 shadow-md'
+                : 'bg-white dark:bg-gov-emeraldStatic border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30'
                 }`}
             >
               <button
                 onClick={() => toggleFaq(index)}
-                className="w-full flex items-center justify-between p-6 text-right font-display font-bold text-gov-forest dark:text-white hover:text-gov-teal dark:hover:text-gov-gold transition-colors"
+                className="w-full flex items-center justify-between p-6 text-right font-display font-bold text-gov-forest dark:text-gov-gold hover:text-gov-teal dark:hover:text-white transition-colors"
               >
                 <span>{getQuestion(faq)}</span>
                 <ChevronDown
@@ -129,7 +129,7 @@ const FAQSection: React.FC = () => {
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                   }`}
               >
-                <div className="p-6 pt-0 text-sm text-gov-stone dark:text-gov-beige/80 leading-relaxed border-t border-gov-gold/10 dark:border-white/10 mt-2">
+                <div className="p-6 pt-0 text-sm text-gov-stone dark:text-gray-300 leading-relaxed border-t border-gov-gold/10 dark:border-white/10 mt-2">
                   {getAnswer(faq)}
                 </div>
               </div>

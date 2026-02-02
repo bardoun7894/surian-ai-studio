@@ -8,7 +8,8 @@ import { Directorate } from '@/types';
 import { getLocalizedName } from '@/lib/utils';
 
 const ContactSection: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const isAr = language === 'ar';
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
 
@@ -18,13 +19,17 @@ const ContactSection: React.FC = () => {
       .catch(err => console.error('Failed to load directorates:', err));
     API.settings.getByGroup('contact')
       .then(data => setContactInfo(data as Record<string, string>))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const phone = contactInfo.contact_phone || '19999';
   const email = contactInfo.contact_email || 'info@moe.gov.sy';
-  const addressAr = contactInfo.contact_address_ar || 'دمشق - ساحة المحافظة\nمبنى وزارة الاقتصاد والصناعة';
-  const workingHoursAr = contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 ص - 3:30 م';
+  const address = isAr
+    ? (contactInfo.contact_address_ar || 'دمشق - ساحة المحافظة\nمبنى وزارة الاقتصاد والصناعة')
+    : (contactInfo.contact_address_en || 'Damascus - Governorate Square\nMinistry of Economy and Industry Building');
+  const workingHours = isAr
+    ? (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 ص - 3:30 م')
+    : (contactInfo.contact_working_hours_en || 'Sunday - Thursday: 8:00 AM - 3:30 PM');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -61,9 +66,9 @@ const ContactSection: React.FC = () => {
     <section className="py-20 bg-gov-beige dark:bg-gov-forest/5 relative overflow-hidden scroll-mt-24" id="contact">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-4">تواصل معنا</h2>
-          <p className="text-gov-stone/60 dark:text-gov-beige/60 max-w-2xl mx-auto">
-            نحن هنا لخدمتك. يمكنك التواصل معنا عبر النموذج الإلكتروني الموحد أو عبر قنوات الاتصال الرسمية.
+          <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-4">{t('contact_us_title')}</h2>
+          <p className="text-gov-stone/60 dark:text-gray-300 max-w-2xl mx-auto">
+            {t('contact_us_description')}
           </p>
         </div>
 
@@ -76,9 +81,9 @@ const ContactSection: React.FC = () => {
 
             <div className="relative z-10 space-y-8">
               <div>
-                <h3 className="text-2xl font-bold mb-6">معلومات الاتصال</h3>
+                <h3 className="text-2xl font-bold mb-6">{t('contact_info_title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  للاستفسارات العاجلة، يرجى الاتصال بمركز خدمة المواطن الموحد. فريقنا جاهز للرد على استفساراتكم على مدار الساعة.
+                  {t('contact_info_description')}
                 </p>
               </div>
 
@@ -88,7 +93,7 @@ const ContactSection: React.FC = () => {
                     <Phone className="text-gov-gold" size={24} />
                   </div>
                   <div>
-                    <span className="block text-sm text-white/50 mb-1">الخط الساخن الموحد</span>
+                    <span className="block text-sm text-white/50 mb-1">{t('contact_hotline_label')}</span>
                     <span className="text-xl font-bold font-display">{phone}</span>
                   </div>
                 </div>
@@ -98,7 +103,7 @@ const ContactSection: React.FC = () => {
                     <Mail className="text-gov-gold" size={24} />
                   </div>
                   <div>
-                    <span className="block text-sm text-white/50 mb-1">البريد الإلكتروني</span>
+                    <span className="block text-sm text-white/50 mb-1">{t('contact_email_label')}</span>
                     <span className="text-lg">{email}</span>
                   </div>
                 </div>
@@ -108,8 +113,8 @@ const ContactSection: React.FC = () => {
                     <MapPin className="text-gov-gold" size={24} />
                   </div>
                   <div>
-                    <span className="block text-sm text-white/50 mb-1">المقر الرئيسي</span>
-                    <span className="text-lg">{addressAr}</span>
+                    <span className="block text-sm text-white/50 mb-1">{t('contact_address_label')}</span>
+                    <span className="text-lg">{address}</span>
                   </div>
                 </div>
 
@@ -118,8 +123,8 @@ const ContactSection: React.FC = () => {
                     <Clock className="text-gov-gold" size={24} />
                   </div>
                   <div>
-                    <span className="block text-sm text-white/50 mb-1">ساعات العمل</span>
-                    <span className="text-lg">{workingHoursAr}</span>
+                    <span className="block text-sm text-white/50 mb-1">{t('contact_working_hours_label')}</span>
+                    <span className="text-lg">{workingHours}</span>
                   </div>
                 </div>
               </div>
@@ -127,22 +132,22 @@ const ContactSection: React.FC = () => {
           </div>
 
           {/* Electronic Form */}
-          <div className="bg-white dark:bg-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gray-100 dark:border-gov-gold/10 h-full">
-            <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-6">نموذج المراسلة الإلكتروني</h3>
+          <div className="bg-white dark:bg-gov-emeraldStatic rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gray-100 dark:border-gov-gold/10 h-full">
+            <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-6">{t('contact_form_title')}</h3>
 
             {isSuccess ? (
               <div className="h-full flex flex-col items-center justify-center py-10 animate-fade-in">
                 <div className="w-20 h-20 bg-gov-teal/10 rounded-full flex items-center justify-center mb-6 text-gov-teal">
                   <CheckCircle size={40} />
                 </div>
-                <h4 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">تم إرسال رسالتك بنجاح</h4>
-                <p className="text-gov-stone/60 dark:text-gov-beige/60 text-center">سيتم الرد على استفسارك خلال 24 ساعة عمل.</p>
+                <h4 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_success_title')}</h4>
+                <p className="text-gov-stone/60 dark:text-gov-gold/60 text-center">{t('contact_form_success_message')}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">الاسم الكامل</label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_name')}</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -155,7 +160,7 @@ const ContactSection: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">البريد الإلكتروني</label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_email')}</label>
                     <div className="relative">
                       <input
                         type="email"
@@ -171,7 +176,7 @@ const ContactSection: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">عنوان الرسالة</label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_subject')}</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -184,17 +189,17 @@ const ContactSection: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">الجهة المختصة</label>
+                    <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_department')}</label>
                     <div className="relative">
                       <select
                         value={formData.directorate}
                         onChange={(e) => setFormData({ ...formData, directorate: e.target.value })}
                         className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-black/20 border border-gov-gold/20 dark:border-gov-gold/20 focus:border-gov-emerald outline-none transition-all text-gov-charcoal dark:text-white appearance-none"
                       >
-                        <option value="" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">-- اختر الجهة --</option>
-                        <option value="general" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">الاستعلامات العامة</option>
-                        <option value="complaints" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">مكتب الشكاوى</option>
-                        <option value="media" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">المكتب الإعلامي</option>
+                        <option value="" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{t('contact_form_select_dept')}</option>
+                        <option value="general" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{t('contact_form_general')}</option>
+                        <option value="complaints" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{t('contact_form_complaints')}</option>
+                        <option value="media" className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{t('contact_form_media')}</option>
                         {directorates.map(d => (
                           <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-gov-emerald dark:text-white">{getLocalizedName(d.name, language)}</option>
                         ))}
@@ -205,7 +210,7 @@ const ContactSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">نص الرسالة</label>
+                  <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-gold mb-2">{t('contact_form_message')}</label>
                   <textarea
                     required
                     rows={4}
@@ -221,7 +226,7 @@ const ContactSection: React.FC = () => {
                   className="w-full py-4 bg-gov-teal text-white font-bold rounded-xl hover:bg-gov-emerald transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                 >
                   {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} />}
-                  {isSubmitting ? 'جاري الإرسال...' : 'إرسال الرسالة'}
+                  {isSubmitting ? t('contact_form_sending') : t('contact_form_submit')}
                 </button>
               </form>
             )}

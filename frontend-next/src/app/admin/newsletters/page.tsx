@@ -344,7 +344,7 @@ export default function AdminNewslettersPage() {
           </div>
         ) : filteredSubscribers.length === 0 ? (
           <div className="text-center py-12">
-            <Mail size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <Mail size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
               {language === 'ar' ? 'لا يوجد مشتركون' : 'No subscribers found'}
             </p>

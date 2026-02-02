@@ -6,14 +6,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Redirect /admin to custom dashboard
-Route::get('/admin', function () {
-    return redirect('/admin/dashboard');
-});
-
 Route::get('/login', function () {
     return redirect('/admin/login');
 })->name('login');
 
-// Custom Admin Dashboard Routes
+// Custom Admin Dashboard Routes (Blade-based UI)
 require __DIR__.'/admin.php';

@@ -18,10 +18,12 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         gov: {
-          forest: '#094239',
-          emerald: '#094239',
-          emeraldLight: '#115E59',
-          teal: '#428177',
+          forest: 'rgb(var(--color-gov-forest) / <alpha-value>)',
+          emerald: 'rgb(var(--color-gov-emerald) / <alpha-value>)',
+          emeraldStatic: '#002623', // Updated Dark Green
+          brand: 'rgb(var(--color-gov-brand-green) / <alpha-value>)', // Persistent Green
+          emeraldLight: 'rgb(var(--color-gov-emerald-light) / <alpha-value>)',
+          teal: 'rgb(var(--color-gov-teal) / <alpha-value>)',
           gold: '#b9a779',
           sand: '#988561',
           beige: '#edebe0',
@@ -32,7 +34,7 @@ const config: Config = {
           stone: '#3d3a3b'
         },
         mofa: {
-          teal: '#054239',
+          teal: 'rgb(var(--color-mofa-teal) / <alpha-value>)',
           light: '#f0fdfa'
         }
       },

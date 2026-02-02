@@ -24,7 +24,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
   useEffect(() => {
     const fetchBreaking = async () => {
       try {
-        const data = await API.news.getBreakingNews();
+        const rawData = await API.news.getBreakingNews();
+        const data = Array.isArray(rawData) ? rawData : [];
         // Handle both old format (string[]) and new format ({title_ar, title_en}[])
         const normalizedData = data.map((item: string | BreakingNewsItem) => {
           if (typeof item === 'string') {
@@ -95,7 +96,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
 
   return (
     <div
-      className="bg-gradient-to-r from-gov-forest via-gov-teal to-gov-forest text-white border-b border-gov-gold/20 relative overflow-hidden h-16 flex items-center"
+      className="bg-gradient-to-r from-gov-forest via-gov-teal to-gov-forest dark:from-gov-emeraldStatic dark:to-gov-emeraldStatic dark:via-gov-emeraldStatic text-white border-b border-gov-gold/20 relative overflow-hidden h-16 flex items-center"
       ref={tickerRef}
     >
       <div className="absolute right-0 top-0 bottom-0 bg-gov-teal px-6 z-20 flex items-center font-bold shadow-lg border-l border-gov-gold/20 rtl:border-l-0 rtl:border-r rtl:border-gov-gold/20">

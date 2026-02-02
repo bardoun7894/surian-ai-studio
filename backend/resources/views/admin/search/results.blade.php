@@ -68,10 +68,10 @@
                     @foreach($users as $user)
                         <div class="flex items-center gap-3 p-4 bg-white dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm">
                             <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                {{ substr($user->name, 0, 1) }}
+                                {{ mb_substr($user->first_name, 0, 1) }}
                             </div>
                             <div class="flex-1 overflow-hidden">
-                                <p class="font-bold text-slate-900 dark:text-white text-sm truncate">{{ $user->name }}</p>
+                                <p class="font-bold text-slate-900 dark:text-white text-sm truncate">{{ $user->full_name }}</p>
                                 <p class="text-xs text-slate-500 truncate">{{ $user->email }}</p>
                             </div>
                             <a href="{{ route('admin.users.edit', $user) }}" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors">

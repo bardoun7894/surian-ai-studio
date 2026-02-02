@@ -1,7 +1,7 @@
 <header class="flex h-16 w-full items-center justify-between border-b border-border-light dark:border-border-dark bg-white/80 dark:bg-surface-dark/80 backdrop-blur-md px-6 z-10 relative">
     <!-- Geometric Decoration -->
     <div class="absolute inset-0 bg-gov-emerald/5 opacity-10 pointer-events-none z-0"></div>
-    <div class="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-gov-emerald via-gov-gold to-gov-emerald z-10"></div>
+    <div class="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-gov-emeraldStatic via-gov-gold to-gov-emeraldStatic z-10"></div>
     <!-- Mobile Menu & Logo -->
     <div class="flex items-center gap-4 lg:hidden">
         <button class="text-slate-500 hover:text-gov-emerald">
@@ -48,7 +48,7 @@
         
         <!-- User Avatar -->
         <div class="mr-2 h-8 w-8 rounded-full border border-gov-emerald/20 bg-gov-emerald/10 flex items-center justify-center text-gov-emerald text-sm font-bold cursor-pointer hover:ring-2 hover:ring-gov-emerald/20 transition-all">
-            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+            {{ mb_strtoupper(mb_substr(auth()->user()->first_name, 0, 1)) }}{{ mb_strtoupper(mb_substr(auth()->user()->last_name, 0, 1)) }}
         </div>
     </div>
 </header>

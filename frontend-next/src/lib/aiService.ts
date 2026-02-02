@@ -18,6 +18,7 @@ export interface AIServiceClient {
   suggestTitle(text: string): Promise<string>;
   proofread(text: string): Promise<string>;
   extractTextFromImage(file: File): Promise<string>;
+  translate(text: string, sourceLang?: string, targetLang?: string): Promise<string>;
 }
 
 class AIService implements AIServiceClient {
@@ -93,6 +94,26 @@ class AIService implements AIServiceClient {
 
     const data = await response.json();
     return data.corrected_text;
+  }
+
+  async translate(text: string, sourceLang: string = 'ar', targetLang: string = 'en'): Promise<string> {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+    const response = await fetch(`${API_BASE_URL}/admin/content/translate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth_token') : ''}`,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ text, source_lang: sourceLang, target_lang: targetLang }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Translation failed');
+    }
+
+    const data = await response.json();
+    return data.translated_text;
   }
 
   async extractTextFromImage(file: File): Promise<string> {

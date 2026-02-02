@@ -25,6 +25,7 @@ class ComplaintAnalysisResponse(BaseModel):
     summary: str
     keywords: List[str]
     confidence: float
+    is_valid: bool = True
 
 
 @router.post("/analyze-complaint", response_model=ComplaintAnalysisResponse)
@@ -54,6 +55,7 @@ async def analyze_complaint(request: ComplaintAnalysisRequest):
             summary=analysis.summary,
             keywords=analysis.keywords,
             confidence=analysis.confidence,
+            is_valid=analysis.is_valid,
         )
 
     except Exception as e:

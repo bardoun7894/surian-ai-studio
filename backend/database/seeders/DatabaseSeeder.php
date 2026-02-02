@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             AnalyticsSeeder::class,      // Trend Data for Dashboard
             InvestmentSeeder::class,     // Investment opportunities
             PromotionalSectionSeeder::class, // Homepage promotional sections
+            QuickLinkSeeder::class,      // Quick links for homepage/footer
+            StaticPageSeeder::class,     // Static pages content
         ]);
     }
 }

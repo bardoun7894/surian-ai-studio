@@ -1,5 +1,13 @@
 import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResults } from '../types';
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
+import { getCsrfCookie } from '@/lib/api';
+
+// Helper: read XSRF-TOKEN from cookies for XHR requests
+function getXsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 // --- Configuration ---
 const USE_MOCK_DATA = false; // Set to FALSE to use real API calls
@@ -17,6 +25,7 @@ export interface IDirectorateRepository {
 
 export interface INewsRepository {
   getOfficialNews(): Promise<NewsItem[]>;
+  getById(id: string): Promise<NewsItem | null>;
   getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]>;
   getBreakingNews(): Promise<string[]>;
   getHeroArticle(): Promise<Article>;
@@ -31,7 +40,7 @@ export interface IDecreeRepository {
 export interface IComplaintRepository {
   submit(data: ComplaintData): Promise<string>;
   submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string>;
-  track(ticketId: string): Promise<Ticket | null>;
+  track(ticketId: string, nationalId: string): Promise<Ticket | null>;
   myComplaints(): Promise<Ticket[]>;
   delete(id: string): Promise<boolean>;
   rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean>;
@@ -60,6 +69,8 @@ export interface IContentRepository {
 
 export interface IUserRepository {
   updateProfile(data: { name?: string; email?: string; password?: string }): Promise<User | null>;
+  requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }>;
+  verifyEmailChange(code: string): Promise<{ success: boolean; message?: string }>;
   // Admin methods
   getAll(params?: { search?: string; role_id?: number; is_active?: boolean; per_page?: number; page?: number }): Promise<{ data: User[], total: number, current_page: number, per_page: number, last_page: number }>;
   getById(id: number): Promise<{ user: User; statistics: any } | null>;
@@ -104,55 +115,20 @@ class MockDirectorateRepository implements IDirectorateRepository {
     });
   }
   async getFeatured(): Promise<Directorate[]> {
-    // Mock Data for Featured Directorates - MOE Structure
-    const featuredDocs: Directorate[] = [
-      {
-        id: 'd1',
-        name: 'الإدارة العامة للصناعة',
-        description: 'التراخيص الصناعية والمناطق الصناعية والمواصفات والمقاييس',
-        icon: 'Factory',
-        servicesCount: 6,
-        featured: true,
-        subDirectorates: [
-          { id: 'sub-1-1', name: 'مركز التنمية الصناعية', url: '/directorates/industry/development-center', isExternal: false },
-          { id: 'sub-1-2', name: 'مديرية المدن والمناطق الصناعية', url: '/directorates/industry/industrial-zones', isExternal: false },
-          { id: 'sub-1-3', name: 'هيئة المواصفات والمقاييس السورية', url: 'https://sasmo.gov.sy', isExternal: true },
-        ]
-      },
-      {
-        id: 'd2',
-        name: 'الإدارة العامة للاقتصاد',
-        description: 'التجارة الخارجية والمعارض الدولية ودعم المشاريع الصغيرة',
-        icon: 'TrendingUp',
-        servicesCount: 6,
-        featured: true,
-        subDirectorates: [
-          { id: 'sub-2-1', name: 'مديرية التجارة الخارجية', url: '/directorates/economy/foreign-trade', isExternal: false },
-          { id: 'sub-2-2', name: 'هيئة تنمية المشروعات الصغيرة والمتوسطة', url: '/directorates/economy/sme', isExternal: false },
-          { id: 'sub-2-3', name: 'المؤسسة العامة للمعارض والأسواق الدولية', url: '/directorates/economy/exhibitions', isExternal: false },
-        ]
-      },
-      {
-        id: 'd3',
-        name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك',
-        description: 'حماية المستهلك وتسجيل الشركات والعلامات التجارية',
-        icon: 'ShieldCheck',
-        servicesCount: 6,
-        featured: true,
-        subDirectorates: [
-          { id: 'sub-3-1', name: 'مديرية حماية المستهلك وسلامة الغذاء', url: '/directorates/trade/consumer-protection', isExternal: false },
-          { id: 'sub-3-2', name: 'مديرية الشركات', url: '/directorates/trade/companies', isExternal: false },
-          { id: 'sub-3-3', name: 'مديرية حماية الملكية', url: '/directorates/trade/property-protection', isExternal: false },
-        ]
-      }
-    ];
-    return new Promise(resolve => setTimeout(() => resolve(featuredDocs), 400));
+    // Return the DIRECTORATES constant which has proper LocalizedString objects
+    return new Promise(resolve => setTimeout(() => resolve(DIRECTORATES), 400));
   }
 }
 
 class MockNewsRepository implements INewsRepository {
   async getOfficialNews(): Promise<NewsItem[]> {
     return new Promise(resolve => setTimeout(() => resolve(OFFICIAL_NEWS), 600));
+  }
+  async getById(id: string): Promise<NewsItem | null> {
+    return new Promise(resolve => setTimeout(() => {
+      const item = OFFICIAL_NEWS.find(n => n.id === id) || null;
+      resolve(item);
+    }, 300));
   }
   async getBreakingNews(): Promise<string[]> {
     return new Promise(resolve => setTimeout(() => resolve(BREAKING_NEWS), 400));
@@ -219,7 +195,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve('GOV-' + Math.floor(Math.random() * 100000)), 1500);
     });
   }
-  async track(ticketId: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId: string): Promise<Ticket | null> {
     return new Promise(resolve => {
       setTimeout(() => resolve({
         id: ticketId,
@@ -353,6 +329,20 @@ class MockUserRepository implements IUserRepository {
     return new Promise(resolve => setTimeout(() => resolve({ id: 1, name: data.name || 'User', email: data.email || 'user@example.com', role_id: 1, is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' }), 500));
   }
 
+  async requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }> {
+    return new Promise(resolve => setTimeout(() => resolve({ success: true, message: 'Verification code sent' }), 800));
+  }
+
+  async verifyEmailChange(code: string): Promise<{ success: boolean; message?: string }> {
+    return new Promise(resolve => setTimeout(() => {
+      if (code === '123456') {
+        resolve({ success: true, message: 'Email updated' });
+      } else {
+        resolve({ success: false, message: 'Invalid code' });
+      }
+    }, 800));
+  }
+
   async getAll(params?: any): Promise<{ data: User[], total: number, current_page: number, per_page: number, last_page: number }> {
     return new Promise(resolve => {
       setTimeout(() => {
@@ -461,7 +451,9 @@ class MockUserRepository implements IUserRepository {
 class ApiDirectorateRepository implements IDirectorateRepository {
   async getAll(): Promise<Directorate[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
   async getById(id: string): Promise<Directorate | null> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/${id}`);
@@ -470,7 +462,9 @@ class ApiDirectorateRepository implements IDirectorateRepository {
   }
   async getServicesByDirectorate(id: string): Promise<Service[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/services`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
   async getNewsByDirectorate(id: string): Promise<NewsItem[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/news`);
@@ -487,15 +481,26 @@ class ApiDirectorateRepository implements IDirectorateRepository {
 class ApiNewsRepository implements INewsRepository {
   async getOfficialNews(): Promise<NewsItem[]> {
     const res = await fetch(`${API_BASE_URL}/public/news`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+  }
+  async getById(id: string): Promise<NewsItem | null> {
+    const res = await fetch(`${API_BASE_URL}/public/news/${id}`);
+    if (!res.ok) return null;
     return res.json();
   }
   async getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]> {
     const res = await fetch(`${API_BASE_URL}/public/news/by-directorate`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
   async getBreakingNews(): Promise<string[]> {
     const res = await fetch(`${API_BASE_URL}/public/news/breaking`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   }
   async getHeroArticle(): Promise<Article> {
     const res = await fetch(`${API_BASE_URL}/public/news/hero`);
@@ -503,19 +508,23 @@ class ApiNewsRepository implements INewsRepository {
   }
   async getGridArticles(): Promise<Article[]> {
     const res = await fetch(`${API_BASE_URL}/public/news/grid`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   }
 }
 
 class ApiDecreeRepository implements IDecreeRepository {
   async getAll(): Promise<Decree[]> {
-    const res = await fetch(`${API_BASE_URL}/decrees`);
+    const res = await fetch(`${API_BASE_URL}/public/decrees`);
+    if (!res.ok) return [];
     return res.json();
   }
   async search(query: string, type?: string): Promise<Decree[]> {
     const params = new URLSearchParams({ q: query });
     if (type) params.append('type', type);
-    const res = await fetch(`${API_BASE_URL}/decrees/search?${params.toString()}`);
+    const res = await fetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
+    if (!res.ok) return [];
     return res.json();
   }
 }
@@ -527,15 +536,51 @@ class ApiComplaintRepository implements IComplaintRepository {
 
   async submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string> {
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && key !== 'file') {
-        formData.append(key, String(value));
-      }
-    });
 
-    if (data.file) {
-      formData.append('file', data.file);
+    // Map frontend field names to backend expected field names
+    const fullName = [data.firstName, data.fatherName, data.lastName].filter(Boolean).join(' ');
+    if (fullName) formData.append('full_name', fullName);
+    if (data.directorate) formData.append('directorate_id', data.directorate);
+    // Description: use details field, or build from template_fields, or use category as fallback
+    if (data.details) {
+      formData.append('description', data.details);
+    } else {
+      let desc = '';
+      if ((data as any).template_fields && typeof (data as any).template_fields === 'object') {
+        const tf = (data as any).template_fields as Record<string, string>;
+        desc = Object.values(tf).filter(Boolean).join(' - ');
+      }
+      // Always ensure description is sent (backend requires min:10)
+      if (!desc || desc.length < 10) {
+        desc = desc ? `${data.category || 'شكوى'}: ${desc}` : (data.category || 'شكوى عبر النموذج الإلكتروني');
+      }
+      if (desc.length < 10) desc = desc.padEnd(10, '.');
+      formData.append('description', desc);
     }
+    if (data.category) formData.append('category', data.category);
+    if (data.nationalId) formData.append('national_id', data.nationalId);
+    if (data.phone) formData.append('phone', data.phone);
+    if (data.email) formData.append('email', data.email);
+    if (data.dob) formData.append('dob', data.dob);
+    if (data.recaptcha_token) formData.append('recaptcha_token', data.recaptcha_token);
+    if (data.previousTrackingNumber) formData.append('previous_tracking_number', data.previousTrackingNumber);
+
+    // Template fields
+    if ((data as any).template_id) formData.append('template_id', (data as any).template_id);
+    if ((data as any).template_fields && typeof (data as any).template_fields === 'object') {
+      formData.append('template_fields', JSON.stringify((data as any).template_fields));
+    }
+
+    // Guest token
+    if ((data as any).guest_token) formData.append('guest_token', (data as any).guest_token);
+
+    // File attachment
+    if (data.file) {
+      formData.append('attachments[]', data.file);
+    }
+
+    // Fetch CSRF cookie before submitting
+    await getCsrfCookie();
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -556,24 +601,62 @@ class ApiComplaintRepository implements IComplaintRepository {
             reject(new Error('Invalid response'));
           }
         } else {
-          reject(new Error('Failed to submit complaint'));
+          try {
+            const err = JSON.parse(xhr.responseText);
+            console.error('Complaint submission error:', xhr.status, err);
+            // Include validation field errors if present
+            let errorMessage = err.message || `HTTP ${xhr.status}`;
+            if (err.errors && typeof err.errors === 'object') {
+              const fieldMessages = Object.values(err.errors as Record<string, string[]>).flat().join('\n');
+              if (fieldMessages) errorMessage = fieldMessages;
+            }
+            reject(new Error(errorMessage));
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
         }
       });
 
       xhr.addEventListener('error', () => reject(new Error('Network error')));
       xhr.open('POST', `${API_BASE_URL}/complaints`);
+      xhr.withCredentials = true;
+
+      // Send XSRF token
+      const xsrfToken = getXsrfToken();
+      if (xsrfToken) {
+        xhr.setRequestHeader('X-XSRF-TOKEN', xsrfToken);
+      }
+
+      // Send auth token if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      // Send guest token as header if present
+      if ((data as any).guest_token) {
+        xhr.setRequestHeader('X-Guest-Token', (data as any).guest_token);
+      }
+      xhr.setRequestHeader('Accept', 'application/json');
+
       xhr.send(formData);
     });
   }
-  async track(ticketId: string): Promise<Ticket | null> {
-    const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`);
+  async track(ticketId: string, nationalId: string): Promise<Ticket | null> {
+    const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ national_id: nationalId }),
+    });
+    if (res.status === 403) {
+      throw new Error('national_id_mismatch');
+    }
     if (!res.ok) return null;
     return res.json();
   }
   async myComplaints(): Promise<Ticket[]> {
     const res = await fetch(`${API_BASE_URL}/users/me/complaints`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       }
     });
     if (!res.ok) return [];
@@ -582,7 +665,7 @@ class ApiComplaintRepository implements IComplaintRepository {
   async delete(id: string): Promise<boolean> {
     const res = await fetch(`${API_BASE_URL}/complaints/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.ok;
   }
@@ -600,7 +683,7 @@ class ApiStaffRepository implements IStaffRepository {
   async listComplaints(params?: any): Promise<{ data: Ticket[], total: number }> {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_BASE_URL}/staff/complaints?${query}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -609,7 +692,7 @@ class ApiStaffRepository implements IStaffRepository {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
       body: JSON.stringify({ status })
     });
@@ -620,7 +703,7 @@ class ApiStaffRepository implements IStaffRepository {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
       body: JSON.stringify({ ai_category: category, priority })
     });
@@ -628,7 +711,7 @@ class ApiStaffRepository implements IStaffRepository {
   }
   async getComplaintLogs(id: string): Promise<any[]> {
     const res = await fetch(`${API_BASE_URL}/staff/complaints/${id}/logs`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -637,7 +720,7 @@ class ApiStaffRepository implements IStaffRepository {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
       body: JSON.stringify({ response })
     });
@@ -645,7 +728,7 @@ class ApiStaffRepository implements IStaffRepository {
   }
   async getAnalytics(): Promise<any> {
     const res = await fetch(`${API_BASE_URL}/staff/analytics`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -655,7 +738,7 @@ class ApiContentRepository implements IContentRepository {
   async getAll(params?: any): Promise<{ data: any[], total: number }> {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_BASE_URL}/admin/content?${query}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -664,7 +747,7 @@ class ApiContentRepository implements IContentRepository {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
       body: JSON.stringify(data)
     });
@@ -675,7 +758,7 @@ class ApiContentRepository implements IContentRepository {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
       body: JSON.stringify(data)
     });
@@ -684,26 +767,26 @@ class ApiContentRepository implements IContentRepository {
   async delete(id: string): Promise<boolean> {
     const res = await fetch(`${API_BASE_URL}/admin/content/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.ok;
   }
   async getById(id: string): Promise<any> {
     const res = await fetch(`${API_BASE_URL}/admin/content/${id}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
   async getVersions(id: string): Promise<any[]> {
     const res = await fetch(`${API_BASE_URL}/admin/content/${id}/versions`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
   async restoreVersion(id: string, versionNumber: number): Promise<any> {
     const res = await fetch(`${API_BASE_URL}/admin/content/${id}/versions/${versionNumber}/restore`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -818,7 +901,7 @@ class MockReportsRepository implements IReportsRepository {
 class ApiReportsRepository implements IReportsRepository {
   async getStatistics(period?: string): Promise<StatisticsData> {
     const res = await fetch(`${API_BASE_URL}/reports/statistics?period=${period || 'week'}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.json();
   }
@@ -826,7 +909,7 @@ class ApiReportsRepository implements IReportsRepository {
   async exportData(type: string, params?: any): Promise<Blob> {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_BASE_URL}/reports/export?type=${type}&${query}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
     });
     return res.blob();
   }
@@ -837,7 +920,7 @@ class ApiUserRepository implements IUserRepository {
   private getAuthHeaders() {
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
       'Accept': 'application/json'
     };
   }
@@ -854,6 +937,34 @@ class ApiUserRepository implements IUserRepository {
       return json.user || json;
     } catch {
       return null;
+    }
+  }
+
+  async requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/me/email/request-change`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ email: newEmail, password })
+      });
+      const json = await res.json();
+      return { success: res.ok, message: json.message };
+    } catch {
+      return { success: false, message: 'Network error' };
+    }
+  }
+
+  async verifyEmailChange(code: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/me/email/verify-change`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ code })
+      });
+      const json = await res.json();
+      return { success: res.ok, message: json.message };
+    } catch {
+      return { success: false, message: 'Network error' };
     }
   }
 
@@ -1038,7 +1149,7 @@ class MockSuggestionRepository implements ISuggestionRepository {
           {
             id: 1,
             tracking_number: 'SUG-12345678',
-            description: 'اقتراح تحسين الخدمات الإلكترونية',
+            description: 'اقتراح تحسين الخدمات',
             status: 'pending',
             status_label: { ar: 'قيد المراجعة', en: 'Pending Review' },
             created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -1072,15 +1183,33 @@ class ApiSuggestionRepository implements ISuggestionRepository {
 
   async submitWithProgress(data: SuggestionData, onProgress?: (progress: number) => void): Promise<Suggestion> {
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'files' && Array.isArray(value)) {
-        value.forEach(file => formData.append('files', file));
-      } else if (value !== undefined) {
-        formData.append(key, value as string);
-      }
-    });
 
-    // Use XMLHttpRequest for progress tracking
+    // Map frontend field names to backend expected field names
+    const isAnonymous = data.is_anonymous === true;
+    if (isAnonymous) {
+      formData.append('name', 'مجهول الهوية'); // Anonymous placeholder
+      formData.append('is_anonymous', '1');
+    } else {
+      const fullName = [data.firstName, data.fatherName, data.lastName].filter(Boolean).join(' ');
+      if (fullName) formData.append('name', fullName);
+    }
+    if (data.nationalId) formData.append('national_id', data.nationalId);
+    if (data.dob) formData.append('dob', data.dob);
+    if (data.email) formData.append('email', data.email);
+    if (data.phone) formData.append('phone', data.phone);
+    if (data.description) formData.append('description', data.description);
+    if (data.directorate_id) formData.append('directorate_id', data.directorate_id);
+    if (data.recaptcha_token) formData.append('recaptcha_token', data.recaptcha_token);
+    if (data.guest_token) formData.append('guest_token', data.guest_token);
+
+    // Files
+    if (data.files && Array.isArray(data.files)) {
+      data.files.forEach(file => formData.append('files[]', file));
+    }
+
+    // Fetch CSRF cookie before submitting
+    await getCsrfCookie();
+
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
@@ -1094,12 +1223,27 @@ class ApiSuggestionRepository implements ISuggestionRepository {
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            resolve(JSON.parse(xhr.responseText));
+            const result = JSON.parse(xhr.responseText);
+            // Backend returns { success: true, data: { tracking_number, status } }
+            const responseData = result.data || result;
+            resolve({
+              id: responseData.id || '',
+              tracking_number: responseData.tracking_number || '',
+              description: data.description,
+              status: responseData.status || 'pending',
+              created_at: responseData.created_at || new Date().toISOString(),
+            } as any);
           } catch {
-            resolve({ id: '', trackingNumber: '', status: 'received', createdAt: new Date().toISOString() });
+            reject(new Error('Invalid response'));
           }
         } else {
-          reject(new Error(`HTTP error! status: ${xhr.status}`));
+          try {
+            const err = JSON.parse(xhr.responseText);
+            const msg = err.message || (err.errors ? Object.values(err.errors).flat().join(', ') : `HTTP ${xhr.status}`);
+            reject(new Error(msg));
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
         }
       });
 
@@ -1107,6 +1251,21 @@ class ApiSuggestionRepository implements ISuggestionRepository {
       xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
 
       xhr.open('POST', `${API_BASE_URL}/suggestions`);
+      xhr.withCredentials = true;
+
+      // Send XSRF token
+      const xsrfToken = getXsrfToken();
+      if (xsrfToken) {
+        xhr.setRequestHeader('X-XSRF-TOKEN', xsrfToken);
+      }
+
+      // Send auth token if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      xhr.setRequestHeader('Accept', 'application/json');
+
       xhr.send(formData);
     });
   }
@@ -1120,7 +1279,7 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async mySuggestions(): Promise<Suggestion[]> {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     const res = await fetch(`${API_BASE_URL}/users/me/suggestions`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1170,12 +1329,12 @@ class MockMediaRepository implements IMediaRepository {
 
 class ApiMediaRepository implements IMediaRepository {
   async getAll(): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/media`);
+    const res = await fetch(`${API_BASE_URL}/public/media`);
     if (!res.ok) return [];
     return res.json();
   }
   async getByType(type: string): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/media?type=${type}`);
+    const res = await fetch(`${API_BASE_URL}/public/media?type=${type}`);
     if (!res.ok) return [];
     return res.json();
   }
@@ -1210,7 +1369,7 @@ class ApiRolesRepository implements IRolesRepository {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/roles`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           'Accept': 'application/json'
         }
       });
@@ -1253,12 +1412,12 @@ class MockServicesRepository implements IServicesRepository {
 
 class ApiServicesRepository implements IServicesRepository {
   async getAll(): Promise<Service[]> {
-    const res = await fetch(`${API_BASE_URL}/services`);
+    const res = await fetch(`${API_BASE_URL}/public/services`);
     if (!res.ok) return [];
     return res.json();
   }
   async getById(id: string): Promise<Service | null> {
-    const res = await fetch(`${API_BASE_URL}/services/${id}`);
+    const res = await fetch(`${API_BASE_URL}/public/services/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
@@ -1590,6 +1749,19 @@ class ApiSearchRepository implements ISearchRepository {
   }
 }
 
+// Complaint Templates API
+export async function getComplaintTemplates(anonymous?: boolean): Promise<any[]> {
+  const params = anonymous ? '?anonymous=true' : '';
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/complaint-templates${params}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch {
+    return [];
+  }
+}
+
 // Open Data API
 const openDataApi = {
   async getAll(): Promise<Array<{ id: string; title_ar: string; title_en: string; description_ar: string; description_en: string; date: string; format: string; size: string; category_label: string; download_url: string | null }>> {
@@ -1660,4 +1832,309 @@ export const API = {
   newsletter: USE_MOCK_DATA ? new MockNewsletterRepository() : new ApiNewsletterRepository(),
   faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),
   search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
+  quickLinks: {
+    async getBySection(section: string = 'homepage'): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/quick-links?section=${section}`);
+        if (!res.ok) return [];
+        return res.json();
+      } catch { return []; }
+    },
+  },
+  pages: {
+    async getBySlug(slug: string): Promise<any | null> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/pages/${slug}`);
+        if (!res.ok) return null;
+        return res.json();
+      } catch { return null; }
+    },
+  },
+
+  // --- Notification Actions ---
+  notifications: {
+    async getAll(limit: number = 20): Promise<{ notifications: any[]; unread_count: number }> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications?limit=${limit}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return { notifications: [], unread_count: 0 };
+        const data = await res.json();
+        return {
+          notifications: data.data || data.notifications || [],
+          unread_count: data.unread_count ?? 0,
+        };
+      } catch { return { notifications: [], unread_count: 0 }; }
+    },
+    async markAsRead(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async markRead(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async markAllAsRead(): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async markAllRead(): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async delete(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+  },
+
+  // --- Chat Handoffs ---
+  chatHandoffs: {
+    async list(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staff/chat/handoffs`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch { return []; }
+    },
+    async assign(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staff/chat/handoffs/${id}/assign`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async respond(id: string, message: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staff/chat/handoffs/${id}/respond`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async close(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staff/chat/handoffs/${id}/close`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+  },
+
+  // --- Admin FAQ CRUD ---
+  adminFaqs: {
+    async getAll(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/faq`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch { return []; }
+    },
+    async create(data: any): Promise<any> {
+      const res = await fetch(`${API_BASE_URL}/admin/faq`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return res.json();
+    },
+    async update(id: string, data: any): Promise<any> {
+      const res = await fetch(`${API_BASE_URL}/admin/faq/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return res.json();
+    },
+    async delete(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/faq/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+  },
+
+  // --- Satisfaction Analytics ---
+  satisfaction: {
+    async get(): Promise<any> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staff/analytics/satisfaction`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.data || data;
+      } catch { return null; }
+    },
+  },
+
+  // --- AI Report Summaries ---
+  aiSummaries: {
+    async getLatest(): Promise<any> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/reports/summaries/latest`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.data || data;
+      } catch { return null; }
+    },
+    async getAll(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/reports/summaries`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch { return []; }
+    },
+  },
+
+  // --- Backup Management ---
+  backups: {
+    async list(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/backup`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch { return []; }
+    },
+    async create(): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/backup`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async download(filename: string): Promise<Blob | null> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/backup/${encodeURIComponent(filename)}/download`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+        if (!res.ok) return null;
+        return res.blob();
+      } catch { return null; }
+    },
+    async delete(filename: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/backup/${encodeURIComponent(filename)}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+  },
+
+  // --- Content Version Compare ---
+  contentVersions: {
+    async compare(contentId: string, versionNumber: number): Promise<any> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/content/${contentId}/versions/${versionNumber}/compare`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return null;
+        return res.json();
+      } catch { return null; }
+    },
+  },
+
+  // --- Webhook Management ---
+  webhooks: {
+    async list(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/webhooks`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch { return []; }
+    },
+    async create(data: any): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/webhooks`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async update(id: string, data: any): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/webhooks/${id}`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async delete(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/webhooks/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async test(id: string): Promise<boolean> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/webhooks/${id}/test`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`, 'Accept': 'application/json' }
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+  },
 };

@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
     const { language } = useLanguage();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
             <Navbar />
 
             <main className="flex-grow pt-14 md:pt-16">
@@ -36,13 +36,13 @@ export default function PrivacyPolicyPage() {
                     {/* Last Update */}
                     <div className="text-center mb-12">
                         <span className="inline-block px-4 py-2 bg-gov-gold/10 rounded-full text-gov-gold text-sm font-bold">
-                            {language === 'ar' ? 'آخر تحديث: 15 كانون الثاني 2024' : 'Last Updated: January 15, 2024'}
+                            {language === 'ar' ? 'آخر تحديث: 29 كانون الثاني 2026' : 'Last Updated: January 29, 2026'}
                         </span>
                     </div>
 
                     <div className="space-y-8">
                         {/* Section 1 */}
-                        <section className="bg-white dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
+                        <section className="bg-white dark:bg-gov-emeraldStatic p-8 rounded-3xl border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
                                     <Eye size={20} />

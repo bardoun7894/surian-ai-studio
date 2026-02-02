@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Send, CheckCircle } from 'lucide-react';
 import { API } from '@/lib/repository';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SatisfactionRatingProps {
     trackingNumber: string;
@@ -8,6 +9,7 @@ interface SatisfactionRatingProps {
 }
 
 const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber, onSubmitted }) => {
+    const { t } = useLanguage();
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -28,10 +30,10 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
                 setIsSubmitted(true);
                 if (onSubmitted) onSubmitted();
             } else {
-                setError('فشل إرسال التقييم. يرجى المحاولة مرة أخرى.');
+                setError(t('rating_error'));
             }
         } catch (err) {
-            setError('حدث خطأ أثناء الاتصال بالنظام.');
+            setError(t('rating_connection_error'));
         } finally {
             setIsSubmitting(false);
         }
@@ -45,8 +47,8 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
                         <CheckCircle size={24} />
                     </div>
                 </div>
-                <h3 className="text-lg font-bold text-green-800 dark:text-green-300 mb-2">شكراً لتقييمك!</h3>
-                <p className="text-green-700 dark:text-green-400 text-sm">نقدر ملاحظاتك وتساعدنا في تحسين خدماتنا.</p>
+                <h3 className="text-lg font-bold text-green-800 dark:text-green-300 mb-2">{t('rating_thank_you')}</h3>
+                <p className="text-green-700 dark:text-green-400 text-sm">{t('rating_appreciation')}</p>
             </div>
         );
     }
@@ -54,10 +56,10 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
     return (
         <div className="bg-white dark:bg-white/5 border border-gov-gold/30 rounded-xl p-6 shadow-sm mt-6 animate-fade-in">
             <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-4 text-center">
-                كيف كانت تجربتك؟
+                {t('rating_title')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
-                يرجى تقييم جودة التعامل وسرعة الإنجاز بعد حل الشكوى.
+                {t('rating_instruction')}
             </p>
 
             <div className="flex justify-center gap-2 mb-6" onMouseLeave={() => setHoverRating(0)}>
@@ -73,7 +75,7 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
                             size={32}
                             className={`transition-colors ${star <= (hoverRating || rating)
                                     ? 'text-yellow-400 fill-yellow-400'
-                                    : 'text-gray-300 dark:text-gray-600'
+                                    : 'text-gray-300 dark:text-gray-400'
                                 }`}
                         />
                     </button>
@@ -83,12 +85,12 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 mr-1">
-                        ملاحظات إضافية (اختياري)
+                        {t('rating_comments_label')}
                     </label>
                     <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
-                        placeholder="أخبرنا المزيد عن تجربتك..."
+                        placeholder={t('rating_comments_placeholder')}
                         rows={3}
                         className="w-full p-3 rounded-lg bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-gold/20 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold text-sm outline-none resize-none"
                     />
@@ -103,7 +105,7 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
                     disabled={rating === 0 || isSubmitting}
                     className="w-full py-2.5 rounded-lg bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold text-sm hover:bg-gov-teal dark:hover:bg-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
-                    {isSubmitting ? 'جاري الإرسال...' : 'إرسال التقييم'}
+                    {isSubmitting ? t('rating_sending') : t('rating_submit')}
                     {!isSubmitting && <Send size={16} className="rtl:rotate-180" />}
                 </button>
             </form>

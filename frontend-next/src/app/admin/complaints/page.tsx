@@ -6,31 +6,42 @@ import { Ticket } from '@/types';
 import { AlertCircle, CheckCircle, Clock, Filter, Search } from 'lucide-react';
 import Link from 'next/link';
 import SnoozeButton from '@/components/SnoozeButton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminComplaintsPage() {
+    const { language } = useLanguage();
     const [complaints, setComplaints] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [error, setError] = useState<string | null>(null);
+    const perPage = 15;
 
     useEffect(() => {
         const fetchComplaints = async () => {
+            setLoading(true);
+            setError(null);
             try {
-                const result = await API.staff.listComplaints({ status: filter !== 'all' ? filter : undefined });
+                const result = await API.staff.listComplaints({
+                    status: filter !== 'all' ? filter : undefined,
+                    page: currentPage,
+                    per_page: perPage,
+                });
                 setComplaints(result.data);
+                setTotalPages(result.last_page || 1);
+                setTotal(result.total || 0);
             } catch (e) {
                 console.error("Failed to fetch complaints", e);
-                // Fallback to mock if API fails/not implemented fully
-                setComplaints([
-                    { id: '1', title: 'تأخر في إصدار الجواز', status: 'new', priority: 'high', category: 'General', department: 'Passports', created_at: '2025-01-20', description: 'Sample description' },
-                    { id: '2', title: 'انقطاع المياه', status: 'in_progress', priority: 'medium', category: 'Infrastructure', department: 'Water', created_at: '2025-01-21', description: 'Sample description' },
-                    { id: '3', title: 'شكوى موظف', status: 'resolved', priority: 'low', category: 'HR', department: 'Internal', created_at: '2025-01-19', description: 'Sample description' },
-                ] as any);
+                setComplaints([]);
+                setError(language === 'ar' ? 'فشل في تحميل الشكاوى. يرجى المحاولة مرة أخرى.' : 'Failed to load complaints. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
         fetchComplaints();
-    }, [filter]);
+    }, [filter, currentPage, language]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -112,6 +123,43 @@ export default function AdminComplaintsPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Error State */}
+            {error && (
+                <div className="text-center py-12 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-500/20 mt-6">
+                    <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
+                    <p className="text-red-600 dark:text-red-400 font-bold">{error}</p>
+                    <button
+                        onClick={() => { setError(null); setCurrentPage(1); }}
+                        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 transition-colors"
+                    >
+                        {language === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+                    </button>
+                </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                    >
+                        {language === 'ar' ? 'السابق' : 'Previous'}
+                    </button>
+                    <span className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                        {language === 'ar' ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                    >
+                        {language === 'ar' ? 'التالي' : 'Next'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

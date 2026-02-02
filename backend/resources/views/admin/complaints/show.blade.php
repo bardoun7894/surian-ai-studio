@@ -84,6 +84,65 @@
                 @endif
             </div>
 
+            <!-- Template Form Data -->
+            @if(!empty($complaint->template_fields))
+                <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">assignment</span>
+                        بيانات النموذج
+                        @if($complaint->template)
+                            <span class="text-xs font-normal text-slate-500">({{ $complaint->template->name }})</span>
+                        @endif
+                    </h3>
+
+                    @if(!$complaint->template)
+                        <div class="mb-3 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg text-xs text-amber-700 dark:text-amber-400">
+                            <span class="material-symbols-outlined text-[14px] align-middle">warning</span>
+                            تم حذف القالب المرتبط بهذه الشكوى. يتم عرض المفاتيح الخام للحقول.
+                        </div>
+                    @endif
+
+                    @php
+                        // Build a lookup from template field definitions
+                        $fieldDefs = [];
+                        if ($complaint->template && is_array($complaint->template->fields)) {
+                            foreach ($complaint->template->fields as $field) {
+                                $fieldDefs[$field['key']] = $field;
+                            }
+                        }
+                    @endphp
+
+                    <div class="divide-y divide-slate-100 dark:divide-slate-700">
+                        @foreach($complaint->template_fields as $key => $value)
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                                <span class="text-sm font-bold text-slate-500 dark:text-slate-400 sm:w-40 shrink-0">
+                                    {{ $fieldDefs[$key]['label'] ?? $key }}
+                                </span>
+                                <span class="text-sm text-slate-900 dark:text-white">
+                                    @if(isset($fieldDefs[$key]) && ($fieldDefs[$key]['type'] ?? '') === 'select' && !is_array($value))
+                                        {{-- Resolve select option value to label --}}
+                                        @php
+                                            $optionLabel = $value;
+                                            foreach ($fieldDefs[$key]['options'] ?? [] as $opt) {
+                                                if (($opt['value'] ?? '') === $value) {
+                                                    $optionLabel = $opt['label'] ?? $value;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $optionLabel }}
+                                    @elseif(is_array($value))
+                                        {{ implode(', ', $value) }}
+                                    @else
+                                        {{ $value }}
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- Attachments -->
             @if($complaint->attachments->count() > 0)
                 <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
@@ -117,10 +176,10 @@
                         @foreach($complaint->responses as $response)
                             <div class="relative pr-8 pb-4 {{ !$loop->last ? 'border-b border-slate-100 dark:border-slate-700' : '' }}">
                                 <div class="absolute right-0 top-0 h-8 w-8 rounded-full bg-gov-emerald/10 flex items-center justify-center text-gov-emerald font-bold text-xs">
-                                    {{ $response->user ? substr($response->user->name, 0, 1) : 'S' }}
+                                    {{ $response->user ? mb_substr($response->user->first_name, 0, 1) : 'S' }}
                                 </div>
                                 <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-sm font-bold text-slate-900 dark:text-white">{{ $response->user->name ?? 'موظف النظام' }}</span>
+                                    <span class="text-sm font-bold text-slate-900 dark:text-white">{{ $response->user->full_name ?? 'موظف النظام' }}</span>
                                     @if($response->is_internal)
                                         <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700 rounded">ملاحظة داخلية</span>
                                     @endif

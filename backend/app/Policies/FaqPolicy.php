@@ -12,7 +12,7 @@ class FaqPolicy
 
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
             return true;
         }
         return null;
@@ -20,31 +20,26 @@ class FaqPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('faq.view') ||
-               $user->hasPermission('faq.*');
+        return $user->hasPermission('faq.view');
     }
 
     public function view(User $user, Faq $faq): bool
     {
-        return $user->hasPermission('faq.view') ||
-               $user->hasPermission('faq.*');
+        return $user->hasPermission('faq.view');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasPermission('faq.manage') ||
-               $user->hasPermission('faq.*');
+        return $user->hasPermission('faq.manage');
     }
 
     public function update(User $user, Faq $faq): bool
     {
-        return $user->hasPermission('faq.manage') ||
-               $user->hasPermission('faq.*');
+        return $user->hasPermission('faq.manage');
     }
 
     public function delete(User $user, Faq $faq): bool
     {
-        return $user->hasPermission('faq.manage') ||
-               $user->hasPermission('faq.*');
+        return $user->hasPermission('faq.manage');
     }
 }

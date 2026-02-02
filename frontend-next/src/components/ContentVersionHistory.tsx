@@ -45,6 +45,11 @@ const translations = {
     showChanges: 'عرض التغييرات',
     hideChanges: 'إخفاء التغييرات',
     compare: 'مقارنة',
+    compareTitle: 'مقارنة مع الإصدار السابق',
+    compareLoading: 'جاري المقارنة...',
+    compareError: 'فشل تحميل المقارنة',
+    compareNoChanges: 'لا توجد تغييرات بين الإصدارين',
+    hideCompare: 'إخفاء المقارنة',
   },
   en: {
     title: 'Version History',
@@ -67,6 +72,11 @@ const translations = {
     showChanges: 'Show Changes',
     hideChanges: 'Hide Changes',
     compare: 'Compare',
+    compareTitle: 'Compare with Previous Version',
+    compareLoading: 'Comparing...',
+    compareError: 'Failed to load comparison',
+    compareNoChanges: 'No changes between versions',
+    hideCompare: 'Hide Compare',
   }
 };
 
@@ -78,6 +88,10 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
   const [isLoading, setIsLoading] = useState(true);
   const [expandedVersions, setExpandedVersions] = useState<Set<number>>(new Set());
   const [restoring, setRestoring] = useState<number | null>(null);
+  const [comparingVersion, setComparingVersion] = useState<number | null>(null);
+  const [compareLoading, setCompareLoading] = useState<number | null>(null);
+  const [compareDiff, setCompareDiff] = useState<Record<number, { field: string; old_value: string; new_value: string }[]>>({});
+  const [compareError, setCompareError] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -145,6 +159,48 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
       newExpanded.add(versionNumber);
     }
     setExpandedVersions(newExpanded);
+  };
+
+  const handleCompare = async (versionNumber: number) => {
+    // Toggle off if already showing
+    if (comparingVersion === versionNumber) {
+      setComparingVersion(null);
+      return;
+    }
+
+    // If already fetched, just show it
+    if (compareDiff[versionNumber]) {
+      setComparingVersion(versionNumber);
+      return;
+    }
+
+    // Fetch the diff from the API
+    try {
+      setCompareLoading(versionNumber);
+      setCompareError(null);
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${API_URL}/api/v1/admin/content/${contentId}/versions/${versionNumber}/compare`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch comparison');
+
+      const data = await response.json();
+      const changes = data.changes || data.diff || data.data || [];
+      setCompareDiff(prev => ({ ...prev, [versionNumber]: changes }));
+      setComparingVersion(versionNumber);
+    } catch (error) {
+      console.error('Error fetching comparison:', error);
+      setCompareError(versionNumber);
+    } finally {
+      setCompareLoading(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -270,6 +326,25 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                           </button>
                         )}
 
+                        {!isLatest && version.version_number > 1 && (
+                          <button
+                            onClick={() => handleCompare(version.version_number)}
+                            disabled={compareLoading === version.version_number}
+                            className={`px-3 py-1.5 border rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
+                              comparingVersion === version.version_number
+                                ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                : 'border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {compareLoading === version.version_number ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <GitCompare className="w-4 h-4" />
+                            )}
+                            {comparingVersion === version.version_number ? t.hideCompare : t.compare}
+                          </button>
+                        )}
+
                         {Object.keys(version.changes).length > 0 && !version.changes.created && (
                           <button
                             onClick={() => toggleExpand(version.version_number)}
@@ -317,6 +392,45 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Compare Diff */}
+                    {comparingVersion === version.version_number && (
+                      <div className="border-t border-blue-200 bg-blue-50 p-4">
+                        <h4 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+                          <GitCompare className="w-4 h-4" />
+                          {t.compareTitle}
+                        </h4>
+                        {compareError === version.version_number ? (
+                          <p className="text-sm text-red-600">{t.compareError}</p>
+                        ) : compareDiff[version.version_number]?.length === 0 ? (
+                          <p className="text-sm text-gray-600 italic">{t.compareNoChanges}</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {compareDiff[version.version_number]?.map((change, idx) => (
+                              <div key={idx} className="bg-white rounded-lg p-3 border border-blue-200">
+                                <div className="font-medium text-gray-900 mb-2">
+                                  {formatFieldName(change.field)}
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <div className="text-gray-500 mb-1">{t.oldValue}:</div>
+                                    <div className="text-gray-900 bg-red-50 p-2 rounded border border-red-200 whitespace-pre-wrap break-words">
+                                      {formatValue(change.old_value)}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-500 mb-1">{t.newValue}:</div>
+                                    <div className="text-gray-900 bg-green-50 p-2 rounded border border-green-200 whitespace-pre-wrap break-words">
+                                      {formatValue(change.new_value)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 

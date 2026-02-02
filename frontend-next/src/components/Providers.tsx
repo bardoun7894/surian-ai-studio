@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
+import ChatBot from '@/components/ChatBot';
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {
@@ -61,6 +62,7 @@ export function Providers({ children }: ProvidersProps) {
                 }
               }}
             />
+            <ChatBot />
             <ExternalLinkModal
               isOpen={!!externalUrl}
               url={externalUrl || ''}

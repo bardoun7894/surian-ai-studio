@@ -47,7 +47,7 @@ class ChatController extends Controller
 
         // Forward to AI service
         try {
-            $aiServiceUrl = env('AI_SERVICE_URL', 'http://ai-service:8000');
+            $aiServiceUrl = config('external.ai_service.url');
             
             $response = Http::timeout(30)->post("{$aiServiceUrl}/api/v1/ai/chat", [
                 'prompt' => $validated['message'],  // AI service expects 'prompt' field

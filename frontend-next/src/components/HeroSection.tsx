@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
-import { Building2, FileText, Scale, ArrowRight, ShieldCheck, Landmark, Sparkles } from 'lucide-react';
+import { FileText, Scale, ArrowRight, ShieldCheck, Landmark, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -99,11 +99,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
       }
 
       // 4. Glow Pulse
-      tl.fromTo(glowRef.current,
-        { opacity: 0, scale: 0.5 },
-        { opacity: 0.6, scale: 1, duration: 1.5, ease: "sine.out" },
-        "-=1.2"
-      );
+      if (glowRef.current) {
+        tl.fromTo(glowRef.current,
+          { opacity: 0, scale: 0.5 },
+          { opacity: 0.6, scale: 1, duration: 1.5, ease: "sine.out" },
+          "-=1.2"
+        );
+      }
 
       // 5. Text Cascade
       const textElements = textContainerRef.current?.querySelectorAll('.animate-text');
@@ -147,40 +149,46 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
 
       // --- Continuous Animations ---
       // Gentle Breathing (Scale)
-      gsap.to(eagleRef.current, {
-        scale: 1.02,
-        duration: 5,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        delay: 2
-      });
+      if (eagleRef.current) {
+        gsap.to(eagleRef.current, {
+          scale: 1.02,
+          duration: 5,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: 2
+        });
 
-      // Subtle Float (Vertical)
-      gsap.to(eagleRef.current, {
-        y: -5,
-        duration: 3,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        delay: 2
-      });
+        // Subtle Float (Vertical)
+        gsap.to(eagleRef.current, {
+          y: -5,
+          duration: 3,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: 2
+        });
+      }
 
-      gsap.to(glowRef.current, {
-        rotation: 360,
-        duration: 120,
-        repeat: -1,
-        ease: "linear"
-      });
+      if (glowRef.current) {
+        gsap.to(glowRef.current, {
+          rotation: 360,
+          duration: 120,
+          repeat: -1,
+          ease: "linear"
+        });
+      }
 
-      gsap.to(bgPatternRef.current, {
-        y: -20,
-        x: 10,
-        duration: 10,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut"
-      });
+      if (bgPatternRef.current) {
+        gsap.to(bgPatternRef.current, {
+          y: -20,
+          x: 10,
+          duration: 10,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+      }
 
       // 9. Eagle Mouse Tracking Parallax Effect (UI-08)
       if (typeof window !== 'undefined') {
@@ -239,7 +247,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-forest/80 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-brand/30 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
 
       {/* Animated Particles Layer - rendered only on client to avoid hydration mismatch */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -256,18 +264,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
         </svg>
       </div>
 
-      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
+      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
 
         {/* The Golden Hawk */}
         <div ref={eagleRef} className="mb-4 md:mb-0 relative z-20 flex justify-center items-center md:w-1/2 md:order-1">
           <div className="relative w-64 h-64 md:w-96 md:h-96 flex items-center justify-center">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gov-gold/10 rounded-full blur-3xl dark:bg-gov-gold/5"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gov-gold/10 rounded-full blur-3xl dark:bg-gov-brand/20"></div>
             <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/10"></div>
             <div className="absolute inset-4 rounded-full border-t border-l border-gov-teal/30 dark:border-gov-teal/20 animate-[spin_8s_linear_infinite]"></div>
             <div className="absolute inset-16 rounded-full border border-gov-gold/10"></div>
-            <div className="absolute inset-8 rounded-full bg-mofa-teal border border-gov-gold/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-8 rounded-full bg-mofa-teal dark:bg-gradient-to-br dark:from-gov-brand dark:to-gov-forest border border-gov-gold/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
               {/* Animated Logo Composition */}
               <div ref={eagleContentRef} className="relative w-full h-full flex items-center justify-center scale-110">
@@ -290,7 +298,23 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
                   priority
                   className="absolute inset-0 w-full h-full object-contain z-20"
                 />
+
+                {/* 3. Outer Ring/Details (33) */}
+                <Image
+                  id="logo-ring"
+                  src="/assets/logo/33.png"
+                  alt="Logo Detail"
+                  fill
+                  priority
+                  className="absolute inset-0 w-full h-full object-contain z-30 opacity-80 mix-blend-overlay"
+                />
               </div>
+            </div>
+
+            {/* Floating Particles around Eagle */}
+            <div className="absolute inset-0 pointer-events-none">
+              <Sparkles className="absolute top-0 right-10 text-gov-gold/40 animate-pulse-slow" size={24} />
+              <Sparkles className="absolute bottom-10 left-0 text-gov-gold/40 animate-pulse-slow delay-1000" size={16} />
             </div>
           </div>
         </div>
@@ -299,15 +323,23 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
 
           {/* Titles Group */}
           <div className="flex flex-col items-center md:items-start">
-            <h2 className="animate-text text-gov-forest/80 dark:text-gov-gold/90 font-sans font-medium tracking-[0.2em] md:tracking-[0.3em] uppercase text-[9px] md:text-xs mb-2 border-b border-gov-gold/30 pb-1">
-              {language === 'ar' ? 'Syrian Arab Republic' : 'الجمهورية العربية السورية'}
-            </h2>
+            <div className="animate-text inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-6 opacity-0">
+              <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
+              <span className="text-xs md:text-sm font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
+                {t('republic_name')}
+              </span>
+            </div>
 
-            <h1 className="animate-text text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-display font-extrabold text-gov-forest dark:text-white leading-[1.2] md:leading-[1.1] mb-2 drop-shadow-sm dark:drop-shadow-lg transition-colors px-2">
-              {t('ministry_name')}
+            <h1 className="animate-text text-4xl md:text-6xl lg:text-7xl font-bold font-display text-gov-forest dark:text-gov-gold mb-6 leading-tight drop-shadow-sm opacity-0">
+              {t('ministry_name')} <span className="text-gov-teal dark:text-gov-gold relative inline-block">
+
+                <svg className="absolute w-full h-3 -bottom-1 left-0 text-gov-gold/30" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0 5 Q 50 10 100 5 L 100 10 L 0 10 Z" fill="currentColor" />
+                </svg>
+              </span>
             </h1>
 
-            <div className="animate-text flex items-center justify-center md:justify-start gap-4 md:gap-6 mt-2 mb-4 md:mb-6 w-full">
+            <div className="animate-text flex items-center justify-center md:justify-start gap-4 md:gap-6 mt-2 mb-4 md:mb-6 w-full opacity-0">
               <div className={`h-[1px] w-8 md:w-24 bg-gradient-to-${direction === 'rtl' ? 'l' : 'r'} from-transparent to-gov-gold`}></div>
               <span className="text-lg md:text-3xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
                 {t('portal_name')}
@@ -315,7 +347,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
               <div className={`h-[1px] w-8 md:w-24 bg-gradient-to-${direction === 'rtl' ? 'r' : 'l'} from-transparent to-gov-gold`}></div>
             </div>
 
-            <p className={`animate-text text-sm md:text-lg text-gov-stone dark:text-gov-beige/80 leading-relaxed max-w-xs md:max-w-xl font-medium dark:font-light ${language === 'ar' ? 'border-r-2 pr-4 md:mr-0' : 'border-l-2 pl-4 md:ml-0'} border-gov-gold/50 transition-colors mx-auto md:mx-0`}>
+            <p className="animate-text text-lg md:text-xl text-gov-charcoal/80 dark:text-gov-gold/90 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0 opacity-0">
               {t('unified_platform')}
               <br />
               <span className="text-xs md:text-base text-gov-stone/70 dark:text-gov-beige/60 mt-1 block">{t('secure_gateway')}</span>
@@ -326,7 +358,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
           <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start pt-2 md:pt-4 w-full px-4 md:px-0">
             <Link
               href="/services"
-              className="animate-btn relative overflow-hidden w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal text-white font-bold text-base hover:bg-gov-emerald transition-all shadow-[0_5px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_30px_rgba(66,129,119,0.3)] flex items-center justify-center gap-2 group rounded-xl sm:rounded-none"
+              className="animate-btn relative overflow-hidden w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald dark:hover:bg-gov-emerald transition-all shadow-[0_5px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_30px_rgba(9,66,57,0.3)] flex items-center justify-center gap-2 group rounded-xl sm:rounded-none"
               style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
@@ -355,16 +387,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false }) =>
           </div>
 
           {/* Official Pillars - Horizontal on Mobile */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-6 md:gap-12 w-full max-w-3xl mx-auto mt-6 md:mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-6 px-2 md:px-4">
-            <div className="animate-stat text-center group cursor-default">
-              <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
-                <Building2 size={16} className="md:w-[20px] md:h-[20px]" />
-              </div>
-              <div className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-1">1,500+</div>
-              <div className="text-[10px] md:text-xs text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">{t('stat_services')}</div>
-            </div>
-
-            <div className="animate-stat text-center border-x border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default px-1">
+          <div className="grid grid-cols-2 gap-2 sm:gap-6 md:gap-12 w-full max-w-2xl mx-auto mt-6 md:mt-12 border-t border-gov-charcoal/10 dark:border-gov-gold/10 pt-6 px-2 md:px-4">
+            <div className="animate-stat text-center border-r border-gov-charcoal/10 dark:border-gov-gold/10 group cursor-default px-1">
               <div className="w-8 h-8 md:w-10 md:h-10 mx-auto rounded-full bg-gov-forest/5 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold mb-2 group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-colors duration-500">
                 <ShieldCheck size={16} className="md:w-[20px] md:h-[20px]" />
               </div>

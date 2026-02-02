@@ -23,6 +23,10 @@ class Suggestion extends Model
         'job_title',
         'email',
         'phone',
+        'national_id',
+        'dob',
+        'directorate_id',
+        'is_anonymous',
         'description',
         'status',
         'user_id',
@@ -38,6 +42,8 @@ class Suggestion extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'dob' => 'date',
+        'is_anonymous' => 'boolean',
     ];
 
     protected static function boot()

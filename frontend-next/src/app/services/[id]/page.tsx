@@ -49,6 +49,7 @@ import {
     Settings
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getLocalizedField, getLocalizedName } from '@/lib/utils';
 import Link from 'next/link';
 
 // Sub-category metadata with icons and descriptions
@@ -320,19 +321,19 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                         <div className="flex flex-col md:flex-row items-start gap-8">
                             <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
                                 {(() => {
-                                    const DirectorateIcon = directorate ? iconMap[directorate.icon] : Building;
+                                    const DirectorateIcon = directorate ? (iconMap[directorate.icon] || Building) : Building;
                                     return <DirectorateIcon size={40} />;
                                 })()}
                             </div>
                             <div className="flex-1">
                                 <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold mb-4 inline-block">
-                                    {directorate?.name}
+                                    {directorate ? getLocalizedField(directorate, 'name', language as 'ar' | 'en') : ''}
                                 </span>
                                 <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">
-                                    {service.title}
+                                    {getLocalizedField(service, 'title', language as 'ar' | 'en')}
                                 </h1>
                                 <p className="text-white/80 text-lg max-w-3xl leading-relaxed">
-                                    {service.description}
+                                    {getLocalizedField(service, 'content', language as 'ar' | 'en') || getLocalizedField(service, 'description', language as 'ar' | 'en')}
                                 </p>
                             </div>
                             <div className="flex flex-col items-center gap-2 text-center">
@@ -372,12 +373,12 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     {language === 'ar' ? 'المتطلبات والوثائق' : 'Requirements & Documents'}
                                 </h2>
                                 <div className="space-y-4">
-                                    {[
+                                    {(service.requirements && service.requirements.length > 0 ? service.requirements : [
                                         language === 'ar' ? "الهوية الشخصية السورية أو جواز السفر الساري المفعول" : "Syrian National ID or valid Passport",
                                         language === 'ar' ? "صور شخصية حديثة ملونة عدد (2)" : "Recent color personal photos (2)",
                                         language === 'ar' ? "طلبات التقديم المعبأة مسبقاً (إن وجدت)" : "Pre-filled application forms (if any)",
                                         language === 'ar' ? "دفع الرسوم المقررة" : "Payment of designated fees"
-                                    ].map((req, i) => (
+                                    ]).map((req, i) => (
                                         <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
                                             <CheckCircle className="text-green-500 mt-1" size={18} />
                                             <span className="text-gray-700 dark:text-gray-200">{req}</span>
@@ -400,13 +401,13 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                         <span className="text-sm text-gray-500">{language === 'ar' ? 'الوقت المتوقع' : 'Est. Time'}</span>
                                         <span className="font-bold text-gov-charcoal dark:text-white flex items-center gap-1">
                                             <Clock size={14} className="text-gov-teal" />
-                                            {language === 'ar' ? 'فوري' : 'Instant'}
+                                            {service.estimated_time || (language === 'ar' ? 'غير محدد' : 'Not specified')}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center pb-4 border-b border-gray-50 dark:border-white/5">
                                         <span className="text-sm text-gray-500">{language === 'ar' ? 'الرسوم' : 'Fees'}</span>
                                         <span className="font-bold text-gov-charcoal dark:text-white">
-                                            {language === 'ar' ? 'مجانية' : 'Free'}
+                                            {service.fees || (language === 'ar' ? 'مجانية' : 'Free')}
                                         </span>
                                     </div>
                                 </div>

@@ -26,6 +26,14 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [satisfaction, setSatisfaction] = useState<{
+    average_rating: number;
+    satisfaction_rate: number;
+    total_rated: number;
+    response_speed_rating?: number;
+    solution_quality_rating?: number;
+    ease_of_use_rating?: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -36,6 +44,20 @@ export default function AdminDashboard() {
         console.error('Failed to fetch stats:', err);
       } finally {
         setIsLoading(false);
+      }
+
+      // Fetch satisfaction data
+      try {
+        const token = localStorage.getItem('auth_token');
+        const satRes = await fetch('/api/v1/staff/analytics/satisfaction', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (satRes.ok) {
+          const satData = await satRes.json();
+          setSatisfaction(satData.data || satData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch satisfaction:', err);
       }
     };
     fetchStats();
@@ -86,8 +108,8 @@ export default function AdminDashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">
           {language === 'ar'
-            ? `مرحباً، ${user?.name || 'مدير'}`
-            : `Welcome, ${user?.name || 'Admin'}`}
+            ? `مرحباً، ${user?.first_name || 'مدير'}`
+            : `Welcome, ${user?.first_name || 'Admin'}`}
         </h1>
         <p className="text-gray-500 dark:text-gray-400">
           {language === 'ar'
@@ -238,18 +260,19 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
-                <span className="text-4xl font-bold text-gov-forest dark:text-gov-gold mb-2">4.8</span>
+                <span className="text-4xl font-bold text-gov-forest dark:text-gov-gold mb-2">{satisfaction?.average_rating?.toFixed(1) || '-'}</span>
                 <div className="flex text-yellow-400 mb-2">
                   {[1, 2, 3, 4, 5].map(i => <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>)}
                 </div>
                 <span className="text-sm text-gray-500">{language === 'ar' ? 'التقييم العام' : 'Overall Rating'}</span>
+                <span className="text-xs text-gray-400 mt-1">{satisfaction?.total_rated || 0} {language === 'ar' ? 'تقييم' : 'ratings'}</span>
               </div>
 
               <div className="md:col-span-2 space-y-4">
                 {[
-                  { label: 'سرعة الاستجابة', value: 92, color: 'bg-green-500' },
-                  { label: 'جودة الحلول', value: 85, color: 'bg-blue-500' },
-                  { label: 'سهولة الاستخدام', value: 96, color: 'bg-purple-500' }
+                  { label: language === 'ar' ? 'سرعة الاستجابة' : 'Response Speed', value: satisfaction?.response_speed_rating ? Math.round(satisfaction.response_speed_rating * 20) : 0, color: 'bg-green-500' },
+                  { label: language === 'ar' ? 'جودة الحلول' : 'Solution Quality', value: satisfaction?.solution_quality_rating ? Math.round(satisfaction.solution_quality_rating * 20) : 0, color: 'bg-blue-500' },
+                  { label: language === 'ar' ? 'الرضا العام' : 'Overall Satisfaction', value: satisfaction?.satisfaction_rate ? Math.round(satisfaction.satisfaction_rate) : 0, color: 'bg-purple-500' }
                 ].map((item, idx) => (
                   <div key={idx}>
                     <div className="flex justify-between text-sm mb-1">

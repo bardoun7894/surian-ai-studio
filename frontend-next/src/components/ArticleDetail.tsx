@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Calendar, User, Clock, Share2, Printer, ChevronRight, Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -12,7 +12,9 @@ interface ArticleDetailProps {
     author?: string;
     readTime?: string;
     imageUrl?: string;
+    images?: string[];
     content: string;
+    language?: string;
     backLink: {
         href: string;
         label: string;
@@ -22,6 +24,7 @@ interface ArticleDetailProps {
         title: string;
         date: string;
         href: string;
+        imageUrl?: string;
     }>;
 }
 
@@ -32,10 +35,33 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     author,
     readTime,
     imageUrl,
+    images,
     content,
+    language = 'ar',
     backLink,
     relatedItems
 }) => {
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+
+    // Gallery images: use images array if available, otherwise just featured
+    const galleryImages = images && images.length > 1 ? images : [];
+
+    const openLightbox = (index: number) => {
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+    };
+
+    const closeLightbox = () => setLightboxOpen(false);
+
+    const nextImage = () => {
+        setLightboxIndex((prev) => (prev + 1) % galleryImages.length);
+    };
+
+    const prevImage = () => {
+        setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    };
+
     return (
         <div className="bg-gov-beige dark:bg-gov-forest/30 min-h-screen pb-20">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
@@ -53,13 +79,17 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                     {/* Featured Image */}
                     {imageUrl && (
-                        <div className="relative h-[400px] w-full">
+                        <div
+                            className="relative h-[400px] md:h-[500px] w-full cursor-pointer group"
+                            onClick={() => galleryImages.length > 0 ? openLightbox(0) : undefined}
+                        >
                             <Image
                                 src={imageUrl}
                                 alt={title}
                                 fill
                                 className="object-cover"
                                 priority
+                                unoptimized
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                             <div className="absolute bottom-6 right-6 rtl:right-auto rtl:left-6">
@@ -67,6 +97,12 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                     {category}
                                 </span>
                             </div>
+                            {galleryImages.length > 1 && (
+                                <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Images size={16} />
+                                    <span>{galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'}</span>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -106,13 +142,43 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </h1>
 
                         <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gray-600 dark:prose-p:text-gray-300">
-                            {/* Simple content rendering, assuming markdown or pre-formatted text for now */}
                             {content.split('\n\n').map((paragraph, idx) => (
                                 <p key={idx} className="mb-4 leading-relaxed">
                                     {paragraph}
                                 </p>
                             ))}
                         </div>
+
+                        {/* Image Gallery */}
+                        {galleryImages.length > 1 && (
+                            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/10">
+                                <h2 className="text-xl font-display font-bold text-gov-forest dark:text-white mb-6 flex items-center gap-2">
+                                    <Images size={22} className="text-gov-gold" />
+                                    {language === 'ar' ? 'معرض الصور' : 'Photo Gallery'}
+                                    <span className="text-sm font-normal text-gray-400 mr-2">({galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'})</span>
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {galleryImages.map((img, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all"
+                                            onClick={() => openLightbox(idx)}
+                                        >
+                                            <Image
+                                                src={img}
+                                                alt={`${title} - ${idx + 1}`}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                unoptimized
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                <ZoomIn size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </article>
 
@@ -120,21 +186,34 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 {relatedItems && relatedItems.length > 0 && (
                     <div className="mt-16">
                         <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-8 border-r-4 border-gov-gold pr-4">
-                            مواضيع ذات صلة
+                            {language === 'ar' ? 'مواضيع ذات صلة' : 'Related Topics'}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {relatedItems.map((item) => (
                                 <Link
                                     key={item.id}
                                     href={item.href}
-                                    className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-lg transition-all"
+                                    className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 hover:shadow-lg transition-all overflow-hidden group"
                                 >
-                                    <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
-                                        {item.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <Calendar size={14} />
-                                        {item.date}
+                                    {item.imageUrl && (
+                                        <div className="relative h-40 w-full overflow-hidden">
+                                            <Image
+                                                src={item.imageUrl}
+                                                alt={item.title}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                unoptimized
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="p-5">
+                                        <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
+                                            {item.title}
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <Calendar size={14} />
+                                            {item.date}
+                                        </div>
                                     </div>
                                 </Link>
                             ))}
@@ -142,6 +221,78 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Lightbox */}
+            {lightboxOpen && galleryImages.length > 0 && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                    onClick={closeLightbox}
+                >
+                    {/* Close button */}
+                    <button
+                        className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                        onClick={closeLightbox}
+                    >
+                        <X size={24} />
+                    </button>
+
+                    {/* Counter */}
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm">
+                        {lightboxIndex + 1} / {galleryImages.length}
+                    </div>
+
+                    {/* Previous */}
+                    <button
+                        className="absolute left-4 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                        onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                    >
+                        <ChevronLeft size={28} />
+                    </button>
+
+                    {/* Image */}
+                    <div
+                        className="relative w-full max-w-5xl h-[80vh] mx-16"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Image
+                            src={galleryImages[lightboxIndex]}
+                            alt={`${title} - ${lightboxIndex + 1}`}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                        />
+                    </div>
+
+                    {/* Next */}
+                    <button
+                        className="absolute right-4 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                        onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                    >
+                        <ChevronRight size={28} />
+                    </button>
+
+                    {/* Thumbnail strip */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-[90vw] overflow-x-auto px-4 py-2">
+                        {galleryImages.map((img, idx) => (
+                            <div
+                                key={idx}
+                                className={`relative w-16 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 border-2 transition-all ${
+                                    idx === lightboxIndex ? 'border-gov-gold scale-110' : 'border-transparent opacity-60 hover:opacity-100'
+                                }`}
+                                onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
+                            >
+                                <Image
+                                    src={img}
+                                    alt={`thumb-${idx + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

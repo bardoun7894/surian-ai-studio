@@ -7,10 +7,15 @@ import api, { getCsrfCookie, ApiError, setAuthToken, clearAuthToken, getAuthToke
 // User type
 export interface User {
   id: number;
-  name: string;
+  first_name: string;
+  father_name: string;
+  last_name: string;
+  full_name?: string;
   email: string;
   phone?: string;
   national_id?: string;
+  birth_date?: string;
+  governorate?: string;
   role_id: number;
   directorate_id: number | null;
   role?: {
@@ -22,6 +27,7 @@ export interface User {
     id: number;
     name: string;
   };
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -34,22 +40,27 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  name: string;
+  first_name: string;
+  father_name: string;
+  last_name: string;
   email: string;
   password: string;
   password_confirmation: string;
-  national_id?: string;
-  phone?: string;
-  birth_date?: string;
-  governorate?: string;
+  national_id: string;
+  phone: string;
+  birth_date: string;
+  governorate: string;
+  recaptcha_token?: string;
   two_factor_enabled?: boolean;
 }
 
 export interface AuthResponse {
-  user: User;
+  user?: User;
   token?: string;
   require_2fa?: boolean;
   temp_token?: string; // Temporary token for 2FA verification
+  email?: string; // Returned by register endpoint
+  message?: string;
 }
 
 export interface TwoFactorVerifyData {
@@ -83,7 +94,7 @@ export const auth = {
    * Verify 2FA code
    */
   async verify2fa(data: TwoFactorVerifyData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/verify2fa', data);
+    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/verify-2fa', data);
     // Store the token if returned
     const token = response.access_token || response.token;
     if (token) {
@@ -97,10 +108,10 @@ export const auth = {
    */
   async register(data: RegisterData): Promise<AuthResponse> {
     await getCsrfCookie();
-    const response = await api.post<AuthResponse & { access_token?: string }>('/auth/register', data);
-    // Store the token if returned
+    const response = await api.post<AuthResponse & { access_token?: string; email?: string }>('/auth/register', data);
+    // Store the token if returned (and not requiring 2FA)
     const token = response.access_token || response.token;
-    if (token) {
+    if (!response.require_2fa && token) {
       setAuthToken(token);
     }
     return response;

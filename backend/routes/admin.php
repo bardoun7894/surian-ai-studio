@@ -5,6 +5,19 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\AIAssistantController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\InvestmentController;
+use App\Http\Controllers\Admin\PromotionalSectionController;
+use App\Http\Controllers\Admin\NewsletterSubscriberController;
+use App\Http\Controllers\Admin\QuickLinkController;
+use App\Http\Controllers\Admin\ComplaintTemplateController;
+use App\Http\Controllers\Admin\SuggestionController;
+use App\Http\Controllers\Admin\SubDirectorateController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\FaqSuggestionController;
+use App\Http\Controllers\Admin\ChatConversationController;
+use App\Http\Controllers\Admin\SystemSettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -117,6 +130,116 @@ Route::middleware(['web', 'admin.ip'])->prefix('admin')->name('admin.')->group(f
         Route::delete('/{faq}', [App\Http\Controllers\Admin\FaqController::class, 'destroy'])->name('destroy');
     });
 
+
+    // Roles & Permissions Management
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::get('/create', [RoleController::class, 'create'])->name('create');
+        Route::post('/', [RoleController::class, 'store'])->name('store');
+        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+    });
+
+    // Services Management
+    Route::prefix('services')->name('services.')->group(function () {
+        Route::get('/', [ServiceController::class, 'index'])->name('index');
+        Route::get('/create', [ServiceController::class, 'create'])->name('create');
+        Route::post('/', [ServiceController::class, 'store'])->name('store');
+        Route::get('/{service}/edit', [ServiceController::class, 'edit'])->name('edit');
+        Route::put('/{service}', [ServiceController::class, 'update'])->name('update');
+        Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy');
+    });
+
+    // Investments Management
+    Route::prefix('investments')->name('investments.')->group(function () {
+        Route::get('/', [InvestmentController::class, 'index'])->name('index');
+        Route::get('/create', [InvestmentController::class, 'create'])->name('create');
+        Route::post('/', [InvestmentController::class, 'store'])->name('store');
+        Route::get('/{investment}/edit', [InvestmentController::class, 'edit'])->name('edit');
+        Route::put('/{investment}', [InvestmentController::class, 'update'])->name('update');
+        Route::delete('/{investment}', [InvestmentController::class, 'destroy'])->name('destroy');
+    });
+
+    // Promotional Sections Management
+    Route::prefix('promotional')->name('promotional.')->group(function () {
+        Route::get('/', [PromotionalSectionController::class, 'index'])->name('index');
+        Route::get('/create', [PromotionalSectionController::class, 'create'])->name('create');
+        Route::post('/', [PromotionalSectionController::class, 'store'])->name('store');
+        Route::get('/{section}', fn (\App\Models\PromotionalSection $section) => redirect()->route('admin.promotional.edit', $section))->name('show');
+        Route::get('/{section}/edit', [PromotionalSectionController::class, 'edit'])->name('edit');
+        Route::put('/{section}', [PromotionalSectionController::class, 'update'])->name('update');
+        Route::delete('/{section}', [PromotionalSectionController::class, 'destroy'])->name('destroy');
+    });
+
+    // Newsletter Subscribers
+    Route::prefix('newsletter')->name('newsletter.')->group(function () {
+        Route::get('/', [NewsletterSubscriberController::class, 'index'])->name('index');
+        Route::delete('/{subscriber}', [NewsletterSubscriberController::class, 'destroy'])->name('destroy');
+    });
+
+    // Quick Links Management
+    Route::prefix('quick-links')->name('quick-links.')->group(function () {
+        Route::get('/', [QuickLinkController::class, 'index'])->name('index');
+        Route::get('/create', [QuickLinkController::class, 'create'])->name('create');
+        Route::post('/', [QuickLinkController::class, 'store'])->name('store');
+        Route::get('/{quickLink}/edit', [QuickLinkController::class, 'edit'])->name('edit');
+        Route::put('/{quickLink}', [QuickLinkController::class, 'update'])->name('update');
+        Route::delete('/{quickLink}', [QuickLinkController::class, 'destroy'])->name('destroy');
+    });
+
+    // Complaint Templates Management
+    Route::prefix('complaint-templates')->name('complaint-templates.')->group(function () {
+        Route::get('/', [ComplaintTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [ComplaintTemplateController::class, 'create'])->name('create');
+        Route::post('/', [ComplaintTemplateController::class, 'store'])->name('store');
+        Route::get('/{complaintTemplate}/edit', [ComplaintTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{complaintTemplate}', [ComplaintTemplateController::class, 'update'])->name('update');
+        Route::delete('/{complaintTemplate}', [ComplaintTemplateController::class, 'destroy'])->name('destroy');
+    });
+
+    // Suggestions Management
+    Route::prefix('suggestions')->name('suggestions.')->group(function () {
+        Route::get('/', [SuggestionController::class, 'index'])->name('index');
+        Route::get('/{suggestion}', [SuggestionController::class, 'show'])->name('show');
+        Route::put('/{suggestion}/status', [SuggestionController::class, 'updateStatus'])->name('updateStatus');
+    });
+
+    // Sub-Directorates Management
+    Route::prefix('sub-directorates')->name('sub-directorates.')->group(function () {
+        Route::get('/', [SubDirectorateController::class, 'index'])->name('index');
+        Route::get('/create', [SubDirectorateController::class, 'create'])->name('create');
+        Route::post('/', [SubDirectorateController::class, 'store'])->name('store');
+        Route::get('/{subDirectorate}/edit', [SubDirectorateController::class, 'edit'])->name('edit');
+        Route::put('/{subDirectorate}', [SubDirectorateController::class, 'update'])->name('update');
+        Route::delete('/{subDirectorate}', [SubDirectorateController::class, 'destroy'])->name('destroy');
+    });
+
+    // Notifications Management
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/{notification}', [NotificationController::class, 'show'])->name('show');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
+    });
+
+    // FAQ Suggestions (AI-generated)
+    Route::prefix('faq-suggestions')->name('faq-suggestions.')->group(function () {
+        Route::get('/', [FaqSuggestionController::class, 'index'])->name('index');
+        Route::post('/{faqSuggestion}/approve', [FaqSuggestionController::class, 'approve'])->name('approve');
+        Route::post('/{faqSuggestion}/reject', [FaqSuggestionController::class, 'reject'])->name('reject');
+    });
+
+    // Chat Conversations
+    Route::prefix('chat-conversations')->name('chat-conversations.')->group(function () {
+        Route::get('/', [ChatConversationController::class, 'index'])->name('index');
+        Route::get('/{chatConversation}', [ChatConversationController::class, 'show'])->name('show');
+    });
+
+    // System Settings (Advanced)
+    Route::prefix('system-settings')->name('system-settings.')->group(function () {
+        Route::get('/', [SystemSettingController::class, 'index'])->name('index');
+        Route::put('/', [SystemSettingController::class, 'update'])->name('update');
+    });
 
     // API Endpoints for dynamic data
     Route::prefix('api')->name('api.')->group(function () {

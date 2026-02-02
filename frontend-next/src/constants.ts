@@ -110,7 +110,7 @@ export const KEY_SERVICES: Service[] = [
 ];
 
 export const COMPLAINT_CATEGORIES = [
-  'خدمات إلكترونية',
+  'خدمات',
   'أداء إداري',
   'بنية تحتية',
   'خدمات صحية',
@@ -121,10 +121,10 @@ export const COMPLAINT_CATEGORIES = [
 export const OFFICIAL_NEWS: NewsItem[] = [
   {
     id: 'n1',
-    title: 'وزارة الاقتصاد والصناعة تطلق منصة التراخيص الصناعية الإلكترونية',
+    title: 'وزارة الاقتصاد والصناعة تطلق منصة التراخيص الصناعية',
     date: '2024-05-21',
     category: 'خدمات رقمية',
-    summary: 'أطلقت الوزارة منصة إلكترونية متكاملة لإصدار التراخيص الصناعية وتجديدها بشكل فوري.',
+    summary: 'أطلقت الوزارة منصة متكاملة لإصدار التراخيص الصناعية وتجديدها بشكل فوري.',
     imageUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&q=80&w=600',
     isUrgent: true
   },
@@ -157,12 +157,12 @@ export const OFFICIAL_NEWS: NewsItem[] = [
 
 export const BREAKING_NEWS = [
   "وزارة الاقتصاد والصناعة: افتتاح معرض دمشق الدولي بمشاركة 40 دولة.",
-  "الإدارة العامة للصناعة: إطلاق منصة التراخيص الصناعية الإلكترونية.",
+  "الإدارة العامة للصناعة: إطلاق منصة التراخيص الصناعية.",
   "هيئة المشروعات الصغيرة: فتح باب التسجيل لبرنامج التمويل الميسر."
 ];
 
 export const HERO_ARTICLE: Article = {
-  title: "استراتيجية الحكومة الإلكترونية",
+  title: "استراتيجية الحكومة الرقمية",
   excerpt: "نحو قطاع عام كفء وشفاف وفعار يخدم المواطن السوري بأحدث التقنيات.",
   category: "رؤية 2030",
   date: "20 مايو 2024",
@@ -173,8 +173,8 @@ export const HERO_ARTICLE: Article = {
 
 export const GRID_ARTICLES: Article[] = [
   {
-    title: "إطلاق منصة التراخيص الصناعية الإلكترونية",
-    excerpt: "الإدارة العامة للصناعة تطلق منصة إلكترونية متكاملة لإصدار التراخيص الصناعية وتجديدها.",
+    title: "إطلاق منصة التراخيص الصناعية",
+    excerpt: "الإدارة العامة للصناعة تطلق منصة متكاملة لإصدار التراخيص الصناعية وتجديدها.",
     category: "صناعة",
     date: "2024-05-15",
     author: "الإدارة العامة للصناعة",
@@ -320,7 +320,7 @@ export const KEY_SERVICES_BILINGUAL: Record<string, { ar: Service; en: Service }
 };
 
 export const COMPLAINT_CATEGORIES_BILINGUAL: Record<string, { ar: string; en: string }> = {
-  'services_electronic': { ar: 'خدمات إلكترونية', en: 'E-Services' },
+  'services_electronic': { ar: 'خدمات', en: 'E-Services' },
   'administrative': { ar: 'أداء إداري', en: 'Administrative' },
   'infrastructure': { ar: 'بنية تحتية', en: 'Infrastructure' },
   'health_services': { ar: 'خدمات صحية', en: 'Health Services' },

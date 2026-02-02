@@ -12,7 +12,7 @@ class SettingPolicy
 
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
             return true;
         }
         return null;
@@ -20,31 +20,26 @@ class SettingPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('settings.manage') ||
-               $user->hasPermission('settings.*');
+        return $user->hasPermission('settings.manage');
     }
 
     public function view(User $user, SystemSetting $setting): bool
     {
-        return $user->hasPermission('settings.manage') ||
-               $user->hasPermission('settings.*');
+        return $user->hasPermission('settings.manage');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasPermission('settings.manage') ||
-               $user->hasPermission('settings.*');
+        return $user->hasPermission('settings.manage');
     }
 
     public function update(User $user): bool
     {
-        return $user->hasPermission('settings.manage') ||
-               $user->hasPermission('settings.*');
+        return $user->hasPermission('settings.manage');
     }
 
     public function delete(User $user): bool
     {
-        return $user->hasPermission('settings.manage') ||
-               $user->hasPermission('settings.*');
+        return $user->hasPermission('settings.manage');
     }
 }

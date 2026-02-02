@@ -46,6 +46,7 @@ export default function SystemSettingsPage() {
   const [activeGroup, setActiveGroup] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isBulkSaving, setIsBulkSaving] = useState(false);
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [changedValues, setChangedValues] = useState<Record<string, any>>({});
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -54,7 +55,8 @@ export default function SystemSettingsPage() {
   const [channelToggles, setChannelToggles] = useState({
     email_enabled: true,
     sms_enabled: false,
-    whatsapp_enabled: false
+    whatsapp_enabled: false,
+    telegram_enabled: false
   });
 
   // Redirect if not authenticated or not admin
@@ -84,12 +86,28 @@ export default function SystemSettingsPage() {
         if (!res.ok) throw new Error('Failed to fetch settings');
 
         const data = await res.json();
-        setSettings(data.settings || {});
+        const fetchedSettings = data.settings || {};
+        setSettings(fetchedSettings);
         setGroups(data.groups || []);
 
         if (data.groups && data.groups.length > 0) {
           setActiveGroup(data.groups[0]);
         }
+
+        // After settings are loaded, initialize channel toggles from real values
+        const allSettings = Object.values(fetchedSettings).flat();
+        const findSetting = (key: string) => allSettings.find((s: any) => s.key === key);
+        const emailSetting = findSetting('email_enabled');
+        const smsSetting = findSetting('sms_enabled');
+        const whatsappSetting = findSetting('whatsapp_enabled');
+        const telegramSetting = findSetting('telegram_enabled');
+
+        setChannelToggles({
+          email_enabled: emailSetting ? Boolean(emailSetting.value) : true,
+          sms_enabled: smsSetting ? Boolean(smsSetting.value) : false,
+          whatsapp_enabled: whatsappSetting ? Boolean(whatsappSetting.value) : false,
+          telegram_enabled: telegramSetting ? Boolean(telegramSetting.value) : false,
+        });
       } catch (error) {
         console.error('Error fetching settings:', error);
       } finally {
@@ -154,6 +172,53 @@ export default function SystemSettingsPage() {
       alert(language === 'ar' ? 'فشل حفظ الإعدادات' : 'Failed to save settings');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleBulkSave = async () => {
+    const entries = Object.entries(changedValues);
+    if (entries.length === 0) return;
+
+    setIsBulkSaving(true);
+    setSaveSuccess(false);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/v1/admin/settings/bulk', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          settings: entries.map(([key, value]) => ({ key, value }))
+        })
+      });
+
+      if (res.ok) {
+        setSaveSuccess(true);
+        setChangedValues({});
+
+        // Refresh settings
+        const refreshRes = await fetch('/api/v1/admin/settings', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        const data = await refreshRes.json();
+        setSettings(data.settings || {});
+
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        alert(language === 'ar' ? 'فشل حفظ التغييرات' : 'Failed to save changes');
+      }
+    } catch (err) {
+      console.error('Bulk save failed:', err);
+      alert(language === 'ar' ? 'حدث خطأ' : 'An error occurred');
+    } finally {
+      setIsBulkSaving(false);
     }
   };
 
@@ -405,11 +470,10 @@ export default function SystemSettingsPage() {
                         <button
                           key={group}
                           onClick={() => setActiveGroup(group)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                            isActive
-                              ? 'bg-gov-teal text-white'
-                              : 'text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10'
-                          }`}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                            ? 'bg-gov-teal text-white'
+                            : 'text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10'
+                            }`}
                         >
                           <Icon size={20} />
                           <span className="font-bold text-sm">{getGroupLabel(group)}</span>
@@ -571,13 +635,44 @@ export default function SystemSettingsPage() {
               </div>
             </div>
           )}
+
+          {/* Sticky Bulk Save Bar */}
+          {Object.keys(changedValues).length > 0 && (
+            <div className="sticky bottom-4 z-10 mt-6">
+              <div className="bg-gov-gold/10 dark:bg-gov-gold/20 border border-gov-gold/30 rounded-xl p-4 flex items-center justify-between shadow-lg backdrop-blur-sm">
+                <span className="text-sm font-bold text-gov-forest dark:text-gov-gold">
+                  {language === 'ar'
+                    ? `${Object.keys(changedValues).length} تغييرات غير محفوظة`
+                    : `${Object.keys(changedValues).length} unsaved changes`}
+                </span>
+                <button
+                  onClick={handleBulkSave}
+                  disabled={isBulkSaving}
+                  className="px-5 py-2.5 bg-gov-teal text-white rounded-xl font-bold text-sm hover:bg-gov-emerald transition-colors shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isBulkSaving ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      {language === 'ar' ? 'جاري الحفظ...' : 'Saving...'}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={16} />
+                      {language === 'ar' ? 'حفظ جميع التغييرات' : 'Save All Changes'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
       </main>
 
       <Footer
-        onIncreaseFont={() => {}}
-        onDecreaseFont={() => {}}
-        onToggleContrast={() => {}}
+        onIncreaseFont={() => { }}
+        onDecreaseFont={() => { }}
+        onToggleContrast={() => { }}
       />
     </div>
   );

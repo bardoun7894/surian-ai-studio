@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Mail\TwoFactorCode;
 use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
@@ -51,7 +53,7 @@ class AuthController extends Controller
             $this->checkAndAlertSecurityEvent($request->email, $request->ip());
 
             throw ValidationException::withMessages([
-                'email' => ["Too many login attempts. Please try again in {$seconds} seconds."],
+                'email' => [__('auth.too_many_attempts', ['seconds' => $seconds])],
             ]);
         }
 
@@ -65,32 +67,18 @@ class AuthController extends Controller
             }
 
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
+                'email' => [__('auth.invalid_credentials')],
             ]);
         }
 
         if (! $user->is_active) {
             $this->auditService->log($user, 'login_disabled', 'user', $user->id);
             throw ValidationException::withMessages([
-                'email' => ['Account is disabled.'],
+                'email' => [__('auth.account_disabled')],
             ]);
         }
 
         RateLimiter::clear($throttleKey);
-
-        // Skip OTP in local/dev environment
-        if (app()->environment('local', 'development', 'testing')) {
-            $user->tokens()->delete();
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            $this->auditService->log($user, 'login_success', 'user', $user->id);
-
-            return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => $user->load('role', 'directorate'),
-            ]);
-        }
 
         // Generate OTP
         $otp = (string) random_int(100000, 999999);
@@ -98,16 +86,14 @@ class AuthController extends Controller
         $user->otp_expires_at = Carbon::now()->addMinutes(15);
         $user->save();
 
-        // Send OTP (Log for now)
+        // Send OTP via email
         Log::info("OTP for user {$user->email}: {$otp}");
-
-        // In a real app, send email here:
-        // Mail::to($user->email)->send(new TwoFactorCode($otp));
+        Mail::to($user->email)->send(new TwoFactorCode($otp));
 
         $this->auditService->log($user, 'otp_sent', 'user', $user->id);
 
         return response()->json([
-            'message' => 'OTP sent to your email.',
+            'message' => __('auth.otp_sent'),
             'require_2fa' => true,
         ]);
     }
@@ -121,24 +107,35 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! $user->otp || ! $user->otp_expires_at) {
-             $this->auditService->log($user, '2fa_failed_invalid', 'user', $user ? $user->id : null);
-             throw ValidationException::withMessages([
-                'otp' => ['Invalid or expired OTP.'],
-            ]);
+        // Allow test OTP "123456" in non-production environments (skips all OTP checks)
+        $isTestOtp = !app()->environment('production') && $request->otp === '123456';
+
+        if (! $isTestOtp) {
+            if (! $user || ! $user->otp || ! $user->otp_expires_at) {
+                $this->auditService->log($user, '2fa_failed_invalid', 'user', $user ? $user->id : null);
+                throw ValidationException::withMessages([
+                    'otp' => [__('auth.otp_invalid')],
+                ]);
+            }
+
+            if (Carbon::now()->gt($user->otp_expires_at)) {
+                $this->auditService->log($user, '2fa_failed_expired', 'user', $user->id);
+                throw ValidationException::withMessages([
+                    'otp' => [__('auth.otp_expired')],
+                ]);
+            }
+
+            if (! Hash::check($request->otp, $user->otp)) {
+                $this->auditService->log($user, '2fa_failed_wrong', 'user', $user->id);
+                throw ValidationException::withMessages([
+                    'otp' => [__('auth.otp_wrong')],
+                ]);
+            }
         }
 
-        if (Carbon::now()->gt($user->otp_expires_at)) {
-             $this->auditService->log($user, '2fa_failed_expired', 'user', $user->id);
-             throw ValidationException::withMessages([
-                'otp' => ['OTP expired.'],
-            ]);
-        }
-
-        if (! Hash::check($request->otp, $user->otp)) {
-             $this->auditService->log($user, '2fa_failed_wrong', 'user', $user->id);
-             throw ValidationException::withMessages([
-                'otp' => ['Invalid OTP.'],
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'otp' => [__('auth.otp_invalid')],
             ]);
         }
 
@@ -162,6 +159,37 @@ class AuthController extends Controller
         ]);
     }
 
+    public function resend2fa(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            // Don't reveal whether the email exists
+            return response()->json([
+                'message' => __('auth.otp_resent'),
+            ]);
+        }
+
+        // Generate new OTP
+        $otp = (string) random_int(100000, 999999);
+        $user->otp = Hash::make($otp);
+        $user->otp_expires_at = Carbon::now()->addMinutes(15);
+        $user->save();
+
+        Log::info("OTP resent for user {$user->email}: {$otp}");
+        Mail::to($user->email)->send(new TwoFactorCode($otp));
+
+        $this->auditService->log($user, 'otp_resent', 'user', $user->id);
+
+        return response()->json([
+            'message' => __('auth.otp_resent'),
+        ]);
+    }
+
     public function me(Request $request)
     {
         return $request->user()->load('role', 'directorate');
@@ -174,7 +202,7 @@ class AuthController extends Controller
 
         $this->auditService->log($user, 'logout', 'user', $user->id);
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return response()->json(['message' => __('auth.logout_success')]);
     }
 
     /**
@@ -193,7 +221,7 @@ class AuthController extends Controller
             $this->auditService->log($user, 'password_verify_failed', 'user', $user->id);
             return response()->json([
                 'verified' => false,
-                'message' => 'كلمة المرور غير صحيحة',
+                'message' => __('auth.password_incorrect'),
             ], 401);
         }
 
@@ -201,7 +229,7 @@ class AuthController extends Controller
 
         return response()->json([
             'verified' => true,
-            'message' => 'تم التحقق بنجاح',
+            'message' => __('auth.password_verified'),
         ]);
     }
 
@@ -220,7 +248,7 @@ class AuthController extends Controller
         if (!$user) {
             // Return success even if user not found (security: don't reveal if email exists)
             return response()->json([
-                'message' => 'If an account with that email exists, a password reset link has been sent.',
+                'message' => __('auth.password_reset_sent'),
             ]);
         }
 
@@ -237,7 +265,7 @@ class AuthController extends Controller
         $this->auditService->log($user, 'password_reset_requested', 'user', $user->id);
 
         return response()->json([
-            'message' => 'If an account with that email exists, a password reset link has been sent.',
+            'message' => __('auth.password_reset_sent'),
         ]);
     }
 
@@ -257,19 +285,19 @@ class AuthController extends Controller
 
         if (!$user || !$user->password_reset_token || !$user->password_reset_expires_at) {
             throw ValidationException::withMessages([
-                'token' => ['Invalid or expired password reset token.'],
+                'token' => [__('auth.password_reset_invalid')],
             ]);
         }
 
         if (Carbon::now()->gt($user->password_reset_expires_at)) {
             throw ValidationException::withMessages([
-                'token' => ['Password reset token has expired.'],
+                'token' => [__('auth.password_reset_expired')],
             ]);
         }
 
         if (!Hash::check($request->token, $user->password_reset_token)) {
             throw ValidationException::withMessages([
-                'token' => ['Invalid password reset token.'],
+                'token' => [__('auth.password_reset_invalid')],
             ]);
         }
 
@@ -285,7 +313,7 @@ class AuthController extends Controller
         $this->auditService->log($user, 'password_reset_completed', 'user', $user->id);
 
         return response()->json([
-            'message' => 'Password has been reset successfully. Please log in with your new password.',
+            'message' => __('auth.password_reset_success'),
         ]);
     }
 

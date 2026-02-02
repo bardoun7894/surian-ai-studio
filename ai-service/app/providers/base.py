@@ -29,6 +29,7 @@ class AnalysisResponse(BaseModel):
     summary: str
     keywords: List[str]
     confidence: float
+    is_valid: bool = True  # False if text is gibberish/unintelligible
 
 
 class SummarizeResponse(BaseModel):

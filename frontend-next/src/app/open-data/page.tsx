@@ -49,7 +49,7 @@ export default function OpenDataPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+        <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
             <Navbar />
 
             <main className="flex-grow pt-14 md:pt-16">
@@ -84,7 +84,7 @@ export default function OpenDataPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {datasets.map((dataset) => (
-                                <div key={dataset.id} className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300 group">
+                                <div key={dataset.id} className="bg-white dark:bg-gov-emeraldStatic rounded-2xl p-6 border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all duration-300 group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal">

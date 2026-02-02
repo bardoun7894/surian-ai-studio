@@ -100,7 +100,8 @@ class OpenAIProvider(AIProvider):
     "priority": "high|medium|low",
     "summary": "ملخص قصير",
     "keywords": ["كلمة1", "كلمة2"],
-    "confidence": 0.95
+    "confidence": 0.95,
+    "is_valid": true
 }}"""
 
         response = await self.client.chat.completions.create(
@@ -124,6 +125,7 @@ class OpenAIProvider(AIProvider):
                 summary=data.get("summary", ""),
                 keywords=data.get("keywords", []),
                 confidence=data.get("confidence", 0.5),
+                is_valid=data.get("is_valid", True),
             )
         except (json.JSONDecodeError, KeyError):
             return AnalysisResponse(
@@ -133,6 +135,7 @@ class OpenAIProvider(AIProvider):
                 summary="شكوى تحتاج مراجعة يدوية",
                 keywords=[],
                 confidence=0.3,
+                is_valid=True,
             )
 
     async def summarize(

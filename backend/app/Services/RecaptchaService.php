@@ -11,7 +11,7 @@ class RecaptchaService
 
     public function __construct()
     {
-        $this->secretKey = env('RECAPTCHA_SECRET_KEY');
+        $this->secretKey = config('external.recaptcha.secret_key');
     }
 
     public function verify($token, $ip = null): bool

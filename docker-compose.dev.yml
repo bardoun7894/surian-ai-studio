@@ -16,7 +16,7 @@ services:
       - BACKEND_URL=http://backend-web
       - AI_SERVICE_URL=http://ai-service:8000
       # Client-side URLs (public IP for browser access)
-      - NEXT_PUBLIC_API_URL=http://91.230.110.187:8002/api/v1
+      - NEXT_PUBLIC_API_URL=
       - NEXT_PUBLIC_BACKEND_URL=http://91.230.110.187:8002
       - NEXT_PUBLIC_AI_SERVICE_URL=http://91.230.110.187:8001
       - NEXT_PUBLIC_SESSION_TIMEOUT=15
@@ -83,11 +83,14 @@ services:
     volumes:
       - redis_data:/data
 
-  # AI Service (FastAPI)
+  # AI Service (FastAPI) - Hot reload enabled via volume mount
   ai-service:
     build:
       context: ./ai-service
       dockerfile: Dockerfile
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./ai-service:/app
     env_file:
       - ./ai-service/.env
     environment:

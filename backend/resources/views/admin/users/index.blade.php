@@ -134,10 +134,10 @@
                     <td class="p-4">
                         <div class="flex items-center gap-3">
                             <div class="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold border border-primary/20">
-                                {{ strtoupper(substr($user->name, 0, 2)) }}
+                                {{ mb_strtoupper(mb_substr($user->first_name, 0, 1)) }}{{ mb_strtoupper(mb_substr($user->last_name, 0, 1)) }}
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $user->name }}</p>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $user->full_name }}</p>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">{{ $user->email }}</p>
                             </div>
                         </div>
@@ -159,10 +159,17 @@
                         </span>
                     </td>
                     <td class="p-4">
+                        @if($user->is_active)
                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
                             <span class="size-1.5 rounded-full bg-green-600 animate-pulse"></span>
                             نشط
                         </span>
+                        @else
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
+                            <span class="size-1.5 rounded-full bg-red-600"></span>
+                            معطّل
+                        </span>
+                        @endif
                     </td>
                     <td class="p-4 text-sm text-slate-500 dark:text-slate-400">
                         {{ $user->updated_at->diffForHumans() }}

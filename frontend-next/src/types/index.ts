@@ -24,12 +24,22 @@ export interface Directorate {
 export interface Service {
   id: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   directorateId: string;
   isDigital: boolean;
   description: string;
+  description_ar?: string;
+  description_en?: string;
+  content_ar?: string;
+  content_en?: string;
+  fees?: string;
+  estimated_time?: string;
+  requirements?: string[];
 }
 
 export interface Article {
+  id?: string;
   title: string;
   excerpt: string;
   category: string;
@@ -42,11 +52,20 @@ export interface Article {
 export interface NewsItem {
   id: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   date: string;
   category: string;
   summary: string;
+  summary_ar?: string;
+  summary_en?: string;
+  content_ar?: string;
+  content_en?: string;
   imageUrl?: string;
   isUrgent?: boolean;
+  directorate_id?: string;
+  directorate_name?: string;
+  directorate_name_en?: string;
 }
 
 export interface Decree {
@@ -90,7 +109,7 @@ export interface TicketResponse {
   content: string;
   created_at: string;
   user?: {
-    name: string;
+    full_name: string;
   };
 }
 
@@ -117,12 +136,19 @@ export interface ComplaintData {
 }
 
 export interface SuggestionData {
-  name: string;
-  jobTitle?: string;
+  firstName?: string;
+  lastName?: string;
+  fatherName?: string;
+  nationalId?: string;
+  dob?: string;
   email?: string;
   phone?: string;
+  directorate_id?: string;
   description: string;
   files?: File[];
+  recaptcha_token?: string;
+  is_anonymous?: boolean;
+  guest_token?: string;
 }
 
 export interface Suggestion {
@@ -150,12 +176,17 @@ export interface Role {
 
 export interface User {
   id: number;
-  name: string;
+  first_name: string;
+  father_name: string;
+  last_name: string;
+  full_name?: string;
   email: string;
   role_id?: number;
   role?: Role;
   national_id?: string;
   phone?: string;
+  birth_date?: string;
+  governorate?: string;
   directorate_id?: string;
   directorate?: Directorate;
   is_active: boolean;
@@ -203,7 +234,7 @@ export interface AuditLog {
   created_at: string;
   user?: {
     id: number;
-    name: string;
+    full_name: string;
   };
 }
 

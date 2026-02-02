@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { getAuthToken } from '@/lib/api';
 
 export interface Notification {
   id: string;
@@ -47,7 +48,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await fetch('/api/v1/notifications', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -58,7 +59,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.data || data);
+        const items = data.data || data;
+        setNotifications(Array.isArray(items) ? items : []);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -69,7 +71,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const markAsRead = async (id: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await fetch(`/api/v1/notifications/${id}/read`, {
         method: 'POST',
         headers: {
@@ -91,7 +93,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const markAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await fetch('/api/v1/notifications/read-all', {
         method: 'POST',
         headers: {
@@ -113,7 +115,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const deleteNotification = async (id: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const response = await fetch(`/api/v1/notifications/${id}`, {
         method: 'DELETE',
         headers: {

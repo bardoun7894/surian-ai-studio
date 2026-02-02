@@ -1,7 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ComplaintPortal from '@/components/ComplaintPortal';
-import ChatBot from '@/components/ChatBot';
 
 export default function TrackComplaintsPage() {
     return (
@@ -12,7 +11,6 @@ export default function TrackComplaintsPage() {
                 <ComplaintPortal initialMode="track" />
             </main>
 
-            <ChatBot />
             <Footer />
         </div>
     );

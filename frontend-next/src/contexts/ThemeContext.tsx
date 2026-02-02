@@ -12,38 +12,39 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Read the initial theme from the DOM to match with blocking script in layout.tsx
+function getInitialTheme(): Theme {
+  if (typeof window !== 'undefined') {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  }
+  return 'light';
+}
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
   const [mounted, setMounted] = useState(false);
 
-  // Tailwind theme colors from config
+  // Tailwind theme colors from config - FIXED with correct dark mode colors
   const themeColors = {
     light: {
-      background: '#EDEBE0',
-      foreground: '#161616',
+      background: '#EDEBE0',  // Light Beige
+      foreground: '#161616',  // Light Coal/Charcoal
     },
     dark: {
-      background: '#094239',
-      foreground: '#EDEBE0',
+      background: '#094239',  // Dark Forest Green (the correct gov.forest color!)
+      foreground: '#EDEBE0',  // Light Beige (for contrast with dark background)
     },
   };
 
   useEffect(() => {
-    // Check for saved theme or system preference
-    const saved = localStorage.getItem('gov_theme') as Theme | null;
-    if (saved) {
-      setThemeState(saved);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setThemeState('dark');
-    }
     setMounted(true);
   }, []);
 
-  // New: Function to update CSS variables when theme changes
+  // Function to update CSS variables when theme changes
   const updateCssVariables = (theme: Theme) => {
     const root = document.documentElement;
     const colors = themeColors[theme];
-    
+
     root.style.setProperty('--background', colors.background);
     root.style.setProperty('--foreground', colors.foreground);
   };
@@ -56,10 +57,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } else {
         document.documentElement.classList.remove('dark');
       }
+      updateCssVariables(theme);
     }
-    
-    // New: Update CSS variables when theme changes
-    updateCssVariables(theme);
   }, [theme, mounted]);
 
   const toggleTheme = () => {
@@ -68,15 +67,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    // New: Update CSS variables when theme is explicitly set
     updateCssVariables(newTheme);
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      <div className={mounted ? 'opacity-100 transition-opacity duration-300' : 'opacity-0'}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 };

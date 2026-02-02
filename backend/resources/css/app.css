@@ -26,9 +26,35 @@
     font-style: normal;
 }
 
+:root {
+    --color-gov-emerald: 9 66 57;
+    --color-gov-forest: 9 66 57;
+    --color-gov-teal: 66 129 119;
+    --color-gov-emerald-light: 17 94 89;
+    --color-mofa-teal: 5 66 57;
+    --color-surface-dark: 15 23 42;
+    --color-primary: 23 130 130;
+}
+
+.dark,
+:root[class~="dark"] {
+    --color-gov-emerald: 185 167 121;
+    /* Gold */
+    --color-gov-forest: 38 15 20;
+    /* Chocolate */
+    --color-gov-teal: 185 167 121;
+    /* Gold */
+    --color-gov-emerald-light: 185 167 121;
+    /* Gold */
+    --color-mofa-teal: 38 15 20;
+    /* Chocolate */
+    --color-surface-dark: 38 15 20;
+    --color-primary: 185 167 121;
+}
+
 @theme {
     --font-sans: 'Qomra', 'Cairo', system-ui, sans-serif;
-    --color-primary: #178282;
+    --color-primary: var(--color-primary);
     --color-primary-dark: #126363;
     --color-secondary: #D4AF37;
     --color-secondary-dark: #B5952F;

@@ -361,7 +361,7 @@ export default function AdminNotificationsPage() {
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="text-center py-12">
-            <Bell size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <Bell size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
               {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications found'}
             </p>
@@ -398,7 +398,7 @@ export default function AdminNotificationsPage() {
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>{new Date(notification.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                         {notification.user && (
-                          <span>{notification.user.name}</span>
+                          <span>{notification.user.full_name}</span>
                         )}
                       </div>
                     </div>

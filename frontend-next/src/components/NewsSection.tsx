@@ -5,46 +5,81 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
-import { Calendar, ChevronLeft, Loader2, ArrowRight } from 'lucide-react';
+import { Calendar, ChevronLeft, Loader2, ArrowRight, Landmark } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Map directorate IDs to translation keys for department-specific titles
+// Only these 3 main directorates are shown in the homepage news section
+const DIRECTORATE_TRANSLATION_KEYS: Record<string, string> = {
+  'd1': 'news_industry',
+  'd2': 'news_commerce',
+  'd3': 'news_internal_trade',
+};
+
+const FEATURED_DIRECTORATE_IDS = new Set(Object.keys(DIRECTORATE_TRANSLATION_KEYS));
+
 const NewsSection: React.FC = () => {
-  const { t, direction } = useLanguage();
+  const { t, direction, language } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [groupedNews, setGroupedNews] = useState<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]>([]);
+  const [groupedNews, setGroupedNews] = useState<{ directorate: { id: string, name: string, name_ar?: string, name_en?: string, icon: string }, news: NewsItem[] }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
         const data = await API.news.getGroupedByDirectorate();
-        setGroupedNews(data);
+        setGroupedNews(Array.isArray(data) ? data : []);
         setLoading(false);
 
         // Trigger Animation after render
         setTimeout(() => {
           if (!containerRef.current) return;
-          const sections = containerRef.current.querySelectorAll('.news-directorate-section');
+          const directorateSections = containerRef.current.querySelectorAll('.news-directorate-section');
 
-          sections.forEach((section) => {
-            gsap.fromTo(section.querySelectorAll('.news-card'),
-              { y: 30, opacity: 0 },
-              {
-                y: 0,
-                opacity: 1,
-                duration: 0.6,
-                stagger: 0.1,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: section,
-                  start: "top 80%",
-                }
+          directorateSections.forEach((section) => {
+            const header = section.querySelector('.directorate-header');
+            const cards = section.querySelectorAll('.news-card');
+            const showMore = section.querySelector('.show-more-btn');
+
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: section,
+                start: "top 85%",
+                toggleActions: "play none none reverse"
               }
-            );
+            });
+
+            if (header) {
+              tl.fromTo(header,
+                { x: -30, opacity: 0 },
+                { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
+              );
+            }
+            if (cards.length > 0) {
+              tl.fromTo(cards,
+                { y: 50, opacity: 0, scale: 0.95 },
+                {
+                  y: 0,
+                  opacity: 1,
+                  scale: 1,
+                  duration: 0.8,
+                  stagger: 0.1,
+                  ease: "power3.out"
+                },
+                "-=0.4"
+              );
+            }
+            if (showMore) {
+              tl.fromTo(showMore,
+                { opacity: 0, y: 10 },
+                { opacity: 1, y: 0, duration: 0.4 },
+                "-=0.4"
+              );
+            }
           });
         }, 100);
 
@@ -58,11 +93,11 @@ const NewsSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gov-forest dark:to-gov-forest/95 transition-colors" id="news-section">
+    <section className="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gov-brand/10 dark:to-gov-forest transition-colors" id="news-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
           <div>
-            <h2 className="text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-3">
+            <h2 className="text-4xl font-display font-bold text-gov-charcoal dark:text-gov-gold mb-3">
               {t('news_section_title')}
             </h2>
             <div className="h-1.5 w-20 bg-gov-gold rounded-full mb-4"></div>
@@ -83,14 +118,19 @@ const NewsSection: React.FC = () => {
           </div>
         ) : (
           <div ref={containerRef} className="space-y-24">
-            {groupedNews.map((group) => (
+            {groupedNews.filter((group) => FEATURED_DIRECTORATE_IDS.has(group.directorate.id)).map((group) => (
               <div key={group.directorate.id} className="news-directorate-section">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 flex items-center justify-center bg-gov-indigo/10 dark:bg-gov-gold/10 rounded-xl text-2xl shadow-inner">
-                    🏛️
+                <div className="directorate-header flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gov-gold/10 border border-gray-100 dark:border-gov-gold/20 rounded-xl text-gov-emerald dark:text-gov-gold shadow-sm group-hover:shadow-md transition-all">
+                    <Landmark size={24} strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-bold text-gov-charcoal dark:text-white border-b-2 border-transparent hover:border-gov-gold/50 transition-colors pb-1 cursor-default">
-                    {group.directorate.name}
+                  <h3 className="text-2xl md:text-3xl font-bold text-gov-charcoal dark:text-gov-gold border-b-2 border-transparent hover:border-gov-gold/50 transition-colors pb-1 cursor-default">
+                    {DIRECTORATE_TRANSLATION_KEYS[group.directorate.id]
+                      ? t(DIRECTORATE_TRANSLATION_KEYS[group.directorate.id])
+                      : (language === 'ar'
+                        ? (group.directorate.name_ar || group.directorate.name)
+                        : (group.directorate.name_en || group.directorate.name))
+                    }
                   </h3>
                 </div>
 
@@ -98,7 +138,7 @@ const NewsSection: React.FC = () => {
                   {group.news.slice(0, 3).map((item) => (
                     <article
                       key={item.id}
-                      className="news-card group relative bg-white dark:bg-white/5 rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:shadow-gov-indigo/5 dark:hover:shadow-none hover:-translate-y-1 transition-all duration-500 h-full flex flex-col"
+                      className="news-card group relative bg-white dark:bg-gov-emeraldStatic rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-gold/10 shadow-sm hover:shadow-xl hover:shadow-gov-indigo/10 dark:hover:shadow-none hover:-translate-y-2 transition-all duration-500 ease-out h-full flex flex-col"
                     >
                       {item.imageUrl && (
                         <div className="h-56 overflow-hidden relative">
@@ -106,12 +146,12 @@ const NewsSection: React.FC = () => {
                             src={item.imageUrl}
                             alt={item.title}
                             fill
-                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="absolute top-4 right-4">
-                            <span className="px-3 py-1 bg-gov-gold/90 text-gov-charcoal text-xs font-bold rounded-lg shadow-sm backdrop-blur-md">
-                              {item.category}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                          <div className="absolute top-4 right-4 z-10">
+                            <span className="px-3 py-1 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white border-l-4 border-gov-gold text-xs font-bold rounded shadow-sm backdrop-blur-md">
+                              {language === 'ar' ? item.category : ((item as any).category_en || item.category)}
                             </span>
                           </div>
                         </div>
@@ -123,22 +163,29 @@ const NewsSection: React.FC = () => {
                           {item.date}
                         </div>
 
-                        <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-3 leading-snug group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
+                        <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-3 leading-snug group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
                           <Link href={`/news/${item.id}`} className="hover:underline decoration-2 underline-offset-4 decoration-transparent hover:decoration-current transition-all">
-                            {item.title}
+                            {language === 'ar'
+                              ? ((item as any).title_ar || item.title)
+                              : ((item as any).title_en || item.title)
+                            }
                           </Link>
                         </h3>
 
                         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-6 flex-1 leading-relaxed">
-                          {item.summary}
+                          {language === 'ar'
+                            ? ((item as any).summary_ar || item.summary)
+                            : ((item as any).summary_en || item.summary)
+                          }
                         </p>
 
                         <Link
                           href={`/news/${item.id}`}
-                          className="inline-flex items-center text-sm font-bold text-gov-emerald dark:text-gov-gold mt-auto group/link"
+                          className="inline-flex items-center text-sm font-bold text-gov-emerald dark:text-gov-brand mt-auto group/link"
                         >
-                          <span className="border-b-2 border-transparent group-hover/link:border-current transition-all duration-300 pb-0.5">
+                          <span className="relative overflow-hidden pb-1">
                             {t('read_more')}
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gov-emerald dark:bg-gov-brand transform -translate-x-full group-hover/link:translate-x-0 transition-transform duration-300"></span>
                           </span>
                           <ChevronLeft className={`ml-1 w-4 h-4 transform transition-transform duration-300 ${direction === 'rtl' ? 'rotate-0 group-hover/link:-translate-x-1' : 'rotate-180 group-hover/link:translate-x-1'}`} />
                         </Link>
@@ -146,10 +193,22 @@ const NewsSection: React.FC = () => {
                     </article>
                   ))}
                 </div>
+
+                {group.news.length > 3 && (
+                  <div className="mt-8 text-center show-more-btn">
+                    <Link
+                      href="/news"
+                      className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-gov-emerald dark:border-gov-gold text-gov-emerald dark:text-gov-gold rounded-full font-bold text-sm hover:bg-gov-emerald hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all duration-300"
+                    >
+                      {t('show_more')}
+                      <ChevronLeft size={16} className={`transform ${direction === 'rtl' ? '' : 'rotate-180'}`} />
+                    </Link>
+                  </div>
+                )}
               </div>
             ))}
 
-            {groupedNews.length === 0 && (
+            {groupedNews.filter((group) => FEATURED_DIRECTORATE_IDS.has(group.directorate.id)).length === 0 && (
               <div className="text-center py-16 bg-white dark:bg-white/5 rounded-2xl border border-dashed border-gray-300 dark:border-white/20">
                 <p className="text-gray-500 dark:text-gray-400 text-lg">{t('no_news_currently')}</p>
               </div>

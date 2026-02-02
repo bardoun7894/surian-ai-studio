@@ -13,7 +13,7 @@ router = APIRouter()
 
 class SummarizeRequest(BaseModel):
     """Summarization request."""
-    text: str = Field(..., min_length=100, max_length=20000)
+    text: str = Field(..., min_length=20, max_length=20000)
     max_length: int = Field(default=200, ge=50, le=500)
     language: str = Field(default="ar", pattern="^(ar|en)$")
 
@@ -58,7 +58,7 @@ async def summarize(request: SummarizeRequest):
 
 class ExtractKeyPointsRequest(BaseModel):
     """Extract key points request."""
-    text: str = Field(..., min_length=50, max_length=20000)
+    text: str = Field(..., min_length=20, max_length=20000)
     max_points: int = Field(default=5, ge=3, le=10)
     language: str = Field(default="ar", pattern="^(ar|en)$")
 

@@ -12,13 +12,21 @@ class ComplaintTemplate extends Model
     protected $fillable = [
         'directorate_id',
         'name',
+        'name_en',
+        'description',
+        'description_en',
+        'type',
+        'requires_identification',
         'fields',
         'is_active',
+        'sort_order',
     ];
 
     protected $casts = [
         'fields' => 'array',
         'is_active' => 'boolean',
+        'requires_identification' => 'boolean',
+        'sort_order' => 'integer',
     ];
 
     public function directorate(): BelongsTo

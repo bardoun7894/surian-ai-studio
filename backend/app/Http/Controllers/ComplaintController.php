@@ -112,7 +112,7 @@ class ComplaintController extends Controller
 
         // Validate Request including CAPTCHA
         $request->validate([
-            'directorate_id' => 'required|exists:directorates,id',
+            'directorate_id' => 'nullable|exists:directorates,id',
             'description' => 'required|string|min:10',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
             'attachments' => 'max:5', // Max 5 files
@@ -134,14 +134,50 @@ class ComplaintController extends Controller
         $guestData = null;
 
         if (!$user) {
-            // Check Guest Token
+            // Check Guest Token (optional - from OTP verification)
             $token = $request->header('X-Guest-Token');
-            if (!$token || !($guestData = Cache::get("guest_token_{$token}"))) {
-                return response()->json(['message' => 'Unauthorized. Login or verify OTP.'], 401);
+            if ($token) {
+                $guestData = Cache::get("guest_token_{$token}");
             }
+            // Guest submissions are allowed without OTP - form data will be used
         }
 
         $data = $request->only(['directorate_id', 'template_id', 'title', 'description']);
+
+        // Parse and sanitize template_fields (sent as JSON string via FormData)
+        if ($request->filled('template_fields')) {
+            $raw = $request->input('template_fields');
+            $fields = is_string($raw) ? json_decode($raw, true) : $raw;
+
+            if (is_array($fields)) {
+                // Validate keys against template field definitions if template exists
+                $allowedKeys = null;
+                if (!empty($data['template_id'])) {
+                    $template = ComplaintTemplate::find($data['template_id']);
+                    if ($template && is_array($template->fields)) {
+                        $allowedKeys = array_column($template->fields, 'key');
+                    }
+                }
+
+                $sanitized = [];
+                foreach ($fields as $key => $value) {
+                    // Reject unknown keys if template defines allowed keys
+                    if ($allowedKeys !== null && !in_array($key, $allowedKeys, true)) {
+                        continue;
+                    }
+                    // Sanitize values
+                    if (is_string($value)) {
+                        $sanitized[$key] = strip_tags($value);
+                    } elseif (is_array($value)) {
+                        $sanitized[$key] = array_map(fn($v) => is_string($v) ? strip_tags($v) : $v, $value);
+                    } else {
+                        $sanitized[$key] = $value;
+                    }
+                }
+
+                $data['template_fields'] = $sanitized;
+            }
+        }
 
         // Resolve previous tracking number to ID
         if ($request->filled('previous_tracking_number')) {
@@ -150,18 +186,19 @@ class ComplaintController extends Controller
                 $data['related_complaint_id'] = $previousComplaint->id;
             }
         }
-        
+
         if ($user) {
             $data['user_id'] = $user->id;
-            $data['full_name'] = $user->name;
-            $data['national_id'] = $user->national_id;
-            $data['phone'] = $user->phone;
-            $data['email'] = $user->email;
+            // Use form data if provided, otherwise fall back to user model data
+            $data['full_name'] = $request->input('full_name', $user->full_name);
+            $data['national_id'] = $request->input('national_id', $user->national_id);
+            $data['phone'] = $request->input('phone', $user->phone);
+            $data['email'] = $request->input('email', $user->email);
         } else {
             $data['user_id'] = null;
-            $data['full_name'] = $request->input('full_name', 'Guest'); // Should request this or use from OTP data?
-            $data['national_id'] = $guestData['national_id'];
-            $data['phone'] = $guestData['phone'];
+            $data['full_name'] = $request->input('full_name', 'Guest');
+            $data['national_id'] = $guestData['national_id'] ?? $request->input('national_id');
+            $data['phone'] = $guestData['phone'] ?? $request->input('phone');
             $data['email'] = $request->input('email');
         }
 
@@ -192,14 +229,22 @@ class ComplaintController extends Controller
      * Track complaint by tracking number
      * GET /api/v1/complaints/track/{trackingNumber}
      */
-    public function track($trackingNumber)
+    public function track(Request $request, $trackingNumber)
     {
+        $request->validate([
+            'national_id' => 'required|string|digits:11',
+        ]);
+
         $complaint = Complaint::where('tracking_number', $trackingNumber)
             ->with(['directorate', 'responses'])
             ->first();
 
         if (!$complaint) {
-            return response()->json(['message' => 'Complaint not found'], 404);
+            return response()->json(['message' => 'لم يتم العثور على شكوى بهذا الرقم.'], 404);
+        }
+
+        if ($complaint->national_id !== $request->national_id) {
+            return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.'], 403);
         }
 
         return response()->json($complaint);

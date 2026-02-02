@@ -104,8 +104,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (data: RegisterData): Promise<AuthResponse> => {
     const response = await auth.register(data);
-    setUser(response.user);
-    setLastActivity(Date.now());
+    // If 2FA is required, don't set the user yet
+    if (!response.require_2fa && response.user) {
+      setUser(response.user);
+      setLastActivity(Date.now());
+    }
     return response;
   };
 

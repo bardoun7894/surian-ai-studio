@@ -20,11 +20,12 @@ class SecurityHeadersMiddleware
         // Content Security Policy
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com",
+            "script-src 'self' https://fonts.googleapis.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' " . env('NEXT_PUBLIC_API_URL', 'http://localhost:3000'),
+            "connect-src 'self' " . config('app.frontend_url', 'http://localhost:3000'),
+            "frame-src 'self' https://www.youtube.com https://youtube.com",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",

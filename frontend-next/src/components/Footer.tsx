@@ -14,6 +14,14 @@ interface FooterProps {
   onToggleContrast?: () => void;
 }
 
+interface FooterLink {
+  id: number;
+  label_ar: string;
+  label_en: string;
+  url: string;
+  icon: string | null;
+}
+
 const Footer: React.FC<FooterProps> = ({
   onIncreaseFont,
   onDecreaseFont,
@@ -21,11 +29,42 @@ const Footer: React.FC<FooterProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
+  const [footerLinks, setFooterLinks] = useState<FooterLink[]>([]);
+
+  const handleIncreaseFont = () => {
+    if (onIncreaseFont) {
+      onIncreaseFont();
+    } else {
+      const current = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      document.documentElement.style.fontSize = `${Math.min(current + 2, 24)}px`;
+    }
+  };
+
+  const handleDecreaseFont = () => {
+    if (onDecreaseFont) {
+      onDecreaseFont();
+    } else {
+      const current = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      document.documentElement.style.fontSize = `${Math.max(current - 2, 12)}px`;
+    }
+  };
+
+  const handleToggleContrast = () => {
+    if (onToggleContrast) {
+      onToggleContrast();
+    } else {
+      document.documentElement.classList.toggle('high-contrast');
+      document.body.classList.toggle('high-contrast');
+    }
+  };
 
   useEffect(() => {
     API.settings.getByGroup('contact')
       .then(data => setContactInfo(data as Record<string, string>))
-      .catch(() => {});
+      .catch(() => { });
+    API.quickLinks.getBySection('footer')
+      .then(data => { if (data && data.length > 0) setFooterLinks(data); })
+      .catch(() => { });
   }, []);
 
   const phone = contactInfo.contact_phone || '19999';
@@ -35,7 +74,7 @@ const Footer: React.FC<FooterProps> = ({
     : (contactInfo.contact_address_ar || t('damascus_address'));
 
   return (
-    <footer className="bg-white dark:bg-gov-forest text-gov-forest dark:text-white pt-14 md:pt-16 pb-8 border-t-4 border-gov-gold relative overflow-hidden transition-colors duration-500">
+    <footer className="bg-white dark:bg-gov-emeraldStatic text-gov-forest dark:text-gov-gold pt-14 md:pt-16 pb-8 border-t-4 border-gov-gold dark:border-gov-gold relative overflow-hidden transition-colors duration-500">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
 
@@ -45,20 +84,15 @@ const Footer: React.FC<FooterProps> = ({
           <div className="col-span-1 md:col-span-1">
             <div className="flex flex-col items-start gap-4 mb-6">
               <Image
-                src="/assets/logo/Asset-14@3x.png"
-                alt="Emblem"
-                width={96}
-                height={96}
-                className="h-24 w-auto drop-shadow-lg"
+                src="/assets/logo/footer-logo.png"
+                alt="Ministry Logo"
+                width={240}
+                height={120}
+                style={{ width: 'auto' }}
+                className="h-28 object-contain drop-shadow-xl"
               />
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-xl text-gov-forest dark:text-white transition-colors">{t('ministry_name')}</span>
-                <span className="text-xs text-gov-gold tracking-[0.2em] font-serif uppercase mt-1">
-                  {language === 'ar' ? 'Syrian Arab Republic' : 'الجمهورية العربية السورية'}
-                </span>
-              </div>
             </div>
-            <p className="text-gov-stone dark:text-gov-beige/70 text-sm leading-relaxed max-w-xs transition-colors">
+            <p className="text-gov-stone dark:text-gov-gold/80 text-sm leading-relaxed max-w-xs transition-colors">
               {t('footer_desc')}
             </p>
           </div>
@@ -68,13 +102,25 @@ const Footer: React.FC<FooterProps> = ({
               {t('quick_links')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-gold rounded-full`}></span>
             </h4>
-            <ul className="space-y-3 text-sm text-gov-stone dark:text-gov-beige/80 transition-colors">
-              <li><Link href="/about" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('about_portal')}</Link></li>
-              <li><Link href="/directorates" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('nav_directory')}</Link></li>
-              <li><Link href="/decrees" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('nav_decrees')}</Link></li>
-              <li><Link href="/open-data" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('open_data')}</Link></li>
-              <li><Link href="/sitemap" className="hover:text-gov-gold transition-colors flex items-center gap-2 font-bold"><Network size={12} /> {t('site_map')}</Link></li>
-              <li><Link href="/admin" className="hover:text-gov-gold transition-colors flex items-center gap-2 text-xs opacity-50"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> Admin Login</Link></li>
+            <ul className="space-y-3 text-sm text-gov-stone dark:text-gray-300 transition-colors">
+              {footerLinks.length > 0 ? (
+                footerLinks.map((link) => (
+                  <li key={link.id}>
+                    <Link href={link.url} className="hover:text-gov-gold transition-colors flex items-center gap-2">
+                      <span className="w-1 h-1 bg-gov-gold rounded-full"></span>
+                      {language === 'ar' ? link.label_ar : link.label_en}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li><Link href="/about" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('about_portal')}</Link></li>
+                  <li><Link href="/directorates" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('nav_directory')}</Link></li>
+                  <li><Link href="/decrees" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('nav_decrees')}</Link></li>
+                  <li><Link href="/open-data" className="hover:text-gov-gold transition-colors flex items-center gap-2"><span className="w-1 h-1 bg-gov-gold rounded-full"></span> {t('open_data')}</Link></li>
+                  <li><Link href="/sitemap" className="hover:text-gov-gold transition-colors flex items-center gap-2 font-bold"><Network size={12} /> {t('site_map')}</Link></li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -83,12 +129,12 @@ const Footer: React.FC<FooterProps> = ({
               {t('contact_us')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-gold rounded-full`}></span>
             </h4>
-            <ul className="space-y-4 text-sm text-gov-stone dark:text-gov-beige/80 transition-colors">
+            <ul className="space-y-4 text-sm text-gov-stone dark:text-gray-300 transition-colors">
               <li className="flex items-start gap-3">
                 <Phone size={16} className="text-gov-gold mt-1" />
                 <div>
                   <span className="block text-xs text-gov-gold/70">{t('contact_center')}</span>
-                  <span className="font-bold text-gov-forest dark:text-white text-lg transition-colors">{phone}</span>
+                  <span className="font-bold text-gov-forest dark:text-gov-gold text-lg transition-colors">{phone}</span>
                 </div>
               </li>
               <li className="flex items-center gap-3">
@@ -115,22 +161,22 @@ const Footer: React.FC<FooterProps> = ({
             </p>
             <div className="flex gap-2">
               <button
-                onClick={onIncreaseFont}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-emeraldLight rounded hover:bg-gov-gold hover:text-white dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-gold/20"
+                onClick={handleIncreaseFont}
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
                 title="Increase Font"
               >
                 A+
               </button>
               <button
-                onClick={onDecreaseFont}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-emeraldLight rounded hover:bg-gov-gold hover:text-white dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-gold/20"
+                onClick={handleDecreaseFont}
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
                 title="Decrease Font"
               >
                 A-
               </button>
               <button
-                onClick={onToggleContrast}
-                className="px-3 py-1 bg-gov-gold/10 dark:bg-gov-emeraldLight rounded hover:bg-gov-gold hover:text-white dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-gold/20"
+                onClick={handleToggleContrast}
+                className="px-3 py-1 bg-gov-gold/10 dark:bg-white/5 dark:text-gov-gold rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-gold/40"
                 title="High Contrast"
               >
                 {language === 'ar' ? 'تباين' : 'Contrast'}
@@ -157,10 +203,11 @@ const Footer: React.FC<FooterProps> = ({
             </Link>
             <span className="text-gov-gold/30">|</span>
             <Image
-              src="/assets/logo/Asset-14@3x.png"
-              width={32}
+              src="/assets/logo/footer-logo.png"
+              width={64}
               height={32}
-              className="h-8 w-auto opacity-30 grayscale"
+              style={{ width: 'auto' }}
+              className="h-8 opacity-50 hover:opacity-100 transition-opacity grayscale-0"
               alt="logo footer"
             />
           </div>

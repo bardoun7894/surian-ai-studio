@@ -14,8 +14,8 @@ class AIService
 
     public function __construct()
     {
-        $this->aiServiceUrl = env('AI_SERVICE_URL', 'http://ai-service:8001');
-        $this->timeout = (int) env('AI_SERVICE_TIMEOUT', 30);
+        $this->aiServiceUrl = config('external.ai_service.url');
+        $this->timeout = config('external.ai_service.timeout');
     }
 
     /**
@@ -56,6 +56,7 @@ class AIService
                     'keywords' => $data['keywords'] ?? [],
                     'confidence' => $data['confidence'] ?? 0.0,
                     'suggested_directorate_id' => $directorateId,
+                    'is_valid' => $data['is_valid'] ?? true,
                 ];
             }
 

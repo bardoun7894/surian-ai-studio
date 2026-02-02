@@ -12,7 +12,7 @@ class ServicePolicy
 
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->hasRole('super_admin')) {
+        if (in_array('*', $user->role?->permissions ?? [])) {
             return true;
         }
         return null;
@@ -20,31 +20,31 @@ class ServicePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('services.view') ||
-               $user->hasPermission('services.*');
+        return $user->hasPermission('services.view');
     }
 
     public function view(User $user, Service $service): bool
     {
-        if ($user->hasPermission('services.view') || $user->hasPermission('services.*')) {
-            // Directorate-scoped users can only view their directorate's services
-            if ($user->directorate_id && $service->directorate_id) {
-                return $service->directorate_id === $user->directorate_id;
-            }
-            return true;
+        if (!$user->hasPermission('services.view')) {
+            return false;
         }
-        return false;
+
+        // Directorate-scoped users can only view their directorate's services
+        if ($user->directorate_id && $service->directorate_id) {
+            return $service->directorate_id === $user->directorate_id;
+        }
+
+        return true;
     }
 
     public function create(User $user): bool
     {
-        return $user->hasPermission('services.manage') ||
-               $user->hasPermission('services.*');
+        return $user->hasPermission('services.manage');
     }
 
     public function update(User $user, Service $service): bool
     {
-        if (!$user->hasPermission('services.manage') && !$user->hasPermission('services.*')) {
+        if (!$user->hasPermission('services.manage')) {
             return false;
         }
 
@@ -57,7 +57,7 @@ class ServicePolicy
 
     public function delete(User $user, Service $service): bool
     {
-        if (!$user->hasPermission('services.manage') && !$user->hasPermission('services.*')) {
+        if (!$user->hasPermission('services.manage')) {
             return false;
         }
 

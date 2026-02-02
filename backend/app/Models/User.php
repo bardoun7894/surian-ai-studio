@@ -7,29 +7,24 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
-
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->is_active &&
-               $this->role &&
-               $this->hasPermission('admin.panel');
-    }
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
+    protected $appends = ['full_name'];
+
     protected $fillable = [
-        'name',
+        'first_name',
+        'father_name',
+        'last_name',
         'email',
         'password',
         'role_id',
@@ -84,6 +79,11 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->father_name} {$this->last_name}");
+    }
+
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
@@ -94,6 +94,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(Directorate::class);
     }
 
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    public function suggestions(): HasMany
+    {
+        return $this->hasMany(Suggestion::class);
+    }
+
     public function hasPermission(string $permission): bool
     {
         if (!$this->role) {
@@ -102,6 +112,12 @@ class User extends Authenticatable implements FilamentUser
 
         $permissions = $this->role->permissions ?? [];
 
+        // Guard against corrupted data (e.g. double-encoded JSON strings)
+        if (!is_array($permissions)) {
+            $decoded = is_string($permissions) ? json_decode($permissions, true) : null;
+            $permissions = is_array($decoded) ? $decoded : [];
+        }
+
         if (in_array('*', $permissions)) {
             return true;
         }
@@ -109,7 +125,7 @@ class User extends Authenticatable implements FilamentUser
         foreach ($permissions as $p) {
             if (str_ends_with($p, '.*')) {
                 $prefix = substr($p, 0, -2);
-                if (str_starts_with($permission, $prefix)) {
+                if (str_starts_with($permission, $prefix . '.')) {
                     return true;
                 }
             }

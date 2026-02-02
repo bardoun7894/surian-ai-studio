@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Search, ChevronDown, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
+import { getLocalizedField } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -146,35 +147,35 @@ export default function AnnouncementsPage() {
     switch (type) {
       case 'urgent':
         return {
-          bg: 'bg-gov-red/5 dark:bg-gov-red/10',
+          bg: 'bg-gov-red/5 dark:bg-gov-emeraldStatic',
           border: 'border-gov-red/20 dark:border-gov-red/30',
           badge: 'bg-gov-red text-white',
           icon: <AlertCircle size={14} />
         };
       case 'important':
         return {
-          bg: 'bg-gov-gold/10 dark:bg-gov-gold/10',
+          bg: 'bg-gov-gold/10 dark:bg-gov-emeraldStatic',
           border: 'border-gov-gold/30 dark:border-gov-gold/30',
           badge: 'bg-gov-gold text-gov-forest',
           icon: <Bell size={14} />
         };
       case 'tender':
         return {
-          bg: 'bg-gov-teal/5 dark:bg-gov-teal/10',
+          bg: 'bg-gov-teal/5 dark:bg-gov-emeraldStatic',
           border: 'border-gov-teal/20 dark:border-gov-teal/30',
           badge: 'bg-gov-teal text-white',
           icon: <Megaphone size={14} />
         };
       case 'job':
         return {
-          bg: 'bg-gov-emeraldLight/5 dark:bg-gov-emeraldLight/10',
+          bg: 'bg-gov-emeraldLight/5 dark:bg-gov-emeraldStatic',
           border: 'border-gov-emeraldLight/20 dark:border-gov-emeraldLight/30',
           badge: 'bg-gov-emeraldLight text-white',
           icon: <Megaphone size={14} />
         };
       default:
         return {
-          bg: 'bg-gov-sand/5 dark:bg-white/5',
+          bg: 'bg-gov-sand/5 dark:bg-gov-emeraldStatic',
           border: 'border-gov-sand/20 dark:border-white/10',
           badge: 'bg-gov-sand text-white',
           icon: <Megaphone size={14} />
@@ -209,9 +210,11 @@ export default function AnnouncementsPage() {
       : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const filteredAnnouncements = MOCK_ANNOUNCEMENTS.filter(announcement => {
-    const matchesSearch = announcement.title.includes(searchQuery) ||
-      announcement.description.includes(searchQuery);
+  const dataSource = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS;
+  const filteredAnnouncements = dataSource.filter((announcement: any) => {
+    const title = getLocalizedField(announcement, 'title', language as 'ar' | 'en');
+    const description = getLocalizedField(announcement, 'description', language as 'ar' | 'en');
+    const matchesSearch = !searchQuery.trim() || title.includes(searchQuery) || description.includes(searchQuery);
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
     const matchesCategory = selectedCategory === 'all' || announcement.category === selectedCategory;
     return matchesSearch && matchesType && matchesCategory;
@@ -220,11 +223,11 @@ export default function AnnouncementsPage() {
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
       <Navbar />
 
       <main className="flex-grow pt-14 md:pt-16">
-        <div className="min-h-screen bg-gov-beige dark:bg-gov-forest pb-16">
+        <div className="min-h-screen bg-gov-beige dark:bg-black pb-16">
           {/* Hero Header */}
           <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -247,20 +250,8 @@ export default function AnnouncementsPage() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Search & Filters */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 p-6 mb-8">
+            <div className="bg-white dark:bg-gov-emeraldStatic rounded-2xl shadow-lg border border-gray-100 dark:border-white/10 p-6 mb-8">
               <div className="flex flex-col md:flex-row gap-4">
-                {/* Search */}
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={language === 'ar' ? 'ابحث في الإعلانات...' : 'Search announcements...'}
-                    className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal transition-colors"
-                  />
-                  <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                </div>
-
                 {/* Type Filter */}
                 <div className="relative min-w-[180px]">
                   <select
@@ -328,17 +319,17 @@ export default function AnnouncementsPage() {
 
                     {/* Title */}
                     <h3 className="text-lg font-bold text-gov-forest dark:text-white mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 min-h-[3.5rem]">
-                      {announcement.title}
+                      {getLocalizedField(announcement, 'title', language as 'ar' | 'en')}
                     </h3>
 
                     {/* Description */}
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                      {announcement.description}
+                      {getLocalizedField(announcement, 'description', language as 'ar' | 'en')}
                     </p>
 
                     {/* Footer (Date & CTA) - Push to bottom */}
                     <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-xs">
+                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-400 text-xs">
                         <Calendar size={14} />
                         <span>{formatDate(announcement.date)}</span>
                       </div>
@@ -358,15 +349,47 @@ export default function AnnouncementsPage() {
             {/* Empty State */}
             {filteredAnnouncements.length === 0 && (
               <div className="text-center py-16">
-                <Megaphone className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
+                <Megaphone className="mx-auto text-gray-300 dark:text-gray-400 mb-4" size={64} />
                 <h3 className="text-xl font-bold text-gray-500 dark:text-gray-400 mb-2">
                   {language === 'ar' ? 'لا توجد إعلانات' : 'No Announcements Found'}
                 </h3>
-                <p className="text-gray-400 dark:text-gray-500">
+                <p className="text-gray-400 dark:text-gray-400">
                   {language === 'ar' ? 'جرب تغيير معايير البحث' : 'Try changing your search criteria'}
                 </p>
               </div>
             )}
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-16 bg-white dark:bg-gov-emeraldStatic rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
+              {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
+            </h2>
+            <div className="space-y-4">
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                  {language === 'ar' ? 'كيف أتابع الإعلانات الجديدة؟' : 'How do I follow new announcements?'}
+                  <ChevronDown size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                </summary>
+                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {language === 'ar' ? 'يمكنك زيارة هذه الصفحة بانتظام أو الاشتراك في النشرة البريدية للحصول على إشعارات بالإعلانات الجديدة.' : 'You can visit this page regularly or subscribe to the newsletter for new announcement notifications.'}
+                </p>
+              </details>
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-white/5 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                  {language === 'ar' ? 'ما الفرق بين أنواع الإعلانات؟' : 'What is the difference between announcement types?'}
+                  <ChevronDown size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                </summary>
+                <p className="p-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {language === 'ar' ? 'تتنوع الإعلانات بين عاجلة وهامة ومناقصات ووظائف وعامة، ويمكنك تصفيتها باستخدام القوائم أعلاه.' : 'Announcements vary between urgent, important, tenders, jobs, and general. You can filter them using the menus above.'}
+                </p>
+              </details>
+            </div>
+            <div className="mt-4 text-center">
+              <Link href="/faq" className="text-gov-teal dark:text-gov-gold font-bold text-sm hover:underline">
+                {language === 'ar' ? 'عرض جميع الأسئلة الشائعة ←' : '→ View all FAQs'}
+              </Link>
+            </div>
           </div>
         </div>
       </main>

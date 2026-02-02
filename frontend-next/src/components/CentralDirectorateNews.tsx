@@ -63,11 +63,11 @@ const CentralDirectorateNews: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Featured large card */}
-          <div className="lg:col-span-2 group relative rounded-2xl overflow-hidden min-h-[360px] border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all">
+          <Link href={`/news/${featured.id}`} className="lg:col-span-2 group relative rounded-2xl overflow-hidden min-h-[360px] border border-gray-100 dark:border-white/10 hover:shadow-lg transition-all block">
             {featured.imageUrl && (
               <Image
                 src={featured.imageUrl}
-                alt={featured.title}
+                alt={language === 'ar' ? ((featured as any).title_ar || featured.title) : ((featured as any).title_en || featured.title)}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -83,16 +83,21 @@ const CentralDirectorateNews: React.FC = () => {
                 <Calendar size={14} />
                 {featured.date}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2 leading-snug">{featured.title}</h3>
-              <p className="text-white/80 text-sm line-clamp-2">{featured.summary}</p>
+              <h3 className="text-2xl font-bold text-white mb-2 leading-snug">
+                {language === 'ar' ? ((featured as any).title_ar || featured.title) : ((featured as any).title_en || featured.title)}
+              </h3>
+              <p className="text-white/80 text-sm line-clamp-2">
+                {language === 'ar' ? ((featured as any).summary_ar || featured.summary) : ((featured as any).summary_en || featured.summary)}
+              </p>
             </div>
-          </div>
+          </Link>
 
           {/* Two smaller cards */}
           <div className="flex flex-col gap-6">
             {secondary.map((item) => (
-              <article
+              <Link
                 key={item.id}
+                href={`/news/${item.id}`}
                 className="flex-1 group bg-gov-beige dark:bg-white/5 rounded-xl overflow-hidden border border-gray-100 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-lg transition-all flex flex-col"
               >
                 {item.imageUrl && (
@@ -111,14 +116,14 @@ const CentralDirectorateNews: React.FC = () => {
                     {item.date}
                   </div>
                   <h3 className="font-bold text-gov-charcoal dark:text-white text-sm mb-2 leading-snug group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors line-clamp-2">
-                    {item.title}
+                    {language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
                   </h3>
-                  <Link href="/news" className="inline-flex items-center text-xs font-bold text-gov-emerald dark:text-gov-gold hover:underline mt-auto">
+                  <span className="inline-flex items-center text-xs font-bold text-gov-emerald dark:text-gov-gold mt-auto">
                     {t('read_more')}
                     <ChevronLeft size={14} className="mr-1" />
-                  </Link>
+                  </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

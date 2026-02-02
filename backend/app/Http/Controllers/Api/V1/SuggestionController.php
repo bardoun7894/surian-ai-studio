@@ -33,15 +33,27 @@ class SuggestionController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'job_title' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+        $isAnonymous = $request->boolean('is_anonymous');
+
+        $rules = [
             'description' => 'required|string|min:10',
+            'directorate_id' => 'nullable|exists:directorates,id',
             'files' => 'nullable|array|max:5',
             'files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB
-        ]);
+            'is_anonymous' => 'nullable|boolean',
+            'recaptcha_token' => 'nullable|string',
+            'guest_token' => 'nullable|string',
+        ];
+
+        if (!$isAnonymous) {
+            $rules['name'] = 'required|string|max:255';
+            $rules['email'] = 'nullable|email|max:255';
+            $rules['phone'] = 'nullable|string|max:20';
+            $rules['national_id'] = 'nullable|string|size:11';
+            $rules['dob'] = 'nullable|date';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -53,7 +65,7 @@ class SuggestionController extends Controller
         // Additional file validation
         $files = $request->file('files', []);
         $fileErrors = $this->suggestionService->validateFiles($files);
-        
+
         if (!empty($fileErrors)) {
             return response()->json([
                 'success' => false,
@@ -62,8 +74,11 @@ class SuggestionController extends Controller
         }
 
         try {
+            $data = $request->only(['name', 'email', 'phone', 'description', 'national_id', 'dob', 'directorate_id']);
+            $data['is_anonymous'] = $isAnonymous;
+
             $suggestion = $this->suggestionService->store(
-                $request->only(['name', 'job_title', 'email', 'phone', 'description']),
+                $data,
                 $files
             );
 

@@ -357,7 +357,7 @@ export default function AdminPromotionalPage() {
         </div>
       ) : filteredSections.length === 0 ? (
         <div className="bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-gov-gold/10 p-12 text-center">
-          <Image size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <Image size={48} className="mx-auto text-gray-300 dark:text-gray-400 mb-4" />
           <p className="text-gray-500 dark:text-gray-400">
             {language === 'ar' ? 'لا توجد أقسام ترويجية' : 'No promotional sections found'}
           </p>

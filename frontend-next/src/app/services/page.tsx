@@ -28,6 +28,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { Directorate, Service } from '@/types';
+import { getLocalizedField, getLocalizedName } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -37,17 +38,17 @@ const ServiceStages = ({ service, language }: { service: Service; language: stri
   // Define stages based on service type
   const stages = service.isDigital
     ? [
-        { id: 1, name: { ar: 'تقديم الطلب', en: 'Submit Request' }, completed: true },
-        { id: 2, name: { ar: 'مراجعة البيانات', en: 'Review Data' }, completed: true },
-        { id: 3, name: { ar: 'الموافقة', en: 'Approval' }, completed: false },
-        { id: 4, name: { ar: 'الإصدار', en: 'Issuance' }, completed: false }
-      ]
+      { id: 1, name: { ar: 'تقديم الطلب', en: 'Submit Request' }, completed: true },
+      { id: 2, name: { ar: 'مراجعة البيانات', en: 'Review Data' }, completed: true },
+      { id: 3, name: { ar: 'الموافقة', en: 'Approval' }, completed: false },
+      { id: 4, name: { ar: 'الإصدار', en: 'Issuance' }, completed: false }
+    ]
     : [
-        { id: 1, name: { ar: 'حجز موعد', en: 'Book Appointment' }, completed: true },
-        { id: 2, name: { ar: 'زيارة المركز', en: 'Visit Center' }, completed: false },
-        { id: 3, name: { ar: 'تقديم المستندات', en: 'Submit Documents' }, completed: false },
-        { id: 4, name: { ar: 'استلام الخدمة', en: 'Receive Service' }, completed: false }
-      ];
+      { id: 1, name: { ar: 'حجز موعد', en: 'Book Appointment' }, completed: true },
+      { id: 2, name: { ar: 'زيارة المركز', en: 'Visit Center' }, completed: false },
+      { id: 3, name: { ar: 'تقديم المستندات', en: 'Submit Documents' }, completed: false },
+      { id: 4, name: { ar: 'استلام الخدمة', en: 'Receive Service' }, completed: false }
+    ];
 
   return (
     <div className="flex items-center justify-between gap-1 px-2 py-3 bg-gray-50 dark:bg-white/5 rounded-lg">
@@ -55,11 +56,10 @@ const ServiceStages = ({ service, language }: { service: Service; language: stri
         <div key={stage.id} className="flex items-center flex-1">
           <div className="flex flex-col items-center gap-1 flex-1">
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                stage.completed
-                  ? 'bg-gov-teal text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
-              }`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${stage.completed
+                ? 'bg-gov-teal text-white'
+                : 'bg-gray-200 dark:bg-gov-gold/20 text-gray-400'
+                }`}
             >
               {stage.completed ? <CheckCircle2 size={14} /> : <Circle size={10} />}
             </div>
@@ -80,7 +80,6 @@ export default function ServicesPage() {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
-  const [filterDigital, setFilterDigital] = useState<boolean | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,16 +122,19 @@ export default function ServicesPage() {
 
   // Filter services
   const filteredServices = services.filter(service => {
-    const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const title = getLocalizedField(service, 'title', language as 'ar' | 'en').toLowerCase();
+    const desc = getLocalizedField(service, 'description', language as 'ar' | 'en').toLowerCase();
+    const matchesSearch = !query || title.includes(query) || desc.includes(query);
     const matchesDirectorate = !selectedDirectorate || service.directorateId === selectedDirectorate;
-    const matchesDigital = filterDigital === null || service.isDigital === filterDigital;
-    return matchesSearch && matchesDirectorate && matchesDigital;
+    return matchesSearch && matchesDirectorate;
   });
 
   // Get directorate name
   const getDirectorateName = (id: string) => {
-    return directorates.find(d => d.id === id)?.name || '';
+    const d = directorates.find(d => d.id === id);
+    if (!d) return '';
+    return getLocalizedField(d, 'name', language as 'ar' | 'en');
   };
 
   // Get directorate icon
@@ -142,7 +144,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black">
       <Navbar />
 
       <main className="flex-grow pt-14 md:pt-16">
@@ -154,21 +156,10 @@ export default function ServicesPage() {
             </h1>
             <p className="text-gray-300 text-lg max-w-2xl">
               {language === 'ar'
-                ? 'تصفح جميع الخدمات الحكومية الإلكترونية والتقليدية المتاحة للمواطنين'
-                : 'Browse all electronic and traditional government services available to citizens'}
+                ? 'تصفح جميع الخدمات الحكومية المتاحة للمواطنين'
+                : 'Browse all government services available to citizens'}
             </p>
 
-            {/* Search Bar */}
-            <div className="mt-8 relative max-w-2xl">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={language === 'ar' ? 'ابحث عن خدمة...' : 'Search for a service...'}
-                className="w-full py-4 px-6 pr-14 rtl:pr-6 rtl:pl-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-gold transition-colors"
-              />
-              <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
-            </div>
           </div>
         </div>
 
@@ -180,47 +171,14 @@ export default function ServicesPage() {
               <select
                 value={selectedDirectorate || ''}
                 onChange={(e) => setSelectedDirectorate(e.target.value || null)}
-                className="appearance-none bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl px-4 py-3 pr-10 rtl:pr-4 rtl:pl-10 text-gov-charcoal dark:text-white font-medium focus:outline-none focus:border-gov-gold transition-colors cursor-pointer"
+                className="appearance-none bg-white dark:bg-gov-emeraldStatic border border-gray-200 dark:border-gov-gold/20 rounded-xl px-4 py-3 pr-10 rtl:pr-4 rtl:pl-10 text-gov-charcoal dark:text-gov-gold font-medium focus:outline-none focus:border-gov-gold transition-colors cursor-pointer"
               >
                 <option value="">{language === 'ar' ? 'جميع الجهات' : 'All Agencies'}</option>
                 {directorates.map(d => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                  <option key={d.id} value={d.id}>{getLocalizedField(d, 'name', language as 'ar' | 'en')}</option>
                 ))}
               </select>
               <Filter className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-            </div>
-
-            {/* Digital Filter */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilterDigital(null)}
-                className={`px-4 py-3 rounded-xl font-medium transition-colors ${filterDigital === null
-                  ? 'bg-gov-teal text-white'
-                  : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20'
-                  }`}
-              >
-                {language === 'ar' ? 'الكل' : 'All'}
-              </button>
-              <button
-                onClick={() => setFilterDigital(true)}
-                className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${filterDigital === true
-                  ? 'bg-gov-teal text-white'
-                  : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20'
-                  }`}
-              >
-                <Monitor size={16} />
-                {language === 'ar' ? 'إلكترونية' : 'Digital'}
-              </button>
-              <button
-                onClick={() => setFilterDigital(false)}
-                className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${filterDigital === false
-                  ? 'bg-gov-teal text-white'
-                  : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20'
-                  }`}
-              >
-                <Building size={16} />
-                {language === 'ar' ? 'حضورية' : 'In-Person'}
-              </button>
             </div>
 
             {/* Show Stages Toggle */}
@@ -228,7 +186,7 @@ export default function ServicesPage() {
               onClick={() => setShowStages(!showStages)}
               className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${showStages
                 ? 'bg-gov-gold text-white'
-                : 'bg-white dark:bg-white/10 text-gov-charcoal dark:text-white border border-gray-200 dark:border-white/20'
+                : 'bg-white dark:bg-gov-emeraldStatic text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-gold/20'
                 }`}
             >
               <CheckCircle2 size={16} />
@@ -237,7 +195,7 @@ export default function ServicesPage() {
           </div>
 
           {/* Results Count */}
-          <div className="mb-6 text-gov-stone dark:text-gray-400">
+          <div className="mb-6 text-gov-stone dark:text-gov-gold/60">
             {language === 'ar'
               ? `${filteredServices.length} خدمة متاحة`
               : `${filteredServices.length} services available`}
@@ -253,7 +211,7 @@ export default function ServicesPage() {
               <Link
                 key={service.id}
                 href={`/services/${service.id}`}
-                className="group bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-6 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 flex flex-col"
+                className="group bg-white dark:bg-gov-emeraldStatic rounded-2xl border border-gray-100 dark:border-gov-gold/10 p-6 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 flex flex-col"
               >
                 {/* Service Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -267,27 +225,16 @@ export default function ServicesPage() {
                       </span>
                     </div>
                   </div>
-                  {service.isDigital ? (
-                    <span className="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold flex items-center gap-1">
-                      <Monitor size={12} />
-                      {language === 'ar' ? 'إلكترونية' : 'Digital'}
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-bold flex items-center gap-1">
-                      <Building size={12} />
-                      {language === 'ar' ? 'حضورية' : 'In-Person'}
-                    </span>
-                  )}
                 </div>
 
                 {/* Service Title */}
-                <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
-                  {service.title}
+                <h3 className="text-lg font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                  {getLocalizedField(service, 'title', language as 'ar' | 'en')}
                 </h3>
 
                 {/* Service Description */}
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {service.description}
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                  {getLocalizedField(service, 'description', language as 'ar' | 'en')}
                 </p>
 
                 {/* Service Workflow Stages */}
@@ -299,7 +246,7 @@ export default function ServicesPage() {
 
                 {/* Service Footer */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/10 mt-auto">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gov-gold/50">
                     <Clock size={14} />
                     <span>{language === 'ar' ? 'فوري' : 'Instant'}</span>
                   </div>
@@ -315,13 +262,13 @@ export default function ServicesPage() {
           {/* Empty State */}
           {filteredServices.length === 0 && (
             <div className="text-center py-20">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center mb-4">
+              <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-gov-emeraldStatic/50 flex items-center justify-center mb-4">
                 <Search size={32} className="text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gov-charcoal dark:text-white mb-2">
+              <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
                 {language === 'ar' ? 'لا توجد نتائج' : 'No Results Found'}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-gov-gold/50">
                 {language === 'ar'
                   ? 'جرب تغيير معايير البحث أو الفلترة'
                   : 'Try changing your search or filter criteria'}

@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from .provider import AIProvider
 from typing import Dict, Any
 import os
@@ -12,17 +12,16 @@ class GeminiProvider(AIProvider):
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             logger.warning("GEMINI_API_KEY not found in environment")
-            # In production, we might want to raise an error, but for dev we might allow instantiation 
-            # and fail on call if needed, or stick to raising error.
-            # raise ValueError("GEMINI_API_KEY not found") 
-        
-        if api_key:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+
+        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
     async def generate_content(self, prompt: str) -> str:
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
             return response.text
         except Exception as e:
             logger.error(f"Gemini generate_content error: {e}")
@@ -39,23 +38,28 @@ class GeminiProvider(AIProvider):
         Complaint text: "{text}"
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
             cleaned_text = response.text.strip().replace('```json', '').replace('```', '')
             return json.loads(cleaned_text)
         except Exception as e:
             logger.error(f"Gemini analyze_complaint error: {e}")
-            # Fallback
             return {"category": "Other", "priority": "Medium", "summary": "Analysis failed"}
 
     async def suggest_title(self, text: str) -> str:
         prompt = f"""
         Suggest a formal, concise title for a government announcement or article based on the following text.
         Return ONLY the title text, nothing else.
-        
+
         Text: "{text[:1000]}..."
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
             return response.text.strip().replace('"', '')
         except Exception as e:
             logger.error(f"Gemini suggest_title error: {e}")
@@ -69,7 +73,10 @@ class GeminiProvider(AIProvider):
         Text: "{text}"
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
             return response.text.strip()
         except Exception as e:
             logger.error(f"Gemini proofread error: {e}")
@@ -78,32 +85,23 @@ class GeminiProvider(AIProvider):
     async def generate_embedding(self, text: str, target_dim: int = 1024) -> dict:
         """
         Generate text embedding using Gemini embedding model.
-        Returns dict with embedding vector and model info.
-
-        Args:
-            text: Text to embed
-            target_dim: Target dimensions (will truncate or pad)
-
-        Returns:
-            dict with 'embedding', 'model', 'original_dim'
         """
         try:
-            model_name = "models/embedding-001"
-            result = genai.embed_content(
+            model_name = "models/text-embedding-004"
+            result = self.client.models.embed_content(
                 model=model_name,
-                content=text,
-                task_type="retrieval_document"
+                contents=text,
             )
-            embedding = result['embedding']
+            embedding = result.embeddings[0].values
             original_dim = len(embedding)
 
             # Normalize to target dimensions
             if len(embedding) > target_dim:
-                # Truncate (loses some information but maintains compatibility)
-                embedding = embedding[:target_dim]
+                embedding = list(embedding[:target_dim])
             elif len(embedding) < target_dim:
-                # Pad with zeros
-                embedding = embedding + [0.0] * (target_dim - len(embedding))
+                embedding = list(embedding) + [0.0] * (target_dim - len(embedding))
+            else:
+                embedding = list(embedding)
 
             return {
                 'embedding': embedding,

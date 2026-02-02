@@ -8,14 +8,12 @@ import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import NewsSection from '@/components/NewsSection';
 import Announcements from '@/components/Announcements';
-import QuickServices from '@/components/QuickServices';
 import QuickLinks from '@/components/QuickLinks';
 
 import GovernmentPartners from '@/components/GovernmentPartners';
 import NewsletterSection from '@/components/NewsletterSection';
 import FAQSection from '@/components/FAQSection';
 import ContactSection from '@/components/ContactSection';
-import ChatBot from '@/components/ChatBot';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 
@@ -72,7 +70,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-gov-forest transition-colors duration-500">
+    <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-black transition-colors duration-500">
       <Navbar onSearch={handleSearch} />
 
       <main className="flex-grow pt-14 md:pt-16 overflow-hidden">
@@ -86,8 +84,7 @@ export default function HomePage() {
         <NewsSection />
         <Announcements />
 
-        {/* Quick Services & Links */}
-        <QuickServices />
+        {/* Quick Links */}
         <QuickLinks />
 
         {/* Government Partners */}
@@ -101,7 +98,6 @@ export default function HomePage() {
         <ContactSection />
       </main>
 
-      <ChatBot />
 
       <Footer
         onIncreaseFont={handleIncreaseFont}

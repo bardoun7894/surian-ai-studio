@@ -19,22 +19,25 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_filter([
-        env('FRONTEND_URL', 'http://localhost:8080'),
-        'http://localhost:3000',
-        'http://localhost:3002',
-        'http://localhost:8080',
-        'http://127.0.0.1:3000',
-        'http://frontend-next:3000',
-        'http://91.230.110.187:3002',
-        'http://91.230.110.187:8002',
-        // Production URL if different
-        env('APP_URL'),
-    ]),
+    'allowed_origins' => array_filter(array_merge(
+        [
+            env('FRONTEND_URL', 'http://localhost:8080'),
+            env('APP_URL'),
+            'http://localhost:3000',
+            'http://localhost:3002',
+            'http://localhost:8080',
+            'http://127.0.0.1:3000',
+            'http://frontend-next:3000',
+        ],
+        // Additional origins from env (comma-separated)
+        array_map('trim', explode(',', env('CORS_EXTRA_ORIGINS', '')))
+    )),
 
     'allowed_origins_patterns' => [
         // Allow any subdomain of your production domain
         '/^https?:\/\/.*\.gov\.sy$/',
+        // Allow public IP access on any port
+        '/^https?:\/\/91\.230\.110\.187(:\d+)?$/',
     ],
 
     'allowed_headers' => ['*'],

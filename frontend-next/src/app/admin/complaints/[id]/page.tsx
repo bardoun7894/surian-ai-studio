@@ -62,8 +62,12 @@ const translations = {
       in_progress: 'قيد المعالجة',
       resolved: 'تم الحل',
       rejected: 'مرفوض',
+      received: 'مستلم',
       closed: 'مغلق'
-    }
+    },
+    statusChange: 'تغيير الحالة',
+    statusUpdated: 'تم تحديث الحالة بنجاح',
+    statusUpdateFailed: 'فشل تحديث الحالة'
   },
   en: {
     title: 'Complaint Details',
@@ -101,8 +105,12 @@ const translations = {
       in_progress: 'In Progress',
       resolved: 'Resolved',
       rejected: 'Rejected',
+      received: 'Received',
       closed: 'Closed'
-    }
+    },
+    statusChange: 'Change Status',
+    statusUpdated: 'Status updated successfully',
+    statusUpdateFailed: 'Failed to update status'
   }
 };
 
@@ -119,6 +127,7 @@ const statusColors: Record<string, string> = {
   processing: 'bg-purple-100 text-purple-700',
   in_progress: 'bg-purple-100 text-purple-700',
   resolved: 'bg-green-100 text-green-700',
+  received: 'bg-cyan-100 text-cyan-700',
   rejected: 'bg-red-100 text-red-700',
   closed: 'bg-gray-100 text-gray-700'
 };
@@ -153,12 +162,21 @@ export default function ComplaintDetailPage() {
   const [selectedPriority, setSelectedPriority] = useState('medium');
   const [updatingPriority, setUpdatingPriority] = useState(false);
 
+  const [selectedStatus, setSelectedStatus] = useState(complaint?.status || 'new');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
   const [responseText, setResponseText] = useState('');
   const [sendingResponse, setSendingResponse] = useState(false);
 
   useEffect(() => {
     fetchComplaint();
   }, [id]);
+
+  useEffect(() => {
+    if (complaint?.status) {
+      setSelectedStatus(complaint.status);
+    }
+  }, [complaint?.status]);
 
   const fetchComplaint = async () => {
     setLoading(true);
@@ -204,6 +222,25 @@ export default function ComplaintDetailPage() {
       toast.error(t.priorityUpdateFailed);
     } finally {
       setUpdatingPriority(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    setUpdatingStatus(true);
+    try {
+      const success = await API.staff.updateStatus(id, newStatus);
+      if (success) {
+        setSelectedStatus(newStatus);
+        setComplaint(prev => prev ? { ...prev, status: newStatus } : null);
+        toast.success(t.statusUpdated);
+        fetchComplaint();
+      } else {
+        toast.error(t.statusUpdateFailed);
+      }
+    } catch (err) {
+      toast.error(t.statusUpdateFailed);
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -297,7 +334,7 @@ export default function ComplaintDetailPage() {
                   {complaint.responses.map((response: any) => (
                     <div key={response.id} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{response.user?.name || 'Staff'}</span>
+                        <span className="font-medium text-gray-900">{response.user?.full_name || 'Staff'}</span>
                         <span className="text-xs text-gray-500">
                           {new Date(response.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
                         </span>
@@ -355,7 +392,7 @@ export default function ComplaintDetailPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-gray-700">
-                          <span className="font-medium">{log.user?.name}</span> - {log.action}
+                          <span className="font-medium">{log.user?.full_name}</span> - {log.action}
                         </p>
                         <span className="text-xs text-gray-500">
                           {new Date(log.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
@@ -370,6 +407,36 @@ export default function ComplaintDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Status Change */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                {t.statusChange}
+              </h3>
+              <div className="space-y-2">
+                {(['new', 'received', 'in_progress', 'resolved', 'rejected', 'closed'] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusChange(status)}
+                    disabled={updatingStatus}
+                    className={`w-full px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all flex items-center justify-between ${
+                      selectedStatus === status
+                        ? (statusColors[status] || statusColors.new) + ' border-current'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                    } ${updatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <span>{(t.statuses as any)[status] || status}</span>
+                    {selectedStatus === status && <CheckCircle className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
+              {updatingStatus && (
+                <div className="flex items-center justify-center mt-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+                </div>
+              )}
+            </div>
+
             {/* Priority Adjustment */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">

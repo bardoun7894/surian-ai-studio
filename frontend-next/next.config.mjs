@@ -35,6 +35,10 @@ const nextConfig = {
         protocol: 'http',
         hostname: '91.230.110.187',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+      },
     ],
     unoptimized: true, // Allow images from dynamic sources
   },
@@ -64,7 +68,7 @@ const nextConfig = {
       // AI Service routes
       {
         source: '/ai/:path*',
-        destination: `${aiServiceUrl}/api/v1/:path*`,
+        destination: `${aiServiceUrl}/api/v1/ai/:path*`,
       },
     ];
   },

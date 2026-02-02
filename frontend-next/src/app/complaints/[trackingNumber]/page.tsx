@@ -1,7 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ComplaintPortal from '@/components/ComplaintPortal';
-import ChatBot from '@/components/ChatBot';
 
 export default function ComplaintDetailPage({ params }: { params: { trackingNumber: string } }) {
     return (
@@ -12,7 +11,6 @@ export default function ComplaintDetailPage({ params }: { params: { trackingNumb
                 <ComplaintPortal initialMode="track" initialTrackingNumber={params.trackingNumber} />
             </main>
 
-            <ChatBot />
             <Footer />
         </div>
     );

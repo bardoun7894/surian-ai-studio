@@ -6,7 +6,9 @@ import { API } from '@/lib/repository';
 import ArticleCard from './ArticleCard';
 import VideoCard from './VideoCard';
 import { Article, PromotionalSection } from '@/types';
+import { getLocalizedField } from '@/lib/utils';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Icon mapping for Lucide icons
@@ -29,9 +31,9 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
 
   // Video type card - Use VideoCard component when video_url is present
   if (section.type === 'video') {
-    const badge = section.metadata?.badge_ar && section.metadata?.badge_en
-      ? (isArabic ? section.metadata.badge_ar : section.metadata.badge_en)
-      : (isArabic ? 'فيديو حصري' : 'Exclusive Video');
+    const badge = isArabic
+      ? (section.metadata?.badge_ar || 'فيديو حصري')
+      : (section.metadata?.badge_en || 'Exclusive Video');
 
     // If video_url is present, use actual video player
     if (section.video_url) {
@@ -97,9 +99,9 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   // Stats type card
   if (section.type === 'stats') {
     const statValue = section.metadata?.stat_value || '0';
-    const statLabel = section.metadata?.stat_label_ar && section.metadata?.stat_label_en
-      ? (isArabic ? section.metadata.stat_label_ar : section.metadata.stat_label_en)
-      : title;
+    const statLabel = isArabic
+      ? (section.metadata?.stat_label_ar || title)
+      : (section.metadata?.stat_label_en || title);
 
     return (
       <div
@@ -204,7 +206,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
 };
 
 const HeroGrid: React.FC = () => {
-  const { locale } = useLanguage();
+  const { language: locale, t } = useLanguage();
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [heroArticle, setHeroArticle] = useState<Article | null>(null);
@@ -242,7 +244,9 @@ const HeroGrid: React.FC = () => {
     setIsSummarizing(true);
     // Simulate AI summarization
     setTimeout(() => {
-      setSummary("هذا ملخص ذكي للمقال يوضح أهم النقاط الرئيسية حول استراتيجية الحكومة الإلكترونية وأهدافها في تطوير الخدمات الحكومية الرقمية.");
+      setSummary(locale === 'ar'
+        ? "هذا ملخص ذكي للمقال يوضح أهم النقاط الرئيسية حول استراتيجية الحكومة الإلكترونية وأهدافها في تطوير الخدمات الحكومية الرقمية."
+        : "This is an AI-generated summary highlighting the key points about the e-government strategy and its goals in developing digital government services.");
       setIsSummarizing(false);
     }, 2000);
   };
@@ -265,12 +269,14 @@ const HeroGrid: React.FC = () => {
         {/* Main Hero Item (Span 8 cols on large) */}
         <div className="lg:col-span-8 lg:row-span-2 relative group rounded-[2.5rem] overflow-hidden min-h-[500px] border border-white/10 shadow-2xl shadow-black/50 transition-all duration-500 hover:shadow-gov-gold/20">
           <div className="absolute inset-0">
-            <Image
-              src={heroArticle.imageUrl}
-              alt={heroArticle.title}
-              fill
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-            />
+            {heroArticle.imageUrl && (
+              <Image
+                src={heroArticle.imageUrl}
+                alt={getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || 'News'}
+                fill
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              />
+            )}
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-gov-forest via-gov-forest/70 to-transparent opacity-95"></div>
           </div>
@@ -278,7 +284,7 @@ const HeroGrid: React.FC = () => {
           <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end items-start z-10">
             <div className="mb-auto flex w-full justify-between items-start">
               <span className="px-4 py-1.5 rounded-full bg-gov-red text-white text-sm font-bold shadow-lg shadow-gov-red/20 animate-pulse">
-                مباشر
+                {t('hero_live_badge')}
               </span>
               <div className="flex gap-2">
                 <button className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10">
@@ -292,26 +298,26 @@ const HeroGrid: React.FC = () => {
 
             <div className="space-y-6 max-w-3xl">
               <div className="flex items-center gap-3 text-gov-beige/80">
-                <span className="font-semibold text-gov-gold">{heroArticle.category}</span>
+                <span className="font-semibold text-gov-gold">{getLocalizedField(heroArticle, 'category', locale as 'ar' | 'en')}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-gov-gold/30"></span>
                 <span>{heroArticle.date}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-gov-gold/30"></span>
-                <span className="flex items-center gap-1"><Sparkles size={14} className="text-gov-gold" /> ذكاء اصطناعي</span>
+                <span className="flex items-center gap-1"><Sparkles size={14} className="text-gov-gold" /> {t('hero_ai_label')}</span>
               </div>
 
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-tight">
-                {heroArticle.title}
+                {getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en')}
               </h1>
 
               <p className="text-lg text-gov-beige/90 leading-relaxed md:w-3/4">
-                {heroArticle.excerpt}
+                {getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en')}
               </p>
 
               {/* AI Summary Section */}
               {summary && (
                 <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md animate-fade-in-up">
                   <h5 className="flex items-center gap-2 text-gov-gold font-bold mb-2">
-                    <Sparkles size={16} /> ملخص ذكي
+                    <Sparkles size={16} /> {t('hero_smart_summary')}
                   </h5>
                   <div className="text-gov-beige text-sm whitespace-pre-line leading-relaxed">
                     {summary}
@@ -320,10 +326,10 @@ const HeroGrid: React.FC = () => {
               )}
 
               <div className="flex flex-wrap items-center gap-4 pt-4">
-                <button className="px-8 py-3.5 rounded-full bg-gov-gold text-gov-forest font-bold hover:bg-white transition-all flex items-center gap-2 group/btn shadow-lg shadow-gov-gold/20">
-                  اقرأ المزيد
+                <Link href={`/news/${heroArticle.id}`} className="px-8 py-3.5 rounded-full bg-gov-gold text-gov-forest font-bold hover:bg-white transition-all flex items-center gap-2 group/btn shadow-lg shadow-gov-gold/20">
+                  {t('hero_read_more')}
                   <ArrowLeft size={18} className="transition-transform group-hover/btn:-translate-x-1" />
-                </button>
+                </Link>
 
                 <button
                   onClick={handleSummarize}
@@ -333,12 +339,12 @@ const HeroGrid: React.FC = () => {
                   {isSummarizing ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      جاري التحليل...
+                      {t('hero_analyzing')}
                     </>
                   ) : (
                     <>
                       <Sparkles size={18} className="text-gov-gold" />
-                      {summary ? 'إخفاء الملخص' : 'تلخيص ذكي'}
+                      {summary ? t('hero_hide_summary') : t('hero_summarize')}
                     </>
                   )}
                 </button>

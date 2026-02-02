@@ -41,7 +41,8 @@ class ChatRequest(BaseModel):
     prompt: str
 
 class ComplaintRequest(BaseModel):
-    text: str
+    text: Optional[str] = None
+    complaint_text: Optional[str] = None
 
 class SummarizeRequest(BaseModel):
     text: str
@@ -100,7 +101,10 @@ async def chat(request: ChatRequest, provider: AIProvider = Depends(get_ai_provi
 async def analyze_complaint(request: ComplaintRequest, provider: AIProvider = Depends(get_ai_provider)):
     """Analyze and classify a complaint."""
     try:
-        result = await provider.analyze_complaint(request.text)
+        complaint_text = request.complaint_text or request.text
+        if not complaint_text:
+            raise HTTPException(status_code=422, detail="Either 'text' or 'complaint_text' is required")
+        result = await provider.analyze_complaint(complaint_text)
         return {
             "directorate": result.directorate,
             "directorate_id": result.directorate_id,
@@ -156,12 +160,27 @@ async def proofread(request: ProofreadRequest, provider: AIProvider = Depends(ge
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/ai/ocr")
-async def ocr(file: UploadFile = File(...)):
+async def ocr(file: UploadFile = File(...), provider: AIProvider = Depends(get_ai_provider)):
+    """Extract text from image using Gemini vision (with pytesseract fallback)."""
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
     content = await file.read()
-    text = OCRService.extract_text(content)
+    mime_type = file.content_type or "image/png"
+
+    # Try Gemini vision first for better Arabic OCR
+    text = ""
+    try:
+        from app.providers.gemini import GeminiProvider
+        if isinstance(provider, GeminiProvider):
+            text = await provider.ocr_with_vision(content, mime_type)
+    except Exception as e:
+        logger.warning(f"Gemini vision OCR failed, falling back to tesseract: {e}")
+
+    # Fallback to pytesseract if Gemini vision returned nothing
+    if not text.strip():
+        text = OCRService.extract_text(content)
+
     return {"text": text}
 
 @app.post("/api/v1/ai/embeddings")

@@ -48,6 +48,16 @@ class Directorate extends Model
         return $this->hasMany(Service::class);
     }
 
+    public function contents()
+    {
+        return $this->hasMany(Content::class);
+    }
+
+    public function news()
+    {
+        return $this->hasMany(Content::class)->where('category', Content::CATEGORY_NEWS);
+    }
+
     /**
      * Scope to get only featured directorates
      */

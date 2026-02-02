@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Content;
+use App\Models\ContentAttachment;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -10,7 +11,8 @@ class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing content
+        // Clear existing content and attachments
+        ContentAttachment::truncate();
         Content::truncate();
 
         // Seed all content types
@@ -25,13 +27,17 @@ class ContentSeeder extends Seeder
     private function seedNews(): void
     {
         $news = [
-            // Featured Hero Article
+            // Article 1 — Omran Syria / Egypt Clinker MOU (المديرية العامة للصناعة)
             [
-                'title_ar' => 'وزارة الاقتصاد والصناعة تطلق استراتيجية التحول الصناعي 2030',
-                'title_en' => 'Ministry of Economy Launches Industrial Transformation Strategy 2030',
-                'content_ar' => 'أطلقت وزارة الاقتصاد والصناعة استراتيجيتها الجديدة للتحول الصناعي التي تهدف إلى تعزيز القدرات الإنتاجية الوطنية ودعم الصناعات المحلية. تتضمن الاستراتيجية تطوير المناطق الصناعية وتقديم حوافز للمستثمرين.',
-                'content_en' => 'The Ministry of Economy and Industry launched its new industrial transformation strategy aimed at enhancing national production capabilities.',
-                'seo_description_ar' => 'وزارة الاقتصاد والصناعة تطلق استراتيجية التحول الصناعي 2030.',
+                'title_ar' => 'شركة عمران السورية تعزّز شراكاتها في مصر وتوقّع مذكرة تفاهم لتوريد الكلنكر',
+                'title_en' => 'Omran Syria Strengthens Partnerships in Egypt and Signs Clinker Supply MOU',
+                'content_ar' => 'زارت شركة عمران السورية جمهورية مصر العربية لتعزيز التعاون الصناعي وتبادل الخبرات في قطاع الإسمنت، ضمن جهودها لتطوير الإنتاج ورفع الكفاءة في السوق السورية.' . "\n\n" .
+                    'شملت الزيارة عدداً من الشركات المصرية ذات الخبرات الدولية في صناعة الإسمنت؛ بما في ذلك شركات متخصصة في التصنيع الميكانيكي لمعدات صناعة الإسمنت، وأخرى تعمل في الخدمات اللوجستية وتوريد مادة الكلنكر.' . "\n\n" .
+                    'وأكد المدير العام لشركة عمران "محمود فضيلة" أن هذه الشراكات تعكس حرص الشركة على تعزيز التعاون الصناعي والاستفادة من الخبرات الفنية الدولية، بما يسهم في رفع مستوى الإنتاج والكفاءة.' . "\n\n" .
+                    'وخلال الزيارة، تم توقيع مذكرة تفاهم مع شركة سيسكو لتأمين مادة الكلنكر؛ وذلك في إطار دعم سلاسل التوريد وتطوير قطاع الإسمنت بما يخدم المصالح المشتركة بين الجانبين.' . "\n\n" .
+                    'كما شملت الزيارة اجتماعاً مع غرفة تجارة القاهرة، حيث تم مناقشة أهمية قطاع الإسمنت وبناء شراكات استراتيجية بين البلدين لتعزيز التعاون الصناعي والتجاري المستدام.',
+                'content_en' => 'Omran Syria visited Egypt to strengthen industrial cooperation in the cement sector. The visit included meetings with Egyptian companies specializing in cement manufacturing equipment and logistics. A memorandum of understanding was signed with CESCO for clinker supply, and discussions were held at the Cairo Chamber of Commerce on strategic partnerships between the two countries.',
+                'seo_description_ar' => 'شركة عمران السورية تزور مصر وتوقّع مذكرة تفاهم مع سيسكو لتوريد الكلنكر وتعزيز التعاون الصناعي.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => true,
@@ -39,306 +45,261 @@ class ContentSeeder extends Seeder
                 'published_at' => now()->subDays(1),
                 'metadata' => [
                     'directorate_id' => 'd1',
-                    'image' => 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000',
+                    'image' => '/storage/images/news/omran-egypt-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/omran-egypt-featured.jpeg',
+                        '/storage/images/news/omran-egypt-1.jpeg',
+                        '/storage/images/news/omran-egypt-2.jpeg',
+                        '/storage/images/news/omran-egypt-3.jpeg',
+                        '/storage/images/news/omran-egypt-4.jpeg',
+                        '/storage/images/news/omran-egypt-5.jpeg',
+                        '/storage/images/news/omran-egypt-6.jpeg',
+                        '/storage/images/news/omran-egypt-7.jpeg',
+                        '/storage/images/news/omran-egypt-8.jpeg',
+                        '/storage/images/news/omran-egypt-9.jpeg',
+                        '/storage/images/news/omran-egypt-10.jpeg',
+                        '/storage/images/news/omran-egypt-11.jpeg',
+                        '/storage/images/news/omran-egypt-12.jpeg',
+                        '/storage/images/news/omran-egypt-13.jpeg',
+                        '/storage/images/news/omran-egypt-14.jpeg',
+                        '/storage/images/news/omran-egypt-15.jpeg',
+                        '/storage/images/news/omran-egypt-16.jpeg',
+                    ],
                     'author' => 'المكتب الإعلامي',
                     'read_time' => '5 دقائق',
-                    'category_label' => 'استراتيجية'
+                    'category_label' => 'شراكات صناعية',
                 ],
+                'tags' => ['صناعة', 'اتفاقيات', 'إسمنت', 'مصر', 'كلنكر'],
             ],
-            // Central/Minister News (no directorate_id)
+            // Article 2 — Deir ez-Zor Industrial Meeting (المديرية العامة للصناعة)
             [
-                'title_ar' => 'وزير الاقتصاد يبحث تعزيز العلاقات التجارية مع الوفد الصيني',
-                'title_en' => 'Economy Minister Discusses Strengthening Trade Relations with Chinese Delegation',
-                'content_ar' => 'استقبل السيد وزير الاقتصاد والصناعة وفداً تجارياً صينياً رفيع المستوى لبحث سبل تعزيز العلاقات التجارية والاستثمارية بين البلدين. تناول اللقاء فرص الاستثمار في القطاعات الصناعية والتكنولوجية وإمكانية إقامة مشاريع مشتركة.',
-                'content_en' => 'The Minister of Economy and Industry received a high-level Chinese trade delegation to discuss strengthening trade and investment relations between the two countries.',
-                'seo_description_ar' => 'وزير الاقتصاد يبحث تعزيز العلاقات التجارية مع الوفد الصيني.',
+                'title_ar' => 'اجتماع صناعي في دير الزور لبحث إعادة تأهيل المعامل المتضررة',
+                'title_en' => 'Industrial Meeting in Deir ez-Zor to Discuss Rehabilitation of Damaged Factories',
+                'content_ar' => 'عقد "ثامر العبود" المكلّف بمتابعة الفعاليات الصناعية في دير الزور اجتماعاً ضمّ مديري معامل السكر والنسيج والمحالج والورق، بمشاركة رئيس غرفة التجارة والصناعة في المحافظة، وحضور عضو المكتب التنفيذي لشؤون الصناعة ومدير المدينة الصناعية؛ لمعالجة التحديات والصعوبات التي تواجه القطاع الصناعي.' . "\n\n" .
+                    'وناقش الاجتماع إمكانية إعادة تأهيل وتشغيل المعامل المتضررة، ووضع الخطط اللازمة لاستئناف النشاط الصناعي بعد تحرير المنطقة من سيطرة "قسد"؛ بما يسهم في دعم الاقتصاد المحلي وتأمين فرص عمل لأبناء المحافظة.',
+                'content_en' => 'An industrial meeting was held in Deir ez-Zor with factory directors of sugar, textile, ginning, and paper plants, along with the Chamber of Commerce president, to address challenges facing the industrial sector and discuss rehabilitation of damaged factories to resume industrial activity and support the local economy.',
+                'seo_description_ar' => 'اجتماع صناعي في دير الزور لبحث إعادة تأهيل وتشغيل المعامل المتضررة ودعم الاقتصاد المحلي.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 9,
                 'published_at' => now()->subDays(2),
                 'metadata' => [
-                    'image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
+                    'directorate_id' => 'd1',
+                    'image' => '/storage/images/news/deir-ezzor-meeting-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/deir-ezzor-meeting-featured.jpeg',
+                        '/storage/images/news/deir-ezzor-meeting-2.jpeg',
+                        '/storage/images/news/deir-ezzor-meeting-3.jpeg',
+                    ],
                     'author' => 'المكتب الإعلامي',
-                    'read_time' => '4 دقائق',
-                    'category_label' => 'علاقات دولية',
+                    'read_time' => '3 دقائق',
+                    'category_label' => 'إعادة تأهيل',
                 ],
+                'tags' => ['صناعة', 'دير الزور', 'إعادة تأهيل'],
             ],
+            // Article 3 — Riyadh Cables Group (أخبار المديرية المركزية)
             [
-                'title_ar' => 'مجلس الوزراء يوافق على خطة إعادة هيكلة الوزارة',
-                'title_en' => 'Cabinet Approves Ministry Restructuring Plan',
-                'content_ar' => 'وافق مجلس الوزراء على خطة إعادة هيكلة وزارة الاقتصاد والصناعة بما يتوافق مع متطلبات المرحلة القادمة. تتضمن الخطة تحديث الهيكل التنظيمي وتطوير آليات العمل وتعزيز الحوكمة الرقمية.',
-                'content_en' => 'The Cabinet approved the restructuring plan for the Ministry of Economy and Industry in line with upcoming phase requirements.',
-                'seo_description_ar' => 'مجلس الوزراء يوافق على خطة إعادة هيكلة وزارة الاقتصاد والصناعة.',
+                'title_ar' => 'مجموعة كابلات الرياض تدخل السوق السورية بشراكة استراتيجية لتعزيز صناعة الكابلات ودعم الاقتصاد الوطني',
+                'title_en' => 'Riyadh Cables Group Enters Syrian Market with Strategic Partnership to Boost Cable Industry',
+                'content_ar' => 'في إطار الحراك الصناعي المتنامي في قطاع الطاقة، شاركت هيئة المواصفات والمقاييس العربية السورية في المؤتمر الأول الذي أقامته مجموعة كابلات الرياض في دمشق، بمشاركة واسعة من صنّاع القرار والخبراء والمختصين.' . "\n\n" .
+                    'وشكّل المؤتمر محطة بارزة مع إعلان مجموعة كابلات الرياض بدء نشاطها في السوق السورية عبر شراكة إستراتيجية مع الشركة السورية للكابلات، بما يعكس ما تتمتع به المجموعة من خبرات تقنية ومعايير جودة عالمية، ويؤكد توجهها نحو الاستثمار طويل الأمد والمساهمة في جهود إعادة الإعمار.' . "\n\n" .
+                    'وتندرج هذه الشراكة ضمن مساعي دعم الصناعة الوطنية وتعزيز نقل المعرفة والخبرات الفنية، بما يسهم في تطوير صناعة الكابلات في سورية ومواءمتها مع المواصفات المعتمدة، الأمر الذي ينعكس إيجاباً على جودة المنتجات المحلية ويدعم الاقتصاد الوطني.',
+                'content_en' => 'Riyadh Cables Group held its first conference in Damascus, announcing its entry into the Syrian market through a strategic partnership with the Syrian Cable Company. The partnership aims to support national industry, transfer technical expertise, and develop the cable industry in Syria in alignment with approved standards.',
+                'seo_description_ar' => 'مجموعة كابلات الرياض تدخل السوق السورية بشراكة استراتيجية مع الشركة السورية للكابلات.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 9,
-                'published_at' => now()->subDays(3)->addHours(6),
-                'metadata' => [
-                    'image' => 'https://images.unsplash.com/photo-1577415124269-fc1140815e4f?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'المكتب الإعلامي',
-                    'read_time' => '3 دقائق',
-                    'category_label' => 'حكومة',
-                ],
-            ],
-            [
-                'title_ar' => 'الوزير يفتتح مؤتمر التنمية الاقتصادية المستدامة',
-                'title_en' => 'Minister Opens Sustainable Economic Development Conference',
-                'content_ar' => 'افتتح السيد الوزير مؤتمر التنمية الاقتصادية المستدامة بمشاركة خبراء محليين ودوليين. ناقش المؤتمر استراتيجيات التنويع الاقتصادي وتعزيز الاستدامة في القطاعات الإنتاجية.',
-                'content_en' => 'The Minister opened the Sustainable Economic Development Conference with participation from local and international experts.',
-                'seo_description_ar' => 'الوزير يفتتح مؤتمر التنمية الاقتصادية المستدامة بمشاركة خبراء دوليين.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 8,
-                'published_at' => now()->subDays(4)->addHours(3),
-                'metadata' => [
-                    'image' => 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'المكتب الإعلامي',
-                    'read_time' => '5 دقائق',
-                    'category_label' => 'مؤتمرات',
-                ],
-            ],
-            [
-                'title_ar' => 'تقرير أداء الوزارة للربع الأول 2026',
-                'title_en' => 'Ministry Performance Report for Q1 2026',
-                'content_ar' => 'أصدرت الوزارة تقرير الأداء للربع الأول من عام 2026 والذي يظهر نمواً في الإنتاج الصناعي بنسبة 12% وزيادة في حجم الصادرات بنسبة 8%. كما تضمن التقرير إنجازات الوزارة في مجال الخدمات الإلكترونية.',
-                'content_en' => 'The Ministry released its Q1 2026 performance report showing 12% growth in industrial production and 8% increase in exports.',
-                'seo_description_ar' => 'تقرير أداء وزارة الاقتصاد والصناعة للربع الأول 2026.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 7,
-                'published_at' => now()->subDays(5)->addHours(2),
-                'metadata' => [
-                    'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'المكتب الإعلامي',
-                    'read_time' => '6 دقائق',
-                    'category_label' => 'تقارير',
-                ],
-            ],
-            // d2 (Economy) - SME news
-            [
-                'title_ar' => 'إطلاق برنامج دعم المشاريع الصغيرة والمتوسطة بتمويل 50 مليار ليرة',
-                'title_en' => 'Launch of SME Support Program with 50 Billion SYP Funding',
-                'content_ar' => 'أعلنت هيئة تنمية المشروعات الصغيرة والمتوسطة عن إطلاق برنامج تمويلي جديد بقيمة 50 مليار ليرة سورية لدعم رواد الأعمال والمشاريع الناشئة. يتضمن البرنامج قروضاً ميسرة وبرامج تدريب وإرشاد.',
-                'content_en' => 'The SME Development Authority announced a new 50 billion SYP funding program for entrepreneurs.',
-                'seo_description_ar' => 'إطلاق برنامج دعم المشاريع الصغيرة والمتوسطة بتمويل 50 مليار ليرة.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 8,
                 'published_at' => now()->subDays(3),
                 'metadata' => [
-                    'directorate_id' => 'd2',
-                    'image' => 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=800',
-                    'category_label' => 'تمويل',
-                    'is_breaking' => true
+                    'image' => '/storage/images/news/riyadh-cables-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/riyadh-cables-featured.jpeg',
+                    ],
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '4 دقائق',
+                    'category_label' => 'شراكات استراتيجية',
                 ],
+                'tags' => ['صناعة', 'كابلات', 'شراكات', 'السعودية'],
             ],
-            // d1 (Industry)
+            // Article 4 — Minister visits Maskana Sugar Factory (أخبار المديرية المركزية)
             [
-                'title_ar' => 'تعديل قانون الاستثمار لتشجيع الصناعات التحويلية',
-                'title_en' => 'Investment Law Amendment to Encourage Manufacturing Industries',
-                'content_ar' => 'صدر المرسوم التشريعي بتعديل قانون الاستثمار ليشمل حوافز إضافية للصناعات التحويلية والتصديرية. يتضمن التعديل إعفاءات ضريبية وتسهيلات جمركية للمستثمرين.',
-                'content_en' => 'A legislative decree was issued amending the investment law to include additional incentives for manufacturing.',
-                'seo_description_ar' => 'تعديل قانون الاستثمار لتشجيع الصناعات التحويلية والتصديرية.',
+                'title_ar' => 'وزير الاقتصاد والصناعة يتفقد معمل سكر مسكنة ويبحث سبل إعادة تأهيله',
+                'title_en' => 'Economy Minister Inspects Maskana Sugar Factory and Discusses Rehabilitation',
+                'content_ar' => 'أجرى وزير الاقتصاد والصناعة الدكتور "نضال الشعار"، يرافقه نائب الوزير "باسل عبد الحنان" زيارة ميدانية إلى معمل سكر مسكنة، وذلك للاطلاع على واقعه الفني والإنتاجي، وبحث سبل إعادة تأهيله وإعادته إلى العمل.' . "\n\n" .
+                    'وخلال الزيارة، اطّلع الوزير والوفد المرافق على أقسام المعمل والبنى التحتية، وجرى تقييم الأضرار والاحتياجات الفنية اللازمة لإعادة التأهيل في إطار الجهود الرامية إلى إحياء المنشآت الصناعية المتوقفة ودعم القطاع الصناعي الوطني.' . "\n\n" .
+                    'وأكد الوزير الشعار أهمية معمل سكر مسكنة كمنشأة إستراتيجية، مشدداً على ضرورة وضع خطة تأهيل متكاملة تسهم في استعادة دوره الإنتاجي وتعزيز الأمن الغذائي، بما ينسجم مع توجهات الوزارة في تنشيط الصناعة المحلية.',
+                'content_en' => 'Economy Minister Dr. Nidal Al-Shaar, accompanied by Deputy Minister Basel Abdel Hanan, conducted a field visit to the Maskana Sugar Factory to assess its technical and production status and discuss rehabilitation plans. The Minister emphasized the factory\'s strategic importance and the need for a comprehensive rehabilitation plan to restore its production role and strengthen food security.',
+                'seo_description_ar' => 'وزير الاقتصاد والصناعة يتفقد معمل سكر مسكنة ويبحث خطة إعادة تأهيله لاستعادة دوره الإنتاجي.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 8,
                 'published_at' => now()->subDays(4),
                 'metadata' => [
-                    'directorate_id' => 'd1',
-                    'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800',
-                    'category_label' => 'تشريعات',
-                    'is_breaking' => true
+                    'image' => '/storage/images/news/maskana-sugar-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/maskana-sugar-featured.jpeg',
+                        '/storage/images/news/maskana-sugar-2.jpeg',
+                    ],
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '4 دقائق',
+                    'category_label' => 'زيارات ميدانية',
                 ],
+                'tags' => ['صناعة', 'سكر', 'إعادة تأهيل', 'مسكنة'],
             ],
-            // d1 (Industry)
+            // Article 5 — MOU with Al-Maaref University (أخبار المديرية المركزية)
             [
-                'title_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب',
-                'title_en' => 'Opening of New Industrial Zone in Aleppo',
-                'content_ar' => 'افتتح السيد الوزير المنطقة الصناعية الجديدة في حلب بمساحة 500 هكتار. تتضمن المنطقة بنية تحتية متكاملة ومرافق خدمية للمنشآت الصناعية.',
-                'content_en' => 'The Minister inaugurated the new industrial zone in Aleppo spanning 500 hectares.',
-                'seo_description_ar' => 'افتتاح المنطقة الصناعية الجديدة في حلب بمساحة 500 هكتار.',
+                'title_ar' => 'مذكرة تفاهم بين وزارة الاقتصاد والصناعة وجامعة المعارف لدعم التطوير الصناعي',
+                'title_en' => 'MOU Between Ministry of Economy and Al-Maaref University to Support Industrial Development',
+                'content_ar' => 'وقّعت وزارة الاقتصاد والصناعة مذكرة تفاهم مع جامعة المعارف للعلوم التطبيقية الخاصة الواقعة في مدينة سرمدا، بهدف تعزيز التعاون المشترك في مجالات البحث العلمي والتطوير الصناعي، وبناء القدرات الفنية والتقنية، وتبادل الخبرات بما يخدم القطاع الصناعي الوطني.' . "\n\n" .
+                    'وتهدف المذكرة إلى رفع كفاءة المنشآت الصناعية عبر تقديم خدمات استشارية وتدريبية، ودعم هيئة المواصفات والمقاييس السورية ومراكز الاختبارات الصناعية وفق المعايير الدولية، إضافة إلى توفير فرص تدريبية لطلاب الجامعة في المصانع والشركات التابعة للوزارة، والاستفادة من البنية التحتية والمخابر ومراكز الأبحاث لدى الطرفين.' . "\n\n" .
+                    'وتشمل مجالات التعاون تنفيذ بحوث تطبيقية مشتركة، وتنظيم برامج تدريبية وورش عمل متخصصة، وتبادل الخبراء، والتعاون في تنظيم الفعاليات العلمية والابتكارية ذات الصلة بالقطاع الصناعي.',
+                'content_en' => 'The Ministry of Economy and Industry signed an MOU with Al-Maaref University of Applied Sciences in Sarmada to enhance cooperation in scientific research, industrial development, and capacity building. The MOU covers consulting services, training programs, joint applied research, and expert exchange to support the national industrial sector.',
+                'seo_description_ar' => 'مذكرة تفاهم بين وزارة الاقتصاد والصناعة وجامعة المعارف لتعزيز البحث العلمي والتطوير الصناعي.',
+                'category' => 'news',
+                'status' => 'published',
+                'featured' => false,
+                'priority' => 8,
+                'published_at' => now()->subDays(5),
+                'metadata' => [
+                    'image' => '/storage/images/news/maaref-university-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/maaref-university-featured.jpeg',
+                        '/storage/images/news/maaref-university-2.jpeg',
+                        '/storage/images/news/maaref-university-3.jpeg',
+                    ],
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '4 دقائق',
+                    'category_label' => 'اتفاقيات',
+                ],
+                'tags' => ['اتفاقيات', 'جامعات', 'بحث علمي', 'تطوير صناعي'],
+            ],
+            // Article 6 — Gulfood 2026 Dubai (المديرية العامة للاقتصاد)
+            [
+                'title_ar' => 'مدير عام هيئة تنمية ودعم الإنتاج المحلي والصادرات يجري جولة على أجنحة الشركات السورية في معرض جولفود 2026 بدبي',
+                'title_en' => 'Director General Tours Syrian Company Pavilions at Gulfood 2026 Dubai',
+                'content_ar' => 'مدير عام هيئة تنمية ودعم الإنتاج المحلي والصادرات منهل الفارس يجري جولة على أجنحة الشركات السورية المشاركة في معرض الخليج للأغذية "جولفود 2026" بدبي.',
+                'content_en' => 'Director General of the Local Production and Exports Development Authority, Manhal Al-Fares, toured the Syrian company pavilions participating in Gulfood 2026 exhibition in Dubai.',
+                'seo_description_ar' => 'جولة على أجنحة الشركات السورية المشاركة في معرض جولفود 2026 بدبي.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 7,
-                'published_at' => now()->subDays(5),
-                'metadata' => [
-                    'directorate_id' => 'd1',
-                    'image' => 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&q=80&w=800',
-                    'category_label' => 'مناطق صناعية'
-                ],
-            ],
-            // d2 (Economy) - Grid Articles
-            [
-                'title_ar' => 'توقيع اتفاقيات تجارية مع 5 دول عربية',
-                'title_en' => 'Signing Trade Agreements with 5 Arab Countries',
-                'content_ar' => 'وقعت وزارة الاقتصاد والصناعة اتفاقيات تبادل تجاري مع خمس دول عربية لتعزيز الصادرات السورية. تتضمن الاتفاقيات تسهيلات جمركية وحصص تفضيلية.',
-                'content_en' => 'The Ministry signed trade agreements with five Arab countries to boost Syrian exports.',
-                'seo_description_ar' => 'توقيع اتفاقيات تبادل تجاري مع خمس دول عربية لتعزيز الصادرات.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 6,
                 'published_at' => now()->subDays(6),
                 'metadata' => [
                     'directorate_id' => 'd2',
-                    'image' => 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للاقتصاد',
+                    'image' => '/storage/images/news/gulfood-2026-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/gulfood-2026-featured.jpeg',
+                        '/storage/images/news/gulfood-2026-2.jpeg',
+                        '/storage/images/news/gulfood-2026-3.jpeg',
+                    ],
+                    'author' => 'المكتب الإعلامي',
                     'read_time' => '3 دقائق',
-                    'category_label' => 'تجارة خارجية'
+                    'category_label' => 'معارض دولية',
                 ],
+                'tags' => ['اقتصاد', 'معارض', 'صادرات', 'دبي', 'جولفود'],
             ],
-            // d1 (Industry)
+            // Article 7 — Syrian Grain Corp Euphrates Tour (التجارة الداخلية وحماية المستهلك)
             [
-                'title_ar' => 'إطلاق منصة التراخيص الصناعية الإلكترونية',
-                'title_en' => 'Launch of Electronic Industrial Licensing Platform',
-                'content_ar' => 'أطلقت الوزارة منصة إلكترونية جديدة لإصدار التراخيص الصناعية تختصر الإجراءات من 30 يوماً إلى 5 أيام. المنصة متاحة على مدار الساعة.',
-                'content_en' => 'The Ministry launched a new electronic platform for industrial licenses reducing processing from 30 to 5 days.',
-                'seo_description_ar' => 'إطلاق منصة إلكترونية جديدة لإصدار التراخيص الصناعية.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 6,
-                'published_at' => now()->subDays(7),
-                'metadata' => [
-                    'directorate_id' => 'd1',
-                    'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للصناعة',
-                    'read_time' => '4 دقائق',
-                    'category_label' => 'خدمات إلكترونية'
-                ],
-            ],
-            // d3 (Internal Trade & Consumer Protection)
-            [
-                'title_ar' => 'مهرجان التسوق صنع في سوريا',
-                'title_en' => 'Made in Syria Shopping Festival',
-                'content_ar' => 'انطلاق فعاليات مهرجان التسوق "صنع في سوريا" بمشاركة أكثر من 200 شركة صناعية. يهدف المهرجان إلى دعم المنتج المحلي وتشجيع الصناعة الوطنية.',
-                'content_en' => 'Launch of the "Made in Syria" shopping festival with over 200 industrial companies participating.',
-                'seo_description_ar' => 'انطلاق مهرجان التسوق صنع في سوريا بمشاركة 200 شركة صناعية.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 5,
-                'published_at' => now()->subDays(8),
-                'metadata' => [
-                    'directorate_id' => 'd3',
-                    'image' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'غرفة صناعة دمشق',
-                    'read_time' => '2 دقائق',
-                    'category_label' => 'فعاليات'
-                ],
-            ],
-            // d3 (Internal Trade & Consumer Protection) - Additional news
-            [
-                'title_ar' => 'حملة رقابية على الأسواق لضبط الأسعار',
-                'title_en' => 'Market Control Campaign to Regulate Prices',
-                'content_ar' => 'نفذت الإدارة العامة للتجارة الداخلية وحماية المستهلك حملة رقابية مكثفة على الأسواق أسفرت عن ضبط مخالفات سعرية وتحرير محاضر ضبط.',
-                'content_en' => 'The General Administration for Internal Trade executed a market control campaign resulting in price violation fines.',
-                'seo_description_ar' => 'حملة رقابية على الأسواق لضبط الأسعار والمخالفات التموينية.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 6,
-                'published_at' => now()->subDays(9),
-                'metadata' => [
-                    'directorate_id' => 'd3',
-                    'image' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للتجارة الداخلية',
-                    'read_time' => '3 دقائق',
-                    'category_label' => 'حماية المستهلك'
-                ],
-            ],
-            // d2 (Economy) - Additional news
-            [
-                'title_ar' => 'ورشة عمل لدعم رواد الأعمال الشباب',
-                'title_en' => 'Workshop to Support Young Entrepreneurs',
-                'content_ar' => 'نظمت هيئة تنمية المشروعات الصغيرة والمتوسطة ورشة عمل تدريبية لدعم رواد الأعمال الشباب في تطوير خطط أعمالهم.',
-                'content_en' => 'The SME Development Authority organized a training workshop to support young entrepreneurs in developing business plans.',
-                'seo_description_ar' => 'ورشة عمل تدريبية لدعم رواد الأعمال الشباب.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 5,
-                'published_at' => now()->subDays(10),
-                'metadata' => [
-                    'directorate_id' => 'd2',
-                    'image' => 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للاقتصاد',
-                    'read_time' => '3 دقائق',
-                    'category_label' => 'ريادة أعمال'
-                ],
-            ],
-            // d2 (Economy) - Damascus Fair
-            [
-                'title_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة',
-                'title_en' => 'Damascus International Fair Opens with Over 40 Countries Participating',
-                'content_ar' => 'افتتح السيد الوزير معرض دمشق الدولي في دورته الجديدة بمشاركة أكثر من 40 دولة و1500 شركة محلية ودولية. يستمر المعرض لمدة عشرة أيام ويضم أجنحة متخصصة في الصناعة والتجارة والتكنولوجيا.',
-                'content_en' => 'The Minister inaugurated the Damascus International Fair with over 40 countries and 1500 companies participating.',
-                'seo_description_ar' => 'افتتاح معرض دمشق الدولي بمشاركة أكثر من 40 دولة و1500 شركة.',
+                'title_ar' => 'جولة ميدانية لمدير عام المؤسسة السورية للحبوب على الصوامع والمطاحن والأفران في منطقة الفرات',
+                'title_en' => 'Syrian Grain Corporation Director General Field Tour of Silos, Mills and Bakeries in Euphrates Region',
+                'content_ar' => 'أجرى المدير العام للمؤسسة السورية للحبوب "حسن العثمان" جولة ميدانية شملت صوامع الفرات؛ حيث اطّلع على واقعها الفني، ووجّه بإجراء الجرود اللازمة تمهيداً للبدء بأعمال تأهيلها وإعادة تفعيلها.' . "\n\n" .
+                    'وشملت الجولة زيارة مطحنة العشرة ومطحنة الفرات، واطّلع على واقع العمل والإنتاج؛ وناقش سبل تحسين الأداء وضمان استمرارية العمل وفق المعايير المعتمدة.' . "\n\n" .
+                    'وأشرف "العثمان" خلال جولته على توزيع مادة الدقيق في منطقة الشدادة، وزار عدداً من الأفران الخاصة إضافة إلى فرن المؤسسة؛ للاطلاع على جودة الخبز المنتج، والاستماع إلى شكاوى وملاحظات الأهالي، واتخاذ الإجراءات اللازمة لمعالجتها.' . "\n\n" .
+                    'وفي إطار تعزيز الاستقرار الخدمي، تم تأمين مادة الطحين لمنطقتي اليعربية وتل حميس، إضافة إلى تأمين كوادر فنية وإدارية للعمل في المنطقتين؛ بما يضمن استمرارية تقديم الخدمة.' . "\n\n" .
+                    'كما شملت الجولة زيارة صوامع صباح الخير؛ حيث تم الاطلاع على واقعها، وتأمين الحراسات اللازمة للحفاظ على المنشآت وضمان سلامتها.',
+                'content_en' => 'The Director General of the Syrian Grain Corporation, Hassan Al-Othman, conducted a field tour of Euphrates silos, Al-Ashara and Euphrates mills, inspecting their technical status and production. He supervised flour distribution in Al-Shaddadeh, visited bakeries to assess bread quality, secured flour supply for Al-Yaarubiyah and Tal Hamis, and inspected Sabah Al-Khair silos to ensure facility safety.',
+                'seo_description_ar' => 'جولة ميدانية لمدير عام المؤسسة السورية للحبوب على الصوامع والمطاحن والأفران في منطقة الفرات.',
                 'category' => 'news',
                 'status' => 'published',
                 'featured' => false,
                 'priority' => 7,
-                'published_at' => now()->subDays(11),
-                'metadata' => [
-                    'directorate_id' => 'd2',
-                    'image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للاقتصاد',
-                    'read_time' => '4 دقائق',
-                    'category_label' => 'معارض',
-                ],
-            ],
-            // d3 (Internal Trade & Consumer Protection) - Additional news
-            [
-                'title_ar' => 'تسجيل علامات تجارية جديدة لمنتجات سورية',
-                'title_en' => 'Registration of New Trademarks for Syrian Products',
-                'content_ar' => 'أعلنت مديرية حماية الملكية التجارية والصناعية عن تسجيل 150 علامة تجارية جديدة لمنتجات سورية خلال الشهر الماضي.',
-                'content_en' => 'The Intellectual Property Directorate announced registration of 150 new trademarks for Syrian products.',
-                'seo_description_ar' => 'تسجيل علامات تجارية جديدة لمنتجات سورية.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 5,
-                'published_at' => now()->subDays(11),
+                'published_at' => now()->subDays(7),
                 'metadata' => [
                     'directorate_id' => 'd3',
-                    'image' => 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للتجارة الداخلية',
-                    'read_time' => '2 دقائق',
-                    'category_label' => 'علامات تجارية'
+                    'image' => '/storage/images/news/grain-corp-featured.jpeg',
+                    'images' => [
+                        '/storage/images/news/grain-corp-featured.jpeg',
+                        '/storage/images/news/grain-corp-2.jpeg',
+                        '/storage/images/news/grain-corp-3.jpeg',
+                        '/storage/images/news/grain-corp-4.jpeg',
+                        '/storage/images/news/grain-corp-5.jpeg',
+                    ],
+                    'author' => 'المكتب الإعلامي',
+                    'read_time' => '5 دقائق',
+                    'category_label' => 'أمن غذائي',
                 ],
-            ],
-            // d3 (Internal Trade & Consumer Protection) - Consumer App
-            [
-                'title_ar' => 'إطلاق تطبيق حماية المستهلك الإلكتروني',
-                'title_en' => 'Launch of Electronic Consumer Protection App',
-                'content_ar' => 'أطلقت الإدارة العامة للتجارة الداخلية وحماية المستهلك تطبيقاً إلكترونياً جديداً يتيح للمواطنين تقديم شكاوى المستهلكين ومتابعتها والاطلاع على نشرات الأسعار الرسمية بشكل فوري. التطبيق متاح على أندرويد وآيفون.',
-                'content_en' => 'The General Administration for Internal Trade and Consumer Protection launched a new app enabling citizens to file consumer complaints, track them, and view official price bulletins.',
-                'seo_description_ar' => 'إطلاق تطبيق حماية المستهلك الإلكتروني لتقديم الشكاوى ومتابعة الأسعار.',
-                'category' => 'news',
-                'status' => 'published',
-                'featured' => false,
-                'priority' => 6,
-                'published_at' => now()->subDays(13),
-                'metadata' => [
-                    'directorate_id' => 'd3',
-                    'image' => 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=800',
-                    'author' => 'الإدارة العامة للتجارة الداخلية',
-                    'read_time' => '3 دقائق',
-                    'category_label' => 'خدمات إلكترونية'
-                ],
+                'tags' => ['تجارة داخلية', 'حبوب', 'صوامع', 'أفران', 'الفرات'],
             ],
         ];
 
+        $createdNews = [];
         foreach ($news as $item) {
             $item['slug'] = Str::slug($item['title_en'] . '-' . uniqid());
-            Content::create($item);
+            $createdNews[] = Content::create($item);
+        }
+
+        // Seed content attachments for multi-image articles
+        $this->seedNewsAttachments($createdNews);
+    }
+
+    private function seedNewsAttachments(array $createdNews): void
+    {
+        // Define attachment image mappings per article (index matches $createdNews order)
+        $attachmentMappings = [
+            // Article 1 — Omran Egypt (16 extra images beyond featured)
+            0 => [
+                'omran-egypt-1.jpeg', 'omran-egypt-2.jpeg', 'omran-egypt-3.jpeg', 'omran-egypt-4.jpeg',
+                'omran-egypt-5.jpeg', 'omran-egypt-6.jpeg', 'omran-egypt-7.jpeg', 'omran-egypt-8.jpeg',
+                'omran-egypt-9.jpeg', 'omran-egypt-10.jpeg', 'omran-egypt-11.jpeg', 'omran-egypt-12.jpeg',
+                'omran-egypt-13.jpeg', 'omran-egypt-14.jpeg', 'omran-egypt-15.jpeg', 'omran-egypt-16.jpeg',
+            ],
+            // Article 2 — Deir ez-Zor (2 extra)
+            1 => [
+                'deir-ezzor-meeting-2.jpeg', 'deir-ezzor-meeting-3.jpeg',
+            ],
+            // Article 3 — Riyadh Cables (no extras, only featured)
+            // Article 4 — Maskana Sugar (1 extra)
+            3 => [
+                'maskana-sugar-2.jpeg',
+            ],
+            // Article 5 — Al-Maaref University (2 extra)
+            4 => [
+                'maaref-university-2.jpeg', 'maaref-university-3.jpeg',
+            ],
+            // Article 6 — Gulfood (2 extra)
+            5 => [
+                'gulfood-2026-2.jpeg', 'gulfood-2026-3.jpeg',
+            ],
+            // Article 7 — Grain Corp (4 extra)
+            6 => [
+                'grain-corp-2.jpeg', 'grain-corp-3.jpeg', 'grain-corp-4.jpeg', 'grain-corp-5.jpeg',
+            ],
+        ];
+
+        foreach ($attachmentMappings as $articleIndex => $images) {
+            $content = $createdNews[$articleIndex];
+            foreach ($images as $order => $imageName) {
+                $filePath = 'public/images/news/' . $imageName;
+                $fullPath = storage_path('app/' . $filePath);
+                $fileSize = file_exists($fullPath) ? filesize($fullPath) : 0;
+
+                ContentAttachment::create([
+                    'content_id' => $content->id,
+                    'file_name' => $imageName,
+                    'file_path' => $filePath,
+                    'file_type' => 'image',
+                    'mime_type' => 'image/jpeg',
+                    'file_size' => $fileSize,
+                    'title_ar' => $content->title_ar . ' - صورة ' . ($order + 2),
+                    'title_en' => $content->title_en . ' - Image ' . ($order + 2),
+                    'display_order' => $order + 1,
+                    'is_public' => true,
+                ]);
+            }
         }
     }
 

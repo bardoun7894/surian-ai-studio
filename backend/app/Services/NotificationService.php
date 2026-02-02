@@ -59,17 +59,17 @@ class NotificationService
         }
 
         try {
-            // Send email
-            Mail::to($user->email)->send(new NotificationMail(
+            // Queue email for async delivery
+            Mail::to($user->email)->queue(new NotificationMail(
                 $title,
                 $body,
                 $data,
                 $actionUrl
             ));
 
-            Log::info("Email notification sent to {$user->email} for type: {$type}");
+            Log::info("Email notification queued for {$user->email} for type: {$type}");
         } catch (\Exception $e) {
-            Log::error("Failed to send email notification to {$user->email}: {$e->getMessage()}");
+            Log::error("Failed to queue email notification for {$user->email}: {$e->getMessage()}");
         }
     }
 
@@ -369,14 +369,14 @@ class NotificationService
             }
         }
 
-        // Send email notification to suggestion email (even for anonymous submissions)
+        // Queue email notification to suggestion email (even for anonymous submissions)
         if ($suggestion->email) {
             try {
                 $title = 'تحديث حالة الاقتراح';
                 $body = "تم تغيير حالة اقتراحك رقم {$suggestion->tracking_number} من \"{$oldLabel}\" إلى \"{$newLabel}\"";
                 $actionUrl = url('/suggestions/track?id=' . $suggestion->tracking_number);
 
-                Mail::to($suggestion->email)->send(new NotificationMail(
+                Mail::to($suggestion->email)->queue(new NotificationMail(
                     $title,
                     $body,
                     [
@@ -386,9 +386,9 @@ class NotificationService
                     ],
                     $actionUrl
                 ));
-                Log::info("Suggestion status email sent to {$suggestion->email}");
+                Log::info("Suggestion status email queued for {$suggestion->email}");
             } catch (\Exception $e) {
-                Log::error("Failed to send suggestion status email to {$suggestion->email}: {$e->getMessage()}");
+                Log::error("Failed to queue suggestion status email for {$suggestion->email}: {$e->getMessage()}");
             }
         }
 

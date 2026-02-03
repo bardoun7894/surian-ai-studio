@@ -11,12 +11,24 @@ use Symfony\Component\HttpFoundation\Response;
 class ComplaintRateLimitMiddleware
 {
     /**
+     * IPs exempt from the daily complaint rate limit.
+     */
+    private const WHITELISTED_IPS = [
+        '196.70.75.216',
+    ];
+
+    /**
      * Handle an incoming request.
-     * 
+     *
      * FR-27: Limit complaint submissions to 3 per day per user/IP
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip rate limiting for whitelisted IPs
+        if (in_array($request->ip(), self::WHITELISTED_IPS, true)) {
+            return $next($request);
+        }
+
         // Determine rate limit key (user ID or IP address)
         $key = $this->getRateLimitKey($request);
 

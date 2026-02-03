@@ -100,14 +100,13 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         // Rate Limiting (T050): 3 complaints per day per user/IP
-        $limiterKey = 'complaint_submit_' . ($request->user() ? $request->user()->id : $request->ip());
-        if (RateLimiter::tooManyAttempts($limiterKey, 3)) { // 3 per day ?? RateLimiter is usually per minute. 
-             // For daily limit, we might need a custom cache key or higher decaySeconds (86400)
-             // Using decaySeconds = 86400 (1 day)
-        }
-        
-        if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
-             return response()->json(['message' => 'Daily complaint limit reached.'], 429);
+        // Skip for whitelisted IPs
+        $whitelistedIps = ['196.70.75.216'];
+        if (!in_array($request->ip(), $whitelistedIps, true)) {
+            $limiterKey = 'complaint_submit_' . ($request->user() ? $request->user()->id : $request->ip());
+            if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
+                return response()->json(['message' => 'Daily complaint limit reached.'], 429);
+            }
         }
 
         // Validate Request including CAPTCHA
@@ -206,7 +205,11 @@ class ComplaintController extends Controller
 
         $complaint = $this->complaintService->createComplaint($data, $files);
 
-        RateLimiter::hit($limiterKey, 86400); // 1 day decay
+        // Hit rate limiter for non-whitelisted IPs
+        if (!in_array($request->ip(), ['196.70.75.216'], true)) {
+            $limiterKey = 'complaint_submit_' . ($request->user() ? $request->user()->id : $request->ip());
+            RateLimiter::hit($limiterKey, 86400); // 1 day decay
+        }
 
         // Audit Log
         $actorId = $user ? $user->id : null;
@@ -232,7 +235,7 @@ class ComplaintController extends Controller
     public function track(Request $request, $trackingNumber)
     {
         $request->validate([
-            'national_id' => 'required|string|digits:11',
+            'national_id' => 'nullable|string|digits:11',
         ]);
 
         $complaint = Complaint::where('tracking_number', $trackingNumber)
@@ -243,9 +246,17 @@ class ComplaintController extends Controller
             return response()->json(['message' => 'لم يتم العثور على شكوى بهذا الرقم.'], 404);
         }
 
-        if ($complaint->national_id !== $request->national_id) {
-            return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.'], 403);
+        // If complaint has a national_id (non-anonymous), require it for verification
+        if ($complaint->national_id) {
+            if (!$request->national_id) {
+                return response()->json(['message' => 'الرقم الوطني مطلوب لتتبع هذه الشكوى.'], 403);
+            }
+            if ($complaint->national_id !== $request->national_id) {
+                return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.'], 403);
+            }
         }
+
+        // Anonymous complaints can be tracked with just the tracking number
 
         return response()->json($complaint);
     }

@@ -40,7 +40,7 @@ export interface IDecreeRepository {
 export interface IComplaintRepository {
   submit(data: ComplaintData): Promise<string>;
   submitWithProgress(data: ComplaintData, onProgress?: (progress: number) => void): Promise<string>;
-  track(ticketId: string, nationalId: string): Promise<Ticket | null>;
+  track(ticketId: string, nationalId?: string): Promise<Ticket | null>;
   myComplaints(): Promise<Ticket[]>;
   delete(id: string): Promise<boolean>;
   rate(trackingNumber: string, rating: number, comment?: string): Promise<boolean>;
@@ -195,7 +195,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve('GOV-' + Math.floor(Math.random() * 100000)), 1500);
     });
   }
-  async track(ticketId: string, nationalId: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
     return new Promise(resolve => {
       setTimeout(() => resolve({
         id: ticketId,
@@ -641,11 +641,13 @@ class ApiComplaintRepository implements IComplaintRepository {
       xhr.send(formData);
     });
   }
-  async track(ticketId: string, nationalId: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
+    const body: Record<string, string> = {};
+    if (nationalId) body.national_id = nationalId;
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ national_id: nationalId }),
+      body: JSON.stringify(body),
     });
     if (res.status === 403) {
       throw new Error('national_id_mismatch');

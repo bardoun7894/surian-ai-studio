@@ -153,6 +153,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [trackingResult, setTrackingResult] = useState<Ticket | null>(null);
     const [isTracking, setIsTracking] = useState(false);
     const [trackError, setTrackError] = useState<string | null>(null);
+    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -342,8 +343,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         setTrackError(null);
         setTrackingResult(null);
 
-        // Validate national ID: must be exactly 11 numeric digits
-        if (!/^\d{11}$/.test(trackNationalId)) {
+        // Validate national ID only for identified mode
+        if (trackMode === 'identified' && !/^\d{11}$/.test(trackNationalId)) {
             setTrackError(t('complaint_national_id_invalid'));
             toast.error(t('complaint_national_id_invalid'));
             setIsTracking(false);
@@ -351,7 +352,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
 
         try {
-            const result = await API.complaints.track(trackId, trackNationalId);
+            const result = await API.complaints.track(
+                trackId,
+                trackMode === 'identified' ? trackNationalId : undefined
+            );
             if (result) {
                 setTrackingResult(result);
                 toast.success(t('complaint_found'), {
@@ -1040,6 +1044,39 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 <p className="text-gray-500 dark:text-white/70">{t('complaint_track_subtitle')}</p>
                             </div>
 
+                            {/* Track Mode Toggle */}
+                            <div className="max-w-lg mx-auto mb-6">
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20 dark:border-gov-border/25">
+                                    <div className="flex items-center justify-center gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTrackMode('identified'); setTrackingResult(null); setTrackError(null); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'identified'
+                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                                }`}
+                                        >
+                                            <Fingerprint size={16} />
+                                            {t('complaint_track_identified')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTrackMode('anonymous'); setTrackingResult(null); setTrackError(null); setTrackNationalId(''); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'anonymous'
+                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                                }`}
+                                        >
+                                            <UserX size={16} />
+                                            {t('complaint_track_anonymous')}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
+                                        {trackMode === 'identified' ? t('complaint_track_identified_desc') : t('complaint_track_anonymous_desc')}
+                                    </p>
+                                </div>
+                            </div>
+
                             <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
@@ -1052,21 +1089,23 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="\d{11}"
-                                        maxLength={11}
-                                        minLength={11}
-                                        placeholder={t('complaint_national_id_placeholder')}
-                                        value={trackNationalId}
-                                        onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
-                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                        required
-                                    />
-                                </div>
+                                {trackMode === 'identified' && (
+                                    <div className="animate-fade-in">
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="\d{11}"
+                                            maxLength={11}
+                                            minLength={11}
+                                            placeholder={t('complaint_national_id_placeholder')}
+                                            value={trackNationalId}
+                                            onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                            required
+                                        />
+                                    </div>
+                                )}
                                 <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>

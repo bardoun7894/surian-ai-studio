@@ -106,7 +106,7 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
                     className="w-full py-2.5 rounded-lg bg-gov-forest dark:bg-gov-button text-white font-bold text-sm hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                     {isSubmitting ? t('rating_sending') : t('rating_submit')}
-                    {!isSubmitting && <Send size={16} className={language === 'ar' ? 'rotate-180' : ''} />}
+                    {!isSubmitting && <Send size={16} className={language === 'ar' ? '-scale-x-100' : ''} />}
                 </button>
             </form>
         </div>

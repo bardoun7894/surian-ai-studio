@@ -41,6 +41,7 @@ export default function MediaPage() {
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
+  const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -131,16 +132,27 @@ export default function MediaPage() {
     setPlayingVideo(null);
   };
 
-  const handleDownload = (item: MediaItem, e: React.MouseEvent) => {
+  const handleDownload = async (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (item.url) {
+    const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
+    if (!url) return;
+
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const ext = blob.type.split('/')[1]?.split('+')[0] || url.split('.').pop()?.split('?')[0] || 'jpg';
+      const filename = `${item.title || 'download'}.${ext}`;
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = item.url;
-      link.download = item.title || 'download';
-      link.target = '_blank';
+      link.href = blobUrl;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Fallback: open in new tab
+      window.open(url, '_blank');
     }
   };
 
@@ -263,9 +275,16 @@ export default function MediaPage() {
                 return (
                   <div
                     key={item.id}
+                    onClick={() => {
+                      if (item.type === 'photo' || item.type === 'infographic') {
+                        setExpandedImage(item);
+                      }
+                    }}
                     className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
                       viewMode === 'list' ? 'flex' : ''
-                    } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1`}
+                    } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
+                      item.type !== 'video' ? 'cursor-pointer' : ''
+                    }`}
                   >
                     {/* Thumbnail / Inline Video Player */}
                     <div className={`relative overflow-hidden ${
@@ -508,6 +527,53 @@ export default function MediaPage() {
                     </span>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Image Lightbox Modal */}
+        {expandedImage && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setExpandedImage(null)}
+          >
+            <div
+              className="relative max-w-5xl max-h-[90vh] w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setExpandedImage(null)}
+                className="absolute -top-12 right-0 rtl:right-auto rtl:left-0 z-10 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
+                aria-label={isAr ? 'إغلاق' : 'Close'}
+              >
+                <X size={20} />
+              </button>
+
+              <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden bg-black">
+                <Image
+                  src={expandedImage.thumbnailUrl || expandedImage.url || ''}
+                  alt={expandedImage.title}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between text-white">
+                <div>
+                  <h3 className="text-lg font-bold">{expandedImage.title}</h3>
+                  <span className="text-sm text-gray-300 flex items-center gap-1 mt-1">
+                    <Calendar size={14} />
+                    {expandedImage.date}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => handleDownload(expandedImage, e)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-bold transition-colors"
+                >
+                  <Download size={16} />
+                  {isAr ? 'تحميل' : 'Download'}
+                </button>
               </div>
             </div>
           </div>

@@ -66,7 +66,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                                 <div key={idx} className={`py-2 ${isMultiSection ? 'flex-1 min-w-[200px]' : ''}`}>
                                     {section.title && (
                                         <div className="px-4 pt-2 pb-2 mb-1">
-                                            <span className="text-[10px] font-bold text-gov-sand uppercase tracking-wider">
+                                            <span className="text-[10px] font-bold text-gov-sand dark:text-gov-gold/70 uppercase tracking-wider">
                                                 {section.title}
                                             </span>
                                         </div>
@@ -79,11 +79,11 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                                                 key={itemIdx}
                                                 href={item.href}
                                                 onClick={onClick}
-                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/50 dark:hover:bg-white/8 transition-colors group"
+                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/50 dark:hover:bg-white/10 transition-colors group"
                                             >
                                                 {Icon && (
-                                                    <div className="w-8 h-8 rounded-lg bg-gov-beige/60 dark:bg-white/8 flex items-center justify-center flex-shrink-0 group-hover:bg-gov-gold/15 dark:group-hover:bg-gov-gold/15 transition-colors">
-                                                        <Icon size={16} className="text-gov-forest dark:text-gov-gold" />
+                                                    <div className="w-8 h-8 rounded-lg bg-gov-beige/60 dark:bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gov-gold/15 dark:group-hover:bg-gov-gold/15 transition-colors">
+                                                        <Icon size={16} className="text-gov-forest dark:text-white group-hover:text-gov-gold dark:group-hover:text-gov-gold transition-colors" />
                                                     </div>
                                                 )}
                                                 <div className="min-w-0">

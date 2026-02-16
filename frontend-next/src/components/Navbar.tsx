@@ -156,7 +156,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-16 md:h-20 flex items-center justify-between z-10 relative">
 
         {/* Logo Area */}
-        <Link href="/" className={`flex items-center gap-3 md:gap-4 cursor-pointer group shrink-0 ${language === 'ar' ? '-mr-2' : '-ml-2'}`}>
+        <Link href="/" className={`flex items-center gap-2 md:gap-3 cursor-pointer group shrink-0 ${language === 'ar' ? '-mr-2' : '-ml-2'}`}>
           <Image
             src="/assets/logo/logo-light.png"
             alt="Ministry of Economy and Industry"
@@ -164,6 +164,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             height={120}
             className="h-10 sm:h-14 md:h-16 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
           />
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="text-[10px] md:text-xs text-white/70 font-medium">{t('republic_name')}</span>
+            <span className="text-xs md:text-sm text-white font-bold">{t('ministry_name')}</span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -211,13 +215,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   { label: t('nav_industrial_services'), href: '/services?directorate=industry', icon: Building2 },
                   { label: t('nav_economy_services'), href: '/services?directorate=economy', icon: TrendingUp },
                   { label: t('nav_trade_services'), href: '/services?directorate=trade', icon: Scale },
-                ]
-              },
-              {
-                title: t('nav_for_users'),
-                items: [
-                  { label: t('nav_investors'), href: '/investment', icon: TrendingUp, description: 'Opportunities and regulations' },
-                  { label: t('nav_citizens'), href: '/services', icon: User, description: 'Public services and inquiries' }
                 ]
               }
             ]}
@@ -405,10 +402,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 {servicesMenu.map((item, i) => (
                   <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{item.label}</Link>
                 ))}
-
-                <p className="px-4 py-2 text-xs font-bold text-gray-500 uppercase mt-2">{t('nav_for_users')}</p>
-                <Link href="/investment" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{t('nav_investors')}</Link>
-                <Link href="/services" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{t('nav_citizens')}</Link>
               </div>
 
 

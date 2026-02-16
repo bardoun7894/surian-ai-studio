@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Loader2, Fingerprint } from 'lucide-react';
 import { useNationalIdVerification } from '@/hooks/useNationalIdVerification';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NationalIdFieldProps {
     value: string;
@@ -22,13 +23,15 @@ export default function NationalIdField({
     onChange,
     onVerified,
     onError,
-    label = 'الرقم الوطني',
+    label,
     required = false,
     disabled = false,
     autoVerify = true,
     showVerifyButton = false,
     className = '',
 }: NationalIdFieldProps) {
+    const { language, t } = useLanguage();
+    const resolvedLabel = label !== undefined ? label : t('auth_national_id');
     const {
         verificationStatus,
         verificationMessage,
@@ -107,7 +110,7 @@ export default function NationalIdField({
             case 'mismatch':
                 return 'border-orange-400 focus-within:border-orange-500';
             default:
-                return 'border-gov-gold/20 dark:border-gov-border/15 focus-within:border-gov-emerald';
+                return 'border-gray-200 dark:border-gov-border/25 focus-within:border-gov-teal focus-within:ring-2 focus-within:ring-gov-teal/20';
         }
     })();
 
@@ -148,23 +151,23 @@ export default function NationalIdField({
     return (
         <div className={`w-full ${className}`}>
             {/* Label */}
-            {label && (
-                <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                    {label} {required && <span className="text-gov-cherry">*</span>}
+            {resolvedLabel && (
+                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                    {resolvedLabel} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
 
             {/* Input container */}
-            <div className={`relative flex items-center rounded-xl bg-gov-beige/20 dark:bg-white/10 border outline-none transition-all ${borderClass}`}>
+            <div className={`relative group flex items-center rounded-xl bg-gray-50 dark:bg-white/10 border outline-none transition-all ${borderClass}`}>
                 {/* Fingerprint icon */}
                 <Fingerprint
-                    size={18}
-                    className={`absolute right-4 rtl:right-4 rtl:left-auto transition-colors pointer-events-none
+                    size={20}
+                    className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                         ${verificationStatus === 'verified'
                             ? 'text-emerald-500'
                             : verificationStatus === 'error'
                                 ? 'text-gov-red'
-                                : 'text-gov-sand dark:text-gov-teal/50'
+                                : 'text-gray-400 group-focus-within:text-gov-teal'
                         }`}
                 />
 
@@ -176,57 +179,57 @@ export default function NationalIdField({
                     value={value}
                     onChange={handleChange}
                     disabled={disabled || verificationStatus === 'verifying'}
-                    placeholder="أدخل الرقم الوطني المؤلف من 11 رقماً"
+                    placeholder={language === 'ar' ? 'أدخل الرقم الوطني المؤلف من 11 رقماً' : 'Enter 11-digit National ID'}
                     dir="ltr"
-                    className={`w-full py-3 px-4 pr-12 rtl:pr-12 rtl:pl-4 rounded-xl bg-transparent outline-none text-gov-charcoal dark:text-white placeholder:text-gov-sand disabled:opacity-50 disabled:cursor-not-allowed text-left`}
+                    className={`w-full py-2.5 px-4 ltr:pl-12 rtl:pr-12 rounded-xl bg-transparent outline-none text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-left text-sm`}
                     required={required}
                 />
 
-                {/* Status icon on left side */}
-                <div className="absolute left-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 pointer-events-none">
+                {/* Status icon on opposite side */}
+                <div className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                     <StatusIcon />
                 </div>
             </div>
 
-            {/* Character counter */}
-            <div className="flex items-center justify-between mt-1.5">
-                <div className="flex-1">
-                    {/* Format validation hint while typing */}
-                    {formatValidation && !formatValidation.valid && value.length > 0 && verificationStatus === 'idle' && (
-                        <p className="text-xs text-gov-sand flex items-center gap-1 animate-fade-in">
-                            {formatValidation.error}
-                        </p>
-                    )}
+            {/* Helper text and counter */}
+            <div className="mt-1.5">
+                {/* Format validation hint while typing */}
+                {formatValidation && !formatValidation.valid && value.length > 0 && verificationStatus === 'idle' && (
+                    <p className="text-xs text-gray-500 dark:text-white/60 flex items-center gap-1 animate-fade-in">
+                        {formatValidation.error}
+                    </p>
+                )}
 
-                    {/* Verification status message */}
-                    {verificationMessage && (
-                        <p className={`text-xs flex items-center gap-1.5 animate-fade-in ${messageClass}`}>
-                            <StatusIcon />
-                            {verificationMessage}
-                        </p>
-                    )}
+                {/* Verification status message */}
+                {verificationMessage && (
+                    <p className={`text-xs flex items-center gap-1.5 animate-fade-in ${messageClass}`}>
+                        <StatusIcon />
+                        {verificationMessage}
+                    </p>
+                )}
 
-                    {/* Mismatch details */}
-                    {verificationStatus === 'mismatch' && mismatchedFields.length > 0 && (
-                        <div className="mt-1 space-y-0.5">
-                            {mismatchedFields.map((field, idx) => (
-                                <p key={idx} className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
-                                    <AlertTriangle size={12} />
-                                    {field.label}
-                                </p>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                {/* Mismatch details */}
+                {verificationStatus === 'mismatch' && mismatchedFields.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                        {mismatchedFields.map((field, idx) => (
+                            <p key={idx} className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                <AlertTriangle size={12} />
+                                {field.label}
+                            </p>
+                        ))}
+                    </div>
+                )}
 
                 {/* Counter */}
-                <span className={`text-xs tabular-nums shrink-0 mr-2 rtl:mr-0 rtl:ml-2 ${
-                    value.length === 11
-                        ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                        : 'text-gov-sand'
-                }`}>
-                    {value.length}/11
-                </span>
+                {value.length > 0 && (
+                    <p className={`text-xs tabular-nums mt-0.5 ${
+                        value.length === 11
+                            ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                            : 'text-gray-500 dark:text-white/60'
+                    }`}>
+                        {value.length}/11
+                    </p>
+                )}
             </div>
 
             {/* Manual verify button */}
@@ -238,7 +241,7 @@ export default function NationalIdField({
                     className="mt-2 w-full py-2 px-4 rounded-xl bg-gov-forest text-white text-sm font-semibold hover:bg-gov-forest/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     <Fingerprint size={16} />
-                    التحقق من السجل المدني
+                    {t('national_id_verify_button')}
                 </button>
             )}
         </div>

@@ -488,7 +488,8 @@ class ApiDirectorateRepository implements IDirectorateRepository {
   async getFeatured(): Promise<Directorate[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/featured`);
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
 }
 
@@ -2441,7 +2442,7 @@ export const API = {
           method: 'POST',
           credentials: 'include',
           headers,
-          body: JSON.stringify({ content_type: contentType, content_id: contentId, metadata }),
+          body: JSON.stringify({ content_type: contentType, content_id: String(contentId), metadata }),
         });
         return res.ok || res.status === 409;
       } catch { return false; }
@@ -2480,7 +2481,9 @@ export const API = {
           body: JSON.stringify({ items }),
         });
         if (!res.ok) return {};
-        return res.json();
+        const json = await res.json();
+        // Handle both { data: {...} } and direct {...} response formats
+        return json?.data ?? json;
       } catch { return {}; }
     },
   },

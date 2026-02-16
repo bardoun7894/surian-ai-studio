@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -25,6 +26,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 const LoginPage = () => {
     const { language } = useLanguage();
     const { login, isAuthenticated } = useAuth();
+    const { startLoading } = useLoading();
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +36,6 @@ const LoginPage = () => {
         phone: '',
         nationalId: '',
         password: '',
-        useWhatsApp: false
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -77,16 +78,19 @@ const LoginPage = () => {
             const response = await login({
                 email: loginIdentifier,
                 password: formData.password,
-                use_whatsapp: formData.useWhatsApp
             });
 
             if (response.require_2fa) {
-                // Redirect to 2FA verification page with email
+                // Show loading badge and redirect to 2FA verification page
+                startLoading();
+                setIsLoading(false);
                 router.replace(`/two-factor?email=${encodeURIComponent(loginIdentifier)}`);
                 return;
             }
 
-            // Role-based redirection
+            // Role-based redirection - show loading badge
+            startLoading();
+            setIsLoading(false);
             if (response.user) {
                 const role = response.user.role?.name?.toLowerCase();
                 if (role === 'admin' || role === 'staff' || role === 'complaint_officer') {
@@ -98,6 +102,8 @@ const LoginPage = () => {
                 router.replace('/dashboard');
             }
         } catch (err) {
+            // Only stop loading on error; successful navigation keeps the spinner visible
+            setIsLoading(false);
             if (err instanceof ApiError) {
                 setError(err.message);
             } else if (err instanceof Error) {
@@ -105,8 +111,6 @@ const LoginPage = () => {
             } else {
                 setError('Login failed');
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -308,68 +312,42 @@ const LoginPage = () => {
                                 <label className="block text-sm font-medium text-gov-charcoal dark:text-white/70 mb-2">
                                     {language === 'ar' ? 'كلمة المرور' : 'Password'}
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-4 focus:ring-gov-teal/5 dark:focus:ring-gov-gold/5 transition-all text-sm"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
+                                        className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
                                     >
-                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* WhatsApp & Remember & Forgot */}
-                            <div className="space-y-4">
-                                <div className="flex flex-col gap-3">
-                                    <label className="flex items-center gap-3 cursor-pointer group select-none">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.useWhatsApp}
-                                                onChange={(e) => setFormData({ ...formData, useWhatsApp: e.target.checked })}
-                                                className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-emerald focus:ring-gov-emerald cursor-pointer opacity-0 absolute inset-0 z-10"
-                                            />
-                                            <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.useWhatsApp ? 'bg-gov-emerald border-gov-emerald' : 'bg-transparent border-gray-300 dark:border-white/20'}`}>
-                                                {formData.useWhatsApp && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-gov-forest dark:text-white/90 group-hover:text-gov-emerald transition-colors">
-                                                {language === 'ar' ? 'تفعيل الدخول عبر الواتساب' : 'Enable WhatsApp Login'}
-                                            </span>
-                                            <span className="text-[10px] text-gray-500 dark:text-white/50">
-                                                {language === 'ar' ? 'سوف يصلك رمز التحقق عبر الواتساب بدلاً من الرسائل النصية' : 'You will receive verification codes via WhatsApp'}
-                                            </span>
-                                        </div>
-                                    </label>
-
-                                    <div className="flex items-center justify-between pt-2">
-                                        <label className="flex items-center gap-3 cursor-pointer group select-none">
-                                            <input
-                                                type="checkbox"
-                                                className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-teal focus:ring-gov-teal cursor-pointer"
-                                            />
-                                            <span className="text-sm text-gray-600 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
-                                                {language === 'ar' ? 'تذكرني' : 'Remember me'}
-                                            </span>
-                                        </label>
-                                        <Link
-                                            href="/forgot-password"
-                                            className="text-sm font-bold text-gov-teal hover:text-gov-gold transition-colors"
-                                        >
-                                            {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
-                                        </Link>
-                                    </div>
-                                </div>
+                            {/* Remember & Forgot */}
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-3 cursor-pointer group select-none">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-teal focus:ring-gov-teal cursor-pointer"
+                                    />
+                                    <span className="text-sm text-gray-600 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
+                                        {language === 'ar' ? 'تذكرني' : 'Remember me'}
+                                    </span>
+                                </label>
+                                <Link
+                                    href="/forgot-password"
+                                    className="text-sm font-bold text-gov-teal hover:text-gov-gold transition-colors"
+                                >
+                                    {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                                </Link>
                             </div>
 
                             {/* Submit Button */}

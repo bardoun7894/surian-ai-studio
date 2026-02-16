@@ -127,7 +127,6 @@ export default function AnnouncementsPage() {
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -144,10 +143,6 @@ export default function AnnouncementsPage() {
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
-
-  // Date range filter state
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
 
   // Reset to page 1 when statusFilter changes
   useEffect(() => {
@@ -189,16 +184,6 @@ export default function AnnouncementsPage() {
     { value: 'tender', label: t('type_tender') },
     { value: 'job', label: t('type_job') },
     { value: 'general', label: t('type_general') },
-  ];
-
-  const categories = [
-    { value: 'all', label: t('filter_all_categories') },
-    { value: 'tender', label: t('cat_tender') },
-    { value: 'job', label: t('cat_job') },
-    { value: 'training', label: t('cat_training') },
-    { value: 'tech', label: t('cat_tech') },
-    { value: 'admin', label: t('cat_admin') },
-    { value: 'finance', label: t('cat_finance') },
   ];
 
   const getTypeStyles = (type: Announcement['type']) => {
@@ -274,11 +259,8 @@ export default function AnnouncementsPage() {
   // Clear all filters
   const clearFilters = () => {
     setStatusFilter('all');
-    setDateFrom('');
-    setDateTo('');
     setSearchQuery('');
     setSelectedType('all');
-    setSelectedCategory('all');
     setSelectedMonth(null);
     setSelectedYear(null);
     setCurrentPage(1);
@@ -290,7 +272,6 @@ export default function AnnouncementsPage() {
     const description = getLocalizedField(announcement, 'description', language as 'ar' | 'en');
     const matchesSearch = !searchQuery.trim() || title.toLowerCase().includes(searchQuery.toLowerCase()) || description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
-    const matchesCategory = selectedCategory === 'all' || announcement.category === selectedCategory;
 
     // Month/Year filtering
     const date = new Date(announcement.date);
@@ -301,14 +282,10 @@ export default function AnnouncementsPage() {
     if (statusFilter === 'active' && isExpired(announcement.expires_at)) return false;
     if (statusFilter === 'expired' && !isExpired(announcement.expires_at)) return false;
 
-    // Date range filter
-    if (dateFrom && announcement.expires_at && new Date(announcement.expires_at) < new Date(dateFrom)) return false;
-    if (dateTo && announcement.expires_at && new Date(announcement.expires_at) > new Date(dateTo)) return false;
-
-    return matchesSearch && matchesType && matchesCategory && matchesMonth && matchesYear;
+    return matchesSearch && matchesType && matchesMonth && matchesYear;
   });
 
-  const hasActiveFilters = statusFilter !== 'all' || dateFrom || dateTo || searchQuery || selectedType !== 'all' || selectedCategory !== 'all' || selectedMonth !== null || selectedYear !== null;
+  const hasActiveFilters = statusFilter !== 'all' || searchQuery || selectedType !== 'all' || selectedMonth !== null || selectedYear !== null;
 
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
@@ -356,44 +333,7 @@ export default function AnnouncementsPage() {
                 ))}
               </div>
 
-              {/* Date Range Filters */}
-              <div className="flex flex-wrap gap-4 items-end mb-6">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
-                    {isAr ? 'من تاريخ' : 'From Date'}
-                  </label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full border border-gov-gold/30 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:border-gov-forest focus:ring-1 focus:ring-gov-forest dark:focus:ring-gov-gold dark:border-gov-border/30 transition-colors"
-                  />
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
-                    {isAr ? 'إلى تاريخ' : 'To Date'}
-                  </label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full border border-gov-gold/30 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:border-gov-forest focus:ring-1 focus:ring-gov-forest dark:focus:ring-gov-gold dark:border-gov-border/30 transition-colors"
-                  />
-                </div>
-
-                {/* Clear Filters Button */}
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gov-charcoal dark:text-white hover:text-gov-red dark:hover:text-red-400 transition-colors"
-                  >
-                    <RotateCcw size={16} />
-                    {isAr ? 'إعادة ضبط' : 'Clear Filters'}
-                  </button>
-                )}
-              </div>
-
-              {/* Additional Filters Row */}
+              {/* Filters Row */}
               <div className="flex flex-wrap gap-4 items-end">
                 {/* Search */}
                 <div className="flex-1 min-w-[250px]">
@@ -433,27 +373,6 @@ export default function AnnouncementsPage() {
                       {types.map(type => (
                         <option key={type.value} value={type.value} className="bg-white dark:bg-dm-surface dark:text-white">
                           {type.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown size={16} className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Category Filter */}
-                <div className="min-w-[160px]">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
-                    {isAr ? 'الفئة' : 'Category'}
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full py-2 px-3 ltr:pr-9 rtl:pl-9 rounded-lg bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/30 text-sm text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-forest transition-colors cursor-pointer appearance-none"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.value} value={cat.value} className="bg-white dark:bg-dm-surface dark:text-white">
-                          {cat.label}
                         </option>
                       ))}
                     </select>
@@ -508,6 +427,19 @@ export default function AnnouncementsPage() {
                     <ChevronDown size={16} className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
+
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <div className="flex items-end">
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gov-charcoal dark:text-white hover:text-gov-red dark:hover:text-red-400 transition-colors"
+                    >
+                      <RotateCcw size={16} />
+                      {isAr ? 'إعادة ضبط' : 'Clear Filters'}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Results Count */}

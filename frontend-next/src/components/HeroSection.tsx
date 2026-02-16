@@ -248,7 +248,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   // Loading skeleton
   if (loading) {
     return (
-      <section className={`relative pt-8 pb-20 md:pt-4 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-4rem)]'} h-auto md:h-[calc(100svh-4rem)] flex items-center justify-center transition-colors duration-700`}>
+      <section className={`relative pt-4 pb-20 md:pt-2 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center transition-colors duration-700`}>
         {/* Backgrounds - Match exact styling of main component to prevent flash/line */}
         <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-brand/30 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
@@ -269,7 +269,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   }
 
   return (
-    <section ref={containerRef} className={`relative pt-8 pb-20 md:pt-4 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-4rem)]'} h-auto md:h-[calc(100svh-4rem)] flex items-center justify-center transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-4 pb-20 md:pt-2 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -463,10 +463,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
 
           {/* Official Pillars - Stats Section */}
-          <div className="flex items-center justify-center gap-8 md:gap-12 mt-4 md:mt-6 border-t border-gov-charcoal/10 dark:border-gov-border/15 pt-4">
+          <div className="flex items-center justify-center gap-8 md:gap-12 mt-4 md:mt-6 border-t border-gov-charcoal/10 dark:border-gov-border/15 pt-4 w-full">
             {/* 24/7 Secure Portal */}
-            <div className="animate-stat text-center group cursor-default">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="animate-stat text-center group cursor-default flex flex-col items-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
                 <ShieldCheck size={18} className="text-gov-forest dark:text-gov-gold group-hover:scale-110 transition-transform" />
                 <span className="text-lg md:text-xl font-display font-bold text-gov-forest dark:text-gov-gold tabular-nums">24/7</span>
               </div>
@@ -476,8 +476,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             <div className="w-px h-8 bg-gov-charcoal/10 dark:bg-gov-border/15" />
 
             {/* 100% Transparency */}
-            <div className="animate-stat text-center group cursor-default">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="animate-stat text-center group cursor-default flex flex-col items-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
                 <FileText size={18} className="text-gov-forest dark:text-gov-gold group-hover:scale-110 transition-transform" />
                 <span className="text-lg md:text-xl font-display font-bold text-gov-forest dark:text-gov-gold tabular-nums">100%</span>
               </div>

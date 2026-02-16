@@ -183,9 +183,9 @@ const RegisterPage = () => {
                         <Image
                             src="/assets/logo/Asset-14@3x.png"
                             alt="Syrian Arab Republic Emblem"
-                            width={160}
-                            height={160}
-                            className="relative z-10 drop-shadow-2xl"
+                            width={120}
+                            height={120}
+                            className="relative z-10 drop-shadow-2xl max-w-[120px] max-h-[120px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -238,13 +238,13 @@ const RegisterPage = () => {
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-8">
+                    <div className="lg:hidden text-center mb-6">
                         <Image
                             src="/assets/logo/Asset-14@3x.png"
                             alt="Emblem"
-                            width={80}
-                            height={80}
-                            className="mx-auto mb-4"
+                            width={64}
+                            height={64}
+                            className="mx-auto mb-3 max-w-[64px] max-h-[64px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -509,14 +509,15 @@ const RegisterPage = () => {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 placeholder={t('reg_password_placeholder')}
-                                                className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 ltr:pl-12 ltr:pr-12 rtl:pr-12 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                                 minLength={8}
                                             />
+                                            <Lock className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
+                                                className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors z-10"
                                             >
                                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
@@ -534,10 +535,10 @@ const RegisterPage = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                                 placeholder={t('reg_reenter_password')}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 ltr:pl-12 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
                                                 required
                                             />
-                                            <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <Lock className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                         </div>
                                     </div>
 
@@ -548,22 +549,22 @@ const RegisterPage = () => {
                                         </p>
                                         <ul className="text-sm text-gray-500 dark:text-white/70 space-y-2">
                                             <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.password.length >= 8 ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
+                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.password.length >= 8 ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={formData.password.length >= 8 ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_length')}</span>
+                                                <span className={formData.password.length >= 8 ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_length')}</span>
                                             </li>
                                             <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.password) ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
+                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.password) ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={/[A-Z]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_uppercase')}</span>
+                                                <span className={/[A-Z]/.test(formData.password) ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_uppercase')}</span>
                                             </li>
                                             <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[0-9]/.test(formData.password) ? 'bg-gov-emerald text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
+                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[0-9]/.test(formData.password) ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
                                                     <CheckCircle size={10} />
                                                 </div>
-                                                <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald font-medium' : ''}>{t('reg_password_number')}</span>
+                                                <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_number')}</span>
                                             </li>
                                         </ul>
                                     </div>

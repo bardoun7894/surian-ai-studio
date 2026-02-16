@@ -15,8 +15,6 @@ import {
     Clock,
     Calendar,
     ChevronLeft,
-    Share2,
-    Printer,
     FileText,
     Users
 } from 'lucide-react';
@@ -128,14 +126,6 @@ const SubDirectorateDetail = () => {
                                     <FileText className="text-gov-teal dark:text-gov-gold" />
                                     {t('about_portal') || (isAr ? "نبذة عامة" : "Overview")}
                                 </h3>
-                                <div className="flex gap-2">
-                                    <button className="p-2 text-gov-stone hover:text-gov-teal transition-colors" title={t('ui_share') || 'Share'}>
-                                        <Share2 size={20} />
-                                    </button>
-                                    <button className="p-2 text-gov-stone hover:text-gov-teal transition-colors" title={t('ui_print') || 'Print'}>
-                                        <Printer size={20} />
-                                    </button>
-                                </div>
                             </div>
                             <div className="prose prose-lg dark:prose-invert max-w-none text-gov-charcoal/80 dark:text-white/80 leading-relaxed">
                                 <p>{description}</p>

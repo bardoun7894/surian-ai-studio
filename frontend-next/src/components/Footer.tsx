@@ -8,11 +8,7 @@ import Link from 'next/link';
 
 import NewsletterSignup from './NewsletterSignup';
 
-interface FooterProps {
-  onIncreaseFont?: () => void;
-  onDecreaseFont?: () => void;
-  onToggleContrast?: () => void;
-}
+import { useTheme } from '@/contexts/ThemeContext';
 
 const socialMediaLinks = [
   { icon: Facebook, label: { ar: 'فيسبوك', en: 'Facebook' }, href: 'https://facebook.com/MoEI.Syria' },
@@ -22,39 +18,21 @@ const socialMediaLinks = [
   { icon: Send, label: { ar: 'تيليغرام', en: 'Telegram' }, href: 'https://t.me/MoEI_Syria' },
 ];
 
-const Footer: React.FC<FooterProps> = ({
-  onIncreaseFont,
-  onDecreaseFont,
-  onToggleContrast
-}) => {
+const Footer: React.FC = () => {
   const { t, language } = useLanguage();
+  const { fontSize, setFontSize, toggleHighContrast } = useTheme();
   const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
 
   const handleIncreaseFont = () => {
-    if (onIncreaseFont) {
-      onIncreaseFont();
-    } else {
-      const current = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      document.documentElement.style.fontSize = `${Math.min(current + 2, 24)}px`;
-    }
+    setFontSize(Math.min(fontSize + 10, 150));
   };
 
   const handleDecreaseFont = () => {
-    if (onDecreaseFont) {
-      onDecreaseFont();
-    } else {
-      const current = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      document.documentElement.style.fontSize = `${Math.max(current - 2, 12)}px`;
-    }
+    setFontSize(Math.max(fontSize - 10, 80));
   };
 
   const handleToggleContrast = () => {
-    if (onToggleContrast) {
-      onToggleContrast();
-    } else {
-      document.documentElement.classList.toggle('high-contrast');
-      document.body.classList.toggle('high-contrast');
-    }
+    toggleHighContrast();
   };
 
   useEffect(() => {

@@ -24,8 +24,11 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
         if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
             return val[language] || val['en'] || val['ar'] || '';
         }
-        const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
-        const en = obj?.[`${field}_en`] || ar;
+        // Check for explicit _ar/_en suffixed fields first
+        const arField = obj?.[`${field}_ar`];
+        const enField = obj?.[`${field}_en`];
+        const ar = arField || (typeof val === 'string' ? val : '') || '';
+        const en = enField || ar;
         return language === 'ar' ? ar : en;
     };
 
@@ -46,11 +49,11 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
                 <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/0 via-gov-teal/0 to-gov-forest/0 group-hover:from-gov-gold/5 group-hover:via-gov-teal/5 group-hover:to-gov-forest/5 transition-all duration-500"></div>
 
                 {/* Content - Compact Layout */}
-                <div className="p-6 flex flex-col items-center justify-center text-center relative z-10 h-full">
+                <div className="p-6 flex flex-col items-center justify-center text-center relative z-10 h-full min-h-[320px]">
 
                     {/* Larger Eagle Logo with floating animation */}
                     <motion.div
-                        className="relative w-32 h-32 mb-6"
+                        className="relative w-40 h-40 mb-6"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ type: "spring", stiffness: 400 }}
                     >
@@ -61,12 +64,12 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
                         <div className="absolute inset-0 rounded-full border-2 border-gov-gold/0 group-hover:border-gov-gold/30 group-hover:animate-[spin_8s_linear_infinite] transition-all duration-300"></div>
 
                         <div className="relative w-full h-full flex items-center justify-center">
-                            <div className="w-28 h-28 flex items-center justify-center rounded-full bg-gradient-to-br from-gov-gold/10 to-gov-forest/5 p-4 shadow-inner">
+                            <div className="w-36 h-36 flex items-center justify-center rounded-full bg-gradient-to-br from-gov-gold/10 to-gov-forest/5 p-3 shadow-inner">
                                 <Image
                                     src="/assets/logo/eagle.png"
                                     alt="Ministry Emblem"
-                                    width={96}
-                                    height={96}
+                                    width={128}
+                                    height={128}
                                     className="object-contain w-full h-full drop-shadow-md"
                                 />
                             </div>

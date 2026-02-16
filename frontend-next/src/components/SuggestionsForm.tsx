@@ -42,7 +42,7 @@ import Textarea from '@/components/ui/Textarea';
 import Select from '@/components/ui/Select';
 import PhoneInput from '@/components/ui/PhoneInput';
 import NationalIdField from './NationalIdField';
-import { MultiUploadProgress } from './UploadProgress';
+import UploadProgress, { MultiUploadProgress } from './UploadProgress';
 
 interface SuggestionPortalProps {
     initialMode?: 'submit' | 'track';
@@ -236,7 +236,52 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }
     };
 
-    const nextStep = () => setFormStep(prev => prev + 1);
+    // Validation before advancing steps
+    const validateStep = (step: number): boolean => {
+        if (step === 0) {
+            if (!hasAgreedToTerms) {
+                toast.error(isAr ? 'يرجى الموافقة على الضوابط أولاً' : 'Please agree to the guidelines first');
+                return false;
+            }
+            return true;
+        }
+        if (step === 1) {
+            if (!isAnonymous) {
+                if (!formData.firstName.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+                if (!formData.lastName.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+                if (!formData.fatherName.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+                if (!formData.nationalId.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+                if (!formData.phone.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+                if (!formData.email.trim()) {
+                    toast.error(t('suggestion_required_fields'));
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
+    };
+
+    const nextStep = () => {
+        if (validateStep(formStep)) {
+            setFormStep(prev => prev + 1);
+        }
+    };
     const prevStep = () => setFormStep(prev => prev - 1);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -499,7 +544,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => nextStep()}
-                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3"
+                            disabled={!hasAgreedToTerms}
+                            className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-3 ${
+                                hasAgreedToTerms
+                                    ? 'bg-gov-forest dark:bg-gov-button text-white hover:bg-gov-teal dark:hover:bg-gov-gold'
+                                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                            }`}
                         >
                             <span>{t('suggestion_start_new')}</span>
                             <ChevronLeft size={20} className="rtl:rotate-180" />
@@ -518,7 +568,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
                             <ChevronRight size={16} className="rtl:rotate-180" />
-                            <span>{t('suggestion_back_terms')}</span>
+                            <span>{formStep === 2
+                                ? (isAr ? 'العودة إلى الهوية' : 'Back to Identity')
+                                : t('suggestion_back_terms')
+                            }</span>
                         </button>
 
                         <div className="text-center mb-10">
@@ -646,31 +699,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     />
                                                 </div>
                                             </div>
-
-                                            {/* Email & Phone */}
-                                            <div className="mb-6">
-                                                <Select
-                                                    value={formData.directorate_id}
-                                                    onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
-                                                    label={t('complaint_entity')}
-                                                    options={[
-                                                        { value: '', label: t('complaint_select_entity') },
-                                                        ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
-                                                    ]}
-                                                    icon={Building2}
-                                                />
-                                            </div>
-
-                                            <div className="mb-6">
-                                                <Textarea
-                                                    label={t('suggestion_description')}
-                                                    required
-                                                    value={formData.description}
-                                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                                    placeholder={t('suggestion_description_placeholder')}
-                                                    rows={6}
-                                                />
-                                            </div>
                                         </div>
                                     )}
 
@@ -687,6 +715,20 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
                             {formStep === 2 && (
                                 <div className="space-y-6 animate-fade-in">
+                                    {/* Directorate Selection */}
+                                    <div className="mb-2">
+                                        <Select
+                                            value={formData.directorate_id}
+                                            onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
+                                            label={t('complaint_entity')}
+                                            options={[
+                                                { value: '', label: t('complaint_select_entity') },
+                                                ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
+                                            ]}
+                                            icon={Building2}
+                                        />
+                                    </div>
+
                                     {/* Description and Files here */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
@@ -723,27 +765,37 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             </div>
                                         </div>
 
-                                        {/* File List */}
+                                        {/* File List with ready/uploading status */}
                                         {formData.files.length > 0 && (
                                             <div className="mt-4 space-y-2">
                                                 {formData.files.map((file, idx) => (
-                                                    <div key={`${file.name}-${idx}`} className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
-                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                            <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
-                                                            <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
-                                                            <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                    <div key={`${file.name}-${idx}`} className="relative">
+                                                        <div className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
+                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                                <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
+                                                                <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
+                                                                <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                            </div>
+                                                            {!isSubmitting && (
+                                                                <button type="button" onClick={() => removeFile(idx)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
+                                                                    <X size={16} />
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                        {!isSubmitting && (
-                                                            <button type="button" onClick={() => removeFile(idx)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
-                                                                <X size={16} />
-                                                            </button>
-                                                        )}
+                                                        {/* Show ready/uploading status for each file */}
+                                                        <UploadProgress
+                                                            fileName={file.name}
+                                                            progress={uploadProgress}
+                                                            status={isSubmitting ? (isUploading ? 'uploading' : 'ready') : 'ready'}
+                                                            fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                                                            language={isAr ? 'ar' : 'en'}
+                                                        />
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
 
-                                        {/* T030: Upload Progress Bar */}
+                                        {/* T030: Upload Progress Bar (shown during submission) */}
                                         <MultiUploadProgress
                                             files={formData.files}
                                             progress={uploadProgress}
@@ -758,7 +810,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         disabled={isSubmitting}
                                         className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
                                     >
-                                        {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                                        {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} className="rtl:-scale-x-100" />}
                                         <span>{isSubmitting ? t('suggestion_sending') : t('suggestion_submit')}</span>
                                     </button>
                                 </div>
@@ -796,6 +848,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     trackingNumber={submittedTicket}
                                     language={language as 'ar' | 'en'}
                                     onClose={() => {}}
+                                    hideHelpfulQuestion={true}
                                 />
                             </div>
                         )}

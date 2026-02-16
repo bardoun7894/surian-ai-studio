@@ -513,7 +513,7 @@ const ContactSection: React.FC = () => {
                     disabled={isSubmitting}
                     className="w-full py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50"
                   >
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} className="rtl:-scale-x-100" />}
                     {isSubmitting
                       ? (isAr ? 'جاري الإرسال...' : 'Sending...')
                       : (isAr ? 'إرسال الرسالة' : 'Send Message')

@@ -52,11 +52,16 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
   const loc = (obj: any, field: string): string => {
     const val = obj?.[field];
     if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
-      return val[language] || val['ar'] || '';
+      // Check for explicit key presence rather than truthiness to handle empty strings
+      if (language in val && val[language] !== undefined && val[language] !== null && val[language] !== '') {
+        return val[language];
+      }
+      return val['ar'] || '';
     }
     const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
-    const en = obj?.[`${field}_en`] || ar;
-    return language === 'ar' ? ar : en;
+    const en = obj?.[`${field}_en`] || '';
+    // In English mode: prefer en, then fall back to ar only if en is empty
+    return language === 'en' && en ? en : ar;
   };
 
   useEffect(() => {
@@ -209,9 +214,15 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
                     className="absolute inset-0 w-full h-full object-contain p-6"
                   />
                 ) : (
-                  <div id="directorate-logo" className="text-gov-gold">
-                    <Building2 size={80} />
-                  </div>
+                  <Image
+                    id="directorate-logo"
+                    src="/assets/logo/eagle.png"
+                    alt={language === 'ar' ? 'شعار الوزارة' : 'Ministry Emblem'}
+                    width={160}
+                    height={160}
+                    priority
+                    className="object-contain drop-shadow-lg"
+                  />
                 )}
               </div>
             </div>

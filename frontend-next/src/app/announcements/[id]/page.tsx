@@ -59,14 +59,6 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                 <Navbar />
                 <main className="flex-grow pt-20 md:pt-24 pb-20">
                     <div className="max-w-7xl mx-auto px-4 relative">
-                        {/* Action Buttons Skeleton */}
-                        <div className="absolute top-8 ltr:right-8 rtl:left-8 z-10 flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-dm-surface/80 animate-pulse" />
-                            <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-dm-surface/80 animate-pulse" />
-                            <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-dm-surface/80 animate-pulse" />
-                            <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-dm-surface/80 animate-pulse" />
-                        </div>
-
                         <div className="max-w-5xl mx-auto">
                             {/* Article Skeleton */}
                             <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15">
@@ -183,22 +175,6 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                             </div>
                         </div>
                     )}
-                    {/* Action buttons: Favorite, Print, Share, Download */}
-                    <div className="absolute top-8 ltr:right-8 rtl:left-8 z-10 flex items-center gap-2">
-
-
-                        <FavoriteButton
-                            contentType="announcement"
-                            contentId={params.id}
-                            size={24}
-                            variant="default"
-                            metadata={{
-                                title: localizedTitle,
-                                description: localizedContent,
-                                url: `/announcements/${params.id}`
-                            }}
-                        />
-                    </div>
                     <ArticleDetail
                         title={localizedTitle}
                         date={announcement.date}
@@ -221,6 +197,20 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                             date: item.date,
                             href: `/announcements/${item.id}`
                         }))}
+                        favoriteButtonSlot={
+                            <FavoriteButton
+                                contentType="announcement"
+                                contentId={params.id}
+                                size={18}
+                                variant="default"
+                                className="p-2.5"
+                                metadata={{
+                                    title: localizedTitle,
+                                    description: localizedContent,
+                                    url: `/announcements/${params.id}`
+                                }}
+                            />
+                        }
                     />
                 </div>
             </main>

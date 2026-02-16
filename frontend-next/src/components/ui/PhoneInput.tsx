@@ -67,7 +67,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         };
 
         const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const val = e.target.value.replace(/[^\d]/g, ''); // Allow digits only
+            const val = e.target.value.replace(/[^\d]/g, '').slice(0, 10); // Allow digits only, max 10
             setPhoneNumber(val);
             onChange(`${selectedCode}${val}`);
         };
@@ -97,9 +97,9 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                     <div
                         className={`flex items-center justify-between px-3 min-w-[100px] cursor-pointer bg-gov-beige/20 dark:bg-white/10 border-y border-l rtl:border-r rtl:border-l-0 rounded-l-xl rtl:rounded-l-none rtl:rounded-r-xl transition-all
                             ${error
-                                ? 'border-gov-cherry'
+                                ? 'border-red-500 dark:border-gov-cherry'
                                 : isValid
-                                    ? 'border-gov-emerald'
+                                    ? 'border-green-500 dark:border-gov-emerald'
                                     : 'border-gov-gold/20 dark:border-gov-border/15'
                             }
                         `}
@@ -112,7 +112,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
 
                     {/* Country Code Dropdown Menu */}
                     {isOpen && (
-                        <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl shadow-lg z-50">
+                        <div className="absolute top-full ltr:left-0 rtl:right-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl shadow-lg z-50">
                             {COUNTRY_CODES.map((country) => (
                                 <div
                                     key={country.code}
@@ -134,11 +134,12 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                             type="tel"
                             value={phoneNumber}
                             onChange={handlePhoneChange}
+                            maxLength={10}
                             className={`w-full py-3 px-4 rounded-r-xl rtl:rounded-r-none rtl:rounded-l-xl bg-gov-beige/20 dark:bg-white/10 border border-l-0 rtl:border-r-0 outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gov-sand disabled:opacity-50 disabled:cursor-not-allowed
                                 ${error
-                                    ? 'border-gov-cherry focus:border-gov-cherry focus:ring-1 focus:ring-gov-cherry'
+                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-1 focus:ring-red-500 dark:focus:ring-gov-cherry'
                                     : isValid
-                                        ? 'border-gov-emerald focus:border-gov-emerald'
+                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald'
                                         : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-emerald'
                                 }
                                 ${className || ''}`}
@@ -148,14 +149,14 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                         {/* Status Icons */}
                         {(error || isValid) && (
                             <div className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none`}>
-                                {error && <AlertCircle size={18} className="text-gov-cherry" />}
-                                {isValid && !error && <CheckCircle2 size={18} className="text-gov-emerald" />}
+                                {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
+                                {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />}
                             </div>
                         )}
                     </div>
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-xs text-gov-cherry flex items-center gap-1 animate-fade-in">
+                    <p className="mt-1.5 text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
                         <AlertCircle size={12} />
                         {error}
                     </p>

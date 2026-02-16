@@ -146,6 +146,11 @@ Route::prefix('v1')->group(function () {
             Route::post('unsubscribe', [\App\Http\Controllers\Api\NewsletterController::class, 'unsubscribe']);
         });
 
+        // AI Assistant
+        Route::prefix('ai')->group(function () {
+            Route::post('summarize', [\App\Http\Controllers\Api\PublicApiController::class, 'summarize'])->middleware('throttle:5,1');
+        });
+
         // National ID Verification Routes
         Route::post('verify-national-id', [\App\Http\Controllers\Api\NationalIdController::class, 'verify'])
             ->middleware('throttle:10,1'); // 10 requests per minute

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface ArticleDetailProps {
     title: string;
@@ -31,6 +32,8 @@ interface ArticleDetailProps {
     }>;
     isFavorite?: boolean;
     onToggleFavorite?: () => void;
+    /** Optional: render a custom favorite button (e.g., FavoriteButton component) next to share/print */
+    favoriteButtonSlot?: React.ReactNode;
 }
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
@@ -46,7 +49,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     backLink,
     relatedItems,
     isFavorite,
-    onToggleFavorite
+    onToggleFavorite,
+    favoriteButtonSlot
 }) => {
     const { language: ctxLanguage } = useLanguage();
     const lang = language || ctxLanguage || 'ar';
@@ -71,11 +75,50 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             const result = await API.ai.summarize(content, lang);
             setSummaryText(result.summary);
             setSummaryOpen(true);
-        } catch {
-            setSummaryError(lang === 'ar' ? 'فشل في إنشاء الملخص' : 'Failed to generate summary');
+            toast.success(lang === 'ar' ? 'تم إنشاء الملخص بنجاح' : 'Summary generated successfully');
+        } catch (err) {
+            console.error('AI Summary Error:', err);
+            const errorMsg = lang === 'ar' ? 'فشل في إنشاء الملخص. يرجى المحاولة لاحقاً.' : 'Failed to generate summary. Please try again later.';
+            setSummaryError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setSummaryLoading(false);
         }
+    };
+
+    const handleShare = async () => {
+        const shareData = {
+            title: title,
+            url: window.location.href,
+        };
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err: any) {
+                // User cancelled or share failed - only show error if not a user cancellation
+                if (err?.name !== 'AbortError') {
+                    // Fallback to clipboard
+                    try {
+                        await navigator.clipboard.writeText(window.location.href);
+                        toast.success(lang === 'ar' ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+                    } catch {
+                        toast.error(lang === 'ar' ? 'فشل في نسخ الرابط' : 'Failed to copy link');
+                    }
+                }
+            }
+        } else {
+            // Fallback: copy URL to clipboard
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                toast.success(lang === 'ar' ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+            } catch {
+                toast.error(lang === 'ar' ? 'فشل في نسخ الرابط' : 'Failed to copy link');
+            }
+        }
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     // Gallery images: use images array if available, otherwise just featured
@@ -180,11 +223,26 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                         <Heart size={18} className={isFavorite ? "fill-current" : ""} />
                                     </button>
                                 )}
-                                <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                                <button className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors" title={lang === 'ar' ? 'طباعة' : 'Print'}>
+                                {favoriteButtonSlot && (
+                                    <>
+                                        {favoriteButtonSlot}
+                                    </>
+                                )}
+                                {(onToggleFavorite || favoriteButtonSlot) && (
+                                    <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                                )}
+                                <button
+                                    onClick={handlePrint}
+                                    className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors"
+                                    title={lang === 'ar' ? 'طباعة' : 'Print'}
+                                >
                                     <Printer size={18} />
                                 </button>
-                                <button className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors" title={lang === 'ar' ? 'مشاركة' : 'Share'}>
+                                <button
+                                    onClick={handleShare}
+                                    className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors"
+                                    title={lang === 'ar' ? 'مشاركة' : 'Share'}
+                                >
                                     <Share2 size={18} />
                                 </button>
                             </div>
@@ -233,7 +291,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                             </div>
                         </div>
 
-                        <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gray-600 dark:prose-p:text-white/70">
+                        <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gov-charcoal dark:prose-p:text-white/70">
                             {content.split('\n\n').map((paragraph, idx) => (
                                 <p key={idx} className="mb-4 leading-relaxed">
                                     {paragraph}

@@ -12,6 +12,8 @@ interface SuggestionRatingProps {
   onClose?: () => void;
   isReadOnly?: boolean;
   existingRating?: number;
+  /** Hide "Was the response helpful?" question (e.g. right after submission when no response exists yet) */
+  hideHelpfulQuestion?: boolean;
 }
 
 const SuggestionRating: React.FC<SuggestionRatingProps> = ({
@@ -20,6 +22,7 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
   onClose,
   isReadOnly = false,
   existingRating,
+  hideHelpfulQuestion = false,
 }) => {
   const [rating, setRating] = useState<number>(existingRating || 0);
   const [hoverRating, setHoverRating] = useState<number>(0);
@@ -159,8 +162,8 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
         )}
       </div>
 
-      {/* Helpful Feedback (only for tracking results with response) */}
-      {!isReadOnly && (
+      {/* Helpful Feedback (only for tracking results with response, hidden on post-submission) */}
+      {!isReadOnly && !hideHelpfulQuestion && (
         <div className="mb-6">
           <p className="text-sm font-bold text-gray-700 dark:text-white/80 mb-3 text-center">
             {texts.helpful}
@@ -225,7 +228,7 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
             </>
           ) : (
             <>
-              <Send size={20} />
+              <Send size={20} className="rtl:-scale-x-100" />
               {texts.submit}
             </>
           )}

@@ -39,7 +39,7 @@ export default function VideoCard({
 }: VideoCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [youtubeActive, setYoutubeActive] = useState(false);
 
@@ -62,6 +62,9 @@ export default function VideoCard({
             setYoutubeActive(true);
             setIsPlaying(true);
         } else if (autoPlayOnHover && videoRef.current) {
+            // Browsers require muted for autoplay; mute temporarily for hover play
+            videoRef.current.muted = true;
+            setIsMuted(true);
             videoRef.current.play().catch(() => {});
             setIsPlaying(true);
         }

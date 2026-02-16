@@ -151,7 +151,7 @@ export default function FeaturedDirectorates() {
                         rotate: { duration: 60, repeat: Infinity, ease: "linear" },
                         scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
                     }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-5"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-5 dark:opacity-0"
                     style={{
                         background: 'radial-gradient(circle at 30% 30%, #b9a779 0%, transparent 50%)'
                     }}
@@ -159,7 +159,7 @@ export default function FeaturedDirectorates() {
             </div>
 
             {/* Floating Particles */}
-            <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 pointer-events-none dark:hidden">
                 {[...Array(6)].map((_, i) => (
                     <motion.div
                         key={i}
@@ -238,7 +238,7 @@ export default function FeaturedDirectorates() {
                     </motion.div>
 
                     {/* Bottom Row */}
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 w-full">
+                    <div className="flex flex-col md:flex-row items-stretch justify-center gap-6 md:gap-8 w-full">
                         {bottomDirectorates.map((directorate, idx) => (
                             <motion.div
                                 key={directorate.id}
@@ -250,7 +250,7 @@ export default function FeaturedDirectorates() {
                                 }}
                                 className="w-full md:w-[380px] perspective-1000"
                             >
-                                <div className="relative">
+                                <div className="relative h-full">
                                     {/* Glow Effect */}
                                     <div className="absolute -inset-1 bg-gradient-to-r from-gov-gold/20 via-gov-teal/20 to-gov-gold/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                     <DirectorateCard directorate={directorate} />

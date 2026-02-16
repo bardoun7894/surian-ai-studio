@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { Shield, ChevronRight, ChevronLeft, Loader2, Mail } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -12,6 +13,7 @@ import { ApiError } from '@/lib/api';
 const TwoFactorContent = () => {
     const { language, t } = useLanguage();
     const { verify2fa } = useAuth();
+    const { startLoading, stopLoading } = useLoading();
     const router = useRouter();
     const searchParams = useSearchParams();
     const email = searchParams.get('email') || '';
@@ -105,15 +107,21 @@ const TwoFactorContent = () => {
         try {
             await verify2fa({ email, otp });
             sessionStorage.setItem('2fa_verified', email);
-            window.history.replaceState(null, '', '/dashboard');
+            // Show loading badge before navigating to dashboard
+            startLoading();
+            setIsLoading(false);
             router.replace('/dashboard');
+            // Safety fallback: ensure loading is stopped after navigation completes.
+            // This handles cases where the pathname change listener fails to fire.
+            setTimeout(() => {
+                stopLoading();
+            }, 3000);
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);
             } else {
                 setError(t('twofa_invalid_code'));
             }
-        } finally {
             setIsLoading(false);
         }
     };
@@ -195,7 +203,7 @@ const TwoFactorContent = () => {
                     {/* Back Button */}
                     <Link
                         href="/login"
-                        className="flex items-center gap-1 text-gray-500 hover:text-gov-teal transition-colors mb-6 group"
+                        className="flex items-center gap-1 text-gray-500 dark:text-white/60 hover:text-gov-teal transition-colors mb-6 group"
                     >
                         <BackIcon size={18} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform" />
                         {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
@@ -292,7 +300,7 @@ const TwoFactorContent = () => {
                         <div className="text-center mt-6 pt-4 border-t border-gray-100 dark:border-gov-border/15">
                             <button
                                 onClick={handleResend}
-                                className="text-sm text-gov-teal hover:text-gov-forest hover:underline transition-colors font-medium"
+                                className="text-sm text-gov-teal hover:text-gov-forest dark:hover:text-gov-gold hover:underline transition-colors font-medium"
                             >
                                 {t('twofa_resend')}
                             </button>
@@ -307,7 +315,7 @@ const TwoFactorContent = () => {
 const TwoFactorPage = () => {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-gov-beige">
+            <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
                 <Loader2 className="w-8 h-8 animate-spin text-gov-teal" />
             </div>
         }>

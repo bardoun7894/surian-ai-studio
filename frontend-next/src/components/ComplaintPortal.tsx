@@ -98,7 +98,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     // Upload Progress State
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploadStatus, setUploadStatus] = useState<'uploading' | 'completed' | 'error'>('uploading');
+    const [uploadStatus, setUploadStatus] = useState<'ready' | 'uploading' | 'completed' | 'error'>('ready');
 
     // Dynamic template field values
     const [templateFieldValues, setTemplateFieldValues] = useState<Record<string, string>>({});
@@ -282,6 +282,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         const file = event.target.files?.[0];
         if (!file) return;
         setSelectedFile(file);
+        setUploadStatus('ready');
+        setUploadProgress(0);
     };
 
     const handleSendOtp = async () => {
@@ -339,6 +341,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const removeFile = () => {
         setSelectedFile(null);
+        setUploadProgress(0);
+        setUploadStatus('ready');
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -396,19 +400,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         setTrackError(null);
         setTrackingResult(null);
 
-        // Validate national ID only for identified mode
-        if (trackMode === 'identified' && !/^\d{11}$/.test(trackNationalId)) {
-            setTrackError(t('complaint_national_id_invalid'));
-            toast.error(t('complaint_national_id_invalid'));
-            setIsTracking(false);
-            return;
-        }
-
         try {
-            const result = await API.complaints.track(
-                trackId,
-                trackMode === 'identified' ? trackNationalId : undefined
-            );
+            const result = await API.complaints.track(trackId);
             if (result) {
                 setTrackingResult(result);
                 toast.success(t('complaint_found'), {
@@ -579,7 +572,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-button"
                         >
                             <span>{t('complaint_start_new')}</span>
-                            <ChevronLeft size={20} className="rtl:rotate-180" />
+                            <ChevronRight size={20} className="rtl:rotate-180" />
                         </button>
                     </div>
                 )}
@@ -593,7 +586,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             onClick={() => setShowTermsScreen(true)}
                             className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
-                            <ChevronRight size={16} className="rtl:rotate-180" />
+                            <ChevronLeft size={16} className="rtl:rotate-180" />
                             <span>{t('complaint_back_terms')}</span>
                         </button>
 
@@ -899,16 +892,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             </button>
                                         </div>
 
-                                        {/* Show Progress Bar during upload */}
-                                        {isSubmitting && selectedFile && (
-                                            <UploadProgress
-                                                fileName={selectedFile.name}
-                                                progress={uploadProgress}
-                                                status={uploadStatus}
-                                                fileSize={`${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`}
-                                                language={isAr ? 'ar' : 'en'}
-                                            />
-                                        )}
+                                        {/* Show Progress Bar — ready state after file selection, uploading during submit */}
+                                        <UploadProgress
+                                            fileName={selectedFile.name}
+                                            progress={uploadProgress}
+                                            status={isSubmitting ? uploadStatus : 'ready'}
+                                            fileSize={`${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                                            language={isAr ? 'ar' : 'en'}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -1072,7 +1063,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     disabled={isSubmitting}
                                     className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} className="rtl:-scale-x-100" />}
                                     {isSubmitting ? t('complaint_sending') : t('complaint_submit')}
                                 </button>
                             </div>
@@ -1140,39 +1131,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 <p className="text-gray-500 dark:text-white/70">{t('complaint_track_subtitle')}</p>
                             </div>
 
-                            {/* Track Mode Toggle */}
-                            <div className="max-w-lg mx-auto mb-6">
-                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20 dark:border-gov-border/25">
-                                    <div className="flex items-center justify-center gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setTrackMode('identified'); setTrackingResult(null); setTrackError(null); }}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'identified'
-                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                                }`}
-                                        >
-                                            <Fingerprint size={16} />
-                                            {t('complaint_track_identified')}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setTrackMode('anonymous'); setTrackingResult(null); setTrackError(null); setTrackNationalId(''); }}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'anonymous'
-                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                                }`}
-                                        >
-                                            <UserX size={16} />
-                                            {t('complaint_track_anonymous')}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
-                                        {trackMode === 'identified' ? t('complaint_track_identified_desc') : t('complaint_track_anonymous_desc')}
-                                    </p>
-                                </div>
-                            </div>
-
                             <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
@@ -1185,16 +1143,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         required
                                     />
                                 </div>
-                                {trackMode === 'identified' && (
-                                    <div className="animate-fade-in">
-                                        <NationalIdField
-                                            value={trackNationalId}
-                                            onChange={(val) => setTrackNationalId(val)}
-                                            required
-                                            label={t('complaint_national_id_verify')}
-                                        />
-                                    </div>
-                                )}
                                 <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>

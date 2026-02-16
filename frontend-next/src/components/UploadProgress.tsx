@@ -4,7 +4,7 @@ import { FileIcon, FileText, FileImage, X, CheckCircle, AlertCircle, Upload } fr
 interface UploadProgressProps {
   fileName: string;
   progress: number; // 0 to 100
-  status: 'uploading' | 'completed' | 'error';
+  status: 'ready' | 'uploading' | 'completed' | 'error';
   fileSize?: string;
   onCancel?: () => void;
   error?: string;
@@ -28,7 +28,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
   language = 'ar'
 }) => {
   const isAr = language === 'ar';
-  const Icon = status === 'completed' ? CheckCircle : status === 'error' ? AlertCircle : getFileIcon(fileName);
+  const Icon = status === 'completed' ? CheckCircle : status === 'error' ? AlertCircle : status === 'ready' ? getFileIcon(fileName) : getFileIcon(fileName);
   const clampedProgress = Math.min(100, Math.max(0, Math.round(progress)));
 
   return (
@@ -37,17 +37,22 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
         ? 'bg-gov-emerald/5 dark:bg-gov-emerald/10 border border-gov-emerald/20'
         : status === 'error'
           ? 'bg-gov-cherry/5 dark:bg-gov-cherry/10 border border-gov-cherry/20'
-          : 'bg-gray-50 dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/15'
+          : status === 'ready'
+            ? 'bg-gov-teal/5 dark:bg-gov-teal/10 border border-gov-teal/20'
+            : 'bg-gray-50 dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/15'
     }`}>
       <div className="flex items-center gap-3">
         {/* Status Icon */}
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
           status === 'completed' ? 'bg-gov-emerald/10 text-gov-emerald' :
           status === 'error' ? 'bg-gov-cherry/10 text-gov-cherry' :
+          status === 'ready' ? 'bg-gov-teal/10 text-gov-teal' :
           'bg-gov-teal/10 text-gov-teal'
         }`}>
           {status === 'uploading' ? (
             <Upload size={18} className="animate-bounce" />
+          ) : status === 'ready' ? (
+            <CheckCircle size={18} className="text-gov-teal" />
           ) : (
             <Icon size={18} />
           )}
@@ -67,6 +72,12 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
           {/* Status Text */}
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/60">
             {fileSize && <span>{fileSize}</span>}
+            {status === 'ready' && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gov-teal/40"></span>
+                <span className="text-gov-teal font-bold">{isAr ? 'جاهز للرفع' : 'Ready to upload'}</span>
+              </>
+            )}
             {status === 'uploading' && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-white/30"></span>

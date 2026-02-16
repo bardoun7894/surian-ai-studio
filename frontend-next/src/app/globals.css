@@ -29,10 +29,10 @@
 
 :root {
   /* Core Colors - Updated */
-  --background: #f5f5f5;
-  /* Light gray background */
-  --foreground: #ffffff;
-  /* White text */
+  --background: #EDEBE0;
+  /* Light Beige background */
+  --foreground: #161616;
+  /* Charcoal text */
   --card-bg: #ffffff;
   /* White cards */
   --button-bg: #094239;
@@ -283,13 +283,14 @@ body {
     @apply text-gov-gold font-bold text-2xl md:text-3xl lg:text-4xl;
   }
 
-  /* Subtitles and Text - White (أبيض) */
+  /* Subtitles and Text - Using variable for contrast */
   .text-content {
-    @apply text-white;
+    color: var(--foreground);
   }
 
   .subtitle {
-    @apply text-white text-lg md:text-xl;
+    @apply text-lg md:text-xl;
+    color: var(--foreground);
   }
 
   /* Icons - Dark Green */

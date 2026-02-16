@@ -12,6 +12,7 @@ use App\Models\HappinessFeedback;
 use App\Models\QuickLink;
 use App\Models\Service;
 use App\Models\SuggestionRating;
+use App\Services\AIService;
 use App\Services\VectorSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -21,10 +22,12 @@ use Illuminate\Support\Facades\Log;
 class PublicApiController extends Controller
 {
     protected VectorSearchService $vectorSearch;
+    protected AIService $aiService;
 
-    public function __construct(VectorSearchService $vectorSearch)
+    public function __construct(VectorSearchService $vectorSearch, AIService $aiService)
     {
         $this->vectorSearch = $vectorSearch;
+        $this->aiService = $aiService;
     }
     /**
      * Get all directorates
@@ -798,6 +801,37 @@ class PublicApiController extends Controller
             'total' => $results->count(),
             'search_type' => $searchType,
         ]);
+    }
+
+    /**
+     * AI-generated summary for content (FR-12)
+     */
+    public function summarize(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|min:10',
+            'lang' => 'nullable|string|in:ar,en',
+        ]);
+
+        $content = $validated['content'];
+        $lang = $validated['lang'] ?? 'ar';
+
+        try {
+            // Check cache first to avoid redundant AI calls
+            $cacheKey = 'ai_summary_' . md5($content . '_' . $lang);
+            $summary = Cache::remember($cacheKey, 3600 * 24, function () use ($content, $lang) {
+                return $this->aiService->summarize($content, $lang);
+            });
+
+            if (!$summary) {
+                return response()->json(['error' => 'Failed to generate summary'], 500);
+            }
+
+            return response()->json(['summary' => $summary]);
+        } catch (\Exception $e) {
+            Log::error('Public AI Summary error: ' . $e->getMessage());
+            return response()->json(['error' => 'An error occurred during summarization'], 500);
+        }
     }
 
     /**

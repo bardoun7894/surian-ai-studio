@@ -14,7 +14,7 @@ interface LanguageContextType {
 
 const translations: Record<string, Record<Language, string>> = {
   // Brand
-  'republic_name': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
+  'republic_name': { ar: 'الجمهورية العربية السورية', en: 'Syrian Arab Republic' },
   'ministry_name': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
   'portal_name': { ar: 'البوابة الإلكترونية', en: 'E-Government Portal' },
   'cabinet': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },

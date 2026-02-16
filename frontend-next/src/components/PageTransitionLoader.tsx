@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,12 +48,46 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     };
   }, [isLoading]);
 
-  // Stop loading when pathname changes (page loaded)
+  // Stop loading when pathname changes (page loaded) - handles both
+  // link click navigations and programmatic navigations (router.replace/push)
+  // We track the pathname at the time loading started to detect actual changes.
+  const loadingStartPathRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (displayLoading && !isLoading) {
-      stopLoading();
+    if (isLoading && !loadingStartPathRef.current) {
+      loadingStartPathRef.current = pathname;
     }
-  }, [pathname, displayLoading, isLoading, stopLoading]);
+    if (!isLoading) {
+      loadingStartPathRef.current = null;
+    }
+  }, [isLoading, pathname]);
+
+  useEffect(() => {
+    // If loading and pathname has changed from when loading started, stop loading
+    if (isLoading && loadingStartPathRef.current && pathname !== loadingStartPathRef.current) {
+      const timeout = setTimeout(() => {
+        stopLoading();
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+    // Also handle the case where loading is triggered on the same page
+    // (e.g., route resolves instantly)
+    if (isLoading) {
+      const fallback = setTimeout(() => {
+        stopLoading();
+      }, 500);
+      return () => clearTimeout(fallback);
+    }
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Safety timeout: ensure loading screen never gets stuck
+  useEffect(() => {
+    if (!isLoading) return;
+    const safetyTimeout = setTimeout(() => {
+      stopLoading();
+    }, 4000);
+    return () => clearTimeout(safetyTimeout);
+  }, [isLoading, stopLoading]);
 
   return (
     <>
@@ -137,9 +171,9 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                   {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
                 </motion.h3>
                 
-                <p className="text-sm text-gray-500 dark:text-white/50">
-                  {language === 'ar' 
-                    ? 'وزارة الاقتصاد والصناعة' 
+                <p className="text-sm text-gov-forest/70 dark:text-white/80 font-medium">
+                  {language === 'ar'
+                    ? 'وزارة الاقتصاد والصناعة'
                     : 'Ministry of Economy and Industry'
                   }
                 </p>

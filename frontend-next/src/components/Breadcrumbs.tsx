@@ -26,10 +26,47 @@ const routeLabels: Record<string, { ar: string; en: string }> = {
   'decrees': { ar: 'المراسيم والقوانين', en: 'Decrees & Laws' },
   'search': { ar: 'البحث', en: 'Search' },
   'investments': { ar: 'الاستثمار', en: 'Investments' },
+  'investment': { ar: 'الاستثمار', en: 'Investment' },
   'about': { ar: 'عن البوابة', en: 'About Portal' },
   'site-map': { ar: 'خريطة الموقع', en: 'Site Map' },
   'open-data': { ar: 'البيانات المفتوحة', en: 'Open Data' },
+  'dashboard': { ar: 'لوحة التحكم', en: 'Dashboard' },
+  'admin': { ar: 'الإدارة', en: 'Admin' },
+  'sub-directorates': { ar: 'المديريات الفرعية', en: 'Sub-Directorates' },
+  'audit': { ar: 'سجل التدقيق', en: 'Audit Log' },
+  'reset-password': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },
 };
+
+// Contextual labels for dynamic segments (IDs, slugs, tracking numbers)
+// based on the parent route segment
+const dynamicSegmentLabels: Record<string, { ar: string; en: string }> = {
+  'news': { ar: 'تفاصيل الخبر', en: 'Article Details' },
+  'announcements': { ar: 'تفاصيل الإعلان', en: 'Announcement Details' },
+  'complaints': { ar: 'تفاصيل الشكوى', en: 'Complaint Details' },
+  'services': { ar: 'تفاصيل الخدمة', en: 'Service Details' },
+  'directorates': { ar: 'تفاصيل المديرية', en: 'Directorate Details' },
+  'investment': { ar: 'تفاصيل الاستثمار', en: 'Investment Details' },
+  'investments': { ar: 'تفاصيل الاستثمار', en: 'Investment Details' },
+  'decrees': { ar: 'تفاصيل المرسوم', en: 'Decree Details' },
+  'suggestions': { ar: 'تفاصيل المقترح', en: 'Suggestion Details' },
+};
+
+/**
+ * Checks if a segment looks like a dynamic/ID value rather than a named route.
+ * Matches numeric IDs, UUIDs, tracking numbers (e.g., SUG-123456, CMP-ABC),
+ * and other non-descriptive path values.
+ */
+function isDynamicSegment(segment: string): boolean {
+  // Pure numeric
+  if (/^\d+$/.test(segment)) return true;
+  // UUID-like
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(segment)) return true;
+  // Tracking numbers (e.g., SUG-123456, CMP-123456)
+  if (/^[A-Z]{2,5}-\d+$/i.test(segment)) return true;
+  // MongoDB ObjectId-like (24 hex chars)
+  if (/^[0-9a-f]{24}$/i.test(segment)) return true;
+  return false;
+}
 
 // Pages that should NOT show breadcrumbs
 const excludedPaths = ['/', '', '/login', '/register', '/forgot-password', '/reset-password', '/two-factor'];
@@ -52,10 +89,27 @@ export default function Breadcrumbs() {
 
   const crumbs = segments.map((segment, index) => {
     const path = '/' + segments.slice(0, index + 1).join('/');
-    const label = routeLabels[segment]
-      ? (isAr ? routeLabels[segment].ar : routeLabels[segment].en)
-      : decodeURIComponent(segment);
     const isLast = index === segments.length - 1;
+
+    let label: string;
+    if (routeLabels[segment]) {
+      // Known named route
+      label = isAr ? routeLabels[segment].ar : routeLabels[segment].en;
+    } else if (isDynamicSegment(segment)) {
+      // Dynamic segment (ID, UUID, tracking number) - use contextual label from parent
+      const parentSegment = index > 0 ? segments[index - 1] : '';
+      const contextLabel = dynamicSegmentLabels[parentSegment];
+      if (contextLabel) {
+        label = isAr ? contextLabel.ar : contextLabel.en;
+      } else {
+        label = isAr ? 'التفاصيل' : 'Details';
+      }
+    } else {
+      // Unknown segment - capitalize and clean up for display
+      label = decodeURIComponent(segment)
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
 
     return { path, label, isLast };
   });

@@ -45,11 +45,16 @@ const DirectorateNewsGrid: React.FC<DirectorateNewsGridProps> = ({ directorateId
   const loc = (obj: any, field: string): string => {
     const val = obj?.[field];
     if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
-      return val[locale] || val['ar'] || '';
+      // Check for explicit key presence rather than truthiness to handle empty strings
+      if (locale in val && val[locale] !== undefined && val[locale] !== null && val[locale] !== '') {
+        return val[locale];
+      }
+      return val['ar'] || '';
     }
     const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
-    const en = obj?.[`${field}_en`] || ar;
-    return locale === 'ar' ? ar : en;
+    const en = obj?.[`${field}_en`] || '';
+    // In English mode: prefer en, then fall back to ar only if en is empty
+    return locale === 'en' && en ? en : ar;
   };
 
   const formatDate = (dateString: string) => {

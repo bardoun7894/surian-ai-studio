@@ -109,7 +109,7 @@ function SyriaMap() {
         {/* Section heading */}
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-3">
-            {isArabic ? 'خريطة سوريا التفاعلية' : 'Interactive Syria Map'}
+            {isArabic ? 'خريطة سورية التفاعلية' : 'Interactive Map of Syria'}
           </h2>
           <p className="text-gov-stone dark:text-white/70 max-w-xl mx-auto text-base">
             {isArabic

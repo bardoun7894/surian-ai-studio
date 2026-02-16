@@ -47,11 +47,19 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
     const checkStatus = async () => {
       try {
+        const id = String(contentId);
         const status = await API.favorites.check([
-          { content_type: contentType, content_id: contentId },
+          { content_type: contentType, content_id: id },
         ]);
-        const key = `${contentType}_${contentId}`;
-        setIsFavorite(status[key] || false);
+        // Try both key formats: "type_id" and just check all keys
+        const key = `${contentType}_${id}`;
+        if (key in status) {
+          setIsFavorite(status[key] || false);
+        } else {
+          // Fallback: check if any key matches the content id
+          const match = Object.entries(status).find(([k]) => k.includes(id));
+          setIsFavorite(match ? match[1] : false);
+        }
       } catch (e) {
         // Silently fail - not critical
       } finally {
@@ -74,9 +82,10 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       if (loading) return;
 
       setLoading(true);
+      const id = String(contentId);
       try {
         if (isFavorite) {
-          const success = await API.favorites.remove(contentType, contentId);
+          const success = await API.favorites.remove(contentType, id);
           if (success) {
             setIsFavorite(false);
             toast.success(
@@ -88,7 +97,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         } else {
           const success = await API.favorites.add(
             contentType,
-            contentId,
+            id,
             metadata
           );
           if (success) {

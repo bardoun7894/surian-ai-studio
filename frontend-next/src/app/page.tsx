@@ -7,6 +7,7 @@ import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
+import { API } from '@/lib/repository';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';
 
 // Dynamic imports for below-fold components
@@ -23,15 +24,17 @@ const HomeSatisfactionWidget = dynamic(() => import('@/components/HomeSatisfacti
 const InvestmentSection = dynamic(() => import('@/components/InvestmentSection'));
 
 export default function HomePage() {
-  // Accessibility States
-  const [fontSizePercent, setFontSizePercent] = useState(100);
-  const [isHighContrast, setIsHighContrast] = useState(false);
   const [hasBreakingNews, setHasBreakingNews] = useState(false);
+  const [investmentEnabled, setInvestmentEnabled] = useState(true);
 
-  // ... existing font resizing effects ...
+  // Fetch feature flags
   useEffect(() => {
-    document.documentElement.style.fontSize = `${fontSizePercent}%`;
-  }, [fontSizePercent]);
+    API.settings.getPublic().then((s) => {
+      if (s.investment_section_enabled === false) {
+        setInvestmentEnabled(false);
+      }
+    });
+  }, []);
 
   // Handle smooth scroll for hash navigation
   useEffect(() => {
@@ -46,29 +49,6 @@ export default function HomePage() {
     }
   }, []);
 
-  // Handle High Contrast Mode
-  useEffect(() => {
-    if (isHighContrast) {
-      document.body.classList.add('high-contrast');
-      document.documentElement.classList.add('high-contrast');
-    } else {
-      document.body.classList.remove('high-contrast');
-      document.documentElement.classList.remove('high-contrast');
-    }
-  }, [isHighContrast]);
-
-  const handleIncreaseFont = () => {
-    setFontSizePercent(prev => Math.min(prev + 10, 150));
-  };
-
-  const handleDecreaseFont = () => {
-    setFontSizePercent(prev => Math.max(prev - 10, 80));
-  };
-
-  const handleToggleContrast = () => {
-    setIsHighContrast(!isHighContrast);
-  };
-
   const handleSearch = (query: string) => {
     // Navigate to search results
     window.location.href = `/search?q=${encodeURIComponent(query)}`;
@@ -78,7 +58,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar onSearch={handleSearch} />
 
-      <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
+      <main className="flex-grow pt-16 md:pt-20 overflow-hidden">
         <HeroSection hasBreakingNews={hasBreakingNews} onNewsLoaded={setHasBreakingNews} />
 
         <ScrollAnimation delay={0.1}>
@@ -99,7 +79,7 @@ export default function HomePage() {
         </ScrollAnimation>
 
         {/* Investment Opportunities */}
-        <InvestmentSection />
+        {investmentEnabled && <InvestmentSection />}
 
         {/* Complaints Section */}
         <ScrollAnimation delay={0.2}>
@@ -140,11 +120,7 @@ export default function HomePage() {
       </main>
 
 
-      <Footer
-        onIncreaseFont={handleIncreaseFont}
-        onDecreaseFont={handleDecreaseFont}
-        onToggleContrast={handleToggleContrast}
-      />
+      <Footer />
     </div>
   );
 }

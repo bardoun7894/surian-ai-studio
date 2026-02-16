@@ -84,6 +84,7 @@ export default function ServicesPage() {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
+  const [filterDigital, setFilterDigital] = useState<boolean | undefined>(undefined);
   const [services, setServices] = useState<Service[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +116,8 @@ export default function ServicesPage() {
           currentPage,
           perPage,
           selectedDirectorate || undefined,
-          searchQuery || undefined
+          searchQuery || undefined,
+          filterDigital
         );
         setServices(response.data);
         setCurrentPage(response.current_page);
@@ -128,12 +130,12 @@ export default function ServicesPage() {
       }
     };
     fetchServices();
-  }, [currentPage, perPage, selectedDirectorate, searchQuery]);
+  }, [currentPage, perPage, selectedDirectorate, searchQuery, filterDigital]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedDirectorate]);
+  }, [searchQuery, selectedDirectorate, filterDigital]);
 
 
   // Icon mapping
@@ -210,6 +212,23 @@ export default function ServicesPage() {
                     ))}
                   </select>
                   <Filter className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+
+                {/* E-Services Filter */}
+                <div className="relative">
+                  <select
+                    value={filterDigital === undefined ? 'all' : filterDigital ? 'digital' : 'traditional'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilterDigital(val === 'all' ? undefined : val === 'digital');
+                    }}
+                    className="appearance-none bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl py-2 ltr:pl-10 ltr:pr-4 rtl:pr-10 rtl:pl-4 text-gov-charcoal dark:text-gov-gold font-medium focus:outline-none focus:border-gov-gold transition-colors cursor-pointer h-[42px]"
+                  >
+                    <option value="all">{language === 'ar' ? 'جميع الخدمات' : 'All Services'}</option>
+                    <option value="digital">{language === 'ar' ? 'خدمات إلكترونية' : 'E-Services'}</option>
+                    <option value="traditional">{language === 'ar' ? 'خدمات تقليدية' : 'Traditional Services'}</option>
+                  </select>
+                  <Monitor className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                 </div>
 
                 {/* Show Stages Toggle */}

@@ -84,6 +84,7 @@ Route::prefix('v1')->group(function () {
 
         // Media
         Route::get('media', [\App\Http\Controllers\Api\PublicApiController::class, 'media']);
+        Route::get('media/{id}/photos', [\App\Http\Controllers\Api\PublicApiController::class, 'albumPhotos']);
 
         // FAQs
         Route::get('faqs', [\App\Http\Controllers\Api\PublicApiController::class, 'faqs']);

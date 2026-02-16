@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { API } from '@/lib/repository';
+import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
 import { MediaItem } from '@/types';
@@ -42,6 +42,9 @@ export default function MediaPage() {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
+  const [expandedAlbum, setExpandedAlbum] = useState<MediaItem | null>(null);
+  const [albumData, setAlbumData] = useState<AlbumData | null>(null);
+  const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -134,6 +137,12 @@ export default function MediaPage() {
 
   const handleDownload = async (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Don't allow download for YouTube videos
+    if (item.type === 'video' && item.url && isYouTubeUrl(item.url)) {
+      return;
+    }
+
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
 
@@ -161,6 +170,24 @@ export default function MediaPage() {
   const handleShare = (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
     setShareData({ title: item.title, url: window.location.href });
+  };
+
+  const handleOpenAlbum = async (item: MediaItem) => {
+    setExpandedAlbum(item);
+    setLoadingAlbum(true);
+    try {
+      const data = await API.media.getAlbumPhotos(item.id);
+      setAlbumData(data);
+    } catch (error) {
+      console.error('Failed to load album photos:', error);
+    } finally {
+      setLoadingAlbum(false);
+    }
+  };
+
+  const handleCloseAlbum = () => {
+    setExpandedAlbum(null);
+    setAlbumData(null);
   };
 
   const filters: { key: MediaType; label: string; icon: React.ElementType }[] = [
@@ -276,7 +303,11 @@ export default function MediaPage() {
                   <div
                     key={item.id}
                     onClick={() => {
-                      if (item.type === 'photo' || item.type === 'infographic') {
+                      if (item.type === 'photo' && item.count) {
+                        // This is an album - open album gallery
+                        handleOpenAlbum(item);
+                      } else if (item.type === 'photo' || item.type === 'infographic') {
+                        // Single image - open lightbox
                         setExpandedImage(item);
                       }
                     }}
@@ -383,13 +414,16 @@ export default function MediaPage() {
                           >
                             <Share2 size={14} />
                           </button>
-                          <button
-                            onClick={(e) => handleDownload(item, e)}
-                            className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                            title={isAr ? 'تحميل' : 'Download'}
-                          >
-                            <Download size={14} />
-                          </button>
+                          {/* Hide download button for YouTube videos */}
+                          {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
+                            <button
+                              onClick={(e) => handleDownload(item, e)}
+                              className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
+                              title={isAr ? 'تحميل' : 'Download'}
+                            >
+                              <Download size={14} />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -424,13 +458,16 @@ export default function MediaPage() {
                               <Share2 size={14} />
                               {isAr ? 'مشاركة' : 'Share'}
                             </button>
-                            <button
-                              onClick={(e) => handleDownload(item, e)}
-                              className="flex items-center gap-1 hover:text-gov-teal transition-colors"
-                            >
-                              <Download size={14} />
-                              {isAr ? 'تحميل' : 'Download'}
-                            </button>
+                            {/* Hide download button for YouTube videos */}
+                            {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
+                              <button
+                                onClick={(e) => handleDownload(item, e)}
+                                className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                              >
+                                <Download size={14} />
+                                {isAr ? 'تحميل' : 'Download'}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -574,6 +611,87 @@ export default function MediaPage() {
                   <Download size={16} />
                   {isAr ? 'تحميل' : 'Download'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Album Gallery Modal */}
+        {expandedAlbum && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={handleCloseAlbum}
+          >
+            <div
+              className="relative max-w-6xl w-full max-h-[90vh] overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 flex items-center justify-between border-b border-gov-gold/20">
+                <div className="text-white">
+                  <h3 className="text-lg font-bold">{albumData?.title || expandedAlbum.title}</h3>
+                  <div className="flex items-center gap-3 mt-1 text-sm text-gray-300">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />
+                      {albumData?.date || expandedAlbum.date}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ImageIcon size={14} />
+                      {albumData?.count || expandedAlbum.count} {isAr ? 'صورة' : 'photos'}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseAlbum}
+                  className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
+                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="bg-gov-forest rounded-b-2xl p-6">
+                {loadingAlbum ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-gov-gold border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : albumData?.photos && albumData.photos.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {albumData.photos.map((photo, index) => (
+                      <div
+                        key={photo.id}
+                        className="group relative aspect-square rounded-lg overflow-hidden bg-black cursor-pointer hover:scale-105 transition-transform duration-300"
+                        onClick={() => {
+                          handleCloseAlbum();
+                          setExpandedImage({
+                            id: photo.id,
+                            title: photo.title,
+                            type: 'photo',
+                            thumbnailUrl: photo.url,
+                            url: photo.url,
+                            date: albumData.date,
+                          });
+                        }}
+                      >
+                        <Image
+                          src={photo.url}
+                          alt={photo.title}
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute bottom-2 left-2 right-2 text-white text-xs font-medium">
+                            {isAr ? 'صورة' : 'Photo'} {index + 1}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-white">
+                    <p>{isAr ? 'لا توجد صور في هذا الألبوم' : 'No photos in this album'}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

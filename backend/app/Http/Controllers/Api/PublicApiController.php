@@ -57,6 +57,10 @@ class PublicApiController extends Controller
                     'phone' => $d->phone,
                     'website' => $d->website,
                     'featured' => (bool) $d->featured,
+                    'latitude' => $d->latitude,
+                    'longitude' => $d->longitude,
+                    'address_ar' => $d->address_ar ?? '',
+                    'address_en' => $d->address_en ?? '',
                     'subDirectorates' => $d->subDirectorates->map(function ($sub) {
                         return [
                             'id' => (string) $sub->id,
@@ -118,6 +122,16 @@ class PublicApiController extends Controller
                 ];
             });
 
+        // Calculate statistics for organizational structure display
+        $servicesCount = $directorate->services()
+            ->where('is_active', true)
+            ->count();
+
+        $newsCount = \App\Models\Content::where('category', 'news')
+            ->where('status', 'published')
+            ->where('directorate_id', $directorate->id)
+            ->count();
+
         return response()->json([
             'id' => (string) $directorate->id,
             'name' => $directorate->name_ar ?? $directorate->name,
@@ -127,8 +141,16 @@ class PublicApiController extends Controller
             'description_ar' => $directorate->description_ar ?? $directorate->description ?? '',
             'description_en' => $directorate->description_en ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
+            'logo' => $this->normalizeImageUrl($directorate->logo_path),
             'subDirectorates' => $subDirectorates,
             'team' => $team,
+            'servicesCount' => $servicesCount,
+            'newsCount' => $newsCount,
+            'email' => $directorate->email,
+            'phone' => $directorate->phone,
+            'website' => $directorate->website,
+            'address_ar' => $directorate->address_ar,
+            'address_en' => $directorate->address_en,
         ]);
     }
 
@@ -690,6 +712,44 @@ class PublicApiController extends Controller
         $media = $query->get()->map($formatMedia);
 
         return response()->json($media);
+    }
+
+    /**
+     * Get album photos by media content ID
+     */
+    public function albumPhotos(string $id): JsonResponse
+    {
+        $content = Content::where('category', 'media')
+            ->where('status', 'published')
+            ->where('id', $id)
+            ->first();
+
+        if (!$content) {
+            return response()->json(['error' => 'Album not found'], 404);
+        }
+
+        $attachments = $content->attachments()
+            ->where('is_public', true)
+            ->where('file_type', 'image')
+            ->get()
+            ->map(fn($a) => [
+                'id' => (string) $a->id,
+                'url' => $a->getUrl(),
+                'title' => $a->title_ar ?? $a->title_en ?? $a->file_name,
+                'title_ar' => $a->title_ar,
+                'title_en' => $a->title_en,
+                'file_name' => $a->file_name,
+            ]);
+
+        return response()->json([
+            'id' => (string) $content->id,
+            'title' => $content->title_ar,
+            'title_ar' => $content->title_ar,
+            'title_en' => $content->title_en,
+            'date' => $content->published_at?->format('Y-m-d'),
+            'count' => $attachments->count(),
+            'photos' => $attachments,
+        ]);
     }
 
     /**

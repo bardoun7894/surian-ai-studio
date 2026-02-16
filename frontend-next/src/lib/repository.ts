@@ -1462,10 +1462,30 @@ class ApiAnnouncementsRepository implements IAnnouncementsRepository {
 }
 
 // --- Media Repository ---
+export interface AlbumPhoto {
+  id: string;
+  url: string;
+  title: string;
+  title_ar?: string;
+  title_en?: string;
+  file_name: string;
+}
+
+export interface AlbumData {
+  id: string;
+  title: string;
+  title_ar: string;
+  title_en: string;
+  date: string;
+  count: number;
+  photos: AlbumPhoto[];
+}
+
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
   getPaginated(page: number, perPage: number, type?: string): Promise<PaginatedResponse<MediaItem>>;
+  getAlbumPhotos(id: string): Promise<AlbumData>;
 }
 
 class MockMediaRepository implements IMediaRepository {
@@ -1492,6 +1512,27 @@ class MockMediaRepository implements IMediaRepository {
       total: all.length,
     };
   }
+  async getAlbumPhotos(id: string): Promise<AlbumData> {
+    const album = MOCK_MEDIA.find(m => m.id === id && m.type === 'photo' && m.count);
+    if (!album) throw new Error('Album not found');
+    const photos = Array.from({ length: album.count || 12 }).map((_, i) => ({
+      id: `${id}-photo-${i}`,
+      url: album.thumbnailUrl,
+      title: `${album.title} - Photo ${i + 1}`,
+      title_ar: `${album.title} - صورة ${i + 1}`,
+      title_en: `${album.title} - Photo ${i + 1}`,
+      file_name: `photo-${i + 1}.jpg`,
+    }));
+    return {
+      id: album.id,
+      title: album.title,
+      title_ar: album.title,
+      title_en: album.title,
+      date: album.date,
+      count: album.count || 12,
+      photos,
+    };
+  }
 }
 
 class ApiMediaRepository implements IMediaRepository {
@@ -1510,6 +1551,11 @@ class ApiMediaRepository implements IMediaRepository {
     if (type && type !== 'all') params.append('type', type);
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
+    return res.json();
+  }
+  async getAlbumPhotos(id: string): Promise<AlbumData> {
+    const res = await fetch(`${API_BASE_URL}/public/media/${id}/photos`);
+    if (!res.ok) throw new Error('Album not found');
     return res.json();
   }
 }
@@ -1570,7 +1616,7 @@ class ApiRolesRepository implements IRolesRepository {
 // --- Services Repository ---
 export interface IServicesRepository {
   getAll(): Promise<Service[]>;
-  getPaginated(page?: number, perPage?: number, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>>;
+  getPaginated(page?: number, perPage?: number, directorateId?: string, q?: string, isDigital?: boolean): Promise<PaginatedResponse<Service>>;
   getById(id: string): Promise<Service | null>;
 }
 
@@ -1578,7 +1624,7 @@ class MockServicesRepository implements IServicesRepository {
   async getAll(): Promise<Service[]> {
     return new Promise(resolve => setTimeout(() => resolve(KEY_SERVICES), 400));
   }
-  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>> {
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string, isDigital?: boolean): Promise<PaginatedResponse<Service>> {
     return new Promise(resolve => {
       setTimeout(() => {
         let filtered = KEY_SERVICES;
@@ -1591,6 +1637,9 @@ class MockServicesRepository implements IServicesRepository {
             s.description_ar?.toLowerCase().includes(query) ||
             s.description_en?.toLowerCase().includes(query)
           );
+        }
+        if (isDigital !== undefined) {
+          filtered = filtered.filter(s => s.isDigital === isDigital);
         }
         const total = filtered.length;
         const lastPage = Math.max(1, Math.ceil(total / perPage));
@@ -1613,10 +1662,11 @@ class ApiServicesRepository implements IServicesRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>> {
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string, isDigital?: boolean): Promise<PaginatedResponse<Service>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (directorateId) params.append('directorate_id', directorateId);
     if (q) params.append('q', q);
+    if (isDigital !== undefined) params.append('is_digital', String(isDigital));
     const res = await fetch(`${API_BASE_URL}/public/services?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();

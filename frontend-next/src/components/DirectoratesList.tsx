@@ -91,13 +91,17 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
         }
     };
 
+    // Group directorates: Featured ones first, then others
+    const featuredDirectorates = directorates.filter(dir => dir.featured === true);
+    const otherDirectorates = directorates.filter(dir => dir.featured !== true);
+
     const filteredDirectorates = variant === 'full'
         ? directorates.filter(dir => {
             const name = typeof dir.name === 'string' ? dir.name : (language === 'ar' ? dir.name.ar : dir.name.en);
             const desc = typeof dir.description === 'string' ? dir.description : (language === 'ar' ? dir.description.ar : dir.description.en);
             return name.includes(searchTerm) || desc.includes(searchTerm);
         })
-        : directorates.slice(0, 6); // Show only top 6 in compact mode
+        : featuredDirectorates.slice(0, 6); // Show only featured in compact mode
 
     if (loading) {
         return (
@@ -154,16 +158,146 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                     <button onClick={() => setSearchTerm('')} className="mt-2 text-gov-teal dark:text-gov-gold underline text-sm">عرض الكل</button>
                 </div>
             ) : (
-                <div className={`grid gap-4 md:gap-6 ${variant === 'full'
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
-                    }`}>
-                    {filteredDirectorates.map((dir) => {
-                        const dirServices = servicesMap[dir.id] || [];
-                        const isCompact = variant === 'compact';
+                <>
+                    {/* Featured Directorates Section */}
+                    {variant === 'full' && featuredDirectorates.length > 0 && searchTerm === '' && (
+                        <div className="mb-12">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold text-gov-forest dark:text-white mb-2">
+                                    {language === 'ar' ? 'الإدارات العامة الرئيسية' : 'Main General Administrations'}
+                                </h3>
+                                <div className="h-1 w-24 bg-gov-gold rounded-full"></div>
+                                <p className="text-sm text-gov-stone/60 dark:text-white/60 mt-2">
+                                    {language === 'ar'
+                                        ? 'الإدارات الرئيسية الثلاث المسؤولة عن القطاعات الأساسية'
+                                        : 'Three main administrations responsible for core sectors'}
+                                </p>
+                            </div>
+                            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                                {featuredDirectorates.map((dir) => {
+                                    const dirServices = servicesMap[dir.id] || [];
+                                    return (
+                                        <Link key={dir.id} href={`/directorates/${dir.id}`}
+                                            className="group flex flex-col h-full bg-gradient-to-br from-gov-forest/5 to-gov-teal/5 dark:from-gov-brand/10 dark:to-gov-forest/10 rounded-2xl border-2 border-gov-gold/30 dark:border-gov-gold/20 shadow-lg hover:shadow-2xl hover:border-gov-gold transition-all duration-300 relative overflow-hidden backdrop-blur-sm cursor-pointer p-6"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gov-teal via-gov-gold to-gov-forest"></div>
+                                            <div className="flex gap-4 mb-4 items-center">
+                                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gov-teal to-gov-forest dark:from-gov-gold dark:to-gov-teal flex items-center justify-center text-white shadow-lg">
+                                                    {getIcon(dir.icon, false)}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-xl font-bold text-gov-forest dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                                                        {typeof dir.name === 'string' ? dir.name : (language === 'ar' ? dir.name.ar : dir.name.en)}
+                                                    </h3>
+                                                    <span className="text-xs text-gov-sand font-medium flex items-center gap-1 mt-1">
+                                                        <Building2 size={12} />
+                                                        {dir.subDirectorates?.length || 0} {language === 'ar' ? 'مديرية تابعة' : 'sub-directorates'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-gov-stone/70 dark:text-white/70 mb-4 leading-relaxed line-clamp-2">
+                                                {typeof dir.description === 'string' ? dir.description : (language === 'ar' ? dir.description.ar : dir.description.en)}
+                                            </p>
+                                            <div className="bg-white/50 dark:bg-gov-card/20 rounded-xl p-3 mb-4 flex-1">
+                                                <h4 className="text-[10px] font-bold text-gov-sand uppercase tracking-wider mb-2">{language === 'ar' ? 'خدمات مختارة' : 'Selected Services'}</h4>
+                                                <div className="space-y-2">
+                                                    {dirServices.slice(0, 3).map(service => (
+                                                        <div key={service.id} className="flex items-center gap-2 text-xs text-gov-stone dark:text-gray-300 p-1.5 hover:bg-white dark:hover:bg-white/10 rounded transition-colors">
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${service.isDigital ? 'bg-gov-emeraldLight' : 'bg-gov-sand'}`}></div>
+                                                            <span className="truncate">{service.title}</span>
+                                                        </div>
+                                                    ))}
+                                                    {dirServices.length === 0 && <span className="text-xs text-gov-sand block p-1">...</span>}
+                                                </div>
+                                            </div>
+                                            <div className="mt-auto border-t border-gov-gold/20 dark:border-white/10 pt-4 flex justify-between items-center">
+                                                <span className="text-xs text-gov-gold bg-gov-gold/10 px-2 py-1 rounded font-bold">{language === 'ar' ? 'إدارة رئيسية' : 'Main Admin'}</span>
+                                                <span className="text-sm font-bold text-gov-teal dark:text-gov-gold flex items-center gap-2 hover:gap-3 transition-all">
+                                                    {t('view_details')}
+                                                    <ArrowRight size={16} className={language === 'ar' ? '' : 'rotate-180'} />
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
-                        return (
-                            <Link key={dir.id} href={`/directorates/${dir.id}`}
+                    {/* Other Directorates Section */}
+                    {variant === 'full' && otherDirectorates.length > 0 && searchTerm === '' && (
+                        <div>
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold text-gov-forest dark:text-white mb-2">
+                                    {language === 'ar' ? 'المديريات والهيئات والمراكز التابعة' : 'Directorates, Authorities & Centers'}
+                                </h3>
+                                <div className="h-1 w-24 bg-gov-sand rounded-full"></div>
+                                <p className="text-sm text-gov-stone/60 dark:text-white/60 mt-2">
+                                    {language === 'ar'
+                                        ? 'المديريات الإدارية والهيئات المستقلة والمراكز المتخصصة والشركات التابعة'
+                                        : 'Administrative directorates, independent authorities, specialized centers, and affiliated companies'}
+                                </p>
+                            </div>
+                            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                                {otherDirectorates.map((dir) => {
+                                    const dirServices = servicesMap[dir.id] || [];
+                                    return (
+                                        <Link key={dir.id} href={`/directorates/${dir.id}`}
+                                            className="group flex flex-col h-full bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-xl hover:border-gov-teal/30 dark:hover:border-gov-gold/30 transition-all duration-300 relative overflow-hidden backdrop-blur-sm cursor-pointer p-6"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            <div className="flex gap-4 mb-4 items-center">
+                                                <div className="w-16 h-16 rounded-2xl bg-gov-beige dark:bg-white/10 flex items-center justify-center text-gov-teal dark:text-gov-gold group-hover:bg-gov-teal group-hover:text-white dark:group-hover:bg-gov-gold dark:group-hover:text-gov-forest transition-all duration-300 shadow-inner">
+                                                    {getIcon(dir.icon, false)}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-gov-charcoal dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                                                        {typeof dir.name === 'string' ? dir.name : (language === 'ar' ? dir.name.ar : dir.name.en)}
+                                                    </h3>
+                                                    <span className="text-xs text-gov-sand font-medium">{dir.servicesCount} {language === 'ar' ? 'خدمة متاحة' : 'Services'}</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-gov-stone/60 dark:text-white/70 mb-6 leading-relaxed line-clamp-2 min-h-[40px]">
+                                                {typeof dir.description === 'string' ? dir.description : (language === 'ar' ? dir.description.ar : dir.description.en)}
+                                            </p>
+                                            <div className="bg-gov-beige/20 dark:bg-gov-card/10 rounded-xl p-3 mb-6 flex-1">
+                                                <h4 className="text-[10px] font-bold text-gov-sand uppercase tracking-wider mb-2 pr-1">{language === 'ar' ? 'خدمات مختارة' : 'Selected Services'}</h4>
+                                                <div className="space-y-2">
+                                                    {dirServices.slice(0, 3).map(service => (
+                                                        <div key={service.id} className="flex items-center gap-2 text-xs text-gov-stone dark:text-gray-300 p-1.5 hover:bg-white dark:hover:bg-white/10 rounded transition-colors">
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${service.isDigital ? 'bg-gov-emeraldLight' : 'bg-gov-sand'}`}></div>
+                                                            <span className="truncate">{service.title}</span>
+                                                        </div>
+                                                    ))}
+                                                    {dirServices.length === 0 && <span className="text-xs text-gov-sand block p-1">...</span>}
+                                                </div>
+                                            </div>
+                                            <div className="mt-auto border-t border-gray-100 dark:border-white/5 pt-4 flex justify-between items-center">
+                                                <span className="text-xs text-gov-sand bg-gov-beige/30 dark:bg-white/10 px-2 py-1 rounded">{dir.id.toUpperCase()}</span>
+                                                <span className="text-sm font-bold text-gov-teal dark:text-gov-gold flex items-center gap-2 hover:gap-3 transition-all">
+                                                    {t('view_details')}
+                                                    <ArrowRight size={16} className={language === 'ar' ? '' : 'rotate-180'} />
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Search Results or Compact Mode */}
+                    {(variant === 'compact' || searchTerm !== '') && (
+                        <div className={`grid gap-4 md:gap-6 ${variant === 'full'
+                            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                            : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+                            }`}>
+                            {filteredDirectorates.map((dir) => {
+                                const dirServices = servicesMap[dir.id] || [];
+                                const isCompact = variant === 'compact';
+
+                                return (
+                                    <Link key={dir.id} href={`/directorates/${dir.id}`}
                                 className={`group flex flex-col h-full bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-xl hover:border-gov-teal/30 dark:hover:border-gov-gold/30 transition-all duration-300 relative overflow-hidden backdrop-blur-sm cursor-pointer ${isCompact ? 'p-4 items-center text-center' : 'p-6'}`}
                             >
 
@@ -215,9 +349,11 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                     </div>
                                 )}
                             </Link>
-                        );
-                    })}
-                </div>
+                                        );
+                                    })}
+                            </div>
+                        )}
+                </>
             )}
 
             {/* View All Button for Compact Mode */}

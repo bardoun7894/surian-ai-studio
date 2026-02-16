@@ -34,6 +34,7 @@ function DirectoratesMap() {
         zoom: 1,
     });
     const [hoveredDirectorate, setHoveredDirectorate] = useState<Directorate | null>(null);
+    const [selectedDirectorate, setSelectedDirectorate] = useState<Directorate | null>(null);
     const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null);
 
     useEffect(() => {
@@ -69,6 +70,9 @@ function DirectoratesMap() {
     const geoStroke = isDark ? '#111827' : '#e5e7eb';
     const markerColor = '#b9a779'; // gov-gold
 
+    const totalDirectorates = directorates.length;
+    const mappedDirectorates = directorates.filter(d => d.latitude && d.longitude).length;
+
     return (
         <div className="w-full bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
             <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
@@ -80,6 +84,11 @@ function DirectoratesMap() {
                     <p className="text-sm text-gray-500 dark:text-white/60">
                         {isArabic ? 'استكشف مواقع مديرياتنا في كافة أنحاء القطر' : 'Explore our directorate locations across the country'}
                     </p>
+                    <div className="flex items-center gap-4 mt-2">
+                        <span className="text-xs px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold font-medium">
+                            {isArabic ? `${mappedDirectorates} من ${totalDirectorates} مديرية على الخريطة` : `${mappedDirectorates} of ${totalDirectorates} on map`}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -124,33 +133,41 @@ function DirectoratesMap() {
                             }
                         </Geographies>
 
-                        {directorates.map((d) => (
-                            <Marker
-                                key={d.id}
-                                coordinates={[Number(d.longitude), Number(d.latitude)]}
-                                onMouseEnter={(evt) => {
-                                    setHoveredDirectorate(d);
-                                    setTooltip({ x: evt.clientX, y: evt.clientY });
-                                }}
-                                onMouseLeave={() => {
-                                    setHoveredDirectorate(null);
-                                    setTooltip(null);
-                                }}
-                            >
-                                <circle
-                                    r={position.zoom > 2 ? 4 : 6}
-                                    fill={markerColor}
-                                    stroke={isDark ? '#000' : '#fff'}
-                                    strokeWidth={1.5}
-                                    className="cursor-pointer hover:r-8 transition-all duration-300"
-                                />
-                                <circle
-                                    r={position.zoom > 2 ? 8 : 12}
-                                    fill={markerColor}
-                                    className="animate-ping opacity-20 pointer-events-none"
-                                />
-                            </Marker>
-                        ))}
+                        {directorates.map((d) => {
+                            const isSelected = selectedDirectorate?.id === d.id;
+                            return (
+                                <Marker
+                                    key={d.id}
+                                    coordinates={[Number(d.longitude), Number(d.latitude)]}
+                                    onMouseEnter={(evt) => {
+                                        setHoveredDirectorate(d);
+                                        setTooltip({ x: evt.clientX, y: evt.clientY });
+                                    }}
+                                    onMouseLeave={() => {
+                                        setHoveredDirectorate(null);
+                                        setTooltip(null);
+                                    }}
+                                    onClick={() => {
+                                        setSelectedDirectorate(d);
+                                    }}
+                                >
+                                    <circle
+                                        r={isSelected ? 8 : (position.zoom > 2 ? 4 : 6)}
+                                        fill={markerColor}
+                                        stroke={isSelected ? '#0a5d52' : (isDark ? '#000' : '#fff')}
+                                        strokeWidth={isSelected ? 2.5 : 1.5}
+                                        className="cursor-pointer hover:r-8 transition-all duration-300"
+                                    />
+                                    {!isSelected && (
+                                        <circle
+                                            r={position.zoom > 2 ? 8 : 12}
+                                            fill={markerColor}
+                                            className="animate-ping opacity-20 pointer-events-none"
+                                        />
+                                    )}
+                                </Marker>
+                            );
+                        })}
                     </ZoomableGroup>
                 </ComposableMap>
 
@@ -178,6 +195,72 @@ function DirectoratesMap() {
                                 <span>{isArabic ? 'انقر للمزيد' : 'Click for details'}</span>
                                 {isArabic ? <ArrowLeft size={12} /> : <ArrowRight size={12} />}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Selected Directorate Info Panel */}
+                {selectedDirectorate && (
+                    <div className={`absolute top-6 ${isArabic ? 'left-6' : 'right-6'} bg-white dark:bg-dm-surface rounded-2xl shadow-2xl border border-gray-100 dark:border-gov-border/20 p-6 max-w-sm z-30 animate-in fade-in slide-in-from-right duration-300`}>
+                        <button
+                            onClick={() => setSelectedDirectorate(null)}
+                            className="absolute top-4 ltr:right-4 rtl:left-4 w-6 h-6 rounded-full bg-gray-100 dark:bg-gov-border/20 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gov-border/30 transition-colors"
+                        >
+                            ×
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold">
+                                <MapPin size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gov-forest dark:text-white text-lg">
+                                    {isArabic
+                                        ? (typeof selectedDirectorate.name === 'string' ? selectedDirectorate.name : selectedDirectorate.name.ar)
+                                        : (typeof selectedDirectorate.name === 'string' ? selectedDirectorate.name : selectedDirectorate.name.en)}
+                                </h3>
+                                <span className="text-xs text-gray-500 dark:text-white/50">
+                                    {isArabic ? 'مديرية' : 'Directorate'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            {(selectedDirectorate.address_ar || selectedDirectorate.address_en) && (
+                                <div>
+                                    <p className="text-xs text-gray-500 dark:text-white/50 mb-1 font-medium">
+                                        {isArabic ? 'العنوان' : 'Address'}
+                                    </p>
+                                    <p className="text-sm text-gray-700 dark:text-white/80">
+                                        {isArabic ? selectedDirectorate.address_ar : selectedDirectorate.address_en}
+                                    </p>
+                                </div>
+                            )}
+
+                            {(selectedDirectorate.phone || selectedDirectorate.email) && (
+                                <div className="border-t border-gray-100 dark:border-gov-border/15 pt-3">
+                                    {selectedDirectorate.phone && (
+                                        <p className="text-sm text-gray-700 dark:text-white/80 mb-1">
+                                            <span className="text-xs text-gray-500 dark:text-white/50">{isArabic ? 'الهاتف:' : 'Phone:'}</span>{' '}
+                                            {selectedDirectorate.phone}
+                                        </p>
+                                    )}
+                                    {selectedDirectorate.email && (
+                                        <p className="text-sm text-gray-700 dark:text-white/80">
+                                            <span className="text-xs text-gray-500 dark:text-white/50">{isArabic ? 'البريد:' : 'Email:'}</span>{' '}
+                                            {selectedDirectorate.email}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            <Link
+                                href={`/directorates/${selectedDirectorate.id}`}
+                                className="flex items-center justify-center gap-2 w-full mt-4 py-2.5 px-4 bg-gov-gold text-white rounded-xl hover:bg-gov-gold/90 transition-colors font-medium text-sm"
+                            >
+                                {isArabic ? 'عرض التفاصيل الكاملة' : 'View Full Details'}
+                                {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+                            </Link>
                         </div>
                     </div>
                 )}

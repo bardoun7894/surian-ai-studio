@@ -59,8 +59,10 @@
 }
 
 .dark {
-  --background: #1a1a1a;
-  --foreground: #ffffff;
+  --background: #094239;
+  /* Dark Forest Green */
+  --foreground: #EDEBE0;
+  /* Light Beige */
 
   /* Brand Colors - Dark Mode */
   --color-gov-forest: 9 66 57;

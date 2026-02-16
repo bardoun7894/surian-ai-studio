@@ -115,23 +115,35 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
     // Sort by order to ensure correct hierarchy
     const sorted = [...team].sort((a, b) => a.order - b.order);
 
-    // Tier 0: Head (first member)
+    // Tier 0: Head (order = 1, typically the director/head)
     const head = sorted[0];
 
-    // Tier 1: Deputies (next members, up to 3 or those with order <= 3)
-    // Tier 2: Remaining members
+    // Tier 1: Deputies (order 2-4, typically deputy directors and assistants)
+    // Tier 2: Department heads and staff (order > 4)
     const remaining = sorted.slice(1);
     let deputies: DirectorateTeam[] = [];
     let members: DirectorateTeam[] = [];
 
-    if (remaining.length <= 4) {
-        // Few members: all are direct reports (deputies)
-        deputies = remaining;
-    } else {
-        // Split into deputies (first ~3) and department members
-        const deputyCutoff = Math.min(3, Math.ceil(remaining.length / 3));
-        deputies = remaining.slice(0, deputyCutoff);
-        members = remaining.slice(deputyCutoff);
+    // More intelligent hierarchy detection based on order numbers
+    // Orders 1-4: Executive level (head + deputies)
+    // Orders 5+: Department level (managers and staff)
+    remaining.forEach(member => {
+        if (member.order <= 4) {
+            deputies.push(member);
+        } else {
+            members.push(member);
+        }
+    });
+
+    // If no explicit order-based split, use the old logic as fallback
+    if (deputies.length === 0 && members.length === 0) {
+        if (remaining.length <= 4) {
+            deputies = remaining;
+        } else {
+            const deputyCutoff = Math.min(3, Math.ceil(remaining.length / 3));
+            deputies = remaining.slice(0, deputyCutoff);
+            members = remaining.slice(deputyCutoff);
+        }
     }
 
     return (
@@ -142,13 +154,21 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                     <h3 className="text-2xl md:text-3xl font-bold text-gov-forest dark:text-white mb-4 font-display">
                         {t('organizational_structure') || (isAr ? 'الهيكل الإداري' : 'Organizational Structure')}
                     </h3>
-                    <div className="w-24 h-1 bg-gov-gold mx-auto rounded-full"></div>
+                    <div className="w-24 h-1 bg-gov-gold mx-auto rounded-full mb-3"></div>
+                    <p className="text-sm text-gov-stone/70 dark:text-white/60">
+                        {isAr
+                            ? 'الهيكل التنظيمي يوضح مستويات الإدارة والتبعية المباشرة'
+                            : 'Organizational hierarchy showing management levels and direct reporting'}
+                    </p>
                 </div>
 
                 {/* === Org Chart Tree === */}
                 <div className="flex flex-col items-center">
 
                     {/* ── Level 0: Head ── */}
+                    <div className="mb-2 text-xs font-bold text-gov-gold uppercase tracking-wider">
+                        {isAr ? 'المستوى التنفيذي' : 'Executive Level'}
+                    </div>
                     <PersonCard member={head} tier="head" isAr={isAr} />
 
                     {/* Connector from head to deputies */}
@@ -157,6 +177,9 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                             <VerticalLine height="h-10 md:h-12" />
 
                             {/* ── Level 1: Deputies ── */}
+                            <div className="mb-2 text-xs font-bold text-gov-forest/70 dark:text-gov-teal uppercase tracking-wider">
+                                {isAr ? 'المستوى الإشرافي' : 'Supervisory Level'}
+                            </div>
                             <div className="w-full">
                                 {/* Horizontal branch line (desktop) */}
                                 <HorizontalBranch count={deputies.length} />
@@ -189,6 +212,9 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                             <VerticalLine height="h-8 md:h-10" className="mt-6" />
 
                             {/* ── Level 2: Department Members ── */}
+                            <div className="mb-2 text-xs font-bold text-gov-charcoal/50 dark:text-white/50 uppercase tracking-wider">
+                                {isAr ? 'المستوى التنفيذي - الأقسام' : 'Operational Level - Departments'}
+                            </div>
                             <div className="w-full">
                                 <HorizontalBranch count={members.length} />
 

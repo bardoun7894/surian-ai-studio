@@ -45,6 +45,21 @@ const TwoFactorContent = () => {
         inputRefs.current[0]?.focus();
     }, []);
 
+    // Visibility change handler - re-focus first empty input when user returns to tab
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            // When user returns to tab, re-focus the first empty input
+            if (!document.hidden) {
+                const firstEmpty = code.findIndex(c => !c);
+                if (firstEmpty !== -1) {
+                    inputRefs.current[firstEmpty]?.focus();
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [code]);
+
     const handleInputChange = (index: number, value: string) => {
         if (!/^\d*$/.test(value)) return;
 
@@ -141,14 +156,15 @@ const TwoFactorContent = () => {
                             width={160}
                             height={160}
                             className="relative z-10 drop-shadow-2xl"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والتجارة الخارجية' : 'Ministry of Economy & Foreign Trade'}
+                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy & Industry'}
                     </h1>
                     <p className="text-gov-gold text-lg text-center mb-8">
-                        {language === 'ar' ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}
+                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
                     </p>
 
                     <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mb-8" />
@@ -169,6 +185,7 @@ const TwoFactorContent = () => {
                     width={96}
                     height={32}
                     className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-30"
+                    style={{ width: 'auto', height: 'auto' }}
                 />
             </div>
 
@@ -192,6 +209,7 @@ const TwoFactorContent = () => {
                             width={80}
                             height={80}
                             className="mx-auto mb-4"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 

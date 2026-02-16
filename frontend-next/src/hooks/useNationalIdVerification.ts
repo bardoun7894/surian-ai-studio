@@ -1,0 +1,127 @@
+'use client';
+
+import { useState, useCallback, useRef } from 'react';
+import { API } from '@/lib/repository';
+
+interface VerificationResult {
+    verified: boolean;
+    message: string;
+    service_available: boolean;
+    citizen_data?: {
+        first_name?: string;
+        father_name?: string;
+        last_name?: string;
+        birth_date?: string;
+        governorate?: string;
+    };
+    mismatched_fields?: Array<{ field: string; label: string }>;
+}
+
+interface UseNationalIdVerificationReturn {
+    // State
+    verificationStatus: 'idle' | 'validating' | 'verifying' | 'verified' | 'error' | 'mismatch';
+    verificationMessage: string;
+    citizenData: VerificationResult['citizen_data'] | null;
+    mismatchedFields: Array<{ field: string; label: string }>;
+    isServiceAvailable: boolean;
+    
+    // Actions
+    validateFormat: (nationalId: string) => { valid: boolean; error: string };
+    verifyWithRegistry: (nationalId: string, personalData?: {
+        first_name?: string;
+        father_name?: string;
+        last_name?: string;
+        birth_date?: string;
+    }) => Promise<VerificationResult | null>;
+    reset: () => void;
+}
+
+export function useNationalIdVerification(): UseNationalIdVerificationReturn {
+    const [verificationStatus, setVerificationStatus] = useState<'idle' | 'validating' | 'verifying' | 'verified' | 'error' | 'mismatch'>('idle');
+    const [verificationMessage, setVerificationMessage] = useState('');
+    const [citizenData, setCitizenData] = useState<VerificationResult['citizen_data'] | null>(null);
+    const [mismatchedFields, setMismatchedFields] = useState<Array<{ field: string; label: string }>>([]);
+    const [isServiceAvailable, setIsServiceAvailable] = useState(false);
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+    const validateFormat = useCallback((nationalId: string): { valid: boolean; error: string } => {
+        if (!nationalId || nationalId.trim() === '') {
+            return { valid: false, error: 'الرقم الوطني مطلوب' };
+        }
+        if (!/^\d+$/.test(nationalId)) {
+            return { valid: false, error: 'الرقم الوطني يجب أن يحتوي على أرقام فقط بدون أحرف أو رموز' };
+        }
+        if (nationalId.length < 11) {
+            return { valid: false, error: `الرقم الوطني يجب أن يتكون من 11 رقماً. أدخلت ${nationalId.length} أرقام فقط` };
+        }
+        if (nationalId.length > 11) {
+            return { valid: false, error: `الرقم الوطني يجب أن يتكون من 11 رقماً. أدخلت ${nationalId.length} أرقام` };
+        }
+        return { valid: true, error: '' };
+    }, []);
+
+    const verifyWithRegistry = useCallback(async (
+        nationalId: string,
+        personalData?: { first_name?: string; father_name?: string; last_name?: string; birth_date?: string }
+    ): Promise<VerificationResult | null> => {
+        // First validate format
+        const formatCheck = validateFormat(nationalId);
+        if (!formatCheck.valid) {
+            setVerificationStatus('error');
+            setVerificationMessage(formatCheck.error);
+            return null;
+        }
+
+        setVerificationStatus('verifying');
+        setVerificationMessage('جارٍ التحقق من الرقم الوطني في السجل المدني...');
+
+        try {
+            const result = await API.nationalId.verify({
+                national_id: nationalId,
+                ...personalData,
+            });
+
+            setIsServiceAvailable(result.service_available ?? false);
+
+            if (result.verified) {
+                setVerificationStatus('verified');
+                setVerificationMessage(result.message || 'تم التحقق بنجاح');
+                setCitizenData(result.citizen_data || null);
+                setMismatchedFields([]);
+            } else if (result.mismatched_fields?.length > 0) {
+                setVerificationStatus('mismatch');
+                setVerificationMessage(result.message || 'البيانات غير مطابقة للسجل المدني');
+                setMismatchedFields(result.mismatched_fields);
+                setCitizenData(null);
+            } else {
+                setVerificationStatus('error');
+                setVerificationMessage(result.message || 'الرقم الوطني غير مسجل في السجل المدني');
+                setCitizenData(null);
+            }
+
+            return result;
+        } catch (err) {
+            setVerificationStatus('error');
+            setVerificationMessage('حدث خطأ أثناء الاتصال بخدمة السجل المدني. يرجى المحاولة مرة أخرى.');
+            return null;
+        }
+    }, [validateFormat]);
+
+    const reset = useCallback(() => {
+        setVerificationStatus('idle');
+        setVerificationMessage('');
+        setCitizenData(null);
+        setMismatchedFields([]);
+    }, []);
+
+    return {
+        verificationStatus,
+        verificationMessage,
+        citizenData,
+        mismatchedFields,
+        isServiceAvailable,
+        validateFormat,
+        verifyWithRegistry,
+        reset,
+    };
+}

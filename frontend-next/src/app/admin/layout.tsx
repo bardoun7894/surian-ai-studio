@@ -104,12 +104,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-dm-bg">
+    <div className="min-h-screen flex bg-gov-beige dark:bg-dm-bg">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 start-0 z-40 bg-white dark:bg-dm-bg border-e border-gray-200 dark:border-gov-border/15 transition-all duration-300 ${
-          sidebarCollapsed ? 'w-20' : 'w-64'
-        }`}
+        className={`fixed inset-y-0 start-0 z-40 bg-white dark:bg-dm-bg border-e border-gray-200 dark:border-gov-border/15 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-64'
+          }`}
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gov-border/15">
@@ -144,11 +143,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  active
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
                     ? 'bg-gov-gold/10 text-gov-gold font-bold'
                     : 'text-gray-600 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
-                }`}
+                  }`}
                 title={sidebarCollapsed ? (language === 'ar' ? item.label.ar : item.label.en) : undefined}
               >
                 <Icon size={20} />
@@ -182,9 +180,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-6 ${
-          sidebarCollapsed ? 'ms-20' : 'ms-64'
-        }`}
+        className={`flex-1 transition-all duration-300 pt-6 ${sidebarCollapsed ? 'ms-20' : 'ms-64'
+          }`}
       >
         {children}
       </main>

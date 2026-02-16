@@ -21,11 +21,20 @@ class Directorate extends Model
         'logo_path',
         'is_active',
         'featured',
+        'latitude',
+        'longitude',
+        'address_ar',
+        'address_en',
+        'email',
+        'phone',
+        'website',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'featured' => 'boolean',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
     ];
 
     public function users()
@@ -56,6 +65,11 @@ class Directorate extends Model
     public function news()
     {
         return $this->hasMany(Content::class)->where('category', Content::CATEGORY_NEWS);
+    }
+
+    public function team()
+    {
+        return $this->hasMany(DirectorateTeam::class)->orderBy('order');
     }
 
     /**

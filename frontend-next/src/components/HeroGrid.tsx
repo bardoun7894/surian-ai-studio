@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Sparkles, Share2, Bookmark, Play, Loader2, Users, TrendingUp, Star, Award, Zap, Target, Heart, ThumbsUp, MessageCircle, FileText, Calendar, Globe, Shield, Briefcase } from 'lucide-react';
+import { ArrowLeft, Sparkles, Share2, Play, Users, TrendingUp, Star, Award, Zap, Target, Heart, ThumbsUp, MessageCircle, FileText, Calendar, Globe, Shield, Briefcase } from 'lucide-react';
+import { SkeletonCard } from '@/components/SkeletonLoader';
 import { API } from '@/lib/repository';
 import ArticleCard from './ArticleCard';
 import VideoCard from './VideoCard';
+import FavoriteButton from './FavoriteButton';
 import { Article, PromotionalSection } from '@/types';
 import { getLocalizedField } from '@/lib/utils';
+import ShareMenu from './ShareMenu';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 // Icon mapping for Lucide icons
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -38,13 +42,13 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
     // If video_url is present, use actual video player
     if (section.video_url) {
       return (
-        <div className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden">
+        <div className="lg:col-span-4 min-h-[220px] rounded-[2rem] relative overflow-hidden">
           <VideoCard
             videoUrl={section.video_url}
             posterUrl={section.image || undefined}
             title={title}
             aspectRatio="video"
-            className="h-full min-h-[280px] rounded-[2rem]"
+            className="h-full min-h-[220px] rounded-[2rem]"
             autoPlayOnHover={true}
           />
           {/* Badge overlay */}
@@ -60,7 +64,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
     // Fallback to static card if no video_url
     return (
       <div
-        className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+        className="lg:col-span-4 min-h-[220px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -105,7 +109,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
 
     return (
       <div
-        className="lg:col-span-4 min-h-[280px] p-6 rounded-[2rem] border border-gov-gold/10 flex flex-col justify-center items-center text-center group hover:bg-gov-emerald/20 transition-all duration-500"
+        className="lg:col-span-4 min-h-[200px] p-6 rounded-[2rem] border border-gov-gold/10 flex flex-col justify-center items-center text-center group hover:bg-gov-emerald/20 transition-all duration-500"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -141,7 +145,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   if (section.type === 'promo') {
     return (
       <div
-        className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+        className="lg:col-span-4 min-h-[200px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -176,7 +180,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   // Banner type card
   return (
     <div
-      className="lg:col-span-4 min-h-[280px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+      className="lg:col-span-4 min-h-[200px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
       style={{ backgroundColor: section.background_color }}
     >
       {section.image && (
@@ -207,6 +211,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
 
 const HeroGrid: React.FC = () => {
   const { language: locale, t } = useLanguage();
+  const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [heroArticle, setHeroArticle] = useState<Article | null>(null);
@@ -253,9 +258,34 @@ const HeroGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="h-[600px] flex items-center justify-center">
-        <Loader2 className="animate-spin text-gov-gold" size={48} />
-      </div>
+      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
+          {/* Main Hero Skeleton */}
+          <div className="lg:col-span-8 lg:row-span-2 min-h-[400px]">
+            <SkeletonCard className="h-full" />
+          </div>
+          {/* Side Items Skeleton */}
+          <div className="lg:col-span-4 lg:row-span-2 flex flex-col gap-6">
+            <div className="flex-1 min-h-[180px]">
+              <SkeletonCard className="h-full" />
+            </div>
+            <div className="flex-1 min-h-[180px]">
+              <SkeletonCard className="h-full" />
+            </div>
+          </div>
+          {/* Bottom Row Skeleton */}
+          <div className="lg:col-span-4 min-h-[180px]">
+            <SkeletonCard className="h-full" />
+          </div>
+          {/* Promotional Sections Skeleton */}
+          <div className="lg:col-span-4 min-h-[200px]">
+            <SkeletonCard className="h-full" />
+          </div>
+          <div className="lg:col-span-4 min-h-[200px]">
+            <SkeletonCard className="h-full" />
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -266,8 +296,8 @@ const HeroGrid: React.FC = () => {
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
 
-        {/* Main Hero Item (Span 8 cols on large) */}
-        <div className="lg:col-span-8 lg:row-span-2 relative group rounded-[2.5rem] overflow-hidden min-h-[500px] border border-white/10 shadow-2xl shadow-black/50 transition-all duration-500 hover:shadow-gov-gold/20">
+        {/* Main Hero Item (Span 6 cols on large - 50%) */}
+        <div className="lg:col-span-6 lg:row-span-2 relative group rounded-[2.5rem] overflow-hidden min-h-[400px] border border-white/10 shadow-2xl shadow-black/50 transition-all duration-500 hover:shadow-gov-gold/20">
           <div className="absolute inset-0">
             {heroArticle.imageUrl && (
               <Image
@@ -287,12 +317,31 @@ const HeroGrid: React.FC = () => {
                 {t('hero_live_badge')}
               </span>
               <div className="flex gap-2">
-                <button className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10">
+                <button
+                  onClick={() => {
+                    setShareData({
+                      title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
+                      url: `${window.location.origin}/news/${heroArticle.id}`
+                    });
+                  }}
+                  className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10"
+                  title={locale === 'ar' ? 'مشاركة' : 'Share'}
+                >
                   <Share2 size={20} />
                 </button>
-                <button className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10">
-                  <Bookmark size={20} />
-                </button>
+                <FavoriteButton
+                  contentType="news"
+                  contentId={heroArticle.id}
+                  variant="overlay"
+                  size={20}
+                  className="!p-3 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
+                  metadata={{
+                    title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
+                    description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
+                    image: heroArticle.imageUrl || '',
+                    url: `/news/${heroArticle.id}`
+                  }}
+                />
               </div>
             </div>
 
@@ -305,11 +354,11 @@ const HeroGrid: React.FC = () => {
                 <span className="flex items-center gap-1"><Sparkles size={14} className="text-gov-gold" /> {t('hero_ai_label')}</span>
               </div>
 
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-tight">
+              <h1 className="text-3xl md:text-5xl lg:text-5xl font-display font-bold text-white leading-tight">
                 {getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en')}
               </h1>
 
-              <p className="text-lg text-gov-beige/90 leading-relaxed md:w-3/4">
+              <p className="text-lg text-gov-beige/90 leading-relaxed md:w-3/4 line-clamp-3">
                 {getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en')}
               </p>
 
@@ -353,14 +402,14 @@ const HeroGrid: React.FC = () => {
           </div>
         </div>
 
-        {/* Side Column Items (Span 4 cols) */}
+        {/* Side Column Items (Span 6 cols) */}
         {gridArticles.length > 0 && (
-          <div className="lg:col-span-4 lg:row-span-2 flex flex-col gap-6">
-            <div className="flex-1 min-h-[240px]">
+          <div className="lg:col-span-6 lg:row-span-2 flex flex-col gap-6">
+            <div className="flex-1 min-h-[180px]">
               <ArticleCard article={gridArticles[0]} variant="visual" />
             </div>
             {gridArticles[1] && (
-              <div className="flex-1 min-h-[240px]">
+              <div className="flex-1 min-h-[180px]">
                 <ArticleCard article={gridArticles[1]} variant="default" />
               </div>
             )}
@@ -369,7 +418,7 @@ const HeroGrid: React.FC = () => {
 
         {/* Bottom Row */}
         {gridArticles[2] && (
-          <div className="lg:col-span-4 min-h-[280px]">
+          <div className="lg:col-span-4 min-h-[180px]">
             <ArticleCard article={gridArticles[2]} variant="default" />
           </div>
         )}
@@ -380,6 +429,13 @@ const HeroGrid: React.FC = () => {
         ))}
 
       </div>
+
+      <ShareMenu
+        isOpen={!!shareData}
+        onClose={() => setShareData(null)}
+        title={shareData?.title || ''}
+        url={shareData?.url || ''}
+      />
     </section>
   );
 };

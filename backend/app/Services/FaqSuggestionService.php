@@ -316,12 +316,13 @@ class FaqSuggestionService
         try {
             $response = $this->aiService->summarize(
                 $prompt,
+                'ar',
                 'You are a content writer creating FAQ entries for a government ministry website.'
             );
 
             // Parse the AI response to extract enhanced Q&A
             return $this->parseEnhancedResponse($response, $suggestion);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Failed to enhance FAQ suggestion', [
                 'suggestion_id' => $suggestion->id,
                 'error' => $e->getMessage(),
@@ -371,8 +372,17 @@ PROMPT;
     /**
      * Parse AI response for enhanced FAQ content
      */
-    protected function parseEnhancedResponse(string $response, FaqSuggestion $suggestion): array
+    protected function parseEnhancedResponse(?string $response, FaqSuggestion $suggestion): array
     {
+        if (!$response) {
+            return [
+                'question_ar' => $suggestion->question_ar,
+                'question_en' => $suggestion->question_en,
+                'answer_ar' => $suggestion->answer_ar,
+                'answer_en' => $suggestion->answer_en,
+            ];
+        }
+
         // Try to extract JSON from response
         if (preg_match('/\{[^}]+\}/s', $response, $matches)) {
             $data = json_decode($matches[0], true);

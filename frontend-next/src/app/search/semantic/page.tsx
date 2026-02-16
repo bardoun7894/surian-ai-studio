@@ -221,7 +221,7 @@ function SemanticSearchPageContent() {
                     <select
                       value={filters.category}
                       onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-gov-stone/5 dark:bg-white/10 border-none rounded-lg text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-gold/50 appearance-none"
+                      className="w-full px-4 ltr:pr-10 rtl:pl-10 py-2.5 bg-gov-stone/5 dark:bg-white/10 border-none rounded-lg text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-gold/50 appearance-none"
                     >
                       <option value="">{language === 'ar' ? 'الكل' : 'All'}</option>
                       {Object.entries(categoryLabels).map(([key, label]) => (
@@ -230,7 +230,7 @@ function SemanticSearchPageContent() {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown size={16} className="absolute end-4 top-1/2 -translate-y-1/2 text-gov-stone pointer-events-none" />
+                    <ChevronDown size={16} className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gov-stone pointer-events-none" />
                   </div>
                 </div>
 

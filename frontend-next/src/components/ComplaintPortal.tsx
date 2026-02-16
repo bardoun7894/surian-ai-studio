@@ -1,33 +1,33 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-    Phone,
-    Mail,
-    Search,
-    Upload,
-    Send,
-    CheckCircle2,
-    AlertCircle,
-    FileText,
-    ChevronRight,
-    ChevronLeft,
-    X,
-    History,
-    ClipboardList,
-    Loader2,
     User,
     Fingerprint,
     Calendar,
+    Phone,
+    Mail,
+    FileText,
+    Upload,
+    X,
+    AlertCircle,
+    CheckCircle2,
+    Check,
+    ChevronDown,
     CheckCircle,
-    Trash2,
-    UserX,
-    FileCheck,
+    ChevronLeft,
     ShieldAlert,
     Scale,
-    ChevronDown,
+    ChevronRight,
     Copy,
-    Check
+    Loader2,
+    ClipboardList,
+    UserX,
+    Trash2,
+    FileCheck,
+    History,
+    Send,
+    Search
 } from 'lucide-react';
 import { API, getComplaintTemplates } from '@/lib/repository';
 import { Directorate } from '@/types';
@@ -41,6 +41,11 @@ import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import Select from '@/components/ui/Select';
+import PhoneInput from '@/components/ui/PhoneInput';
+import NationalIdField from './NationalIdField';
 
 interface ComplaintPortalProps {
     initialMode?: 'submit' | 'track';
@@ -51,60 +56,27 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     initialMode = 'submit',
     initialTrackingNumber = ''
 }) => {
-    const { executeRecaptcha } = useRecaptcha();
-    const { user, isAuthenticated } = useAuth();
-    const { language, t } = useLanguage();
+    const { t, language } = useLanguage();
     const isAr = language === 'ar';
+    const { user, isAuthenticated } = useAuth();
+    const { executeRecaptcha } = useRecaptcha();
+
     const [activeTab, setActiveTab] = useState<'submit' | 'track'>(initialMode);
     const [directoratesList, setDirectoratesList] = useState<Directorate[]>([]);
     const [whatsappNumber, setWhatsappNumber] = useState('963912345678');
+
+    // Form Steps: 0 = User Info, 1 = Complaint Details, 2 = Success
+    const [formStep, setFormStep] = useState(0);
     const [isAnonymous, setIsAnonymous] = useState(false);
+
+    // Deletion states
     const [isDeleting, setIsDeleting] = useState(false);
     const [copied, setCopied] = useState(false);
 
     // Terms Agreement State
     const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
     const [showTermsScreen, setShowTermsScreen] = useState(true);
-
-    useEffect(() => {
-        API.directorates.getAll()
-            .then(data => setDirectoratesList(data))
-            .catch(err => console.error('Failed to load directorates:', err));
-        API.settings.getByGroup('contact')
-            .then(data => {
-                const settings = data as Record<string, string>;
-                if (settings.contact_whatsapp) setWhatsappNumber(settings.contact_whatsapp);
-            })
-            .catch(() => { });
-    }, []);
-
-    // Fetch complaint templates when anonymous mode changes (T019)
-    useEffect(() => {
-        const loadTemplates = async () => {
-            setLoadingComplaintTemplates(true);
-            try {
-                const data = await getComplaintTemplates(isAnonymous);
-                setComplaintTemplates(data);
-                // Auto-select the "open" (شكوى عامة) template as default
-                const openTemplate = data.find((t: any) => t.type === 'open');
-                if (openTemplate) {
-                    setSelectedTemplateId(openTemplate.id);
-                    setFormData(prev => ({ ...prev, category: openTemplate.type || openTemplate.name }));
-                } else {
-                    setSelectedTemplateId('');
-                }
-                setTemplateFieldValues({});
-            } catch (err) {
-                console.error('Failed to load complaint templates:', err);
-            } finally {
-                setLoadingComplaintTemplates(false);
-            }
-        };
-        if (!showTermsScreen) {
-            loadTemplates();
-        }
-    }, [isAnonymous, showTermsScreen]);
-
+    const [dynamicRules, setDynamicRules] = useState<string>('');
 
     // Submission State
     const [formData, setFormData] = useState({
@@ -128,11 +100,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadStatus, setUploadStatus] = useState<'uploading' | 'completed' | 'error'>('uploading');
 
-
     // Dynamic template field values
     const [templateFieldValues, setTemplateFieldValues] = useState<Record<string, string>>({});
 
-    // Complaint Template Dropdown State (T019)
+    // Complaint Template Dropdown State
     const [complaintTemplates, setComplaintTemplates] = useState<any[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
     const [loadingComplaintTemplates, setLoadingComplaintTemplates] = useState(false);
@@ -148,12 +119,94 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Tracking State
+    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
     const [trackId, setTrackId] = useState(initialTrackingNumber);
     const [trackNationalId, setTrackNationalId] = useState('');
     const [trackingResult, setTrackingResult] = useState<Ticket | null>(null);
     const [isTracking, setIsTracking] = useState(false);
     const [trackError, setTrackError] = useState<string | null>(null);
-    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
+
+    // Validation State
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    const validateField = (name: string, value: string) => {
+        let error = '';
+        if (name === 'nationalId' && !/^\d{11}$/.test(value)) {
+            error = t('complaint_national_id_invalid');
+        } else if (name === 'phone') {
+            // Basic validation for international numbers (min 7 digits, max 15)
+            // If it starts with +, it's likely from PhoneInput
+            if (value.startsWith('+') && value.length < 10) {
+                error = t('complaint_phone_invalid');
+            } else if (!value.startsWith('+') && !/^(09\d{8})$/.test(value)) {
+                // Fallback for legacy/local format if somehow not using PhoneInput or stripping code
+                error = t('complaint_phone_invalid');
+            }
+        } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            error = t('validation_email_invalid') || 'Invalid email address';
+        }
+
+        setErrors(prev => ({ ...prev, [name]: error }));
+        return error;
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        validateField(name, value);
+    };
+
+    useEffect(() => {
+        API.directorates.getAll()
+            .then(data => setDirectoratesList(data))
+            .catch(err => console.error('Failed to load directorates:', err));
+
+        API.settings.getByGroup('contact')
+            .then(data => {
+                const settings = data as Record<string, string>;
+                if (settings.contact_whatsapp) {
+                    setWhatsappNumber(settings.contact_whatsapp);
+                }
+            })
+            .catch(() => { });
+
+        API.settings.getByGroup('rules')
+            .then(data => {
+                const settings = data as Record<string, string>;
+                const key = language === 'ar' ? 'complaint_rules_ar' : 'complaint_rules_en';
+                if (settings[key]) setDynamicRules(settings[key]);
+            })
+            .catch(() => { });
+    }, [language]);
+
+    useEffect(() => {
+        const loadTemplates = async () => {
+            setLoadingComplaintTemplates(true);
+            try {
+                const data = await getComplaintTemplates(isAnonymous);
+                setComplaintTemplates(data);
+
+                const openTemplate = data.find((item: any) => item.type === 'open');
+                if (openTemplate) {
+                    setSelectedTemplateId(openTemplate.id);
+                    setFormData(prev => ({ ...prev, category: openTemplate.type || openTemplate.name }));
+                } else {
+                    setSelectedTemplateId('');
+                }
+
+                setTemplateFieldValues({});
+            } catch (err) {
+                console.error('Failed to load complaint templates:', err);
+            } finally {
+                setLoadingComplaintTemplates(false);
+            }
+        };
+
+        if (!showTermsScreen) {
+            loadTemplates();
+        }
+    }, [isAnonymous, showTermsScreen]);
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -382,26 +435,26 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     };
 
+    // T029: Enforced valid complaint status display with correct Arabic labels
+    const statusMap: Record<string, { ar: string; en: string; color: string }> = {
+        'received': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+        'new': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+        'in_progress': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'pending': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'processing': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'resolved': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'rejected': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'responded': { ar: 'تم الرد عليها', en: 'Responded', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+    };
+
     const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'new': return 'bg-gov-ocean/10 text-gov-ocean dark:bg-gov-ocean/20 dark:text-gov-oceanLight';
-            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-emerald/20';
-            case 'processing': return 'bg-gov-cornflower/10 text-gov-cornflower dark:bg-gov-cornflower/20';
-            case 'resolved': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
-            case 'rejected': return 'bg-gov-cherry/10 text-gov-cherry dark:bg-gov-cherry/20';
-            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-white/70';
-        }
+        return (statusMap[status] || statusMap['received']).color;
     };
 
     const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'new': return t('complaint_status_new');
-            case 'pending': return t('admin_in_progress'); // Map pending to in progress/generic
-            case 'processing': return t('complaint_status_in_progress');
-            case 'resolved': return t('complaint_status_resolved');
-            case 'rejected': return t('complaint_status_rejected');
-            default: return status;
-        }
+        const entry = statusMap[status] || statusMap['received'];
+        return isAr ? entry.ar : entry.en;
     };
 
     return (
@@ -411,7 +464,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
                     onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setShowTermsScreen(true); setHasAgreedToTerms(false); }}
-                    className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
+                    className={`flex-1 py-3 px-4 sm:px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
                         ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
                         : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
@@ -420,7 +473,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 </button>
                 <button
                     onClick={() => { setActiveTab('track'); setSubmittedTicket(null); }}
-                    className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'track'
+                    className={`flex-1 py-3 px-4 sm:px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'track'
                         ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
                         : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
@@ -433,13 +486,13 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                 {/* SUBMIT TAB - TERMS AGREEMENT SCREEN */}
                 {activeTab === 'submit' && !submittedTicket && showTermsScreen && (
-                    <div className="p-8 md:p-12 animate-fade-in">
+                    <div className="p-6 sm:p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
                             <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Scale size={32} className="text-gov-forest dark:text-gov-teal" />
                             </div>
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                            <h2 className="text-2xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {t('nav_complaints')}
                             </h2>
                         </div>
@@ -465,42 +518,42 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 {t('complaint_review_guidelines')}
                             </h3>
 
-                            <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
-                                {t('complaint_review_desc')}
-                            </p>
-
-                            {/* Conditions List */}
-                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
-                                <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
-                                    {t('complaint_condition_intro')}
+                            {dynamicRules ? (
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                    <p className="text-gov-charcoal dark:text-white text-sm leading-relaxed whitespace-pre-line">
+                                        {dynamicRules}
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
+                                    {t('complaint_review_desc')}
                                 </p>
-                                <ul className="space-y-3">
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('complaint_condition_1')}
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('complaint_condition_2')}
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('complaint_condition_3')}
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('complaint_condition_4')}
-                                        </p>
-                                    </li>
-                                </ul>
-                            </div>
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                    <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
+                                        {t('complaint_condition_intro')}
+                                    </p>
+                                    <ul className="space-y-3">
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_1')}</p>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_2')}</p>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_3')}</p>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_4')}</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Agreement Checkbox */}
@@ -533,7 +586,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                 {/* SUBMIT TAB - COMPLAINT FORM */}
                 {activeTab === 'submit' && !submittedTicket && !showTermsScreen && (
-                    <div className="p-8 md:p-12 animate-fade-in">
+                    <div className="p-6 sm:p-8 md:p-12 animate-fade-in">
                         {/* Back to terms link */}
                         <button
                             type="button"
@@ -545,8 +598,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </button>
 
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('general_form')}</h2>
-                            <p className="text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
+                            <h2 className="text-2xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('general_form')}</h2>
+                            <p className="text-sm sm:text-base text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
@@ -554,11 +607,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                             {/* Anonymous / Known User Toggle */}
                             <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20">
-                                <div className="flex items-center justify-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(false)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!isAnonymous
+                                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm transition-all ${!isAnonymous
                                             ? 'bg-gov-forest dark:bg-gov-button text-white'
                                             : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
@@ -569,7 +622,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(true)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isAnonymous
+                                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm transition-all ${isAnonymous
                                             ? 'bg-gov-forest dark:bg-gov-button text-white'
                                             : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
                                             }`}
@@ -631,6 +684,13 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     .filter(tmpl => !isAnonymous || tmpl.type !== 'open')
                                                     .map(tmpl => {
                                                         const isSelected = selectedTemplateId === tmpl.id;
+                                                        const entityFromApi = isAr ? tmpl.receiving_entity_ar : tmpl.receiving_entity_en;
+                                                        const directorateFallback = (() => {
+                                                            const d = directoratesList.find(d => d.id === tmpl.directorate_id);
+                                                            return d ? (isAr ? getLocalizedName(d.name, 'ar') : getLocalizedName(d.name, 'en')) : null;
+                                                        })();
+                                                        const directorateName = entityFromApi || directorateFallback;
+
                                                         return (
                                                             <button
                                                                 key={tmpl.id}
@@ -641,6 +701,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                                     setFormData(prev => ({
                                                                         ...prev,
                                                                         category: tmpl.type || tmpl.name,
+                                                                        directorate: tmpl.directorate_id || prev.directorate
                                                                     }));
                                                                     setTemplateListOpen(false);
                                                                 }}
@@ -659,11 +720,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                                                 {isAr ? tmpl.description : (tmpl.description_en || tmpl.description)}
                                                                             </p>
                                                                         )}
-                                                                        {tmpl.type && (
-                                                                            <span className="inline-block mt-2 px-2 py-0.5 rounded bg-gov-teal/10 dark:bg-gov-teal/20 text-gov-teal text-xs font-bold">
-                                                                                {tmpl.type === 'open' ? (isAr ? 'شكوى عامة' : 'General Complaint') : tmpl.type === 'standard' ? (isAr ? 'نموذج قياسي' : 'Standard Template') : tmpl.type}
-                                                                            </span>
-                                                                        )}
+                                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                                            {directorateName && (
+                                                                                <span className="inline-block px-2 py-0.5 rounded-full bg-gov-forest/10 dark:bg-gov-teal/20 text-gov-forest dark:text-gov-teal text-[10px] font-bold">
+                                                                                    {directorateName}
+                                                                                </span>
+                                                                            )}
+                                                                            {tmpl.type && (
+                                                                                <span className="inline-block px-2 py-0.5 rounded bg-gov-teal/10 dark:bg-gov-teal/20 text-gov-teal text-[10px] font-bold">
+                                                                                    {tmpl.type === 'open' ? (isAr ? 'شكوى عامة' : 'General Complaint') : tmpl.type === 'standard' ? (isAr ? 'نموذج قياسي' : 'Standard Template') : tmpl.type}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                     <div className={`flex-shrink-0 mt-0.5 ${isSelected ? 'text-gov-forest dark:text-gov-teal' : 'text-gray-300 dark:text-white/70'}`}>
                                                                         {isSelected ? <CheckCircle2 size={20} /> : <ClipboardList size={18} />}
@@ -680,6 +748,48 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 {/* Hidden required input for form validation */}
                                 <input type="hidden" required value={selectedTemplateId} />
                             </div>
+
+                            {/* T027: Display receiving entity/department with full hierarchy */}
+                            {(() => {
+                                const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
+                                if (!selectedTmpl) return null;
+
+                                // Get directorate name from API response or fallback to local lookup
+                                const receivingEntityName = isAr
+                                    ? selectedTmpl.receiving_entity_ar
+                                    : selectedTmpl.receiving_entity_en;
+                                const directorateFallback = (() => {
+                                    const d = directoratesList.find(d => d.id === selectedTmpl.directorate_id);
+                                    return d ? (isAr ? getLocalizedName(d.name, 'ar') : getLocalizedName(d.name, 'en')) : null;
+                                })();
+                                const entityName = receivingEntityName || directorateFallback;
+
+                                const ministryName = isAr
+                                    ? 'وزارة الاقتصاد والصناعة'
+                                    : 'Ministry of Economy and Industry';
+
+                                return (
+                                    <div className="mt-3 p-4 bg-gov-teal/10 dark:bg-gov-teal/5 rounded-xl border border-gov-teal/20 dark:border-gov-teal/10">
+                                        <div className="flex items-start gap-2 mb-2">
+                                            <Send size={16} className="text-gov-teal dark:text-gov-gold mt-0.5 flex-shrink-0" />
+                                            <span className="text-gov-teal dark:text-gov-gold font-bold text-sm">
+                                                {isAr ? 'سيتم توجيه شكواك إلى:' : 'Your complaint will be directed to:'}
+                                            </span>
+                                        </div>
+                                        <div className={`flex flex-col gap-1 ${isAr ? 'mr-6' : 'ml-6'} text-sm`}>
+                                            <span className="text-gov-charcoal dark:text-white/90 font-semibold">
+                                                {ministryName}
+                                            </span>
+                                            {entityName && (
+                                                <span className="text-gov-charcoal/80 dark:text-white/70 flex items-center gap-1">
+                                                    <ChevronLeft size={14} className={`flex-shrink-0 text-gov-gold ${isAr ? '' : 'rotate-180'}`} />
+                                                    {entityName}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                             {/* Dynamic Template Fields */}
                             {(() => {
@@ -702,57 +812,52 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                                             return (
                                                 <div key={fieldKey}>
-                                                    <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                                        {fieldLabel} {isRequired && <span className="text-gov-gold">*</span>}
-                                                    </label>
                                                     {field.type === 'textarea' ? (
-                                                        <textarea
+                                                        <Textarea
+                                                            label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             rows={4}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none text-sm"
                                                         />
                                                     ) : field.type === 'select' && field.options ? (
-                                                        <select
+                                                        <Select
+                                                            label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none text-sm"
-                                                        >
-                                                            <option value="" className="dark:bg-dm-surface">{isAr ? 'اختر...' : 'Select...'}</option>
-                                                            {field.options.map(opt => (
-                                                                <option key={opt.value} value={opt.value} className="dark:bg-dm-surface">
-                                                                    {isAr ? opt.label : (opt.label_en || opt.label)}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                            options={field.options.map(opt => ({
+                                                                value: opt.value,
+                                                                label: isAr ? opt.label : (opt.label_en || opt.label)
+                                                            }))}
+                                                        />
                                                     ) : field.type === 'date' ? (
-                                                        <input
+                                                        <Input
                                                             type="date"
+                                                            label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
+                                                            icon={Calendar}
                                                         />
                                                     ) : field.type === 'number' ? (
-                                                        <input
+                                                        <Input
                                                             type="number"
+                                                            label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
                                                         />
                                                     ) : (
-                                                        <input
+                                                        <Input
                                                             type="text"
+                                                            label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                             placeholder={fieldPlaceholder}
-                                                            className="w-full py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none text-sm"
                                                         />
                                                     )}
                                                 </div>
@@ -801,6 +906,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 progress={uploadProgress}
                                                 status={uploadStatus}
                                                 fileSize={`${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                                                language={isAr ? 'ar' : 'en'}
                                             />
                                         )}
                                     </div>
@@ -815,102 +921,87 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.firstName}
-                                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.fatherName}
-                                                    onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.lastName}
-                                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
+                                        <Input
+                                            label={t('complaint_first_name')}
+                                            required
+                                            value={formData.firstName}
+                                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                            icon={User}
+                                        />
+                                        <Input
+                                            label={t('complaint_father_name')}
+                                            required
+                                            value={formData.fatherName}
+                                            onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                            icon={User}
+                                        />
+                                        <Input
+                                            label={t('complaint_last_name')}
+                                            required
+                                            value={formData.lastName}
+                                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                            icon={User}
+                                        />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required maxLength={11} minLength={11} placeholder={t('complaint_national_id_hint')}
-                                                    value={formData.nationalId}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value.replace(/\D/g, '');
-                                                        setFormData({ ...formData, nationalId: val });
-                                                    }}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
-                                                />
-                                                <Fingerprint className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="date" required
-                                                    value={formData.dob}
-                                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
+                                        <NationalIdField
+                                            value={formData.nationalId}
+                                            onChange={(val) => setFormData(prev => ({ ...prev, nationalId: val }))}
+                                            onVerified={(citizenData) => {
+                                                // Auto-fill form fields from civil registry data
+                                                if (citizenData) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        firstName: citizenData.first_name || prev.firstName,
+                                                        fatherName: citizenData.father_name || prev.fatherName,
+                                                        lastName: citizenData.last_name || prev.lastName,
+                                                        dob: citizenData.birth_date || prev.dob,
+                                                    }));
+                                                }
+                                            }}
+                                            required={!isAnonymous}
+                                            autoVerify={true}
+                                            showVerifyButton={true}
+                                            label={t('complaint_national_id')}
+                                        />
+                                        <Input
+                                            type="date"
+                                            label={t('complaint_dob')}
+                                            required
+                                            value={formData.dob}
+                                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                            icon={Calendar}
+                                        />
                                     </div>
 
                                     {/* Email & Phone - moved up to applicant section per item 13 */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="tel"
-                                                    required={!isAnonymous}
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="email"
-                                                    required={!isAnonymous}
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
+                                        <PhoneInput
+                                            label={t('complaint_phone')}
+                                            required={!isAnonymous}
+                                            value={formData.phone}
+                                            onChange={(val) => {
+                                                setFormData({ ...formData, phone: val });
+                                            }}
+                                            onBlur={() => validateField('phone', formData.phone)}
+                                            error={touched.phone ? errors.phone : undefined}
+                                            isValid={touched.phone && !errors.phone && formData.phone.length > 10}
+                                        />
+                                        <Input
+                                            type="email"
+                                            label={t('complaint_email')}
+                                            required={!isAnonymous}
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            onBlur={handleBlur}
+                                            name="email"
+                                            error={touched.email ? errors.email : undefined}
+                                            isValid={touched.email && !errors.email && formData.email.length > 0}
+                                            placeholder="example@mail.com"
+                                            icon={Mail}
+                                            dir="ltr"
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -920,19 +1011,16 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                 return (!selectedTemplateId || selectedTmpl?.type === 'open');
                             })() && (
-                                    <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('complaint_details')} <span className="text-gov-gold">*</span>
-                                        </label>
-                                        <textarea
-                                            required
-                                            value={formData.details}
-                                            onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-                                            rows={6}
-                                            className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
-                                            placeholder={t('complaint_placeholder')}
-                                        />
-                                    </div>
+                                    // {/* Complaint Details */}
+                                    <Textarea
+                                        label={t('complaint_details')}
+                                        required
+                                        value={formData.details}
+                                        onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                                        rows={6}
+                                        placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
+                                        containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
+                                    />
                                 )}
 
 
@@ -1028,9 +1116,17 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             </div>
 
-                            <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
+                            <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline mb-8">
                                 {t('complaint_track_now')}
                             </button>
+
+                            {/* T028: Submission experience rating */}
+                            <div className="w-full max-w-sm">
+                                <p className="text-sm font-bold text-gov-charcoal dark:text-white mb-2 text-center">
+                                    {isAr ? 'قيّم تجربة تقديم الشكوى' : 'Rate your submission experience'}
+                                </p>
+                                <ImportedSatisfactionRating trackingNumber={submittedTicket} />
+                            </div>
                         </div>
                     )
                 }
@@ -1091,18 +1187,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                                 {trackMode === 'identified' && (
                                     <div className="animate-fade-in">
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="\d{11}"
-                                            maxLength={11}
-                                            minLength={11}
-                                            placeholder={t('complaint_national_id_placeholder')}
+                                        <NationalIdField
                                             value={trackNationalId}
-                                            onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
-                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                            onChange={(val) => setTrackNationalId(val)}
                                             required
+                                            label={t('complaint_national_id_verify')}
                                         />
                                     </div>
                                 )}
@@ -1184,8 +1273,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             )}
 
-                            {trackingResult && trackingResult.status === 'resolved' && !trackingResult.rating && (
-                                <ImportedSatisfactionRating trackingNumber={trackingResult.tracking_number || trackingResult.id} />
+                            {/* T028: Resolution rating - show when complaint is completed/resolved/rejected and not yet rated */}
+                            {trackingResult && (trackingResult.status === 'resolved' || trackingResult.status === 'rejected' || trackingResult.status === 'completed') && !trackingResult.rating && (
+                                <div className="max-w-lg mx-auto mt-6">
+                                    <p className="text-sm font-bold text-gov-charcoal dark:text-white mb-2 text-center">
+                                        {isAr ? 'قيّم مستوى الرد والمعالجة' : 'Rate the resolution quality'}
+                                    </p>
+                                    <ImportedSatisfactionRating trackingNumber={trackingResult.tracking_number || trackingResult.id} />
+                                </div>
                             )}
 
                             <div className="mt-8 text-center animate-fade-in">

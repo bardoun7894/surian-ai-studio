@@ -1,3 +1,12 @@
+// Paginated API Response
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
 // Localized String support
 export interface LocalizedString {
   ar: string;
@@ -11,14 +20,37 @@ export interface SubDirectorate {
   isExternal?: boolean;
 }
 
+export interface DirectorateTeam {
+  id: string;
+  name: string;
+  name_ar: string;
+  name_en?: string;
+  position: string;
+  position_ar: string;
+  position_en?: string;
+  image?: string;
+  order: number;
+}
+
 export interface Directorate {
   id: string;
   name: LocalizedString | string;
   description: LocalizedString | string;
   icon: string;
+  logo?: string;
   servicesCount?: number;
+  newsCount?: number;
   featured?: boolean;
   subDirectorates?: SubDirectorate[];
+  team?: DirectorateTeam[];
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  address_ar?: string;
+  address_en?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
 }
 
 export interface Service {
@@ -103,6 +135,7 @@ export interface Ticket {
   description?: string;
   directorate?: string;
   responses?: TicketResponse[];
+  rating?: number;
 }
 
 export interface TicketResponse {
@@ -271,6 +304,21 @@ export interface SearchResults {
   total: number;
 }
 
+export interface Favorite {
+  id: number;
+  content_type: 'news' | 'announcement' | 'service' | 'law';
+  content_id: string;
+  metadata?: Record<string, any>;
+  content?: Record<string, any>;
+  created_at: string;
+}
+
+export interface AutocompleteSuggestion {
+  text: string;
+  type: string;
+  url: string;
+}
+
 export interface AuditSummary {
   action: string;
   count: number;
@@ -279,4 +327,37 @@ export interface AuditSummary {
 export interface AuditResponse {
   summary: AuditSummary[];
   recent_activity: AuditLog[];
+}
+export interface Investment {
+  id: number;
+  title_ar: string;
+  title_en: string;
+  sector_ar: string;
+  sector_en: string;
+  location_ar: string;
+  location_en: string;
+  investment_amount?: number;
+  formatted_amount?: string;
+  currency?: string;
+  status: string;
+  status_label?: { ar: string; en: string };
+  category: string;
+  icon: string;
+  image?: string;
+  is_featured: boolean;
+  description_ar?: string;
+  description_en?: string;
+  requirements?: any;
+  fee?: string;
+  processing_time?: string;
+  contact_email?: string;
+  contact_phone?: string;
+}
+
+export interface InvestmentStats {
+  total_opportunities: number;
+  available_count: number;
+  total_investment_value: number;
+  sectors_count: number;
+  labels: Record<string, { ar: string; en: string }>;
 }

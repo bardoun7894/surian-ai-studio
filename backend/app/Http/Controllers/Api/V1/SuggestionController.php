@@ -300,7 +300,7 @@ class SuggestionController extends Controller
     /**
      * FR-55: Track suggestion status by tracking number (public endpoint)
      */
-    public function track(string $trackingNumber): JsonResponse
+    public function track(Request $request, string $trackingNumber): JsonResponse
     {
         $suggestion = Suggestion::where('tracking_number', $trackingNumber)
             ->first();
@@ -312,6 +312,18 @@ class SuggestionController extends Controller
             ], 404);
         }
 
+        // For non-anonymous suggestions, verify national_id if provided
+        $nationalId = $request->query('national_id');
+        if ($nationalId && !$suggestion->is_anonymous) {
+            if ($suggestion->national_id && $suggestion->national_id !== $nationalId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'الرقم الوطني غير مطابق',
+                    'message_en' => 'National ID does not match',
+                ], 403);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -319,9 +331,9 @@ class SuggestionController extends Controller
                 'status' => $suggestion->status,
                 'submitted_at' => $suggestion->created_at->toIso8601String(),
                 'last_updated' => $suggestion->updated_at->toIso8601String(),
-                // Only show response if status is not pending
                 'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
                 'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
+                'is_anonymous' => (bool) $suggestion->is_anonymous,
             ]
         ]);
     }

@@ -1,19 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, ArrowRight, ArrowLeft, ChevronRight, ChevronLeft, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import auth from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 const ForgotPasswordPage = () => {
     const { language } = useLanguage();
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSent, setIsSent] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Redirect away if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/dashboard');
+        }
+    }, [isAuthenticated, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,13 +67,14 @@ const ForgotPasswordPage = () => {
                             width={160}
                             height={160}
                             className="relative z-10 drop-shadow-2xl"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
                         {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
                     </h1>
                     <p className="text-gov-gold text-lg text-center mb-8">
-                        {language === 'ar' ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}
+                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
                     </p>
                 </div>
             </div>
@@ -109,6 +121,12 @@ const ForgotPasswordPage = () => {
                                 >
                                     {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
                                 </Link>
+                                <button
+                                    onClick={() => setIsSent(false)}
+                                    className="text-sm text-gov-teal hover:underline mt-2 block mx-auto"
+                                >
+                                    {language === 'ar' ? 'إعادة الإرسال' : 'Send Again'}
+                                </button>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-5">

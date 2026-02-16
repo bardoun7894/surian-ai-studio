@@ -24,7 +24,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 
 const LoginPage = () => {
     const { language } = useLanguage();
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +33,8 @@ const LoginPage = () => {
         email: '',
         phone: '',
         nationalId: '',
-        password: ''
+        password: '',
+        useWhatsApp: false
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,13 @@ const LoginPage = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isLoading, language]);
 
+    // Redirect away if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/dashboard');
+        }
+    }, [isAuthenticated, router]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -68,15 +76,27 @@ const LoginPage = () => {
 
             const response = await login({
                 email: loginIdentifier,
-                password: formData.password
+                password: formData.password,
+                use_whatsapp: formData.useWhatsApp
             });
 
             if (response.require_2fa) {
                 // Redirect to 2FA verification page with email
-                router.push(`/two-factor?email=${encodeURIComponent(loginIdentifier)}`);
+                router.replace(`/two-factor?email=${encodeURIComponent(loginIdentifier)}`);
                 return;
             }
-            router.push('/dashboard');
+
+            // Role-based redirection
+            if (response.user) {
+                const role = response.user.role?.name?.toLowerCase();
+                if (role === 'admin' || role === 'staff' || role === 'complaint_officer') {
+                    router.replace('/admin');
+                } else {
+                    router.replace('/dashboard');
+                }
+            } else {
+                router.replace('/dashboard');
+            }
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);
@@ -96,7 +116,7 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen flex">
             {/* Left Panel - Branding (hidden on mobile) */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gov-forest relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 bg-gov-forest relative overflow-hidden lg:fixed lg:inset-y-0 lg:left-0 rtl:lg:left-auto rtl:lg:right-0">
                 {/* Decorative Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0 bg-pattern-islamic bg-repeat bg-center" />
@@ -117,15 +137,16 @@ const LoginPage = () => {
                             width={160}
                             height={160}
                             className="relative z-10 drop-shadow-2xl"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 
                     {/* Title */}
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والتجارة الخارجية' : 'Ministry of Economy & Foreign Trade'}
+                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy & Industry'}
                     </h1>
                     <p className="text-gov-gold text-lg text-center mb-8">
-                        {language === 'ar' ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}
+                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
                     </p>
 
                     {/* Decorative Line */}
@@ -154,18 +175,19 @@ const LoginPage = () => {
                     </div>
                 </div>
 
-                {/* Bottom Stars */}
-                <Image
-                    src="/assets/logo/stars.png"
-                    alt=""
-                    width={96}
-                    height={32}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-30"
-                />
+                {/* Bottom Decorative Pattern */}
+                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gov-gold/10 to-transparent opacity-50 pointer-events-none" />
+
+                {/* Stars */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 opacity-50">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '0s' }} />
+                    <div className="w-2 h-2 rounded-full bg-gov-gold animate-pulse" style={{ animationDelay: '0.5s' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '1s' }} />
+                </div>
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="flex-1 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
                 <div className="w-full max-w-md" ref={formRef}>
                     {/* Back Button */}
                     <Link
@@ -184,6 +206,7 @@ const LoginPage = () => {
                             width={80}
                             height={80}
                             className="mx-auto mb-4"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 
@@ -214,8 +237,8 @@ const LoginPage = () => {
                             </div>
                         )}
 
-                        {/* Login Method Tabs */}
-                        <div className="flex gap-1 mb-6 p-1 bg-gray-100 dark:bg-white/10 rounded-xl">
+                        {/* Login Method Tabs - Minimalist Style */}
+                        <div className="flex gap-2 mb-8 p-1.5 bg-gray-100/50 dark:bg-white/5 rounded-2xl border border-gray-200/50 dark:border-white/5">
                             {[
                                 { key: 'email', icon: Mail, label: language === 'ar' ? 'بريد' : 'Email' },
                                 { key: 'phone', icon: Phone, label: language === 'ar' ? 'هاتف' : 'Phone' },
@@ -223,14 +246,15 @@ const LoginPage = () => {
                             ].map(({ key, icon: Icon, label }) => (
                                 <button
                                     key={key}
+                                    type="button"
                                     onClick={() => setLoginMethod(key as typeof loginMethod)}
-                                    className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${loginMethod === key
-                                        ? 'bg-white dark:bg-gov-teal text-gov-forest dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-white'
+                                    className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
+                                        ? 'bg-white dark:bg-gov-button text-gov-forest dark:text-white shadow-sm border border-gray-200/50 dark:border-white/10'
+                                        : 'text-gray-500 dark:text-white/60 hover:text-gov-forest dark:hover:text-white hover:bg-white/50'
                                         }`}
                                 >
-                                    <Icon size={15} />
-                                    <span className="hidden sm:inline">{label}</span>
+                                    <Icon size={14} className={loginMethod === key ? 'text-gov-teal animate-pulse-slow' : ''} />
+                                    <span>{label}</span>
                                 </button>
                             ))}
                         </div>
@@ -243,27 +267,39 @@ const LoginPage = () => {
                                     {loginMethod === 'phone' && (language === 'ar' ? 'رقم الهاتف' : 'Phone Number')}
                                     {loginMethod === 'national' && (language === 'ar' ? 'الرقم الوطني' : 'National ID')}
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input
                                         type={loginMethod === 'email' ? 'email' : 'text'}
                                         value={formData[loginMethod === 'email' ? 'email' : loginMethod === 'phone' ? 'phone' : 'nationalId']}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            [loginMethod === 'email' ? 'email' : loginMethod === 'phone' ? 'phone' : 'nationalId']: e.target.value
-                                        })}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (loginMethod === 'national') {
+                                                // Only allow numbers and max 11 chars
+                                                if (/^\d{0,11}$/.test(val)) {
+                                                    setFormData({ ...formData, nationalId: val });
+                                                }
+                                            } else {
+                                                setFormData({
+                                                    ...formData,
+                                                    [loginMethod === 'email' ? 'email' : loginMethod === 'phone' ? 'phone' : 'nationalId']: val
+                                                });
+                                            }
+                                        }}
                                         placeholder={
                                             loginMethod === 'email'
                                                 ? (language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email')
                                                 : loginMethod === 'phone'
                                                     ? '09xxxxxxxx'
-                                                    : (language === 'ar' ? 'أدخل الرقم الوطني' : 'Enter your national ID')
+                                                    : '12345678901'
                                         }
-                                        className="w-full py-3.5 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-4 focus:ring-gov-teal/5 dark:focus:ring-gov-gold/5 transition-all text-sm"
                                         required
                                     />
-                                    {loginMethod === 'email' && <Mail className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />}
-                                    {loginMethod === 'phone' && <Phone className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />}
-                                    {loginMethod === 'national' && <Fingerprint className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />}
+                                    <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-gov-teal">
+                                        {loginMethod === 'email' && <Mail size={18} />}
+                                        {loginMethod === 'phone' && <Phone size={18} />}
+                                        {loginMethod === 'national' && <Fingerprint size={18} />}
+                                    </div>
                                 </div>
                             </div>
 
@@ -291,23 +327,49 @@ const LoginPage = () => {
                                 </div>
                             </div>
 
-                            {/* Remember & Forgot */}
-                            <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        className="w-4 h-4 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer"
-                                    />
-                                    <span className="text-sm text-gray-600 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
-                                        {language === 'ar' ? 'تذكرني' : 'Remember me'}
-                                    </span>
-                                </label>
-                                <Link
-                                    href="/forgot-password"
-                                    className="text-sm text-gov-teal hover:text-gov-forest hover:underline transition-colors"
-                                >
-                                    {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
-                                </Link>
+                            {/* WhatsApp & Remember & Forgot */}
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-3">
+                                    <label className="flex items-center gap-3 cursor-pointer group select-none">
+                                        <div className="relative flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.useWhatsApp}
+                                                onChange={(e) => setFormData({ ...formData, useWhatsApp: e.target.checked })}
+                                                className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-emerald focus:ring-gov-emerald cursor-pointer opacity-0 absolute inset-0 z-10"
+                                            />
+                                            <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.useWhatsApp ? 'bg-gov-emerald border-gov-emerald' : 'bg-transparent border-gray-300 dark:border-white/20'}`}>
+                                                {formData.useWhatsApp && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-gov-forest dark:text-white/90 group-hover:text-gov-emerald transition-colors">
+                                                {language === 'ar' ? 'تفعيل الدخول عبر الواتساب' : 'Enable WhatsApp Login'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 dark:text-white/50">
+                                                {language === 'ar' ? 'سوف يصلك رمز التحقق عبر الواتساب بدلاً من الرسائل النصية' : 'You will receive verification codes via WhatsApp'}
+                                            </span>
+                                        </div>
+                                    </label>
+
+                                    <div className="flex items-center justify-between pt-2">
+                                        <label className="flex items-center gap-3 cursor-pointer group select-none">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-teal focus:ring-gov-teal cursor-pointer"
+                                            />
+                                            <span className="text-sm text-gray-600 dark:text-white/70 group-hover:text-gov-forest dark:group-hover:text-white transition-colors">
+                                                {language === 'ar' ? 'تذكرني' : 'Remember me'}
+                                            </span>
+                                        </label>
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-sm font-bold text-gov-teal hover:text-gov-gold transition-colors"
+                                        >
+                                            {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                                        </Link>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Submit Button */}
@@ -341,6 +403,16 @@ const LoginPage = () => {
                         >
                             {language === 'ar' ? 'إنشاء حساب جديد' : 'Create account'}
                         </Link>
+                    </div>
+
+                    {/* WhatsApp Support */}
+                    <div className="text-center mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-white/70">
+                        <svg viewBox="0 0 24 24" className="w-5 h-5 text-green-500" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                        </svg>
+                        <a href="https://wa.me/963999999999" target="_blank" rel="noopener noreferrer" className="hover:text-green-500 transition-colors">
+                            {language === 'ar' ? 'تواصل معنا عبر واتساب للدعم' : 'Contact us via WhatsApp for support'}
+                        </a>
                     </div>
                 </div>
             </div>

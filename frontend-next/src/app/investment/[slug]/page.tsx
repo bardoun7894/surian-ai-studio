@@ -229,7 +229,13 @@ export default function InvestmentCategoryPage() {
 
     const categoryMeta = investmentCategoryMeta[slug];
 
+    const validCategories = ['opportunities', 'one-stop', 'licenses', 'guide'];
+
     useEffect(() => {
+        if (!validCategories.includes(slug)) {
+            setLoading(false);
+            return;
+        }
         const fetchData = async () => {
             try {
                 const [investmentsData, statsData] = await Promise.all([

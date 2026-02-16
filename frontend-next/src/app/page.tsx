@@ -3,21 +3,24 @@
 import dynamic from 'next/dynamic';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
-import NewsTicker from '@/components/NewsTicker';
 import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
+import ScrollAnimation from '@/components/ui/ScrollAnimation';
 
 // Dynamic imports for below-fold components
 const NewsSection = dynamic(() => import('@/components/NewsSection'));
 const Announcements = dynamic(() => import('@/components/Announcements'));
+const HomeComplaintsSection = dynamic(() => import('@/components/HomeComplaintsSection'));
 const QuickLinks = dynamic(() => import('@/components/QuickLinks'));
 const GovernmentPartners = dynamic(() => import('@/components/GovernmentPartners'));
-const NewsletterSection = dynamic(() => import('@/components/NewsletterSection'));
+const HomeSuggestionsSection = dynamic(() => import('@/components/HomeSuggestionsSection'));
 const FAQSection = dynamic(() => import('@/components/FAQSection'));
 const ContactSection = dynamic(() => import('@/components/ContactSection'));
 const SyriaMap = dynamic(() => import('@/components/SyriaMap'), { ssr: false });
+const HomeSatisfactionWidget = dynamic(() => import('@/components/HomeSatisfactionWidget'), { ssr: false });
+const InvestmentSection = dynamic(() => import('@/components/InvestmentSection'));
 
 export default function HomePage() {
   // Accessibility States
@@ -25,7 +28,7 @@ export default function HomePage() {
   const [isHighContrast, setIsHighContrast] = useState(false);
   const [hasBreakingNews, setHasBreakingNews] = useState(false);
 
-  // Handle Font Resizing
+  // ... existing font resizing effects ...
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSizePercent}%`;
   }, [fontSizePercent]);
@@ -76,29 +79,64 @@ export default function HomePage() {
       <Navbar onSearch={handleSearch} />
 
       <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
-        <HeroSection hasBreakingNews={hasBreakingNews} />
-        <NewsTicker onNewsLoaded={setHasBreakingNews} />
+        <HeroSection hasBreakingNews={hasBreakingNews} onNewsLoaded={setHasBreakingNews} />
 
-        <FeaturedDirectorates />
-        <HeroGrid />
+        <ScrollAnimation delay={0.1}>
+          <FeaturedDirectorates />
+        </ScrollAnimation>
+
+        <ScrollAnimation delay={0.2}>
+          <HeroGrid />
+        </ScrollAnimation>
 
         {/* News & Announcements */}
-        <NewsSection />
-        <Announcements />
+        <ScrollAnimation delay={0.3}>
+          <NewsSection />
+        </ScrollAnimation>
+
+        <ScrollAnimation delay={0.4}>
+          <Announcements />
+        </ScrollAnimation>
+
+        {/* Investment Opportunities */}
+        <InvestmentSection />
+
+        {/* Complaints Section */}
+        <ScrollAnimation delay={0.2}>
+          <HomeComplaintsSection />
+        </ScrollAnimation>
 
         {/* Quick Links */}
-        <QuickLinks />
+        <ScrollAnimation delay={0.2}>
+          <QuickLinks />
+        </ScrollAnimation>
 
         {/* Government Partners */}
-        <GovernmentPartners />
+        <ScrollAnimation delay={0.2}>
+          <GovernmentPartners />
+        </ScrollAnimation>
 
-        {/* Newsletter */}
-        <NewsletterSection />
+        {/* Suggestions Section */}
+        <ScrollAnimation delay={0.2}>
+          <HomeSuggestionsSection />
+        </ScrollAnimation>
 
         {/* FAQ & Contact Sections */}
-        <FAQSection />
-        <ContactSection />
-        <SyriaMap />
+        <ScrollAnimation delay={0.2}>
+          <FAQSection />
+        </ScrollAnimation>
+
+        <ScrollAnimation delay={0.2}>
+          <ContactSection />
+        </ScrollAnimation>
+
+        <ScrollAnimation delay={0.2}>
+          <SyriaMap />
+        </ScrollAnimation>
+
+        <ScrollAnimation delay={0.2}>
+          <HomeSatisfactionWidget />
+        </ScrollAnimation>
       </main>
 
 

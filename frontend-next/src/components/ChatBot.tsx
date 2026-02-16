@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles, UserRound } from 'lucide-react';
 import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
@@ -53,17 +54,17 @@ const ChatBot: React.FC = () => {
 
     // ChatBot Animation Sequence
     useEffect(() => {
-        // 1. Wait 30 seconds before showing
+        // 1. Wait 3 seconds before showing welcome tooltip
         const startTimer = setTimeout(() => {
             setShowWelcome(true);
 
-            // 2. Show for 30 seconds then hide
+            // 2. Show for 8 seconds then hide
             const hideTimer = setTimeout(() => {
                 setShowWelcome(false);
-            }, 30000);
+            }, 8000);
 
             return () => clearTimeout(hideTimer);
-        }, 30000);
+        }, 3000);
 
         return () => clearTimeout(startTimer);
     }, []);
@@ -109,11 +110,11 @@ const ChatBot: React.FC = () => {
                 setHandoffRequested(true);
                 setMessages(prev => [...prev, {
                     id: Date.now().toString(),
-                    role: 'assistant' as const,
-                    content: language === 'ar'
+                    sender: 'bot',
+                    text: language === 'ar'
                         ? 'تم إرسال طلبك للتحدث مع موظف. سيتم الرد عليك قريباً.'
                         : 'Your request to talk to a staff member has been sent. You will be responded to shortly.',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date()
                 }]);
             }
         } catch (err) {
@@ -294,35 +295,56 @@ const ChatBot: React.FC = () => {
     return (
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
-            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'right-6 left-auto flex-row-reverse' : 'left-6 right-auto flex-row'} md:bottom-16`}>
-                {/* FR-59: Professional Flat Button - Larger size */}
+            {/* For Arabic: positioned on the LEFT side (left-6) */}
+            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
+                {/* Hint bubble sits inward from screen edge */}
+                <AnimatePresence>
+                    {!isOpen && showWelcome && (
+                        <motion.div
+                            initial={{ opacity: 0, x: language === 'ar' ? -20 : 20, scale: 0.9 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: language === 'ar' ? -20 : 20, scale: 0.9 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="pointer-events-auto bg-white dark:bg-dm-surface text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 dark:border-gov-gold/30 transform flex items-center gap-3"
+                        >
+                            <div className="relative">
+                                <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
+                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-gold opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-gov-gold"></span>
+                                </span>
+                            </div>
+                            <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
+                            <button
+                                onClick={() => setShowWelcome(false)}
+                                className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 ms-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full p-1 transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* FR-59: Professional Flat Button - Larger size with golden ring */}
                 <button
-                    onClick={() => setIsOpen(true)}
-                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal text-white w-20 h-20 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center`}
+                    onClick={() => {
+                        setShowWelcome(false);
+                        setIsOpen(true);
+                    }}
+                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal dark:bg-gov-brand dark:hover:bg-gov-forest text-white w-20 h-20 rounded-full shadow-lg hover:shadow-xl hover:shadow-gov-gold/20 dark:hover:shadow-gov-gold/30 transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center overflow-hidden`}
                 >
+                    {/* Animated golden ring */}
+                    <div className="absolute inset-0 rounded-full border-2 border-gov-gold/30 dark:border-gov-gold/50 animate-pulse"></div>
+                    <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/30 animate-[spin_10s_linear_infinite]"></div>
+                    
                     <div className="relative flex items-center justify-center">
                         <MessageSquare size={40} />
                     </div>
                     <span className="absolute bottom-2 right-2 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
                     </span>
                 </button>
-
-                {/* Hint bubble - appears to the left of button in Arabic, right in English */}
-                {!isOpen && showWelcome && (
-                    <div
-                        className="pointer-events-auto bg-white dark:bg-dm-surface text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 transform transition-all duration-500 flex items-center gap-3 animate-fade-in"
-                    >
-                        <Bot size={18} className="text-gov-forest dark:text-gov-teal" />
-                        <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
-                        <button
-                            onClick={() => setShowWelcome(false)}
-                            className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 ms-1"
-                        >
-                            <X size={14} />
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* Chat Window Container */}
@@ -330,7 +352,7 @@ const ChatBot: React.FC = () => {
                 className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 dark:bg-dm-surface backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20 dark:border-dm-border
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
             inset-0 sm:inset-auto sm:bottom-8 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
-            ${language === 'ar' ? 'sm:right-6 sm:left-auto' : 'sm:left-6 sm:right-auto'}
+            ${language === 'ar' ? 'sm:left-6 sm:right-auto' : 'sm:right-6 sm:left-auto'}
         `}
             >
                 {/* Header */}

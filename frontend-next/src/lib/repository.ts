@@ -1,4 +1,4 @@
-import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults } from '../types';
+import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults, Favorite, AutocompleteSuggestion, Investment, InvestmentStats, PaginatedResponse } from '../types';
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 import { getCsrfCookie } from '@/lib/api';
 
@@ -25,6 +25,7 @@ export interface IDirectorateRepository {
 
 export interface INewsRepository {
   getOfficialNews(): Promise<NewsItem[]>;
+  getPaginated(page?: number, perPage?: number, directorateId?: string): Promise<PaginatedResponse<NewsItem>>;
   getById(id: string): Promise<NewsItem | null>;
   getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]>;
   getBreakingNews(): Promise<string[]>;
@@ -82,8 +83,10 @@ export interface IUserRepository {
 export interface ISuggestionRepository {
   submit(data: SuggestionData): Promise<Suggestion>;
   submitWithProgress(data: SuggestionData, onProgress?: (progress: number) => void): Promise<Suggestion>;
-  track(trackingNumber: string): Promise<any>;
+  track(trackingNumber: string, nationalId?: string): Promise<any>;
   mySuggestions(): Promise<Suggestion[]>;
+  submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any>;
+  getRatingsStats(trackingNumber?: string): Promise<any>;
 }
 
 export interface IFaqRepository {
@@ -138,6 +141,17 @@ class MockNewsRepository implements INewsRepository {
   }
   async getGridArticles(): Promise<Article[]> {
     return new Promise(resolve => setTimeout(() => resolve(GRID_ARTICLES), 400));
+  }
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string): Promise<PaginatedResponse<NewsItem>> {
+    return new Promise(resolve => setTimeout(() => {
+      let items = [...OFFICIAL_NEWS];
+      if (directorateId) items = items.filter(n => String((n as any).directorate_id) === directorateId);
+      const total = items.length;
+      const lp = Math.ceil(total / perPage) || 1;
+      const start = (page - 1) * perPage;
+      const data = items.slice(start, start + perPage);
+      resolve({ data, current_page: page, last_page: lp, per_page: perPage, total });
+    }, 600));
   }
   async getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]> {
     return new Promise(resolve => setTimeout(() => resolve([
@@ -484,6 +498,14 @@ class ApiNewsRepository implements INewsRepository {
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+  }
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string): Promise<PaginatedResponse<NewsItem>> {
+    const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (directorateId) params.append('directorate_id', directorateId);
+    const res = await fetch(`${API_BASE_URL}/public/news?${params.toString()}`);
+    if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
+    const data = await res.json();
+    return data;
   }
   async getById(id: string): Promise<NewsItem | null> {
     const res = await fetch(`${API_BASE_URL}/public/news/${id}`);
@@ -1064,15 +1086,27 @@ class ApiUserRepository implements IUserRepository {
 export interface Announcement {
   id: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   date: string;
   category: string;
   description: string;
+  description_ar?: string;
+  description_en?: string;
   isUrgent?: boolean;
+  directorate_id?: string;
+  directorate_name?: string;
+  imageUrl?: string;
+  summary?: string;
+  summary_ar?: string;
+  summary_en?: string;
 }
 
 export interface IAnnouncementsRepository {
   getAll(): Promise<Announcement[]>;
+  getPaginated(page?: number, perPage?: number, filter?: string): Promise<PaginatedResponse<any>>;
   getById(id: string): Promise<Announcement | null>;
+  getByDirectorate(directorateId: string): Promise<Announcement[]>;
 }
 
 class MockAnnouncementsRepository implements IAnnouncementsRepository {
@@ -1107,9 +1141,34 @@ class MockAnnouncementsRepository implements IAnnouncementsRepository {
     return new Promise(resolve => setTimeout(() => resolve(this.announcements), 400));
   }
 
+  async getPaginated(page: number = 1, perPage: number = 9, filter?: string): Promise<PaginatedResponse<any>> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        const data = this.announcements.slice(start, end);
+        resolve({
+          data,
+          current_page: page,
+          last_page: Math.ceil(this.announcements.length / perPage),
+          per_page: perPage,
+          total: this.announcements.length,
+        });
+      }, 400);
+    });
+  }
+
   async getById(id: string): Promise<Announcement | null> {
     return new Promise(resolve => {
       setTimeout(() => resolve(this.announcements.find(a => a.id === id) || null), 300);
+    });
+  }
+
+  async getByDirectorate(directorateId: string): Promise<Announcement[]> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(this.announcements.filter(a => a.directorate_id === directorateId));
+      }, 300);
     });
   }
 }
@@ -1143,7 +1202,7 @@ class MockSuggestionRepository implements ISuggestionRepository {
     });
   }
 
-  async track(trackingNumber: string): Promise<any> {
+  async track(trackingNumber: string, _nationalId?: string): Promise<any> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         if (trackingNumber.startsWith('SUG-')) {
@@ -1195,6 +1254,33 @@ class MockSuggestionRepository implements ISuggestionRepository {
           }
         ]);
       }, 600);
+    });
+  }
+
+  async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          message: 'تم إرسال التقييم بنجاح',
+        });
+      }, 500);
+    });
+  }
+
+  async getRatingsStats(trackingNumber?: string): Promise<any> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          data: {
+            total_ratings: 45,
+            average_rating: 4.2,
+            rating_distribution: { '5': 25, '4': 12, '3': 5, '2': 2, '1': 1 },
+            helpful_count: { positive: 40, negative: 5 },
+          },
+        });
+      }, 300);
     });
   }
 }
@@ -1293,10 +1379,39 @@ class ApiSuggestionRepository implements ISuggestionRepository {
     });
   }
 
-  async track(trackingNumber: string): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/suggestions/track/${trackingNumber}`);
+  async track(trackingNumber: string, nationalId?: string): Promise<any> {
+    const params = nationalId ? `?national_id=${encodeURIComponent(nationalId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/suggestions/track/${trackingNumber}${params}`);
     if (!res.ok) {
+      if (res.status === 403) {
+        throw new Error('الرقم الوطني غير مطابق');
+      }
       throw new Error('Suggestion not found');
+    }
+    return res.json();
+  }
+
+  async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/suggestions/rating`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      throw new Error('Failed to submit rating');
+    }
+    return res.json();
+  }
+
+  async getRatingsStats(trackingNumber?: string): Promise<any> {
+    const url = trackingNumber 
+      ? `${API_BASE_URL}/suggestions/ratings/stats?tracking_number=${trackingNumber}`
+      : `${API_BASE_URL}/suggestions/ratings/stats`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error('Failed to fetch ratings stats');
     }
     return res.json();
   }
@@ -1323,10 +1438,25 @@ class ApiAnnouncementsRepository implements IAnnouncementsRepository {
     return res.json();
   }
 
+  async getPaginated(page: number = 1, perPage: number = 9, filter?: string): Promise<PaginatedResponse<any>> {
+    const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (filter && filter !== 'all') params.append('filter', filter);
+    const res = await fetch(`${API_BASE_URL}/public/announcements?${params.toString()}`);
+    if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
+    return res.json();
+  }
+
   async getById(id: string): Promise<Announcement | null> {
     const res = await fetch(`${API_BASE_URL}/public/announcements/${id}`);
     if (!res.ok) return null;
     return res.json();
+  }
+
+  async getByDirectorate(directorateId: string): Promise<Announcement[]> {
+    const res = await fetch(`${API_BASE_URL}/public/directorates/${directorateId}/announcements`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
 }
 
@@ -1334,6 +1464,7 @@ class ApiAnnouncementsRepository implements IAnnouncementsRepository {
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
+  getPaginated(page: number, perPage: number, type?: string): Promise<PaginatedResponse<MediaItem>>;
 }
 
 class MockMediaRepository implements IMediaRepository {
@@ -1348,6 +1479,18 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+    const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
+    const start = (page - 1) * perPage;
+    const data = all.slice(start, start + perPage);
+    return {
+      data,
+      current_page: page,
+      last_page: Math.ceil(all.length / perPage),
+      per_page: perPage,
+      total: all.length,
+    };
+  }
 }
 
 class ApiMediaRepository implements IMediaRepository {
@@ -1359,6 +1502,13 @@ class ApiMediaRepository implements IMediaRepository {
   async getByType(type: string): Promise<MediaItem[]> {
     const res = await fetch(`${API_BASE_URL}/public/media?type=${type}`);
     if (!res.ok) return [];
+    return res.json();
+  }
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+    const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (type && type !== 'all') params.append('type', type);
+    const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
+    if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
   }
 }
@@ -1419,12 +1569,35 @@ class ApiRolesRepository implements IRolesRepository {
 // --- Services Repository ---
 export interface IServicesRepository {
   getAll(): Promise<Service[]>;
+  getPaginated(page?: number, perPage?: number, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>>;
   getById(id: string): Promise<Service | null>;
 }
 
 class MockServicesRepository implements IServicesRepository {
   async getAll(): Promise<Service[]> {
     return new Promise(resolve => setTimeout(() => resolve(KEY_SERVICES), 400));
+  }
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        let filtered = KEY_SERVICES;
+        if (directorateId) filtered = filtered.filter(s => s.directorateId === directorateId);
+        if (q) {
+          const query = q.toLowerCase();
+          filtered = filtered.filter(s =>
+            s.title_ar?.toLowerCase().includes(query) ||
+            s.title_en?.toLowerCase().includes(query) ||
+            s.description_ar?.toLowerCase().includes(query) ||
+            s.description_en?.toLowerCase().includes(query)
+          );
+        }
+        const total = filtered.length;
+        const lastPage = Math.max(1, Math.ceil(total / perPage));
+        const start = (page - 1) * perPage;
+        const data = filtered.slice(start, start + perPage);
+        resolve({ data, current_page: page, last_page: lastPage, per_page: perPage, total });
+      }, 400);
+    });
   }
   async getById(id: string): Promise<Service | null> {
     return new Promise(resolve => {
@@ -1439,6 +1612,14 @@ class ApiServicesRepository implements IServicesRepository {
     if (!res.ok) return [];
     return res.json();
   }
+  async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string, q?: string): Promise<PaginatedResponse<Service>> {
+    const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (directorateId) params.append('directorate_id', directorateId);
+    if (q) params.append('q', q);
+    const res = await fetch(`${API_BASE_URL}/public/services?${params.toString()}`);
+    if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
+    return res.json();
+  }
   async getById(id: string): Promise<Service | null> {
     const res = await fetch(`${API_BASE_URL}/public/services/${id}`);
     if (!res.ok) return null;
@@ -1447,83 +1628,17 @@ class ApiServicesRepository implements IServicesRepository {
 }
 
 // --- Investment Repository ---
-export interface Investment {
-  id: number;
-  title_ar: string;
-  title_en: string;
-  sector_ar: string;
-  sector_en: string;
-  location_ar: string;
-  location_en: string;
-  investment_amount: string | null;
-  formatted_amount: string;
-  currency: string;
-  status: string;
-  status_label: { ar: string; en: string };
-  category: string;
-  icon: string;
-  image: string | null;
-  is_featured: boolean;
-  description_ar?: string;
-  description_en?: string;
-}
-
-export interface InvestmentStats {
-  total: number;
-  by_category: Record<string, number>;
-  by_status: Record<string, number>;
-  total_investment_value: number;
-  featured_count: number;
-}
-
 export interface IInvestmentRepository {
-  getAll(): Promise<Investment[]>;
+  getAll(params?: { category?: string; status?: string; featured?: boolean }): Promise<Investment[]>;
   getByCategory(category: string): Promise<Investment[]>;
   getById(id: number): Promise<Investment | null>;
   getStats(): Promise<InvestmentStats>;
 }
 
 class MockInvestmentRepository implements IInvestmentRepository {
-  private mockData: Investment[] = [
-    {
-      id: 1,
-      title_ar: 'مشروع الطاقة الشمسية - ريف دمشق',
-      title_en: 'Solar Energy Project - Damascus Countryside',
-      sector_ar: 'الطاقة المتجددة',
-      sector_en: 'Renewable Energy',
-      location_ar: 'ريف دمشق',
-      location_en: 'Damascus Countryside',
-      investment_amount: '5000000.00',
-      formatted_amount: '$5,000,000',
-      currency: 'USD',
-      status: 'available',
-      status_label: { ar: 'متاح', en: 'Available' },
-      category: 'opportunities',
-      icon: 'Zap',
-      image: null,
-      is_featured: true
-    },
-    {
-      id: 2,
-      title_ar: 'مجمع صناعي متكامل - حلب',
-      title_en: 'Integrated Industrial Complex - Aleppo',
-      sector_ar: 'الصناعة',
-      sector_en: 'Industry',
-      location_ar: 'حلب',
-      location_en: 'Aleppo',
-      investment_amount: '15000000.00',
-      formatted_amount: '$15,000,000',
-      currency: 'USD',
-      status: 'available',
-      status_label: { ar: 'متاح', en: 'Available' },
-      category: 'opportunities',
-      icon: 'Factory',
-      image: null,
-      is_featured: true
-    }
-  ];
+  private mockData: Investment[] = [];
 
-  async getAll(): Promise<Investment[]> {
+  async getAll(params?: { category?: string; status?: string; featured?: boolean }): Promise<Investment[]> {
     return new Promise(resolve => setTimeout(() => resolve(this.mockData), 400));
   }
   async getByCategory(category: string): Promise<Investment[]> {
@@ -1539,20 +1654,27 @@ class MockInvestmentRepository implements IInvestmentRepository {
   async getStats(): Promise<InvestmentStats> {
     return new Promise(resolve => {
       setTimeout(() => resolve({
-        total: 18,
-        by_category: { opportunities: 6, 'one-stop': 6, licenses: 4, guide: 2 },
-        by_status: { available: 16, under_review: 2 },
-        total_investment_value: 63500000,
-        featured_count: 3
+        total_opportunities: 0,
+        available_count: 0,
+        total_investment_value: 0,
+        sectors_count: 0,
+        labels: {}
       }), 300);
     });
   }
 }
-
 class ApiInvestmentRepository implements IInvestmentRepository {
-  async getAll(): Promise<Investment[]> {
+  async getAll(params?: { category?: string; status?: string; featured?: boolean }): Promise<Investment[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/investments`);
+      const searchParams = new URLSearchParams();
+      if (params?.category) searchParams.append('category', params.category);
+      if (params?.status) searchParams.append('status', params.status);
+      if (params?.featured) searchParams.append('featured', 'true');
+
+      const queryString = searchParams.toString();
+      const url = `${API_BASE_URL}/public/investments${queryString ? `?${queryString}` : ''}`;
+
+      const res = await fetch(url);
       if (!res.ok) return [];
       const json = await res.json();
       return json.data || json;
@@ -1584,12 +1706,18 @@ class ApiInvestmentRepository implements IInvestmentRepository {
     try {
       const res = await fetch(`${API_BASE_URL}/public/investments/stats`);
       if (!res.ok) {
-        return { total: 0, by_category: {}, by_status: {}, total_investment_value: 0, featured_count: 0 };
+        return { total_opportunities: 0, available_count: 0, total_investment_value: 0, sectors_count: 0, labels: {} } as InvestmentStats;
       }
       const json = await res.json();
       return json.data || json;
     } catch {
-      return { total: 0, by_category: {}, by_status: {}, total_investment_value: 0, featured_count: 0 };
+      return {
+        total_opportunities: 0,
+        available_count: 0,
+        total_investment_value: 0,
+        sectors_count: 0,
+        labels: {}
+      };
     }
   }
 }
@@ -1876,6 +2004,37 @@ const settingsApi = {
   },
 };
 
+// --- AI Tools ---
+export interface IAiRepository {
+  summarize(content: string, language?: string): Promise<{ summary: string }>;
+}
+
+class MockAiRepository implements IAiRepository {
+  async summarize(content: string, language: string = 'ar'): Promise<{ summary: string }> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          summary: language === 'en'
+            ? 'Auto-generated summary: This article covers the latest developments at the ministry, including strategic updates and new projects aimed at improving services for citizens. (This is a demo summary generated by the system)'
+            : 'ملخص تلقائي للمقال: يتناول هذا المقال أهم التطورات الأخيرة في الوزارة، بما في ذلك التحديثات الاستراتيجية والمشاريع الجديدة التي تهدف إلى تحسين الخدمات المقدمة للمواطنين. (هذا ملخص تجريبي تم إنشاؤه بواسطة النظام)'
+        });
+      }, 1500);
+    });
+  }
+}
+
+class ApiAiRepository implements IAiRepository {
+  async summarize(content: string, language: string = 'ar'): Promise<{ summary: string }> {
+    const res = await fetch(`${API_BASE_URL}/ai/summarize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ content, language }),
+    });
+    if (!res.ok) throw new Error('Failed to summarize');
+    return res.json();
+  }
+}
+
 export const API = {
   settings: settingsApi,
   openData: openDataApi,
@@ -1897,6 +2056,8 @@ export const API = {
   newsletter: USE_MOCK_DATA ? new MockNewsletterRepository() : new ApiNewsletterRepository(),
   faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),
   search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
+  // Force Mock for AI until backend endpoint is ready
+  ai: new MockAiRepository(),
   quickLinks: {
     async getBySection(section: string = 'homepage'): Promise<any[]> {
       try {
@@ -2118,6 +2279,26 @@ export const API = {
     },
   },
 
+  // --- National ID Verification ---
+  nationalId: {
+    verify: async (data: { national_id: string; first_name?: string; father_name?: string; last_name?: string; birth_date?: string }): Promise<any> => {
+      const res = await fetch(`${API_BASE_URL}/public/verify-national-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return res.json();
+    },
+    validateFormat: async (national_id: string): Promise<any> => {
+      const res = await fetch(`${API_BASE_URL}/public/validate-national-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ national_id }),
+      });
+      return res.json();
+    },
+  },
+
   // --- Backup Management ---
   backups: {
     async list(): Promise<any[]> {
@@ -2172,18 +2353,9 @@ export const API = {
     },
   },
 
+
   // --- AI Tools ---
-  ai: {
-    async summarize(content: string): Promise<{ summary: string }> {
-      const res = await fetch(`${API_BASE_URL}/ai/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error('Failed to summarize');
-      return res.json();
-    },
-  },
+
 
   // --- Webhook Management ---
   webhooks: {
@@ -2234,6 +2406,97 @@ export const API = {
         });
         return res.ok;
       } catch { return false; }
+    },
+  },
+
+  // --- Favorites ---
+  favorites: {
+    async list(type?: string): Promise<Favorite[]> {
+      try {
+        await getCsrfCookie();
+        const params = type ? `?type=${type}` : '';
+        const res = await fetch(`${API_BASE_URL}/favorites${params}`, {
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Accept': 'application/json',
+          }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || [];
+      } catch { return []; }
+    },
+    async add(contentType: string, contentId: string, metadata?: any): Promise<boolean> {
+      try {
+        await getCsrfCookie();
+        const xsrfToken = getXsrfToken();
+        const headers: Record<string, string> = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        };
+        if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+        const res = await fetch(`${API_BASE_URL}/favorites`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+          body: JSON.stringify({ content_type: contentType, content_id: contentId, metadata }),
+        });
+        return res.ok || res.status === 409;
+      } catch { return false; }
+    },
+    async remove(contentType: string, contentId: string): Promise<boolean> {
+      try {
+        await getCsrfCookie();
+        const xsrfToken = getXsrfToken();
+        const headers: Record<string, string> = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Accept': 'application/json',
+        };
+        if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+        const res = await fetch(`${API_BASE_URL}/favorites/${contentType}/${contentId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers,
+        });
+        return res.ok;
+      } catch { return false; }
+    },
+    async check(items: { content_type: string; content_id: string }[]): Promise<Record<string, boolean>> {
+      try {
+        await getCsrfCookie();
+        const xsrfToken = getXsrfToken();
+        const headers: Record<string, string> = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        };
+        if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+        const res = await fetch(`${API_BASE_URL}/favorites/check`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+          body: JSON.stringify({ items }),
+        });
+        if (!res.ok) return {};
+        return res.json();
+      } catch { return {}; }
+    },
+  },
+
+  // --- Search Autocomplete ---
+  searchAutocomplete: {
+    async suggest(query: string): Promise<AutocompleteSuggestion[]> {
+      try {
+        if (query.length < 2) return [];
+        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?q=${encodeURIComponent(query)}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.suggestions || [];
+      } catch { return []; }
     },
   },
 };

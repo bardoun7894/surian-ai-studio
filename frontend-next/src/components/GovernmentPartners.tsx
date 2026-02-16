@@ -24,6 +24,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
 import Link from 'next/link';
+import { SkeletonCard } from '@/components/SkeletonLoader';
 
 const GovernmentPartners: React.FC = () => {
     const { t, language } = useLanguage();
@@ -145,18 +146,29 @@ const GovernmentPartners: React.FC = () => {
         }
     };
 
-    if (loading || directorates.length === 0) {
+    if (loading) {
         return (
             <section className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <div className="h-6 w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-6 animate-pulse" />
+                        <div className="h-12 w-64 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-6 animate-pulse" />
+                        <div className="h-4 w-96 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto animate-pulse" />
+                    </div>
                     <div className="flex gap-6 overflow-hidden py-4">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-56 h-56 rounded-3xl bg-gray-200 dark:bg-dm-surface animate-pulse flex-shrink-0" />
+                            <div key={i} className="w-48 h-48 md:w-56 md:h-56 flex-shrink-0">
+                                <SkeletonCard className="h-full w-full rounded-3xl" />
+                            </div>
                         ))}
                     </div>
                 </div>
             </section>
         );
+    }
+
+    if (directorates.length === 0) {
+        return null;
     }
 
     return (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images, Sparkles, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images, Sparkles, ChevronDown, ChevronUp, Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,6 +29,8 @@ interface ArticleDetailProps {
         href: string;
         imageUrl?: string;
     }>;
+    isFavorite?: boolean;
+    onToggleFavorite?: () => void;
 }
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
@@ -42,7 +44,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     content,
     language = 'ar',
     backLink,
-    relatedItems
+    relatedItems,
+    isFavorite,
+    onToggleFavorite
 }) => {
     const { language: ctxLanguage } = useLanguage();
     const lang = language || ctxLanguage || 'ar';
@@ -64,7 +68,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
         setSummaryLoading(true);
         setSummaryError(null);
         try {
-            const result = await API.ai.summarize(content);
+            const result = await API.ai.summarize(content, lang);
             setSummaryText(result.summary);
             setSummaryOpen(true);
         } catch {
@@ -138,29 +142,49 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                     <div className="p-8 md:p-12">
                         {/* Meta Data */}
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
-                            <div className="flex items-center gap-2" title={new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}>
-                                <Calendar size={18} />
-                                {formatRelativeTime(date, lang as 'ar' | 'en')}
+                        <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
+                            <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
+                                <Calendar size={16} className="text-gov-gold" />
+                                <span className="font-medium">{formatRelativeTime(date, lang as 'ar' | 'en')}</span>
                             </div>
+
                             {author && (
-                                <div className="flex items-center gap-2">
-                                    <User size={18} />
-                                    {author}
-                                </div>
+                                <>
+                                    <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-gray-300 dark:bg-white/30" />
+                                    <div className="flex items-center gap-2">
+                                        <User size={16} className="text-gov-gold" />
+                                        <span>{author}</span>
+                                    </div>
+                                </>
                             )}
+
                             {readTime && (
-                                <div className="flex items-center gap-2">
-                                    <Clock size={18} />
-                                    {readTime}
-                                </div>
+                                <>
+                                    <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-gray-300 dark:bg-white/30" />
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={16} className="text-gov-gold" />
+                                        <span>{readTime}</span>
+                                    </div>
+                                </>
                             )}
+
                             <div className="flex-1" />
-                            <div className="flex items-center gap-4">
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors" title="Print">
+
+                            <div className="flex items-center gap-2">
+                                {onToggleFavorite && (
+                                    <button
+                                        onClick={onToggleFavorite}
+                                        className={`p-2.5 rounded-full transition-all duration-300 ${isFavorite ? 'text-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm' : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 hover:text-red-500'}`}
+                                        title={isFavorite ? (lang === 'ar' ? 'إزالة من المفضلة' : 'Remove from Favorites') : (lang === 'ar' ? 'إضافة للمفضلة' : 'Add to Favorites')}
+                                    >
+                                        <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                                    </button>
+                                )}
+                                <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                                <button className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors" title={lang === 'ar' ? 'طباعة' : 'Print'}>
                                     <Printer size={18} />
                                 </button>
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors" title="Share">
+                                <button className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors" title={lang === 'ar' ? 'مشاركة' : 'Share'}>
                                     <Share2 size={18} />
                                 </button>
                             </div>
@@ -172,38 +196,41 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </h1>
 
                         {/* T047: AI Smart Summary */}
-                        <div className="mb-8">
-                            <button
-                                onClick={handleSmartSummary}
-                                disabled={summaryLoading}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-gov-gold/10 text-gov-gold hover:bg-gov-gold/20 dark:bg-gov-gold/20 dark:hover:bg-gov-gold/30 transition-colors disabled:opacity-60"
-                            >
-                                {summaryLoading ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <Sparkles size={16} />
-                                )}
-                                {lang === 'ar' ? 'ملخص ذكي' : 'Smart Summary'}
-                                {summaryText && (summaryOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                            </button>
-
-                            {summaryError && (
-                                <div className="mt-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-                                    {summaryError}
-                                </div>
-                            )}
-
-                            {summaryText && summaryOpen && (
-                                <div className="mt-3 p-5 rounded-2xl bg-gov-gold/5 dark:bg-gov-gold/10 border border-gov-gold/20 dark:border-gov-gold/30">
-                                    <div className="flex items-center gap-2 text-gov-gold font-bold text-sm mb-2">
-                                        <Sparkles size={14} />
-                                        {lang === 'ar' ? 'ملخص ذكي' : 'AI Summary'}
+                        <div className="mb-8 p-1 bg-gradient-to-br from-gov-gold/20 to-gov-forest/5 rounded-2xl border border-gov-gold/30">
+                            <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 transition-all">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold">
+                                        <Sparkles size={18} className="text-gov-gold" />
+                                        <span>{lang === 'ar' ? 'ملخص ذكي' : 'AI Smart Summary'}</span>
                                     </div>
-                                    <p className="text-gray-700 dark:text-white/70 leading-relaxed text-sm">
+                                    <button
+                                        onClick={handleSmartSummary}
+                                        disabled={summaryLoading}
+                                        className="text-xs font-bold px-3 py-1.5 bg-white dark:bg-white/10 text-gov-forest dark:text-white rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                        {summaryLoading ? <Loader2 size={14} className="animate-spin" /> : (summaryOpen && summaryText ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                                        {summaryText ? (summaryOpen ? (lang === 'ar' ? 'إخفاء' : 'Hide') : (lang === 'ar' ? 'عرض' : 'Show')) : (lang === 'ar' ? 'توليد الملخص' : 'Generate')}
+                                    </button>
+                                </div>
+
+                                {summaryError && (
+                                    <div className="text-red-500 text-sm py-2 px-1">
+                                        {summaryError}
+                                    </div>
+                                )}
+
+                                {(summaryText && summaryOpen) ? (
+                                    <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
                                         {summaryText}
                                     </p>
-                                </div>
-                            )}
+                                ) : (!summaryText && !summaryLoading && (
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs">
+                                        {lang === 'ar'
+                                            ? 'اضغط على "توليد الملخص" للحصول على ملخص سريع لهذا المقال باستخدام الذكاء الاصطناعي.'
+                                            : 'Click "Generate" to get a quick AI-powered summary of this article.'}
+                                    </p>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:text-gov-forest dark:prose-headings:text-gov-gold prose-p:text-gray-600 dark:prose-p:text-white/70">
@@ -275,7 +302,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                         <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
                                             {item.title}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                             <Calendar size={14} />
                                             {formatRelativeTime(item.date, lang as 'ar' | 'en')}
                                         </div>
@@ -341,9 +368,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         {galleryImages.map((img, idx) => (
                             <div
                                 key={idx}
-                                className={`relative w-16 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 border-2 transition-all ${
-                                    idx === lightboxIndex ? 'border-gov-gold scale-110' : 'border-transparent opacity-60 hover:opacity-100'
-                                }`}
+                                className={`relative w-16 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 border-2 transition-all ${idx === lightboxIndex ? 'border-gov-gold scale-110' : 'border-transparent opacity-60 hover:opacity-100'
+                                    }`}
                                 onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
                             >
                                 <Image

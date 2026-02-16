@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, FileText, Scale, Megaphone, ChevronLeft, ChevronRight, Calendar, Filter, X, ChevronDown, Loader2, HelpCircle, Monitor, Building2, Globe } from 'lucide-react';
+import { Search, FileText, Scale, Megaphone, ChevronLeft, ChevronRight, Calendar, Filter, X, ChevronDown, HelpCircle, Monitor, Building2, Globe } from 'lucide-react';
+import { SkeletonGrid, SkeletonList, SkeletonCard, SkeletonText } from '@/components/SkeletonLoader';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { SearchResults, Directorate } from '@/types';
-import { getLocalizedField, getLocalizedName } from '@/lib/utils';
+import { getLocalizedField, getLocalizedName, formatRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -166,18 +167,21 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                         <Building2 size={12} />
                                         {language === 'ar' ? 'الجهة' : 'Directorate'}
                                     </label>
-                                    <select
-                                        value={filters.entity}
-                                        onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
-                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white border border-gray-200 dark:border-gov-border/15 text-gov-charcoal outline-none focus:border-gov-gold transition-colors appearance-none cursor-pointer"
-                                    >
-                                        <option value="">{language === 'ar' ? 'جميع الجهات' : 'All Directorates'}</option>
-                                        {directorates.map(d => (
-                                            <option key={d.id} value={d.id}>
-                                                {typeof d.name === 'string' ? getLocalizedField(d, 'name', language as 'ar' | 'en') : getLocalizedName(d.name, language as 'ar' | 'en')}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <select
+                                            value={filters.entity}
+                                            onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
+                                            className="w-full p-3 ltr:pr-10 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white border border-gray-200 dark:border-gov-border/15 text-gov-charcoal outline-none focus:border-gov-gold transition-colors appearance-none cursor-pointer"
+                                        >
+                                            <option value="">{language === 'ar' ? 'جميع الجهات' : 'All Directorates'}</option>
+                                            {directorates.map(d => (
+                                                <option key={d.id} value={d.id}>
+                                                    {typeof d.name === 'string' ? getLocalizedField(d, 'name', language as 'ar' | 'en') : getLocalizedName(d.name, language as 'ar' | 'en')}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
                                 </div>
                                 <div className="flex items-end">
                                     <button
@@ -240,8 +244,22 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
 
                 {/* Loading State */}
                 {loading && (
-                    <div className="flex items-center justify-center py-16">
-                        <Loader2 className="animate-spin text-gov-gold" size={32} />
+                    <div className="py-8 space-y-8">
+                        {/* News Section Skeleton */}
+                        <section>
+                            <div className="h-6 w-32 bg-gray-200 dark:bg-dm-surface rounded-lg animate-pulse mb-4" />
+                            <SkeletonGrid cards={4} className="grid-cols-1 md:grid-cols-2" />
+                        </section>
+                        {/* Decrees Section Skeleton */}
+                        <section>
+                            <div className="h-6 w-48 bg-gray-200 dark:bg-dm-surface rounded-lg animate-pulse mb-4" />
+                            <SkeletonList rows={3} />
+                        </section>
+                        {/* Announcements Section Skeleton */}
+                        <section>
+                            <div className="h-6 w-40 bg-gray-200 dark:bg-dm-surface rounded-lg animate-pulse mb-4" />
+                            <SkeletonGrid cards={3} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
+                        </section>
                     </div>
                 )}
 
@@ -261,7 +279,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                         <Link key={item.id} href={item.url || `/news/${item.id}`} className="block bg-white dark:bg-dm-surface p-4 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-colors cursor-pointer">
                                             <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{getLocalizedField(item, 'title', language as 'ar' | 'en')}</h3>
                                             <p className="text-sm text-gray-500 dark:text-white/60 mb-2 line-clamp-2">{getLocalizedField(item, 'description', language as 'ar' | 'en') || getLocalizedField(item, 'summary', language as 'ar' | 'en')}</p>
-                                            <span className="text-xs text-gov-teal dark:text-gov-teal">{item.date}</span>
+                                            <span className="text-xs text-gov-teal dark:text-gov-teal">{formatRelativeTime(item.date, language as 'ar' | 'en')}</span>
                                         </Link>
                                     ))}
                                 </div>
@@ -281,7 +299,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                             <div>
                                                 <h3 className="font-bold text-gov-charcoal dark:text-white">{getLocalizedField(item, 'title', language as 'ar' | 'en')}</h3>
                                                 <div className="flex items-center gap-4 mt-1 text-xs text-gray-500 dark:text-white/60">
-                                                    <span>{item.date}</span>
+                                                    <span>{formatRelativeTime(item.date, language as 'ar' | 'en')}</span>
                                                 </div>
                                             </div>
                                             <ChevronLeft className="text-gray-400 rtl:block hidden" size={16} />
@@ -309,7 +327,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                                 <Calendar size={14} className="text-gray-400" />
                                             </div>
                                             <h3 className="font-bold text-gov-charcoal dark:text-white mb-2">{getLocalizedField(item, 'title', language as 'ar' | 'en')}</h3>
-                                            <span className="text-xs text-gray-500 dark:text-white/60">{item.date}</span>
+                                            <span className="text-xs text-gray-500 dark:text-white/60">{formatRelativeTime(item.date, language as 'ar' | 'en')}</span>
                                         </Link>
                                     ))}
                                 </div>

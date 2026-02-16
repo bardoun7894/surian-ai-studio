@@ -210,6 +210,7 @@ class GeminiProvider(AIProvider):
         text: str,
         max_length: int = 200,
         language: str = "ar",
+        system_prompt: Optional[str] = None,
     ) -> SummarizeResponse:
         """Summarize text using Gemini."""
         lang_instruction = "باللغة العربية" if language == "ar" else "in English"
@@ -226,13 +227,17 @@ class GeminiProvider(AIProvider):
     "key_points": ["نقطة 1", "نقطة 2", "نقطة 3"]
 }}"""
 
+        config = types.GenerateContentConfig(
+            temperature=0.3,
+            max_output_tokens=4096,
+        )
+        if system_prompt:
+            config.system_instruction = system_prompt
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=4096,
-            ),
+            config=config,
         )
 
         try:

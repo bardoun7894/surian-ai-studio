@@ -4,18 +4,22 @@ namespace App\Services;
 
 use App\Models\Complaint;
 use App\Models\Directorate;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AIService
 {
     protected string $aiServiceUrl;
     protected int $timeout;
+    protected VectorSearchService $vectorSearch;
 
-    public function __construct()
+    public function __construct(VectorSearchService $vectorSearch)
     {
         $this->aiServiceUrl = config('external.ai_service.url');
         $this->timeout = config('external.ai_service.timeout');
+        $this->vectorSearch = $vectorSearch;
     }
 
     /**
@@ -137,17 +141,36 @@ class AIService
     }
 
     /**
-     * Summarize content using AI service
+     * Summarize content using AI service with RAG context
      */
-    public function summarize(string $text, string $language = 'ar'): ?string
+    public function summarize(string $text, string $language = 'ar', ?string $systemPrompt = null): ?string
     {
         try {
+            // Backward compatibility: if a non-language string was passed as 2nd arg,
+            // treat it as system prompt.
+            if (!in_array($language, ['ar', 'en'], true) && $systemPrompt === null) {
+                $systemPrompt = $language;
+                $language = 'ar';
+            }
+
+            $payload = [
+                'text' => $text,
+                'language' => $language,
+                'max_length' => 200,
+            ];
+
+            // Build RAG context for better ministry-aware summaries
+            $ragContext = $this->buildRagSystemPrompt($text, $language);
+            $finalSystemPrompt = $systemPrompt
+                ? trim($systemPrompt . "\n\n" . ($ragContext ?? ''))
+                : $ragContext;
+
+            if ($finalSystemPrompt) {
+                $payload['system_prompt'] = $finalSystemPrompt;
+            }
+
             $response = Http::timeout($this->timeout)
-                ->post("{$this->aiServiceUrl}/api/v1/ai/summarize", [
-                    'text' => $text,
-                    'language' => $language,
-                    'max_length' => 200,
-                ]);
+                ->post("{$this->aiServiceUrl}/api/v1/ai/summarize?provider=gemini", $payload);
 
             if ($response->successful()) {
                 return $response->json('summary');
@@ -241,6 +264,47 @@ class AIService
     }
 
     /**
+     * Build a RAG system prompt with relevant ministry context.
+     * Used by summarize and translate to provide domain-specific terminology.
+     */
+    protected function buildRagSystemPrompt(string $text, string $language = 'ar'): ?string
+    {
+        $isAr = $language === 'ar';
+        $parts = [];
+
+        // Ministry identity (cached)
+        $identity = Cache::remember("ai_service_rag_identity:{$language}", 3600, function () use ($isAr) {
+            if ($isAr) {
+                return "سياق: وزارة الاقتصاد والصناعة في سوريا. استخدم المصطلحات الرسمية للوزارة.";
+            }
+            return "Context: Syria's Ministry of Economy and Industry. Use official ministry terminology.";
+        });
+        $parts[] = $identity;
+
+        // Semantic search for relevant content (top 3, lightweight)
+        try {
+            $results = $this->vectorSearch->semanticSearch($text, 3);
+
+            if ($results->isNotEmpty()) {
+                $section = $isAr ? "\nمحتوى مرجعي:" : "\nReference content:";
+                foreach ($results as $item) {
+                    $title = $isAr ? ($item->title_ar ?? $item->title_en) : ($item->title_en ?? $item->title_ar);
+                    $body = $isAr ? ($item->content_ar ?? $item->content_en) : ($item->content_en ?? $item->content_ar);
+                    $body = strip_tags($body ?? '');
+                    $body = Str::limit($body, 300);
+                    $section .= "\n- {$title}: {$body}";
+                }
+                $parts[] = $section;
+            }
+        } catch (\Exception $e) {
+            Log::warning("RAG context for AI service failed", ['error' => $e->getMessage()]);
+        }
+
+        // Only return if we have more than just identity
+        return count($parts) > 0 ? implode("\n", $parts) : null;
+    }
+
+    /**
      * Generate embeddings for semantic search (FR-36)
      */
     public function generateEmbedding(string $text): ?array
@@ -276,12 +340,20 @@ class AIService
         }
 
         try {
+            $payload = [
+                'text' => $text,
+                'source_lang' => $sourceLang,
+                'target_lang' => $targetLang,
+            ];
+
+            // Build RAG context for ministry-specific terminology
+            $ragContext = $this->buildRagSystemPrompt($text, $targetLang);
+            if ($ragContext) {
+                $payload['system_prompt'] = $ragContext;
+            }
+
             $response = Http::timeout($this->timeout)
-                ->post("{$this->aiServiceUrl}/api/v1/ai/translate", [
-                    'text' => $text,
-                    'source_lang' => $sourceLang,
-                    'target_lang' => $targetLang,
-                ]);
+                ->post("{$this->aiServiceUrl}/api/v1/ai/translate?provider=gemini", $payload);
 
             if ($response->successful()) {
                 return $response->json('translated_text');

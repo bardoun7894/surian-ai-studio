@@ -11,7 +11,6 @@ import {
   CheckCircle,
   TrendingUp,
   ArrowRight,
-  Loader2,
   Settings,
   Lightbulb,
   Newspaper,
@@ -20,6 +19,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { API, StatisticsData } from '@/lib/repository';
+import { SkeletonCard, SkeletonText } from '@/components/SkeletonLoader';
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -109,6 +109,12 @@ export default function AdminDashboard() {
       color: 'bg-gov-emerald/10 text-gov-emerald',
     },
     {
+      href: '/admin/content?category=announcement',
+      label: { ar: 'إدارة الإعلانات', en: 'Manage Announcements' },
+      icon: Newspaper,
+      color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    },
+    {
       href: '/admin/settings',
       label: { ar: 'إعدادات النظام', en: 'System Settings' },
       icon: Settings,
@@ -134,8 +140,13 @@ export default function AdminDashboard() {
 
       {/* Stats Cards */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="animate-spin text-gov-gold" size={40} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+          <div className="md:col-span-2 lg:col-span-4 bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15 mt-4">
+            <SkeletonText lines={6} />
+          </div>
         </div>
       ) : stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -201,8 +212,8 @@ export default function AdminDashboard() {
           {/* Additional KPIs Row - Users, Suggestions, News */}
           <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Users className="text-blue-600 dark:text-blue-400" size={24} />
+              <div className="w-12 h-12 rounded-xl bg-gov-blue/10 dark:bg-gov-blue/30 flex items-center justify-center">
+                <Users className="text-gov-blue dark:text-blue-400" size={24} />
               </div>
             </div>
             <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
@@ -218,8 +229,8 @@ export default function AdminDashboard() {
 
           <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <MessageSquare className="text-purple-600 dark:text-purple-400" size={24} />
+              <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-forest/30 flex items-center justify-center">
+                <MessageSquare className="text-gov-forest dark:text-gov-emerald" size={24} />
               </div>
             </div>
             <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
@@ -232,8 +243,8 @@ export default function AdminDashboard() {
 
           <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <Lightbulb className="text-green-600 dark:text-green-400" size={24} />
+              <div className="w-12 h-12 rounded-xl bg-gov-emerald/10 dark:bg-gov-emerald/30 flex items-center justify-center">
+                <Lightbulb className="text-gov-emerald dark:text-gov-teal" size={24} />
               </div>
             </div>
             <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
@@ -284,9 +295,9 @@ export default function AdminDashboard() {
 
               <div className="md:col-span-2 space-y-4">
                 {[
-                  { label: language === 'ar' ? 'سرعة الاستجابة' : 'Response Speed', value: satisfaction?.response_speed_rating ? Math.round(satisfaction.response_speed_rating * 20) : 0, color: 'bg-green-500' },
-                  { label: language === 'ar' ? 'جودة الحلول' : 'Solution Quality', value: satisfaction?.solution_quality_rating ? Math.round(satisfaction.solution_quality_rating * 20) : 0, color: 'bg-blue-500' },
-                  { label: language === 'ar' ? 'الرضا العام' : 'Overall Satisfaction', value: satisfaction?.satisfaction_rate ? Math.round(satisfaction.satisfaction_rate) : 0, color: 'bg-purple-500' }
+                  { label: language === 'ar' ? 'سرعة الاستجابة' : 'Response Speed', value: satisfaction?.response_speed_rating ? Math.round(satisfaction.response_speed_rating * 20) : 0, color: 'bg-gov-emerald' },
+                  { label: language === 'ar' ? 'جودة الحلول' : 'Solution Quality', value: satisfaction?.solution_quality_rating ? Math.round(satisfaction.solution_quality_rating * 20) : 0, color: 'bg-gov-blue' },
+                  { label: language === 'ar' ? 'الرضا العام' : 'Overall Satisfaction', value: satisfaction?.satisfaction_rate ? Math.round(satisfaction.satisfaction_rate) : 0, color: 'bg-gov-forest' }
                 ].map((item, idx) => (
                   <div key={idx}>
                     <div className="flex justify-between text-sm mb-1">
@@ -309,7 +320,7 @@ export default function AdminDashboard() {
         <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15 mb-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-gov-gold/10 flex items-center justify-center text-gov-gold">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
             </div>
             <h3 className="text-lg font-bold text-gov-charcoal dark:text-white">
               {language === 'ar' ? 'مؤشر السعادة العام' : 'General Happiness Indicator'}

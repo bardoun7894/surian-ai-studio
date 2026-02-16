@@ -23,7 +23,7 @@ class StoreComplaintRequest extends FormRequest
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'father_name' => 'nullable|string|max:100',
-            'national_id' => 'required|string|size:11|regex:/^[0-9]+$/',
+            'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
             'dob' => 'nullable|date|before:today',
             'phone' => 'required|string|regex:/^09[0-9]{8}$/',
             'email' => 'nullable|email|max:255',

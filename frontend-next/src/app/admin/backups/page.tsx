@@ -14,6 +14,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TableRowSkeleton } from '@/components/Skeleton';
+import { SkeletonText } from '@/components/SkeletonLoader';
 
 interface Backup {
   filename: string;
@@ -150,8 +152,18 @@ export default function BackupManagementPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="animate-spin text-gov-gold" size={40} />
+        <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden p-6">
+          {/* Header Skeleton */}
+          <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gov-border/15 mb-4">
+            <div className="w-[40%]"><SkeletonText lines={1} /></div>
+            <div className="w-[20%]"><SkeletonText lines={1} /></div>
+            <div className="w-[20%]"><SkeletonText lines={1} /></div>
+            <div className="w-[20%]"><SkeletonText lines={1} /></div>
+          </div>
+          {/* Table Rows Skeleton */}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <TableRowSkeleton key={i} />
+          ))}
         </div>
       ) : backups.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">

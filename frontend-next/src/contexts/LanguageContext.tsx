@@ -14,12 +14,17 @@ interface LanguageContextType {
 
 const translations: Record<string, Record<Language, string>> = {
   // Brand
-  'republic_name': { ar: 'الجمهورية العربية السورية', en: 'Syrian Arab Republic' },
+  'republic_name': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
   'ministry_name': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
   'portal_name': { ar: 'البوابة الإلكترونية', en: 'E-Government Portal' },
   'cabinet': { ar: 'وزارة الاقتصاد والصناعة', en: 'Ministry of Economy and Industry' },
   'unified_platform': { ar: 'المنصة الوطنية الموحدة للخدمات الحكومية', en: 'The Unified National Platform for E-Government Services' },
   'secure_gateway': { ar: 'بوابة آمنة، خدمات متكاملة، ومستقبل رقمي', en: 'Secure Gateway, Integrated Services, Digital Future' },
+  'integrated_services': { ar: 'خدمات متكاملة', en: 'Integrated Services' },
+  'digital_future': { ar: 'مستقبل رقمي', en: 'Digital Future' },
+  'suggestions_section_title': { ar: 'شاركنا أفكارك لتطوير المستقبل', en: 'Share Your Ideas to Shape the Future' },
+  'suggestions_section_desc': { ar: 'نؤمن بأن الابتكار يبدأ بفكرة. شارك مقترحاتك ومشاريعك لتساهم معنا في تحسين بيئة الأعمال والخدمات.', en: 'We believe innovation starts with an idea. Share your proposals and projects to help us improve the business environment and services.' },
+  'submit_suggestion': { ar: 'مشاركة مقترح', en: 'Share Suggestion' },
 
   // Nav
   'nav_home': { ar: 'الرئيسية', en: 'Home' },
@@ -30,6 +35,22 @@ const translations: Record<string, Record<Language, string>> = {
   'nav_complaints': { ar: 'منظومة الشكاوى', en: 'Complaints' },
   'nav_suggestions': { ar: 'المقترحات', en: 'Suggestions' },
   'nav_search': { ar: 'بحث', en: 'Search' },
+  'nav_about': { ar: 'عن الوزارة', en: 'About Ministry' },
+  'nav_services_legislations': { ar: 'الخدمات والتشريعات', en: 'Services & Legislations' },
+  'nav_ministry_services': { ar: 'خدمات الوزارة', en: 'Ministry Services' },
+  'nav_industrial_services': { ar: 'خدمات الإدارة العامة للصناعة', en: 'Industrial Services' },
+  'nav_economy_services': { ar: 'خدمات الإدارة العامة للاقتصاد', en: 'Economy Services' },
+  'nav_trade_services': { ar: 'خدمات التجارة الداخلية', en: 'Internal Trade Services' },
+  'nav_media': { ar: 'المركز الإعلامي', en: 'Media Center' },
+  'nav_suggestions_complaints': { ar: 'الاقتراحات والشكاوى', en: 'Suggestions & Complaints' },
+  'nav_departments': { ar: 'الإدارات', en: 'Departments' },
+  'nav_administrations': { ar: 'الإدارات العامة', en: 'General Administrations' },
+  'nav_directorates': { ar: 'المديريات', en: 'Directorates' },
+  'nav_contact_directorate': { ar: 'تواصل مع الإدارة', en: 'Contact Directorate' },
+  'nav_for_users': { ar: 'للمستخدمين', en: 'For Users' },
+  'nav_feedback': { ar: 'الملاحظات', en: 'Feedback' },
+  'nav_investors': { ar: 'للمستثمرين', en: 'For Investors' },
+  'nav_citizens': { ar: 'للمواطنين', en: 'For Citizens' },
 
   // Hero
   'hero_services_btn': { ar: 'دليل الخدمات', en: 'Services Guide' },
@@ -62,6 +83,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Footer
   'quick_links': { ar: 'روابط سريعة', en: 'Quick Links' },
+  'organizational_structure': { ar: 'الهيكل التنظيمي', en: 'Organizational Structure' },
   'contact_us': { ar: 'اتصل بنا', en: 'Contact Us' },
   'accessibility': { ar: 'إمكانية الوصول', en: 'Accessibility' },
   'about_portal': { ar: 'عن البوابة', en: 'About Portal' },
@@ -73,8 +95,8 @@ const translations: Record<string, Record<Language, string>> = {
   'site_map': { ar: 'خريطة الموقع (Site Map)', en: 'Site Map' },
   'contact_center': { ar: 'مركز الاتصال الموحد', en: 'Unified Contact Center' },
   'damascus_address': { ar: 'دمشق - الجمارك مقابل الأمن الجنائي', en: 'Damascus - Customs, opposite Criminal Security' },
-  'copyright': { ar: '© 2026 الجمهورية العربية السورية - جميع الحقوق محفوظة.', en: '© 2026 Syrian Arab Republic - All Rights Reserved.' },
-  'footer_desc': { ar: 'البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة. المصدر الموثوق للمعلومات والخدمات.', en: 'The Official E-Portal for the Ministry of Economy and Industry. The trusted source for information and services.' },
+  'copyright': { ar: '© 2026 وزارة الاقتصاد والصناعة - جميع الحقوق محفوظة.', en: '© 2026 Ministry of Economy and Industry - All Rights Reserved.' },
+  'footer_desc': { ar: 'المصدر الموثوق للمعلومات والخدمات.', en: 'The trusted source for information and services.' },
 
   // Complaints
   'complaint_portal_title': { ar: 'بوابة الشكاوى الذكية', en: 'Smart Complaints Portal' },
@@ -131,6 +153,8 @@ const translations: Record<string, Record<Language, string>> = {
   'complaint_phone': { ar: 'رقم الهاتف', en: 'Phone Number' },
   'complaint_email': { ar: 'البريد الإلكتروني', en: 'Email Address' },
   'complaint_directorate': { ar: 'الجهة (اختياري)', en: 'Directorate (Optional)' },
+  'complaint_entity': { ar: 'الجهة المعنية', en: 'Target Entity' },
+  'complaint_select_entity': { ar: '-- اختر الجهة المعنية --', en: '-- Select Entity --' },
   'complaint_submit': { ar: 'إرسال الشكوى', en: 'Submit Complaint' },
   'complaint_success': { ar: 'تم استلام شكواك بنجاح', en: 'Complaint Received Successfully' },
   'complaint_success_desc': { ar: 'يرجى الاحتفاظ برقم التذكرة أدناه لمتابعة حالة الشكوى. تم إرسال رسالة تأكيد لرقم هاتفك.', en: 'Please keep the ticket number below to track your complaint. A confirmation message has been sent to your phone.' },
@@ -277,6 +301,7 @@ const translations: Record<string, Record<Language, string>> = {
   'faq_a4': { ar: 'يتطلب الحصول على ترخيص منشأة صناعية: دراسة جدوى اقتصادية، مخططات الموقع، الوثائق القانونية للشركة، والموافقات البيئية. يمكنك إتمام العملية عبر الإدارة العامة للصناعة.', en: 'Industrial facility license requires: economic feasibility study, site plans, company legal documents, and environmental approvals. You can complete the process through the General Administration for Industry.' },
   'faq_q5': { ar: 'كيف يمكنني دفع الرسوم الحكومية؟', en: 'How can I pay government fees?' },
   'faq_a5': { ar: 'تدعم البوابة الدفع الإلكتروني عبر المصارف العامة والخاصة المرتبطة بشبكة المدفوعات الوطنية، بالإضافة إلى الدفع عبر شركات الهاتف المحمول.', en: 'The portal supports electronic payment through public and private banks connected to the national payment network, in addition to payment through mobile phone companies.' },
+  'field_valid': { ar: '✅ الحقل صالح', en: '✅ Field is valid' },
 
   // About Page
   'about_title': { ar: 'عن البوابة الإلكترونية', en: 'About the E-Portal' },
@@ -682,6 +707,9 @@ const translations: Record<string, Record<Language, string>> = {
   'validation_password_mismatch': { ar: 'كلمات المرور غير متطابقة', en: 'Passwords do not match' },
   'error_generic': { ar: 'حدث خطأ. يرجى المحاولة مرة أخرى.', en: 'An error occurred. Please try again.' },
   'error_network': { ar: 'خطأ في الاتصال بالشبكة. يرجى التحقق من اتصالك.', en: 'Network connection error. Please check your connection.' },
+  'expires_at_label': { ar: 'تاريخ الانتهاء', en: 'Expiry Date' },
+  'expires_at_validation': { ar: 'تاريخ الانتهاء يجب أن يكون بعد تاريخ النشر', en: 'Expiry date must be after publish date' },
+  'expires_at_validation_announcement': { ar: 'تاريخ انتهاء الصلاحية مطلوب للإعلانات', en: 'Expiry date is required for announcements' },
   'error_required_field': { ar: 'يرجى ملء جميع الحقول المطلوبة', en: 'Please fill in all required fields' },
   'newsletter_email_invalid': { ar: 'يرجى إدخال بريد إلكتروني صالح', en: 'Please enter a valid email address' },
   'newsletter_subscribe_error': { ar: 'حدث خطأ أثناء الاشتراك. يرجى المحاولة مرة أخرى.', en: 'An error occurred while subscribing. Please try again.' },
@@ -697,6 +725,60 @@ const translations: Record<string, Record<Language, string>> = {
   'complaint_template_select': { ar: '-- اختر نموذج الشكوى --', en: '-- Select Complaint Template --' },
   'complaint_template_open': { ar: 'شكوى مفتوحة', en: 'Open Complaint' },
   'complaint_anonymous': { ar: 'شكوى من مجهول', en: 'Anonymous Complaint' },
+
+  // Complaint Home Section
+  'complaints_section_badge': { ar: 'خدمة المواطن', en: 'Citizen Service' },
+  'complaints_section_title': { ar: 'صوتك مسموع', en: 'Your Voice Matters' },
+  'complaints_section_desc': {
+    ar: 'منصة رقمية آمنة تتيح لك تقديم الشكاوى ومتابعتها بكل شفافية وفاعلية لضمان حقوقك وتحسين جودة الخدمات.',
+    en: 'A secure digital platform allowing you to submit and track complaints with transparency and efficiency to ensure your rights and improve service quality.'
+  },
+  'submit_complaint': { ar: 'تقديم شكوى', en: 'Submit Complaint' },
+  'track_complaint': { ar: 'متابعة طلب', en: 'Track Request' },
+  'complaints_stat': { ar: 'نسبة الاستجابة للشكاوى الواردة', en: 'Response rate to incoming complaints' },
+
+  // Complaint Portal Misc
+
+
+
+
+
+
+  // Announcements
+
+
+  'announcements_portal_badge': { ar: 'البوابة الرسمية', en: 'Official Portal' },
+  'filter_active': { ar: 'النشطة', en: 'Active' },
+  'filter_all_types': { ar: 'جميع الأنواع', en: 'All Types' },
+  'filter_all_categories': { ar: 'جميع التصنيفات', en: 'All Categories' },
+  'filter_expired': { ar: 'المنتهية', en: 'Expired' },
+  'announcements_count': { ar: 'عرض {shown} من {total} إعلان', en: 'Showing {shown} of {total} announcements' },
+  'period_label': { ar: 'الفترة', en: 'Period' },
+  'month_label': { ar: 'الشهر', en: 'Month' },
+  'year_label': { ar: 'السنة', en: 'Year' },
+  'filter_clear': { ar: 'مسح', en: 'Clear' },
+  'announcements_no_results': { ar: 'لا توجد إعلانات', en: 'No Announcements Found' },
+  'announcements_try_search': { ar: 'جرب تغيير معايير البحث', en: 'Try changing your search criteria' },
+  'announcements_details': { ar: 'التفاصيل', en: 'Details' },
+  'announcements_faq_title': { ar: 'الأسئلة الشائعة', en: 'Frequently Asked Questions' },
+  'announcements_faq_q1': { ar: 'كيف أتابع الإعلانات الجديدة؟', en: 'How do I follow new announcements?' },
+  'announcements_faq_a1': { ar: 'يمكنك زيارة هذه الصفحة بانتظام أو الاشتراك في النشرة البريدية للحصول على إشعارات بالإعلانات الجديدة.', en: 'You can visit this page regularly or subscribe to the newsletter for new announcement notifications.' },
+  'announcements_faq_q2': { ar: 'ما الفرق بين أنواع الإعلانات؟', en: 'What is the difference between announcement types?' },
+  'announcements_faq_a2': { ar: 'تتنوع الإعلانات بين عاجلة وهامة ومناقصات ووظائف وعامة، ويمكنك تصفيتها باستخدام القوائم أعلاه.', en: 'Announcements vary between urgent, important, tenders, jobs, and general. You can filter them using the menus above.' },
+  'announcements_view_all_faq': { ar: 'عرض جميع الأسئلة الشائعة', en: 'View all FAQs' },
+
+  // Announcement Types & Categories (for filters)
+  'type_urgent': { ar: 'عاجل', en: 'Urgent' },
+  'type_important': { ar: 'هام', en: 'Important' },
+  'type_tender': { ar: 'مناقصات', en: 'Tenders' },
+  'type_job': { ar: 'توظيف', en: 'Jobs' },
+  'type_general': { ar: 'عام', en: 'General' },
+  'cat_tender': { ar: 'مناقصات', en: 'Tenders' },
+  'cat_job': { ar: 'توظيف', en: 'Employment' },
+  'cat_training': { ar: 'تدريب', en: 'Training' },
+  'cat_tech': { ar: 'تقنية', en: 'Technology' },
+  'cat_admin': { ar: 'إداري', en: 'Administrative' },
+  'cat_finance': { ar: 'تمويل', en: 'Finance' },
   'complaint_identified': { ar: 'شكوى من معلوم', en: 'Identified Complaint' },
   'complaint_type_label': { ar: 'نوع الشكوى', en: 'Complaint Type' },
 
@@ -740,6 +822,11 @@ const translations: Record<string, Record<Language, string>> = {
   'complaint_delete_error_status': { ar: 'يمكن حذف الشكاوى فقط في حالة "مستلمة"', en: 'Only complaints with "received" status can be deleted' },
   'complaint_delete_not_allowed': { ar: 'لا يمكن حذف الشكوى', en: 'Cannot delete complaint' },
   'complaint_delete_success': { ar: 'تم حذف الشكوى بنجاح', en: 'Complaint deleted successfully' },
+
+  // Header Actions
+  'header_search': { ar: 'بحث', en: 'Search' },
+  'header_theme': { ar: 'المظهر', en: 'Theme' },
+  'header_lang': { ar: 'اللغة', en: 'Language' },
   'complaint_delete_failed': { ar: 'فشل حذف الشكوى', en: 'Failed to delete complaint' },
   'complaint_delete_error_generic': { ar: 'حدث خطأ أثناء حذف الشكوى', en: 'An error occurred while deleting the complaint' },
   'complaint_delete_btn': { ar: 'حذف الشكوى', en: 'Delete Complaint' },
@@ -747,11 +834,15 @@ const translations: Record<string, Record<Language, string>> = {
   'complaint_accurate_info_required': { ar: 'يجب تقديم معلومات صحيحة.', en: 'You must provide accurate information.' },
   'complaint_review_guidelines': { ar: 'ضوابط النظر في الشكاوى', en: 'Complaint Review Guidelines' },
   'complaint_review_desc': { ar: 'يتم النظر في الشكاوى بجدية بعد التأكد من وضوحها وكفاية البيانات الواردة فيها', en: 'Complaints are reviewed seriously after confirming their clarity and sufficiency of provided data' },
-  'complaint_condition_intro': { ar: 'لن يتم النظر في الشكوى في الحالات التالية:', en: 'Complaints will NOT be reviewed if:' },
+  'complaint_condition_intro_review': { ar: 'لن يتم النظر في الشكوى في الحالات التالية:', en: 'Complaints will NOT be reviewed if:' },
   'complaint_condition_1': { ar: 'إذا كانت غير واضحة أو تفتقر إلى البيانات الكافية', en: 'If unclear or lacking sufficient data' },
   'complaint_condition_2': { ar: 'إذا تبين أنها كيدية', en: 'If found to be malicious or vindictive' },
   'complaint_condition_3': { ar: 'إذا سبق التحقيق فيها', en: 'If previously investigated' },
   'complaint_condition_4': { ar: 'إذا كانت خارج نطاق اختصاص وزارة الاقتصاد والصناعة', en: 'If outside the jurisdiction of the Ministry of Economy and Industry' },
+  'date_from': { ar: 'من تاريخ', en: 'From Date' },
+  'date_to': { ar: 'إلى تاريخ', en: 'To Date' },
+  'download_attachments': { ar: 'الملفات المرفقة', en: 'Attachments' },
+  'download_pdf': { ar: 'تحميل PDF', en: 'Download PDF' },
   'complaint_agree_terms': { ar: 'أوافق على الضوابط المذكورة أعلاه', en: 'I agree to the terms mentioned above' },
   'complaint_start_new': { ar: 'بدء تقديم شكوى جديدة', en: 'Start New Complaint' },
   'complaint_back_terms': { ar: 'العودة للضوابط', en: 'Back to Terms' },
@@ -795,8 +886,14 @@ const translations: Record<string, Record<Language, string>> = {
   'suggestion_agree_terms': { ar: 'أوافق على الضوابط المذكورة أعلاه', en: 'I agree to the guidelines mentioned above' },
   'suggestion_start_new': { ar: 'بدء تقديم مقترح جديد', en: 'Start New Suggestion' },
   'suggestion_back_terms': { ar: 'العودة للضوابط', en: 'Back to Guidelines' },
+  'suggestion_step_terms': { ar: 'الشروط', en: 'Terms' },
+  'suggestion_step_identity': { ar: 'الهوية', en: 'Identity' },
+  'suggestion_step_details': { ar: 'التفاصيل', en: 'Details' },
   'suggestion_form_title': { ar: 'نموذج تقديم المقترحات', en: 'Suggestion Submission Form' },
   'suggestion_form_subtitle': { ar: 'شاركنا أفكارك لتطوير خدماتنا', en: 'Share your ideas to improve our services' },
+  'suggestion_first_name': { ar: 'الاسم الأول', en: 'First Name' },
+  'suggestion_last_name': { ar: 'الاسم الأخير', en: 'Last Name' },
+  'suggestion_father_name': { ar: 'اسم الأب', en: 'Father Name' },
   'suggestion_name': { ar: 'الاسم الكامل', en: 'Full Name' },
   'suggestion_job_title': { ar: 'المسمى الوظيفي', en: 'Job Title' },
   'suggestion_email': { ar: 'البريد الإلكتروني', en: 'Email Address' },
@@ -835,10 +932,10 @@ const translations: Record<string, Record<Language, string>> = {
   'contact_info_title': { ar: 'معلومات الاتصال', en: 'Contact Information' },
   'contact_info_description': { ar: 'للاستفسارات العاجلة، يرجى الاتصال بمركز خدمة المواطن الموحد. فريقنا جاهز للرد على استفساراتكم على مدار الساعة.', en: 'For urgent inquiries, please call the unified citizen service center. Our team is ready to respond around the clock.' },
   'contact_hotline_label': { ar: 'الخط الساخن الموحد', en: 'Unified Hotline' },
-  'contact_email_label': { ar: 'البريد الإلكتروني', en: 'Email' },
+
   'contact_address_label': { ar: 'المقر الرئيسي', en: 'Headquarters' },
   'contact_working_hours_label': { ar: 'ساعات العمل', en: 'Working Hours' },
-  'contact_form_title': { ar: 'نموذج المراسلة الإلكتروني', en: 'Electronic Contact Form' },
+
   'contact_form_success_title': { ar: 'تم إرسال رسالتك بنجاح', en: 'Your message was sent successfully' },
   'contact_form_success_message': { ar: 'سيتم الرد على استفسارك خلال 24 ساعة عمل.', en: 'Your inquiry will be responded to within 24 business hours.' },
   'contact_form_name': { ar: 'الاسم الكامل', en: 'Full Name' },
@@ -882,7 +979,9 @@ const translations: Record<string, Record<Language, string>> = {
   'suggestion_failed': { ar: 'فشل في تقديم الاقتراح', en: 'Failed to submit suggestion' },
   'published_at': { ar: 'نُشر في', en: 'Published at' },
   'time_ago': { ar: 'منذ', en: 'ago' },
-  'announcements_title': { ar: 'الإعلانات', en: 'Announcements' },
+  'title_ar_hint': { ar: 'مثال: مناقصة عامة لتوريد معدات', en: 'Example: General tender for equipment supply' },
+  'title_ar_required': { ar: 'يرجى إدخال عنوان الإعلان بالعربية', en: 'Please enter announcement title in Arabic' },
+
   'directorates_subtitle': { ar: 'الإدارات العامة لوزارة الاقتصاد والصناعة', en: 'General Directorates of the Ministry of Economy and Industry' },
   'directorate_subtitle': { ar: 'إدارة عامة', en: 'General Directorate' },
   'newsletter_subscribed': { ar: 'تم الاشتراك بنجاح في النشرة الإخبارية', en: 'Successfully subscribed to the newsletter' },
@@ -891,6 +990,54 @@ const translations: Record<string, Record<Language, string>> = {
   'my_complaints': { ar: 'شكاواي', en: 'My Complaints' },
   'no_complaints': { ar: 'لا توجد شكاوى مسجلة', en: 'No complaints registered' },
   'clear_filters': { ar: 'مسح الفلاتر', en: 'Clear Filters' },
+
+  // T050: Newsletter additional translations
+  'newsletter_subtitle': { ar: 'اشترك ليصلك كل جديد', en: 'Subscribe to stay updated' },
+  'newsletter_subscribe': { ar: 'اشتراك', en: 'Subscribe' },
+  'newsletter_success': { ar: 'تم الاشتراك بنجاح! شكراً لك.', en: 'Successfully subscribed! Thank you.' },
+  'newsletter_error': { ar: 'حدث خطأ. يرجى المحاولة مرة أخرى.', en: 'An error occurred. Please try again.' },
+  'newsletter_invalid_email': { ar: 'يرجى إدخال بريد إلكتروني صالح.', en: 'Please enter a valid email address.' },
+
+  // T051: Complaint general form translations
+  'complaint_type': { ar: 'نوع الشكوى', en: 'Complaint Type' },
+  'complaint_select_type': { ar: '-- اختر نوع الشكوى --', en: '-- Select Complaint Type --' },
+  'complaint_address': { ar: 'العنوان', en: 'Address' },
+  'complaint_attachments': { ar: 'المرفقات', en: 'Attachments' },
+  'complaint_attach_files': { ar: 'أرفق ملفات (اختياري)', en: 'Attach files (optional)' },
+  'complaint_max_size': { ar: 'الحد الأقصى للملف 5 ميغابايت', en: 'Maximum file size 5MB' },
+  'complaint_terms': { ar: 'أقر بصحة المعلومات المقدمة', en: 'I confirm the accuracy of the provided information' },
+  'complaint_status_received': { ar: 'واردة', en: 'Received' },
+  'complaint_status_completed': { ar: 'منتهية', en: 'Completed' },
+
+  // T052: Announcements page translations
+  'announcements_all_types': { ar: 'جميع الأنواع', en: 'All Types' },
+  'announcements_all_categories': { ar: 'جميع التصنيفات', en: 'All Categories' },
+  'announcements_urgent': { ar: 'عاجل', en: 'Urgent' },
+  'announcements_important': { ar: 'هام', en: 'Important' },
+  'announcements_tender': { ar: 'مناقصة', en: 'Tender' },
+  'announcements_job': { ar: 'توظيف', en: 'Job' },
+  'announcements_general': { ar: 'إعلان', en: 'Announcement' },
+  'announcement_active': { ar: 'نشط', en: 'Active' },
+  'announcement_expired': { ar: 'انتهى التقديم', en: 'Application Closed' },
+  'announcement_expired_on': { ar: 'انتهى بتاريخ', en: 'Expired on' },
+  'announcement_expires_on': { ar: 'ينتهي بتاريخ', en: 'Expires on' },
+
+  'announcements_empty': { ar: 'لا توجد إعلانات', en: 'No Announcements Found' },
+  'announcements_empty_desc': { ar: 'جرب تغيير معايير البحث', en: 'Try changing your search criteria' },
+
+  // Civil Registry & National ID Field
+  'civil_registry_verifying': { ar: 'جارٍ التحقق من السجل المدني...', en: 'Verifying with civil registry...' },
+  'civil_registry_verified': { ar: 'تم التحقق من الرقم الوطني بنجاح في السجل المدني', en: 'National ID verified successfully with civil registry' },
+  'civil_registry_not_found': { ar: 'الرقم الوطني غير مسجل في السجل المدني. يرجى التحقق من صحة الرقم المدخل.', en: 'National ID not found in civil registry. Please verify the entered number.' },
+  'civil_registry_mismatch': { ar: 'البيانات المدخلة غير مطابقة للسجل المدني', en: 'Entered data does not match civil registry records' },
+  'civil_registry_error': { ar: 'حدث خطأ أثناء الاتصال بخدمة السجل المدني. يرجى المحاولة مرة أخرى.', en: 'Error connecting to civil registry service. Please try again.' },
+  'civil_registry_unavailable': { ar: 'خدمة التحقق من السجل المدني غير متاحة حالياً', en: 'Civil registry verification service is currently unavailable' },
+  'civil_registry_auto_fill': { ar: 'تم تعبئة البيانات تلقائياً من السجل المدني', en: 'Data auto-filled from civil registry' },
+  'national_id_format_error': { ar: 'الرقم الوطني يجب أن يتكون من 11 رقماً فقط', en: 'National ID must be exactly 11 digits' },
+  'national_id_numeric_only': { ar: 'الرقم الوطني يجب أن يحتوي على أرقام فقط', en: 'National ID must contain numbers only' },
+  'national_id_verify_button': { ar: 'تحقق من السجل المدني', en: 'Verify with Civil Registry' },
+  'national_id_chars_remaining': { ar: 'رقم متبقي', en: 'digits remaining' },
+  'national_id_counter': { ar: 'أرقام', en: 'digits' },
 };
 
 

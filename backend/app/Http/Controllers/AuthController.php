@@ -34,47 +34,73 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        // Determine login method: email, phone, or national_id
+        $loginField = null;
+        $loginValue = null;
 
-        $throttleKey = Str::transliterate(Str::lower($request->email).'|'.$request->ip());
+        if ($request->filled('email')) {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+            $loginField = 'email';
+            $loginValue = $request->email;
+        } elseif ($request->filled('phone')) {
+            $request->validate([
+                'phone' => 'required|string',
+                'password' => 'required',
+            ]);
+            $loginField = 'phone';
+            $loginValue = $request->phone;
+        } elseif ($request->filled('national_id')) {
+            $request->validate([
+                'national_id' => 'required|string',
+                'password' => 'required',
+            ]);
+            $loginField = 'national_id';
+            $loginValue = $request->national_id;
+        } else {
+            throw ValidationException::withMessages([
+                'email' => [__('auth.login_identifier_required')],
+            ]);
+        }
+
+        $throttleKey = Str::transliterate(Str::lower($loginValue).'|'.$request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::FAILED_LOGIN_THRESHOLD)) {
             $seconds = RateLimiter::availableIn($throttleKey);
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::where($loginField, $loginValue)->first();
             if ($user) {
                 $this->auditService->log($user, 'login_locked_out', 'user', $user->id);
             }
 
             // FR-46: Send security alert on repeated lockouts
-            $this->checkAndAlertSecurityEvent($request->email, $request->ip());
+            $this->checkAndAlertSecurityEvent($loginValue, $request->ip());
 
             throw ValidationException::withMessages([
-                'email' => [__('auth.too_many_attempts', ['seconds' => $seconds])],
+                $loginField => [__('auth.too_many_attempts', ['seconds' => $seconds])],
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where($loginField, $loginValue)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             RateLimiter::hit($throttleKey);
-            
+
             if ($user) {
                 $this->auditService->log($user, 'login_failed', 'user', $user->id);
             }
 
             throw ValidationException::withMessages([
-                'email' => [__('auth.invalid_credentials')],
+                $loginField => [__('auth.invalid_credentials')],
             ]);
         }
 
         if (! $user->is_active) {
             $this->auditService->log($user, 'login_disabled', 'user', $user->id);
             throw ValidationException::withMessages([
-                'email' => [__('auth.account_disabled')],
+                $loginField => [__('auth.account_disabled')],
             ]);
         }
 
@@ -95,6 +121,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => __('auth.otp_sent'),
             'require_2fa' => true,
+            'email' => $user->email,
         ]);
     }
 

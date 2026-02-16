@@ -44,7 +44,11 @@ class ComplaintController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
-            'national_id' => 'required|string',
+            'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
+        ], [
+            'national_id.required' => 'الرقم الوطني مطلوب',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
         ]);
 
         $key = "complaint_otp_{$request->national_id}";
@@ -99,11 +103,15 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        // Rate Limiting (T050): 3 complaints per day per user/IP
+        // Rate Limiting (T050): 3 complaints per day per user/national_id/IP
         // Skip for whitelisted IPs
         $whitelistedIps = ['196.70.75.216'];
         if (!in_array($request->ip(), $whitelistedIps, true)) {
-            $limiterKey = 'complaint_submit_' . ($request->user() ? $request->user()->id : $request->ip());
+            // Use user ID if authenticated, national_id if provided, fallback to IP
+            $limiterIdentifier = $request->user()
+                ? 'user_' . $request->user()->id
+                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
+            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
             if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
                 return response()->json(['message' => 'Daily complaint limit reached.'], 429);
             }
@@ -207,7 +215,10 @@ class ComplaintController extends Controller
 
         // Hit rate limiter for non-whitelisted IPs
         if (!in_array($request->ip(), ['196.70.75.216'], true)) {
-            $limiterKey = 'complaint_submit_' . ($request->user() ? $request->user()->id : $request->ip());
+            $limiterIdentifier = $request->user()
+                ? 'user_' . $request->user()->id
+                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
+            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
             RateLimiter::hit($limiterKey, 86400); // 1 day decay
         }
 
@@ -246,17 +257,24 @@ class ComplaintController extends Controller
             return response()->json(['message' => 'لم يتم العثور على شكوى بهذا الرقم.'], 404);
         }
 
-        // If complaint has a national_id (non-anonymous), require it for verification
+        // Enforce matching tracking mode: identified complaints need national_id, anonymous don't
         if ($complaint->national_id) {
+            // Identified complaint: require matching national_id
             if (!$request->national_id) {
                 return response()->json(['message' => 'الرقم الوطني مطلوب لتتبع هذه الشكوى.'], 403);
             }
             if ($complaint->national_id !== $request->national_id) {
                 return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.'], 403);
             }
+        } else {
+            // Anonymous complaint: reject if national_id was provided (wrong mode)
+            if ($request->national_id) {
+                return response()->json(['message' => 'هذه شكوى مجهولة. يرجى استخدام وضع التتبع المجهول.'], 403);
+            }
         }
 
-        // Anonymous complaints can be tracked with just the tracking number
+        // Also load attachments for full detail display
+        $complaint->load('attachments');
 
         return response()->json($complaint);
     }
@@ -319,7 +337,7 @@ class ComplaintController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|string|in:new,received,in_progress,resolved,rejected,closed']);
+        $request->validate(['status' => 'required|string|in:received,in_progress,completed']);
         $complaint = Complaint::findOrFail($id);
         $this->authorize('changeStatus', $complaint);
 
@@ -430,12 +448,9 @@ class ComplaintController extends Controller
 
         $stats = [
             'total' => $baseQuery()->count(),
-            'new' => $baseQuery()->where('status', 'new')->count(),
-            'received' => $baseQuery()->where('status', 'received')->count(),
+            'received' => $baseQuery()->whereIn('status', ['new', 'received'])->count(),
             'in_progress' => $baseQuery()->where('status', 'in_progress')->count(),
-            'resolved' => $baseQuery()->where('status', 'resolved')->count(),
-            'rejected' => $baseQuery()->where('status', 'rejected')->count(),
-            'closed' => $baseQuery()->where('status', 'closed')->count(),
+            'completed' => $baseQuery()->whereIn('status', ['completed', 'resolved', 'rejected', 'closed'])->count(),
             'by_priority' => [
                 'high' => $baseQuery()->where('priority', 'high')->count(),
                 'medium' => $baseQuery()->where('priority', 'medium')->count(),
@@ -483,12 +498,13 @@ class ComplaintController extends Controller
         }
 
         $statusLabels = [
-            'new' => 'جديدة',
-            'received' => 'مستلمة',
+            'new' => 'واردة',
+            'received' => 'واردة',
             'in_progress' => 'قيد المعالجة',
-            'resolved' => 'تم الحل',
-            'rejected' => 'مرفوضة',
-            'closed' => 'مغلقة',
+            'completed' => 'منتهية',
+            'resolved' => 'منتهية',
+            'rejected' => 'منتهية',
+            'closed' => 'منتهية',
         ];
 
         $priorityLabels = [

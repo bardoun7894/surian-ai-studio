@@ -129,7 +129,7 @@ class Complaint extends Model
      */
     public function canBeRated(): bool
     {
-        return in_array($this->status, ['resolved', 'closed']) && is_null($this->rating);
+        return in_array($this->status, ['completed', 'resolved', 'closed']) && is_null($this->rating);
     }
 
     /**

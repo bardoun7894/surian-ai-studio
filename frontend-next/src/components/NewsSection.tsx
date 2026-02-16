@@ -5,11 +5,14 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
-import { Calendar, ChevronLeft, Loader2, ArrowRight, ArrowLeft, Landmark, Share2 } from 'lucide-react';
+import { Calendar, ChevronLeft, ArrowRight, ArrowLeft, Landmark, Share2, Heart } from 'lucide-react';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
+import FavoriteButton from './FavoriteButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { shareContent } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+import ShareMenu from './ShareMenu';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,13 +32,14 @@ const NewsSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [groupedNews, setGroupedNews] = useState<{ directorate: { id: string, name: string, name_ar?: string, name_en?: string, icon: string }, news: NewsItem[] }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
 
-  const handleShare = async (item: NewsItem) => {
+  const handleShare = (item: NewsItem) => {
     const title = language === 'ar'
       ? ((item as any).title_ar || item.title)
       : ((item as any).title_en || item.title);
     const url = `${window.location.origin}/news/${item.id}`;
-    await shareContent(title, url);
+    setShareData({ title, url });
   };
 
   useEffect(() => {
@@ -103,6 +107,7 @@ const NewsSection: React.FC = () => {
   }, []);
 
   return (
+    <>
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors" id="news-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
@@ -123,8 +128,8 @@ const NewsSection: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-gov-gold" size={40} />
+          <div className="py-8">
+            <SkeletonGrid cards={6} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
           </div>
         ) : (
           <div ref={containerRef} className="space-y-24">
@@ -157,7 +162,7 @@ const NewsSection: React.FC = () => {
                   {group.news.slice(0, 3).map((item) => (
                     <article
                       key={item.id}
-                      className="news-card group relative bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-xl hover:shadow-gov-indigo/10 dark:hover:shadow-none hover:-translate-y-2 transition-all duration-500 ease-out h-full flex flex-col"
+                      className="news-card group relative bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-[5px_5px_10px_#b9a779] dark:hover:shadow-none hover:-translate-y-2 transition-all duration-500 ease-out h-full flex flex-col"
                     >
                       {item.imageUrl && (
                         <div className="h-56 overflow-hidden relative">
@@ -168,20 +173,36 @@ const NewsSection: React.FC = () => {
                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-                          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                          <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
                             <span className="px-3 py-1 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white border-l-4 border-gov-gold text-xs font-bold rounded shadow-sm backdrop-blur-md">
                               {language === 'ar' ? item.category : ((item as any).category_en || item.category)}
                             </span>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleShare(item);
-                              }}
-                              className="p-2 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white rounded-full shadow-sm backdrop-blur-md hover:bg-gov-gold hover:text-white transition-all"
-                              aria-label={t('share')}
-                            >
-                              <Share2 size={16} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleShare(item);
+                                }}
+                                className="p-2 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white rounded-full shadow-sm backdrop-blur-md hover:bg-gov-gold hover:text-white transition-all"
+                                aria-label={t('share')}
+                              >
+                                <Share2 size={16} />
+                              </button>
+                              <FavoriteButton
+                                contentType="news"
+                                contentId={item.id}
+                                variant="overlay"
+                                size={16}
+                                className="!bg-white/90 dark:!bg-gov-forest/90 !shadow-sm !backdrop-blur-md"
+                                metadata={{
+                                  title: language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title),
+                                  description: language === 'ar' ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary),
+                                  image: item.imageUrl || '',
+                                  url: `/news/${item.id}`
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -189,7 +210,7 @@ const NewsSection: React.FC = () => {
                       <div className="p-6 flex-1 flex flex-col relative">
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/70 mb-4 font-medium">
                           <Calendar size={14} className="text-gov-gold" />
-                          {item.date}
+                          {formatRelativeTime(item.date, language as 'ar' | 'en')}
                         </div>
 
                         <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-teal mb-3 leading-snug group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
@@ -235,6 +256,14 @@ const NewsSection: React.FC = () => {
         )}
       </div>
     </section>
+
+    <ShareMenu
+      isOpen={!!shareData}
+      onClose={() => setShareData(null)}
+      title={shareData?.title || ''}
+      url={shareData?.url || ''}
+    />
+    </>
   );
 };
 

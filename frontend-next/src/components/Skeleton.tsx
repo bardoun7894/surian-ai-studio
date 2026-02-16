@@ -86,4 +86,43 @@ export const TableRowSkeleton: React.FC = () => (
   </div>
 );
 
+export const SkeletonList: React.FC<{ count?: number; className?: string }> = ({ count = 5, className = '' }) => (
+  <div className={`space-y-3 ${className}`}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="flex items-center gap-4 p-4 bg-white dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15">
+        <Skeleton variant="circular" width={48} height={48} />
+        <div className="flex-1 space-y-2">
+          <Skeleton variant="text" width="60%" height={18} />
+          <Skeleton variant="text" width="40%" height={14} />
+        </div>
+        <Skeleton variant="rounded" width={80} height={32} />
+      </div>
+    ))}
+  </div>
+);
+
+export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15 ${className}`}>
+    <div className="flex items-center justify-between mb-4">
+      <Skeleton variant="circular" width={48} height={48} />
+      <Skeleton variant="rounded" width={24} height={24} />
+    </div>
+    <Skeleton variant="text" width="50%" height={32} className="mb-2" />
+    <Skeleton variant="text" width="70%" height={16} />
+  </div>
+);
+
+export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({ lines = 3, className = '' }) => (
+  <div className={`space-y-2 ${className}`}>
+    {Array.from({ length: lines }).map((_, i) => (
+      <Skeleton
+        key={i}
+        variant="text"
+        height={16}
+        width={i === lines - 1 ? '60%' : '100%'}
+      />
+    ))}
+  </div>
+);
+
 export default Skeleton;

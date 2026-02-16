@@ -24,6 +24,7 @@ import {
   Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SkeletonCard, SkeletonList, SkeletonText } from '@/components/SkeletonLoader';
 
 const translations = {
   ar: {
@@ -268,10 +269,54 @@ export default function ComplaintDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">{t.loading}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-dm-bg p-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="max-w-6xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="mb-6">
+            <div className="w-32 mb-4">
+              <SkeletonText lines={1} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="w-80">
+                <SkeletonText lines={1} />
+              </div>
+              <div className="w-24">
+                <SkeletonText lines={1} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Complaint Details Skeleton */}
+              <div className="bg-white dark:bg-gov-card/10 rounded-xl shadow-sm p-6">
+                <div className="w-40 mb-4">
+                  <SkeletonText lines={1} />
+                </div>
+                <SkeletonText lines={5} />
+              </div>
+
+              {/* Responses Skeleton */}
+              <div className="bg-white dark:bg-gov-card/10 rounded-xl shadow-sm p-6">
+                <div className="w-40 mb-4">
+                  <SkeletonText lines={1} />
+                </div>
+                <SkeletonList rows={3} className="mb-6" />
+                <SkeletonText lines={3} className="mb-3" />
+                <div className="w-28">
+                  <SkeletonText lines={1} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Skeleton */}
+            <div className="space-y-6">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+          </div>
         </div>
       </div>
     );

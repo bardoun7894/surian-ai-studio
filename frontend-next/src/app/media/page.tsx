@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import {
   Play,
@@ -8,39 +8,59 @@ import {
   BarChart3,
   Calendar,
   Clock,
-  Eye,
   Download,
   Share2,
   Grid,
   List,
-  Loader2,
-  X
+  X,
+  Pause,
+  Maximize2
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
+import { formatRelativeTime } from '@/lib/utils';
+import ShareMenu from '@/components/ShareMenu';
 import { MediaItem } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
+import ContentFilter from '@/components/ContentFilter';
+import Pagination from '@/components/Pagination';
 
 type MediaType = 'all' | 'video' | 'photo' | 'infographic';
 type ViewMode = 'grid' | 'list';
 
 export default function MediaPage() {
   const { language } = useLanguage();
+  const isAr = language === 'ar';
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [perPage] = useState(12);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
 
   useEffect(() => {
     const fetchMedia = async () => {
       setLoading(true);
       try {
-        const data = await API.media.getByType(activeFilter);
-        setMedia(data);
+        const response = await API.media.getPaginated(currentPage, perPage, activeFilter);
+        setMedia(response.data);
+        setLastPage(response.last_page);
+        setTotalItems(response.total);
       } catch (e) {
         console.error(e);
       } finally {
@@ -48,22 +68,33 @@ export default function MediaPage() {
       }
     };
     fetchMedia();
-  }, [activeFilter]);
+  }, [activeFilter, currentPage, perPage]);
 
-  const filteredMedia = media;
-
+  // Date filtering
+  const filteredMedia = useMemo(() => {
+    let result = [...media];
+    if (selectedMonth !== null || selectedYear !== null) {
+      result = result.filter(item => {
+        const d = new Date(item.date);
+        if (selectedYear !== null && d.getFullYear() !== selectedYear) return false;
+        if (selectedMonth !== null && d.getMonth() !== selectedMonth) return false;
+        return true;
+      });
+    }
+    return result;
+  }, [media, selectedMonth, selectedYear]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'video': return <Play size={16} />;
-      case 'photo': return <ImageIcon size={16} />;
-      case 'infographic': return <BarChart3 size={16} />;
+      case 'video': return <Play size={14} />;
+      case 'photo': return <ImageIcon size={14} />;
+      case 'infographic': return <BarChart3 size={14} />;
       default: return null;
     }
   };
 
   const getTypeLabel = (type: string) => {
-    if (language === 'ar') {
+    if (isAr) {
       switch (type) {
         case 'video': return 'فيديو';
         case 'photo': return 'صور';
@@ -85,22 +116,79 @@ export default function MediaPage() {
     return /(?:youtube\.com|youtu\.be)/.test(url);
   };
 
-  const handleMediaClick = (item: MediaItem) => {
+  // Play video inline
+  const handlePlayInline = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (item.type === 'video' && item.url) {
-      setSelectedMedia(item);
+      setPlayingVideo(playingVideo === item.id ? null : item.id);
     }
   };
 
-  const closeModal = () => {
-    setSelectedMedia(null);
+  // Expand video to full modal
+  const handleExpand = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedVideo(item);
+    setPlayingVideo(null);
   };
 
-  const filters: { key: MediaType; label: string; icon: React.ReactNode }[] = [
-    { key: 'all', label: language === 'ar' ? 'الكل' : 'All', icon: <Grid size={16} /> },
-    { key: 'video', label: language === 'ar' ? 'فيديو' : 'Videos', icon: <Play size={16} /> },
-    { key: 'photo', label: language === 'ar' ? 'صور' : 'Photos', icon: <ImageIcon size={16} /> },
-    { key: 'infographic', label: language === 'ar' ? 'إنفوجرافيك' : 'Infographics', icon: <BarChart3 size={16} /> },
+  const handleDownload = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.url) {
+      const link = document.createElement('a');
+      link.href = item.url;
+      link.download = item.title || 'download';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
+
+  const handleShare = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShareData({ title: item.title, url: window.location.href });
+  };
+
+  const filters: { key: MediaType; label: string; icon: React.ElementType }[] = [
+    { key: 'all', label: isAr ? 'الكل' : 'All', icon: Grid },
+    { key: 'video', label: isAr ? 'فيديو' : 'Videos', icon: Play },
+    { key: 'photo', label: isAr ? 'صور' : 'Photos', icon: ImageIcon },
+    { key: 'infographic', label: isAr ? 'إنفوجرافيك' : 'Infographics', icon: BarChart3 },
   ];
+
+  // Render inline video player
+  const renderInlinePlayer = (item: MediaItem) => {
+    if (!item.url) return null;
+
+    if (isYouTubeUrl(item.url)) {
+      const ytId = getYouTubeId(item.url);
+      if (!ytId) return null;
+      return (
+        <iframe
+          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+          title={item.title}
+          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full border-0 z-10"
+        />
+      );
+    }
+
+    return (
+      <video
+        src={item.url}
+        poster={item.thumbnailUrl}
+        controls
+        autoPlay
+        playsInline
+        className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+      >
+        {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
+      </video>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
@@ -109,13 +197,13 @@ export default function MediaPage() {
       <main className="flex-grow pt-20 md:pt-24">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
-          <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
+          <div className="bg-gov-forest text-white py-16 px-4">
             <div className="max-w-7xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-                {language === 'ar' ? 'المركز الإعلامي' : 'Media Center'}
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-display font-bold mb-4">
+                {isAr ? 'المركز الإعلامي' : 'Media Center'}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
-                {language === 'ar'
+                {isAr
                   ? 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من وزارة الاقتصاد والصناعة'
                   : 'Official video, photo, and infographic library from the Ministry of Economy and Industry'}
               </p>
@@ -123,54 +211,41 @@ export default function MediaPage() {
           </div>
 
           <div className="max-w-7xl mx-auto px-4 py-8">
-            {/* Filters & View Toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-              {/* Type Filters */}
-              <div className="flex flex-wrap gap-2">
-                {filters.map((filter) => (
+            {/* Unified Content Filter with Date Filter */}
+            <ContentFilter
+              tabs={filters}
+              activeTab={activeFilter}
+              onTabChange={(k) => { setActiveFilter(k as MediaType); setPlayingVideo(null); }}
+              showDateFilter={true}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+              onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
+              totalCount={filteredMedia.length}
+              countLabel={isAr ? 'عنصر' : 'items'}
+              extraFilters={
+                <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
                   <button
-                    key={filter.key}
-                    onClick={() => setActiveFilter(filter.key)}
-                    className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${activeFilter === filter.key
-                      ? 'bg-gov-teal text-white shadow-lg'
-                      : 'bg-white dark:bg-dm-surface text-gov-charcoal dark:text-gov-gold border border-gray-200 dark:border-gov-border/25 hover:border-gov-gold/50'
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                      ? 'bg-gov-teal text-white'
+                      : 'text-gray-500 hover:text-gov-teal'
                       }`}
                   >
-                    {filter.icon}
-                    {filter.label}
+                    <Grid size={16} />
                   </button>
-                ))}
-              </div>
-
-              {/* View Toggle */}
-              <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
-                    ? 'bg-gov-teal text-white'
-                    : 'text-gray-500 hover:text-gov-teal'
-                    }`}
-                >
-                  <Grid size={20} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
-                    ? 'bg-gov-teal text-white'
-                    : 'text-gray-500 hover:text-gov-teal'
-                    }`}
-                >
-                  <List size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="mb-6 text-gov-stone dark:text-gov-gold/60">
-              {language === 'ar'
-                ? `${filteredMedia.length} عنصر`
-                : `${filteredMedia.length} items`}
-            </div>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                      ? 'bg-gov-teal text-white'
+                      : 'text-gray-500 hover:text-gov-teal'
+                      }`}
+                  >
+                    <List size={16} />
+                  </button>
+                </div>
+              }
+              className="mb-8"
+            />
 
             {/* Media Grid */}
             <div className={viewMode === 'grid'
@@ -178,120 +253,198 @@ export default function MediaPage() {
               : 'flex flex-col gap-4'
             }>
               {loading ? (
-                <div className="col-span-full flex justify-center py-20">
-                  <Loader2 className="animate-spin text-gov-teal" size={40} />
+                <div className="col-span-full py-8">
+                  <SkeletonGrid cards={6} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
                 </div>
-              ) : filteredMedia.map((item) => (
+              ) : filteredMedia.map((item) => {
+                const isPlaying = playingVideo === item.id;
+                const isVideo = item.type === 'video' && item.url;
 
-                <div
-                  key={item.id}
-                  onClick={() => handleMediaClick(item)}
-                  className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden hover:border-gov-gold/50 hover:shadow-xl transition-all duration-300 cursor-pointer ${viewMode === 'list' ? 'flex' : ''
-                    }`}
-                >
-                  {/* Thumbnail */}
-                  <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-32 flex-shrink-0' : 'h-48'
-                    }`}>
-                    <Image
-                      src={item.thumbnailUrl}
-                      alt={item.title}
-                      fill
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                return (
+                  <div
+                    key={item.id}
+                    className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
+                      viewMode === 'list' ? 'flex' : ''
+                    } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1`}
+                  >
+                    {/* Thumbnail / Inline Video Player */}
+                    <div className={`relative overflow-hidden ${
+                      viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
+                    } bg-black`}>
 
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {/* Show inline player when playing */}
+                      {isPlaying && isVideo ? (
+                        renderInlinePlayer(item)
+                      ) : (
+                        <Image
+                          src={item.thumbnailUrl}
+                          alt={item.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                      )}
 
-                    {/* Type Badge */}
-                    <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${item.type === 'video'
-                        ? 'bg-gov-red text-white'
-                        : item.type === 'photo'
-                          ? 'bg-gov-teal text-white'
-                          : 'bg-gov-gold text-gov-forest'
+                      {/* Hover Overlay */}
+                      {!isPlaying && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                      )}
+
+                      {/* Type Badge */}
+                      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 z-20">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm ${
+                          item.type === 'video'
+                            ? 'bg-red-500/90 text-white'
+                            : item.type === 'photo'
+                              ? 'bg-gov-teal/90 text-white'
+                              : 'bg-gov-gold/90 text-gov-forest'
                         }`}>
-                        {getTypeIcon(item.type)}
-                        {getTypeLabel(item.type)}
-                      </span>
-                    </div>
-
-                    {/* Play Button for Videos */}
-                    {item.type === 'video' && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          <Play size={28} className="text-gov-forest ml-1" fill="currentColor" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Duration/Count Badge */}
-                    {(item.duration || item.count) && (
-                      <div className="absolute bottom-3 left-3 rtl:left-auto rtl:right-3">
-                        <span className="px-2 py-1 rounded bg-black/70 text-white text-xs font-medium flex items-center gap-1">
-                          {item.duration ? (
-                            <>
-                              <Clock size={12} />
-                              {item.duration}
-                            </>
-                          ) : (
-                            <>
-                              <ImageIcon size={12} />
-                              {item.count} {language === 'ar' ? 'صورة' : 'photos'}
-                            </>
-                          )}
+                          {getTypeIcon(item.type)}
+                          {getTypeLabel(item.type)}
                         </span>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Content */}
-                  <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
-                    <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
+                      {/* Play / Pause Button for Videos */}
+                      {isVideo && (
+                        <button
+                          onClick={(e) => handlePlayInline(item, e)}
+                          className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
+                        >
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
+                            isPlaying
+                              ? 'bg-black/60 backdrop-blur-sm scale-75 opacity-0 hover:opacity-100'
+                              : 'bg-white/90 group-hover:scale-110 group-hover:bg-white'
+                          }`}>
+                            {isPlaying ? (
+                              <Pause size={24} className="text-white" fill="currentColor" />
+                            ) : (
+                              <Play size={28} className="text-gov-forest ltr:ml-1 rtl:mr-1" fill="currentColor" />
+                            )}
+                          </div>
+                        </button>
+                      )}
 
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gov-gold/50">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={12} />
-                        {item.date}
-                      </div>
+                      {/* Expand button (visible on hover when playing) */}
+                      {isPlaying && isVideo && (
+                        <button
+                          onClick={(e) => handleExpand(item, e)}
+                          className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-30 w-8 h-8 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+                          title={isAr ? 'توسيع' : 'Expand'}
+                        >
+                          <Maximize2 size={14} />
+                        </button>
+                      )}
 
-                      {viewMode === 'list' && (
-                        <div className="flex items-center gap-3">
+                      {/* Duration/Count Badge */}
+                      {!isPlaying && (item.duration || item.count) && (
+                        <div className="absolute bottom-3 left-3 rtl:left-auto rtl:right-3 z-20">
+                          <span className="px-2 py-1 rounded-lg bg-black/70 backdrop-blur-sm text-white text-xs font-medium flex items-center gap-1">
+                            {item.duration ? (
+                              <>
+                                <Clock size={12} />
+                                {item.duration}
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon size={12} />
+                                {item.count} {isAr ? 'صورة' : 'photos'}
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Hover Actions Bar */}
+                      {!isPlaying && (
+                        <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-end gap-2 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleMediaClick(item); }}
-                            className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                            onClick={(e) => handleShare(item, e)}
+                            className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
+                            title={isAr ? 'مشاركة' : 'Share'}
                           >
-                            <Eye size={14} />
-                            {language === 'ar' ? 'مشاهدة' : 'View'}
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-gov-teal transition-colors">
                             <Share2 size={14} />
-                            {language === 'ar' ? 'مشاركة' : 'Share'}
                           </button>
-                          <button className="flex items-center gap-1 hover:text-gov-teal transition-colors">
+                          <button
+                            onClick={(e) => handleDownload(item, e)}
+                            className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
+                            title={isAr ? 'تحميل' : 'Download'}
+                          >
                             <Download size={14} />
-                            {language === 'ar' ? 'تحميل' : 'Download'}
                           </button>
                         </div>
                       )}
                     </div>
+
+                    {/* Content */}
+                    <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
+                      <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gov-gold/50">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {formatRelativeTime(item.date, language as 'ar' | 'en')}
+                        </div>
+
+                        {viewMode === 'list' && (
+                          <div className="flex items-center gap-3">
+                            {isVideo && (
+                              <button
+                                onClick={(e) => handlePlayInline(item, e)}
+                                className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                              >
+                                <Play size={14} />
+                                {isAr ? 'تشغيل' : 'Play'}
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => handleShare(item, e)}
+                              className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                            >
+                              <Share2 size={14} />
+                              {isAr ? 'مشاركة' : 'Share'}
+                            </button>
+                            <button
+                              onClick={(e) => handleDownload(item, e)}
+                              className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                            >
+                              <Download size={14} />
+                              {isAr ? 'تحميل' : 'Download'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
+            {/* Pagination */}
+            {!loading && filteredMedia.length > 0 && (
+              <div className="mt-12">
+                <Pagination
+                  currentPage={currentPage}
+                  lastPage={lastPage}
+                  total={totalItems}
+                  perPage={perPage}
+                  onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                />
+              </div>
+            )}
+
             {/* Empty State */}
-            {filteredMedia.length === 0 && (
+            {!loading && filteredMedia.length === 0 && (
               <div className="text-center py-20">
                 <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 dark:bg-dm-surface/50 flex items-center justify-center mb-4">
                   <ImageIcon size={32} className="text-gray-400" />
                 </div>
                 <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
-                  {language === 'ar' ? 'لا توجد عناصر' : 'No Items Found'}
+                  {isAr ? 'لا توجد عناصر' : 'No Items Found'}
                 </h3>
                 <p className="text-gray-500 dark:text-gov-gold/60">
-                  {language === 'ar'
+                  {isAr
                     ? 'لا يوجد محتوى في هذه الفئة حالياً'
                     : 'No content in this category currently'}
                 </p>
@@ -299,65 +452,59 @@ export default function MediaPage() {
             )}
           </div>
         </div>
-        {/* Video Player Modal */}
-        {selectedMedia && selectedMedia.url && (
+
+        {/* Expanded Video Modal */}
+        {expandedVideo && expandedVideo.url && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={closeModal}
+            onClick={() => setExpandedVideo(null)}
           >
             <div
-              className="relative w-full max-w-4xl bg-gov-forest rounded-2xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-5xl bg-gov-forest rounded-2xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button */}
               <button
-                onClick={closeModal}
+                onClick={() => setExpandedVideo(null)}
                 className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                aria-label={language === 'ar' ? 'إغلاق' : 'Close'}
+                aria-label={isAr ? 'إغلاق' : 'Close'}
               >
                 <X size={20} />
               </button>
 
-              {/* Video Player */}
               <div className="aspect-video w-full">
-                {isYouTubeUrl(selectedMedia.url) ? (
+                {isYouTubeUrl(expandedVideo.url) ? (
                   <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(selectedMedia.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                    title={selectedMedia.title}
+                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                    title={expandedVideo.title}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full border-0"
                   />
                 ) : (
                   <video
-                    src={selectedMedia.url}
-                    poster={selectedMedia.thumbnailUrl}
+                    src={expandedVideo.url}
+                    poster={expandedVideo.thumbnailUrl}
                     controls
                     autoPlay
                     playsInline
-                    controlsList="nodownload"
-                    crossOrigin="anonymous"
                     className="w-full h-full object-contain bg-black"
                   >
-                    {language === 'ar'
-                      ? 'المتصفح الخاص بك لا يدعم تشغيل الفيديو.'
-                      : 'Your browser does not support the video tag.'}
+                    {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
                   </video>
                 )}
               </div>
 
-              {/* Video Title */}
               <div className="p-4 bg-gov-forest text-white">
-                <h3 className="text-lg font-bold">{selectedMedia.title}</h3>
+                <h3 className="text-lg font-bold">{expandedVideo.title}</h3>
                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-300">
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />
-                    {selectedMedia.date}
+                    {expandedVideo.date}
                   </span>
-                  {selectedMedia.duration && (
+                  {expandedVideo.duration && (
                     <span className="flex items-center gap-1">
                       <Clock size={14} />
-                      {selectedMedia.duration}
+                      {expandedVideo.duration}
                     </span>
                   )}
                 </div>
@@ -368,6 +515,13 @@ export default function MediaPage() {
       </main>
 
       <Footer />
+
+      <ShareMenu
+        isOpen={!!shareData}
+        onClose={() => setShareData(null)}
+        title={shareData?.title || ''}
+        url={shareData?.url || ''}
+      />
     </div>
   );
 }

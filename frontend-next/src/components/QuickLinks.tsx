@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon, ArrowUpRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Link from 'next/link';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
 
 const iconMap: Record<string, LucideIcon> = {
   Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning,
@@ -30,52 +32,167 @@ const FALLBACK_LINKS = [
   { id: 8, label_ar: 'حول الوزارة', label_en: 'About', url: '/about', icon: 'Building2' },
 ];
 
-const QuickLinks: React.FC = () => {
+interface QuickLinksProps {
+  section?: string;
+}
+
+const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
   const { t, language } = useLanguage();
+  const isAr = language === 'ar';
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
+  const [loading, setLoading] = useState(true);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   useEffect(() => {
-    API.quickLinks.getBySection('homepage').then((data) => {
-      if (data && data.length > 0) setLinks(data);
-    });
-  }, []);
+    API.quickLinks.getBySection(section)
+      .then((data) => {
+        if (data && data.length > 0) setLinks(data);
+      })
+      .catch(() => { /* Fallback already set */ })
+      .finally(() => setLoading(false));
+  }, [section]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
 
   return (
-    <section id="quick-links" className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Centered Header - matching Announcements pattern */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-6">
-            <Globe className="text-gov-gold" size={20} />
-            <span className="text-gov-gold font-bold text-sm tracking-wide">
-              {t('ql_title')}
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
-            {t('ql_title')}
-          </h2>
-        </div>
+    <section ref={ref} id="quick-links" className="py-24 relative overflow-hidden bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, #b9a779 0%, transparent 2%), 
+                           radial-gradient(circle at 75% 75%, #094239 0%, transparent 2%)`,
+          backgroundSize: '80px 80px'
+        }} />
+      </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-          {links.map((link) => {
+      {/* Gradient Orbs */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-gov-gold/10 via-transparent to-transparent rounded-full blur-3xl" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-16"
+        >
+          {/* Decorative Line */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={isInView ? { width: 60 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="h-0.5 bg-gradient-to-r from-transparent to-gov-gold"
+            />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={isInView ? { scale: 1 } : {}}
+              transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+              className="w-3 h-3 rotate-45 bg-gov-gold"
+            />
+            <motion.div
+              initial={{ width: 0 }}
+              animate={isInView ? { width: 60 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="h-0.5 bg-gradient-to-l from-transparent to-gov-gold"
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gov-gold/10 border border-gov-gold/30 text-gov-gold font-bold text-sm mb-4"
+          >
+            <Globe size={18} />
+            <span>{isAr ? 'روابط سريعة' : 'Quick Links'}</span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.3 }}
+            className="text-4xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-gold"
+          >
+            {isAr ? 'روابط سريعة' : 'Quick Links'}
+          </motion.h2>
+        </motion.div>
+
+        {/* Links Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="flex flex-wrap justify-center gap-8 md:gap-12"
+        >
+          {loading ? (
+            <div className="flex justify-center gap-8 w-full">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
+                  <div className="w-20 h-4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : links.map((link, idx) => {
             const Icon = iconMap[link.icon || ''] || Building2;
             const label = language === 'ar' ? link.label_ar : link.label_en;
+
+            // Unified brand gradients
+            const gradients = [
+              'from-gov-forest to-gov-emerald',
+              'from-gov-teal to-gov-forest',
+            ];
+            const gradient = gradients[idx % gradients.length];
+
             return (
-              <Link
+              <motion.div
                 key={link.id}
-                href={link.url}
-                className="flex flex-col items-center gap-3 p-5 rounded-[1.5rem] bg-gov-forest/5 dark:bg-dm-surface border border-gov-forest/10 dark:border-gov-border/15 hover:border-gov-gold/40 hover:shadow-2xl hover:shadow-gov-gold/10 hover:-translate-y-2 transition-all duration-500 group"
+                variants={itemVariants}
+                className="group relative"
               >
-                <div className="w-12 h-12 rounded-xl bg-gov-gold/10 dark:bg-gov-emerald/20 flex items-center justify-center group-hover:bg-gov-gold group-hover:text-white transition-colors">
-                  <Icon size={22} className="text-gov-gold group-hover:text-white transition-colors" />
-                </div>
-                <span className="text-xs font-bold text-gov-forest dark:text-gov-teal text-center leading-tight">
-                  {label}
-                </span>
-              </Link>
+                <Link
+                  href={link.url}
+                  className="flex flex-col items-center gap-3"
+                >
+                  {/* Icon Container - Now the main element */}
+                  <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ease-out z-10`}>
+                    <Icon size={32} className="text-white group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+
+                  {/* Label */}
+                  <span className="text-sm font-bold text-gov-charcoal dark:text-white/90 text-center leading-tight max-w-[100px] group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
+                    {label}
+                  </span>
+                </Link>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

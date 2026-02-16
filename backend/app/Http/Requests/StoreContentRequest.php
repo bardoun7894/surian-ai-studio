@@ -39,7 +39,7 @@ class StoreContentRequest extends FormRequest
             'is_featured' => 'boolean',
             'is_breaking' => 'boolean',
             'published_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after:published_at',
+            'expires_at' => 'required|date|after:published_at',
             'metadata' => 'nullable|array',
             // Decree-specific fields
             'decree_number' => 'nullable|string|max:50',

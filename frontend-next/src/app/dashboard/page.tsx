@@ -19,13 +19,15 @@ import {
   Trash2,
   AlertTriangle,
   Lightbulb,
-  CheckCheck
+  CheckCheck,
+  Heart,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { API } from '@/lib/repository';
-import { Ticket, Suggestion } from '@/types';
+import { Ticket, Suggestion, Favorite } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -73,12 +75,14 @@ export default function UserDashboard() {
   const { language } = useLanguage();
   const { user: authUser, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'overview' | 'complaints' | 'suggestions' | 'notifications' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'complaints' | 'suggestions' | 'favorites' | 'notifications' | 'settings'>('overview');
   const [complaints, setComplaints] = useState<Ticket[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState({ first_name: '', father_name: '', last_name: '', email: '', phone: '', birth_date: '', governorate: '', password: '' });
+  const [profileData, setProfileData] = useState({ first_name: '', father_name: '', last_name: '', email: '', phone: '', birth_date: '', governorate: '', current_password: '', password: '', password_confirmation: '' });
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; complaint: Ticket | null }>({ open: false, complaint: null });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -108,7 +112,9 @@ export default function UserDashboard() {
         phone: authUser.phone || '',
         birth_date: authUser.birth_date ? new Date(authUser.birth_date).toISOString().split('T')[0] : '',
         governorate: authUser.governorate || '',
-        password: ''
+        current_password: '',
+        password: '',
+        password_confirmation: ''
       });
     }
   }, [authUser]);
@@ -182,6 +188,23 @@ export default function UserDashboard() {
   }, [activeTab, language, isAuthenticated]);
 
   useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!isAuthenticated) return;
+      if (activeTab !== 'favorites' && activeTab !== 'overview') return;
+      setFavoritesLoading(true);
+      try {
+        const data = await API.favorites.list();
+        setFavorites(data);
+      } catch (e) {
+        console.error('Error fetching favorites:', e);
+      } finally {
+        setFavoritesLoading(false);
+      }
+    };
+    fetchFavorites();
+  }, [activeTab, isAuthenticated]);
+
+  useEffect(() => {
     const fetchNotifPrefs = async () => {
       if (!isAuthenticated || activeTab !== 'settings') return;
       setNotifPrefsLoading(true);
@@ -242,6 +265,22 @@ export default function UserDashboard() {
   };
 
   const handleUpdateProfile = async () => {
+    // Validate password fields if user wants to change password
+    if (profileData.password) {
+      if (!profileData.current_password) {
+        alert(language === 'ar' ? 'يرجى إدخال كلمة المرور الحالية' : 'Please enter your current password');
+        return;
+      }
+      if (profileData.password !== profileData.password_confirmation) {
+        alert(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
+        return;
+      }
+      if (profileData.password.length < 8) {
+        alert(language === 'ar' ? 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل' : 'New password must be at least 8 characters');
+        return;
+      }
+    }
+
     setIsUpdating(true);
     try {
       const data: Record<string, string> = {
@@ -253,16 +292,21 @@ export default function UserDashboard() {
         birth_date: profileData.birth_date,
         governorate: profileData.governorate,
       };
-      if (profileData.password) data.password = profileData.password;
+      if (profileData.password) {
+        data.current_password = profileData.current_password;
+        data.password = profileData.password;
+        data.password_confirmation = profileData.password_confirmation;
+      }
 
       const updatedUser = await API.users.updateProfile(data);
       if (updatedUser) {
         alert(language === 'ar' ? 'تم تحديث الملف الشخصي بنجاح' : 'Profile updated successfully');
-        if (profileData.password) setProfileData({ ...profileData, password: '' });
+        if (profileData.password) setProfileData({ ...profileData, current_password: '', password: '', password_confirmation: '' });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert(language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
+      const msg = e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
+      alert(msg);
     } finally {
       setIsUpdating(false);
     }
@@ -311,6 +355,38 @@ export default function UserDashboard() {
     } catch (e) {
       console.error('Error deleting notification:', e);
     }
+  };
+
+  const handleRemoveFavorite = async (fav: Favorite) => {
+    try {
+      const success = await API.favorites.remove(fav.content_type, fav.content_id);
+      if (success) {
+        setFavorites(prev => prev.filter(f => f.id !== fav.id));
+      }
+    } catch (e) {
+      console.error('Error removing favorite:', e);
+    }
+  };
+
+  const getFavoriteTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      news: language === 'ar' ? 'أخبار' : 'News',
+      announcement: language === 'ar' ? 'إعلان' : 'Announcement',
+      service: language === 'ar' ? 'خدمة' : 'Service',
+      law: language === 'ar' ? 'قانون' : 'Law',
+    };
+    return labels[type] || type;
+  };
+
+  const getFavoriteUrl = (fav: Favorite) => {
+    if (fav.metadata?.url) return fav.metadata.url;
+    const typeRoutes: Record<string, string> = {
+      news: 'news',
+      announcement: 'announcements',
+      service: 'services',
+      law: 'decrees',
+    };
+    return `/${typeRoutes[fav.content_type] || fav.content_type}/${fav.content_id}`;
   };
 
   const handleSaveNotifPrefs = async () => {
@@ -389,6 +465,7 @@ export default function UserDashboard() {
     { id: 'overview', label: language === 'ar' ? 'نظرة عامة' : 'Overview', icon: <TrendingUp size={18} /> },
     { id: 'complaints', label: language === 'ar' ? 'شكاواي' : 'My Complaints', icon: <FileText size={18} /> },
     { id: 'suggestions', label: language === 'ar' ? 'اقتراحاتي' : 'My Suggestions', icon: <Lightbulb size={18} /> },
+    { id: 'favorites', label: language === 'ar' ? 'المفضلة' : 'Favorites', icon: <Heart size={18} /> },
     { id: 'notifications', label: language === 'ar' ? 'الإشعارات' : 'Notifications', icon: <Bell size={18} /> },
     { id: 'settings', label: language === 'ar' ? 'الإعدادات' : 'Settings', icon: <Settings size={18} /> },
   ];
@@ -618,6 +695,74 @@ export default function UserDashboard() {
                       </div>
                     )}
                   </motion.div>
+
+                  {/* Recent Favorites */}
+                  <motion.div variants={itemVariants}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
+                        <Heart size={20} className="text-gov-gold fill-gov-gold" />
+                        {language === 'ar' ? 'المفضلة' : 'Favorites'}
+                        {favorites.length > 0 && (
+                          <span className="text-sm font-normal text-gov-stone dark:text-white/50">({favorites.length})</span>
+                        )}
+                      </h3>
+                      <button
+                        onClick={() => setActiveTab('favorites')}
+                        className="text-gov-teal dark:text-gov-gold font-bold text-sm flex items-center gap-1 hover:underline"
+                      >
+                        {language === 'ar' ? 'عرض الكل' : 'View All'}
+                        <ForwardArrow size={16} />
+                      </button>
+                    </div>
+
+                    {favoritesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="animate-spin text-gov-gold" size={32} />
+                      </div>
+                    ) : favorites.length === 0 ? (
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gov-border/15 rounded-2xl">
+                        <Heart size={32} className="mx-auto text-gray-300 dark:text-white/20 mb-3" />
+                        <p className="text-gray-500 font-bold">
+                          {language === 'ar' ? 'لا توجد عناصر مفضلة بعد' : 'No favorites yet'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {favorites.slice(0, 3).map((fav) => (
+                          <motion.div
+                            key={fav.id}
+                            whileHover={{ y: -3 }}
+                            className="group bg-white/60 dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-gov-gold/50 transition-all overflow-hidden shadow-sm"
+                          >
+                            {fav.metadata?.image && (
+                              <div className="h-32 overflow-hidden">
+                                <img
+                                  src={fav.metadata.image}
+                                  alt={fav.metadata.title || ''}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                            )}
+                            <div className="p-4">
+                              <span className="px-2 py-0.5 rounded-full bg-gov-teal/10 text-gov-teal text-xs font-bold">
+                                {getFavoriteTypeLabel(fav.content_type)}
+                              </span>
+                              <h4 className="font-bold text-gov-charcoal dark:text-white mt-2 line-clamp-1 group-hover:text-gov-teal transition-colors">
+                                {fav.metadata?.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item')}
+                              </h4>
+                              <Link
+                                href={getFavoriteUrl(fav)}
+                                className="mt-3 flex items-center gap-1 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
+                              >
+                                {language === 'ar' ? 'عرض' : 'View'}
+                                <ExternalLink size={12} />
+                              </Link>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
                 </motion.div>
               )}
 
@@ -740,6 +885,108 @@ export default function UserDashboard() {
                           </div>
                           <div className="flex items-center gap-4">
                             {getSuggestionStatusBadge(suggestion.status)}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Favorites Tab */}
+              {activeTab === 'favorites' && (
+                <motion.div variants={containerVariants} initial="hidden" animate="visible">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
+                      <Heart className="text-gov-gold fill-gov-gold" size={24} />
+                      {language === 'ar' ? 'المفضلة' : 'My Favorites'}
+                    </h3>
+                    <Link href="/news" className="flex items-center gap-2 px-5 py-2.5 bg-gov-teal text-white rounded-xl font-bold hover:bg-gov-emerald transition-colors shadow-lg shadow-gov-teal/20">
+                      <Plus size={20} />
+                      {language === 'ar' ? 'تصفح المحتوى' : 'Browse Content'}
+                    </Link>
+                  </div>
+
+                  {favoritesLoading ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="animate-spin text-gov-gold" size={40} />
+                    </div>
+                  ) : favorites.length === 0 ? (
+                    <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
+                      <Heart size={64} className="mx-auto text-gov-gold/40 mb-4" />
+                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
+                        {language === 'ar' ? 'قائمة المفضلة فارغة حالياً' : 'Your favorites list is currently empty'}
+                      </p>
+                      <p className="text-sm text-gray-400 dark:text-white/50 mt-2 max-w-md mx-auto">
+                        {language === 'ar'
+                          ? 'يمكنك إضافة الأخبار والخدمات والقرارات إلى المفضلة للوصول إليها بسرعة هنا.'
+                          : 'You can add news, services, and decrees to your favorites to access them quickly here.'}
+                      </p>
+                      <Link href="/news" className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 bg-gov-teal/10 text-gov-teal rounded-xl font-bold hover:bg-gov-teal hover:text-white transition-all">
+                        {language === 'ar' ? 'تصفح الأخبار' : 'Browse News'}
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {favorites.map((fav) => (
+                        <motion.div
+                          variants={itemVariants}
+                          key={fav.id}
+                          className="group relative bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/15 rounded-2xl overflow-hidden hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300"
+                        >
+                          {/* Image */}
+                          {fav.metadata?.image && (
+                            <div className="h-44 overflow-hidden relative">
+                              <img
+                                src={fav.metadata.image}
+                                alt={fav.metadata.title || ''}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                            </div>
+                          )}
+
+                          <div className="p-5">
+                            {/* Type Badge & Remove Button */}
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="px-3 py-1 rounded-full bg-gov-teal/10 text-gov-teal text-xs font-bold">
+                                {getFavoriteTypeLabel(fav.content_type)}
+                              </span>
+                              <button
+                                onClick={() => handleRemoveFavorite(fav)}
+                                className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 hover:text-red-500 transition-colors"
+                                title={language === 'ar' ? 'إزالة من المفضلة' : 'Remove from favorites'}
+                              >
+                                <Heart size={18} className="fill-current" />
+                              </button>
+                            </div>
+
+                            {/* Title */}
+                            <h4 className="font-bold text-lg text-gov-charcoal dark:text-white mb-2 line-clamp-2 group-hover:text-gov-teal transition-colors">
+                              {fav.metadata?.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item')}
+                            </h4>
+
+                            {/* Description */}
+                            {fav.metadata?.description && (
+                              <p className="text-sm text-gray-500 dark:text-white/60 line-clamp-2 mb-4">
+                                {fav.metadata.description}
+                              </p>
+                            )}
+
+                            {/* Date */}
+                            <p className="text-xs text-gray-400 dark:text-white/40 flex items-center gap-1 mb-4">
+                              <Calendar size={12} />
+                              {new Date(fav.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                            </p>
+
+                            {/* View Details Button */}
+                            <Link
+                              href={getFavoriteUrl(fav)}
+                              className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-50 dark:bg-white/5 text-gov-charcoal dark:text-white rounded-xl text-sm font-bold hover:bg-gov-teal hover:text-white transition-all"
+                            >
+                              <ExternalLink size={14} />
+                              {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
+                            </Link>
                           </div>
                         </motion.div>
                       ))}
@@ -937,17 +1184,52 @@ export default function UserDashboard() {
                         <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'الرقم الوطني لا يمكن تغييره' : 'National ID cannot be changed'}</p>
                       </div>
                     )}
-                    <div>
-                      <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
-                        {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
-                      </label>
-                      <input
-                        type="password"
-                        value={profileData.password}
-                        onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-                        placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
-                      />
+                    {/* Password Change Section */}
+                    <div className="pt-6 border-t border-gray-200 dark:border-gov-border/15">
+                      <h4 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-4">
+                        {language === 'ar' ? 'تغيير كلمة المرور' : 'Change Password'}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-white/50 mb-4">
+                        {language === 'ar' ? 'اترك الحقول فارغة إذا كنت لا تريد تغيير كلمة المرور' : 'Leave fields empty if you don\'t want to change your password'}
+                      </p>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                            {language === 'ar' ? 'كلمة المرور الحالية' : 'Current Password'}
+                          </label>
+                          <input
+                            type="password"
+                            value={profileData.current_password}
+                            onChange={(e) => setProfileData({ ...profileData, current_password: e.target.value })}
+                            placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
+                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                            {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
+                          </label>
+                          <input
+                            type="password"
+                            value={profileData.password}
+                            onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+                            placeholder={language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'}
+                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                            {language === 'ar' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}
+                          </label>
+                          <input
+                            type="password"
+                            value={profileData.password_confirmation}
+                            onChange={(e) => setProfileData({ ...profileData, password_confirmation: e.target.value })}
+                            placeholder={language === 'ar' ? 'أعد إدخال كلمة المرور الجديدة' : 'Re-enter new password'}
+                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.02 }}

@@ -22,6 +22,7 @@ class Content extends Model
         'status',
         'featured',
         'published_at',
+        'expires_at',
         'author_id',
         'metadata',
         'seo_title_ar',
@@ -36,6 +37,7 @@ class Content extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'expires_at' => 'datetime',
         'metadata' => 'array',
         'tags' => 'array',
         'featured' => 'boolean',
@@ -139,6 +141,34 @@ class Content extends Model
     public function scopeCategory($query, $category)
     {
         return $query->where('category', $category);
+    }
+
+    /**
+     * Scope a query to only include active (not expired) content.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('expires_at')
+              ->orWhere('expires_at', '>', now());
+        });
+    }
+
+    /**
+     * Scope a query to only include expired content.
+     */
+    public function scopeExpired($query)
+    {
+        return $query->whereNotNull('expires_at')
+                     ->where('expires_at', '<=', now());
+    }
+
+    /**
+     * Check if the content is expired.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
     /**

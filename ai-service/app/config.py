@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     # Embedding settings
     EMBEDDING_PROVIDER: str = "gemini"  # Options: "gemini", "openai", "ollama", "local"
-    EMBEDDING_MODEL: str = "models/embedding-001"  # Gemini default
+    EMBEDDING_MODEL: str = "models/gemini-embedding-001"  # Gemini embedding model
     EMBEDDING_DIMENSIONS: int = 1024  # Target dimensions (will truncate/pad)
 
     # CORS

@@ -305,59 +305,6 @@ function NotificationPreferencesContent() {
                 </div>
               </div>
 
-              {/* SMS Notifications */}
-              <div className="bg-white dark:bg-gov-card/10 rounded-2xl border border-gov-stone/10 dark:border-white/5 overflow-hidden transition-all hover:border-gov-gold/20">
-                <div className="p-6 border-b border-gov-stone/10 dark:border-white/5">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-gov-stone/5 dark:bg-gov-card/10 text-gov-forest dark:text-gov-gold">
-                      <Smartphone size={24} strokeWidth={1.5} />
-                    </div>
-                    <div className="flex-1">
-                      <h2 className="text-lg font-bold text-gov-charcoal dark:text-white font-display">
-                        {language === 'ar' ? 'إشعارات SMS' : 'SMS Notifications'}
-                      </h2>
-                      <p className="text-sm text-gov-stone dark:text-gov-beige/60 font-mono mt-1">
-                        {user?.phone || (language === 'ar' ? 'لم يتم تسجيل رقم هاتف' : 'No phone number registered')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => togglePreference('sms_enabled')}
-                      disabled={!user?.phone}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-gold ${preferences.sms_enabled ? 'bg-gov-forest dark:bg-gov-gold' : 'bg-gov-stone/20 dark:bg-white/10'
-                        } ${!user?.phone ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${preferences.sms_enabled ? (language === 'ar' ? '-translate-x-6' : 'translate-x-6') : (language === 'ar' ? '-translate-x-1' : 'translate-x-1')
-                          }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-6 divide-y divide-gov-stone/5 dark:divide-white/5">
-                  <PreferenceToggle
-                    enabled={preferences.sms_urgent_only}
-                    onToggle={() => togglePreference('sms_urgent_only')}
-                    label={language === 'ar' ? 'الحالات العاجلة فقط' : 'Urgent Cases Only'}
-                    description={language === 'ar'
-                      ? 'تلقي SMS فقط للتحديثات العاجلة'
-                      : 'Receive SMS only for urgent updates'}
-                    disabled={!preferences.sms_enabled || !user?.phone}
-                  />
-                </div>
-
-                {!user?.phone && (
-                  <div className="px-6 py-4 bg-gov-wood/5 dark:bg-gov-wood/10 flex items-center gap-3 text-sm border-t border-gov-stone/10 dark:border-white/5">
-                    <Info size={16} className="text-gov-wood" />
-                    <span className="text-gov-wood dark:text-gov-wood/80">
-                      {language === 'ar'
-                        ? 'أضف رقم هاتفك في إعدادات الحساب لتفعيل إشعارات SMS'
-                        : 'Add your phone number in account settings to enable SMS notifications'}
-                    </span>
-                  </div>
-                )}
-              </div>
-
               {/* Save Button */}
               <div className="flex items-center justify-between pt-4">
                 <div>

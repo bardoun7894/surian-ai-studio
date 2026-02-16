@@ -4,8 +4,10 @@ from typing import Dict, Any
 import os
 import json
 import logging
+from app.config import settings
 
 logger = logging.getLogger("uvicorn")
+
 
 class GeminiProvider(AIProvider):
     def __init__(self):
@@ -42,11 +44,17 @@ class GeminiProvider(AIProvider):
                 model=self.model_name,
                 contents=prompt,
             )
-            cleaned_text = response.text.strip().replace('```json', '').replace('```', '')
+            cleaned_text = (
+                response.text.strip().replace("```json", "").replace("```", "")
+            )
             return json.loads(cleaned_text)
         except Exception as e:
             logger.error(f"Gemini analyze_complaint error: {e}")
-            return {"category": "Other", "priority": "Medium", "summary": "Analysis failed"}
+            return {
+                "category": "Other",
+                "priority": "Medium",
+                "summary": "Analysis failed",
+            }
 
     async def suggest_title(self, text: str) -> str:
         prompt = f"""
@@ -60,7 +68,7 @@ class GeminiProvider(AIProvider):
                 model=self.model_name,
                 contents=prompt,
             )
-            return response.text.strip().replace('"', '')
+            return response.text.strip().replace('"', "")
         except Exception as e:
             logger.error(f"Gemini suggest_title error: {e}")
             return "Untitled"
@@ -87,11 +95,41 @@ class GeminiProvider(AIProvider):
         Generate text embedding using Gemini embedding model.
         """
         try:
-            model_name = "models/text-embedding-004"
-            result = self.client.models.embed_content(
-                model=model_name,
-                contents=text,
-            )
+            configured_model = settings.EMBEDDING_MODEL or "models/embedding-001"
+            candidate_models = [
+                configured_model,
+                "models/gemini-embedding-001",
+                "gemini-embedding-001",
+                "models/embedding-001",
+                "models/text-embedding-004",
+                "embedding-001",
+                "text-embedding-004",
+            ]
+
+            # Keep order while removing duplicates
+            candidate_models = list(dict.fromkeys(candidate_models))
+
+            result = None
+            model_name = None
+            last_error = None
+
+            for candidate in candidate_models:
+                try:
+                    result = self.client.models.embed_content(
+                        model=candidate,
+                        contents=text,
+                    )
+                    model_name = candidate
+                    break
+                except Exception as embed_error:
+                    last_error = embed_error
+                    logger.warning(
+                        f"Embedding model '{candidate}' failed: {embed_error}"
+                    )
+
+            if result is None or model_name is None:
+                raise last_error or RuntimeError("No embedding model succeeded")
+
             embedding = result.embeddings[0].values
             original_dim = len(embedding)
 
@@ -104,10 +142,10 @@ class GeminiProvider(AIProvider):
                 embedding = list(embedding)
 
             return {
-                'embedding': embedding,
-                'model': f"gemini/{model_name}",
-                'original_dim': original_dim,
-                'target_dim': target_dim
+                "embedding": embedding,
+                "model": f"gemini/{model_name}",
+                "original_dim": original_dim,
+                "target_dim": target_dim,
             }
         except Exception as e:
             logger.error(f"Gemini generate_embedding error: {e}")

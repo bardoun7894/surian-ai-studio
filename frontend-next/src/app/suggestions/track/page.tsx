@@ -1,9 +1,11 @@
 'use client';
 
 import React, { Suspense, useState, useEffect } from 'react';
-import { Search, Loader2, CheckCircle, Clock, XCircle, AlertCircle, FileText, ArrowLeft, Calendar, User, Printer } from 'lucide-react';
+import { Search, Loader2, CheckCircle, Clock, XCircle, AlertCircle, FileText, ArrowLeft, Calendar, User, UserX, Fingerprint, Printer, Star } from 'lucide-react';
+import { API } from '@/lib/repository';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import SuggestionRating from '@/components/SuggestionRating';
 
 interface SuggestionStatus {
     tracking_number: string;
@@ -54,6 +56,8 @@ function SuggestionTrackPageContent() {
     const initialId = searchParams.get('id') || '';
 
     const [trackingNumber, setTrackingNumber] = useState(initialId);
+    const [nationalId, setNationalId] = useState('');
+    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<SuggestionStatus | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -75,24 +79,23 @@ function SuggestionTrackPageContent() {
         setResult(null);
 
         try {
-            const response = await fetch(`/api/v1/suggestions/track/${trackingNumber}`);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    setError('لم يتم العثور على مقترح بهذا الرقم. يرجى التحقق من رقم المتابعة.');
-                } else {
-                    setError('حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.');
-                }
-                return;
-            }
-            const data = await response.json();
-            if (data.success && data.data) {
+            const data = await API.suggestions.track(
+                trackingNumber,
+                trackMode === 'identified' ? nationalId : undefined
+            );
+            if (data?.success && data?.data) {
+                setResult(data.data);
+            } else if (data?.data) {
                 setResult(data.data);
             } else {
                 setError('لم يتم العثور على مقترح بهذا الرقم.');
             }
-        } catch (err) {
-            console.error('Track error:', err);
-            setError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.');
+        } catch (err: any) {
+            if (err.message?.includes('الرقم الوطني')) {
+                setError('الرقم الوطني غير مطابق. يرجى التحقق من البيانات.');
+            } else {
+                setError('لم يتم العثور على مقترح بهذا الرقم. يرجى التحقق من رقم المتابعة.');
+            }
         } finally {
             setLoading(false);
         }
@@ -121,11 +124,11 @@ function SuggestionTrackPageContent() {
             <div className="max-w-2xl mx-auto">
                 {/* Back Link */}
                 <Link
-                    href="/"
+                    href="/suggestions"
                     className="inline-flex items-center gap-2 text-gov-forest dark:text-gov-gold hover:underline mb-8"
                 >
                     <ArrowLeft size={18} />
-                    العودة للرئيسية
+                    العودة لصفحة المقترحات
                 </Link>
 
                 {/* Header */}
@@ -141,29 +144,86 @@ function SuggestionTrackPageContent() {
                     </p>
                 </div>
 
+                {/* Track Mode Toggle */}
+                <div className="mb-4 print:hidden">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-4 shadow-sm border border-gov-gold/20">
+                        <div className="flex items-center justify-center gap-4">
+                            <button
+                                type="button"
+                                onClick={() => { setTrackMode('identified'); setResult(null); setError(null); }}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${trackMode === 'identified'
+                                    ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                                    : 'bg-gray-50 dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                    }`}
+                            >
+                                <Fingerprint size={16} />
+                                متابعة بالهوية
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setTrackMode('anonymous'); setResult(null); setError(null); setNationalId(''); }}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${trackMode === 'anonymous'
+                                    ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                                    : 'bg-gray-50 dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                    }`}
+                            >
+                                <UserX size={16} />
+                                متابعة مجهولة
+                            </button>
+                        </div>
+                        <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
+                            {trackMode === 'identified'
+                                ? 'أدخل رقم التتبع والرقم الوطني للتحقق من هويتك'
+                                : 'أدخل رقم التتبع فقط لمتابعة المقترحات المجهولة'}
+                        </p>
+                    </div>
+                </div>
+
                 {/* Search Form */}
                 <form onSubmit={handleSearch} className="mb-8 print:hidden">
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gov-gold/20">
-                        <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
-                            رقم المتابعة
-                        </label>
-                        <div className="flex gap-3">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gov-gold/20 space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
+                                رقم المتابعة
+                            </label>
                             <input
                                 type="text"
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
                                 placeholder="SUG-XXXXXXXX"
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-lg"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-lg"
+                                required
                             />
-                            <button
-                                type="submit"
-                                disabled={loading || !trackingNumber.trim()}
-                                className="px-6 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {loading ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
-                                بحث
-                            </button>
                         </div>
+
+                        {trackMode === 'identified' && (
+                            <div>
+                                <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
+                                    الرقم الوطني
+                                </label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d{11}"
+                                    maxLength={11}
+                                    minLength={11}
+                                    value={nationalId}
+                                    onChange={(e) => setNationalId(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="أدخل الرقم الوطني (11 رقم)"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all"
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading || !trackingNumber.trim()}
+                            className="w-full px-6 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                            بحث
+                        </button>
                     </div>
                 </form>
 
@@ -251,17 +311,33 @@ function SuggestionTrackPageContent() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Rating Section - Show when there's a response or completed status */}
+                            {(result.response || result.status === 'completed' || result.status === 'reviewed' || result.status === 'responded') && (
+                                <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gov-border/15">
+                                    <SuggestionRating
+                                        trackingNumber={result.tracking_number}
+                                        language="ar"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Submit New Suggestion Link */}
-                <div className="text-center mt-8 print:hidden">
+                {/* T032: Links to suggestions page */}
+                <div className="text-center mt-8 print:hidden space-y-3">
                     <Link
-                        href="/#suggestions"
-                        className="text-gov-forest dark:text-gov-gold hover:underline font-bold"
+                        href="/suggestions"
+                        className="block text-gov-forest dark:text-gov-gold hover:underline font-bold"
                     >
                         تقديم مقترح جديد
+                    </Link>
+                    <Link
+                        href="/suggestions"
+                        className="block text-gray-500 dark:text-white/70 hover:underline text-sm"
+                    >
+                        العودة لصفحة المقترحات
                     </Link>
                 </div>
             </div>

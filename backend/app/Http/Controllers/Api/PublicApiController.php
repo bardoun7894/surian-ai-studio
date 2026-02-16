@@ -4,16 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ComplaintTemplate;
+use App\Models\ContactSubmission;
 use App\Models\Content;
 use App\Models\Directorate;
 use App\Models\Faq;
 use App\Models\HappinessFeedback;
 use App\Models\QuickLink;
 use App\Models\Service;
+use App\Models\SuggestionRating;
 use App\Services\VectorSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class PublicApiController extends Controller
 {
@@ -29,12 +32,17 @@ class PublicApiController extends Controller
     public function directorates(): JsonResponse
     {
         $directorates = Cache::remember('public.directorates', 600, function () {
-            return Directorate::withCount(['services' => function ($query) {
+            return Directorate::with(['subDirectorates' => function ($query) {
+                $query->where('is_active', true)->orderBy('order');
+            }])->withCount(['services' => function ($query) {
                 $query->where('is_active', true);
             }])->get()->map(function ($d) {
                 return [
                     'id' => (string) $d->id,
-                    'name' => $d->name_ar ?? $d->name,
+                    'name' => [
+                        'ar' => $d->name_ar ?? $d->name,
+                        'en' => $d->name_en ?? $d->name_ar ?? $d->name,
+                    ], // Return localized object for better frontend support
                     'name_ar' => $d->name_ar ?? $d->name,
                     'name_en' => $d->name_en ?? $d->name,
                     'description' => $d->description_ar ?? $d->description ?? '',
@@ -42,6 +50,21 @@ class PublicApiController extends Controller
                     'description_en' => $d->description_en ?? $d->description ?? '',
                     'icon' => $d->icon ?? 'Building2',
                     'servicesCount' => $d->services_count,
+                    'email' => $d->email,
+                    'phone' => $d->phone,
+                    'website' => $d->website,
+                    'featured' => (bool) $d->featured,
+                    'subDirectorates' => $d->subDirectorates->map(function ($sub) {
+                        return [
+                            'id' => (string) $sub->id,
+                            'name' => [
+                                'ar' => $sub->name_ar ?? $sub->name,
+                                'en' => $sub->name_en ?? $sub->name_ar ?? $sub->name,
+                            ],
+                            'url' => $sub->url,
+                            'isExternal' => (bool) $sub->is_external,
+                        ];
+                    }),
                 ];
             })->values();
         });
@@ -75,6 +98,23 @@ class PublicApiController extends Controller
                 ];
             });
 
+        $team = $directorate->team()
+            ->orderBy('order')
+            ->get()
+            ->map(function ($member) {
+                return [
+                    'id' => (string) $member->id,
+                    'name' => $member->name_ar,
+                    'name_ar' => $member->name_ar,
+                    'name_en' => $member->name_en,
+                    'position' => $member->position_ar,
+                    'position_ar' => $member->position_ar,
+                    'position_en' => $member->position_en,
+                    'image' => $this->normalizeImageUrl($member->image),
+                    'order' => $member->order,
+                ];
+            });
+
         return response()->json([
             'id' => (string) $directorate->id,
             'name' => $directorate->name_ar ?? $directorate->name,
@@ -85,6 +125,7 @@ class PublicApiController extends Controller
             'description_en' => $directorate->description_en ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
             'subDirectorates' => $subDirectorates,
+            'team' => $team,
         ]);
     }
 
@@ -188,6 +229,24 @@ class PublicApiController extends Controller
     }
 
     /**
+     * Get announcements for a specific directorate
+     */
+    public function directorateAnnouncements(string $id): JsonResponse
+    {
+        $limit = request()->integer('limit', 10);
+
+        $announcements = Content::where('category', 'announcement')
+            ->where('status', 'published')
+            ->where('directorate_id', $id)
+            ->orderBy('published_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(fn($a) => $this->formatAnnouncement($a));
+
+        return response()->json($announcements);
+    }
+
+    /**
      * Get news grouped by directorate (FR-13)
      */
     public function newsByDirectorate(): JsonResponse
@@ -235,6 +294,20 @@ class PublicApiController extends Controller
             $query->where('directorate_id', $request->directorate_id);
         }
 
+        // Support server-side pagination
+        if ($request->has('page')) {
+            $perPage = $request->integer('per_page', 12);
+            $paginated = $query->paginate($perPage);
+            return response()->json([
+                'data' => collect($paginated->items())->map(fn($n) => $this->formatNews($n)),
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]);
+        }
+
+        // Legacy: return all (for backward compatibility with homepage etc.)
         if ($request->has('limit')) {
             $query->limit((int) $request->limit);
         }
@@ -391,21 +464,47 @@ class PublicApiController extends Controller
             ->orderBy('priority', 'desc')
             ->orderBy('published_at', 'desc');
 
-        // Default limit of 9 for homepage 3x3 grid (T-MOD-034)
-        $limit = $request->has('limit') ? (int) $request->limit : 9;
-        $query->limit($limit);
+        // Filter by active/expired status
+        if ($request->has('filter')) {
+            match ($request->filter) {
+                'active' => $query->active(),
+                'expired' => $query->expired(),
+                default => null,
+            };
+        }
 
-        $announcements = $query->get()->map(fn($a) => [
+        $formatAnnouncement = fn($a) => [
             'id' => (string) $a->id,
             'title' => $a->title_ar,
             'title_ar' => $a->title_ar,
             'title_en' => $a->title_en,
             'date' => $a->published_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'expires_at' => $a->expires_at?->format('Y-m-d'),
+            'is_expired' => $a->isExpired(),
             'type' => $a->priority >= 9 ? 'urgent' : ($a->priority >= 5 ? 'important' : 'general'),
             'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
             'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
             'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
-        ]);
+        ];
+
+        // Support server-side pagination
+        if ($request->has('page')) {
+            $perPage = $request->integer('per_page', 9);
+            $paginated = $query->paginate($perPage);
+            return response()->json([
+                'data' => collect($paginated->items())->map($formatAnnouncement),
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]);
+        }
+
+        // Legacy: return limited results (for backward compatibility with homepage)
+        $limit = $request->has('limit') ? (int) $request->limit : 9;
+        $query->limit($limit);
+
+        $announcements = $query->get()->map($formatAnnouncement);
 
         return response()->json($announcements);
     }
@@ -512,6 +611,19 @@ class PublicApiController extends Controller
             });
         }
 
+        // Support server-side pagination
+        if ($request->has('page')) {
+            $perPage = $request->integer('per_page', 12);
+            $paginated = $query->paginate($perPage);
+            return response()->json([
+                'data' => collect($paginated->items())->map(fn($s) => $this->formatServiceModel($s)),
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]);
+        }
+
         $services = $query->get()->map(fn($s) => $this->formatServiceModel($s));
 
         return response()->json($services);
@@ -544,7 +656,7 @@ class PublicApiController extends Controller
             $query->whereJsonContains('metadata->media_type', $request->type);
         }
 
-        $media = $query->get()->map(fn($m) => [
+        $formatMedia = fn($m) => [
             'id' => (string) $m->id,
             'title' => $m->title_ar,
             'title_ar' => $m->title_ar,
@@ -552,11 +664,27 @@ class PublicApiController extends Controller
             'description_ar' => $m->seo_description_ar ?? mb_substr(strip_tags($m->content_ar), 0, 200),
             'description_en' => $m->seo_description_en ?? mb_substr(strip_tags($m->content_en ?? ''), 0, 200),
             'type' => $m->metadata['media_type'] ?? 'photo',
+            'url' => $m->metadata['url'] ?? null,
             'thumbnailUrl' => $m->metadata['thumbnail'] ?? '/assets/media-placeholder.jpg',
             'date' => $m->published_at?->format('Y-m-d'),
             'duration' => $m->metadata['duration'] ?? null,
             'count' => $m->metadata['count'] ?? null,
-        ]);
+        ];
+
+        // Support server-side pagination
+        if ($request->has('page')) {
+            $perPage = $request->integer('per_page', 12);
+            $paginated = $query->paginate($perPage);
+            return response()->json([
+                'data' => collect($paginated->items())->map($formatMedia),
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]);
+        }
+
+        $media = $query->get()->map($formatMedia);
 
         return response()->json($media);
     }
@@ -601,9 +729,9 @@ class PublicApiController extends Controller
                     'question' => 'هل يمكنني تقديم شكوى دون الكشف عن هويتي؟',
                     'question_ar' => 'هل يمكنني تقديم شكوى دون الكشف عن هويتي؟',
                     'question_en' => 'Can I submit a complaint anonymously?',
-                    'answer' => 'نعم، النظام يتيح تقديم الشكاوى بشكل سري.',
-                    'answer_ar' => 'نعم، النظام يتيح تقديم الشكاوى بشكل سري.',
-                    'answer_en' => 'Yes, the system allows submitting complaints confidentially.',
+                    'answer' => 'نعم، النظام يتيح تقديم الشكاوى بشكل سري تام. لا يمكن لأي جهة معرفة هوية مقدم الشكوى المجهول، وسيتم معالجة شكواك بنفس الاهتمام والجدية ولن يطلع عليه أحد.',
+                    'answer_ar' => 'نعم، النظام يتيح تقديم الشكاوى بشكل سري تام. لا يمكن لأي جهة معرفة هوية مقدم الشكوى المجهول، وسيتم معالجة شكواك بنفس الاهتمام والجدية ولن يطلع عليه أحد.',
+                    'answer_en' => 'Yes, the system allows fully anonymous complaint submission. No entity can identify the anonymous complainant, your complaint will be processed with the same attention and seriousness, and no one will have access to your identity.',
                     'category' => 'complaints'
                 ],
             ]);
@@ -765,11 +893,13 @@ class PublicApiController extends Controller
             });
         }
 
-        $templates = $query->orderBy('sort_order')
+        $templates = $query->with('directorate')
+            ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
             ->map(fn($t) => [
                 'id' => (string) $t->id,
+                'directorate_id' => $t->directorate_id,
                 'name' => $t->name,
                 'name_en' => $t->name_en,
                 'description' => $t->description,
@@ -778,6 +908,8 @@ class PublicApiController extends Controller
                 'requires_identification' => (bool) $t->requires_identification,
                 'fields' => $t->fields,
                 'sort_order' => $t->sort_order ?? 0,
+                'receiving_entity_ar' => $t->directorate ? $t->directorate->name_ar : null,
+                'receiving_entity_en' => $t->directorate ? $t->directorate->name_en : null,
             ]);
 
         return response()->json(['data' => $templates]);
@@ -818,6 +950,30 @@ class PublicApiController extends Controller
             'directorate_id' => $n->directorate_id,
             'directorate_name' => $n->directorate?->name_ar,
             'directorate_name_en' => $n->directorate?->name_en,
+        ];
+    }
+
+    private function formatAnnouncement($a): array
+    {
+        return [
+            'id' => (string) $a->id,
+            'title' => $a->title_ar,
+            'title_ar' => $a->title_ar,
+            'title_en' => $a->title_en,
+            'date' => $a->published_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'category' => $a->metadata['category_label'] ?? 'إعلان',
+            'category_en' => $a->metadata['category_label_en'] ?? 'Announcement',
+            'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
+            'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
+            'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
+            'summary' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
+            'summary_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
+            'summary_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
+            'imageUrl' => $this->normalizeImageUrl($a->metadata['image'] ?? null),
+            'isUrgent' => $a->priority >= 8,
+            'directorate_id' => $a->directorate_id,
+            'directorate_name' => $a->directorate?->name_ar,
+            'directorate_name_en' => $a->directorate?->name_en,
         ];
     }
 
@@ -910,13 +1066,169 @@ class PublicApiController extends Controller
             'department' => 'nullable|string|max:255',
         ]);
 
-        // Log contact form submission
-        \Log::info('Contact form submitted', $validated);
+        // Determine recipient email based on department/directorate selection
+        $recipientEmail = null;
+        $recipientName = null;
+        $directorate = null;
+
+        if (!empty($validated['department'])) {
+            // Check if it's a directorate
+            $directorate = \App\Models\Directorate::find($validated['department']);
+            if ($directorate && $directorate->email) {
+                $recipientEmail = $directorate->email;
+                $recipientName = $directorate->name_ar ?? $directorate->name;
+            } else {
+                // Handle department-specific emails
+                $departmentEmails = [
+                    'general' => config('mail.contact_general', 'info@moe.gov.sy'),
+                    'complaints' => config('mail.contact_complaints', 'complaints@moe.gov.sy'),
+                    'media' => config('mail.contact_media', 'media@moe.gov.sy'),
+                ];
+                $recipientEmail = $departmentEmails[$validated['department']] ?? config('mail.contact_default', 'info@moe.gov.sy');
+                $recipientName = $this->getDepartmentName($validated['department']);
+            }
+        }
+
+        // Default to general contact email if no specific recipient found
+        if (!$recipientEmail) {
+            $recipientEmail = config('mail.contact_default', 'info@moe.gov.sy');
+            $recipientName = 'وزارة الاقتصاد والصناعة';
+        }
+
+        // Save contact form submission to database
+        \App\Models\ContactSubmission::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'department' => $validated['department'] ?? 'general',
+            'recipient_email' => $recipientEmail,
+            'recipient_name' => $recipientName,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        Log::info('Contact form submitted', [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'subject' => $validated['subject'],
+            'recipient' => $recipientEmail,
+            'recipient_name' => $recipientName,
+            'department' => $validated['department'] ?? 'general',
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'تم إرسال رسالتك بنجاح. سنتواصل معك في أقرب وقت.',
-            'message_en' => 'Your message has been sent successfully. We will contact you shortly.',
+            'message' => 'تم إرسال رسالتك بنجاح إلى ' . $recipientName . '. سنتواصل معك في أقرب وقت.',
+            'message_en' => 'Your message has been sent successfully to ' . ($directorate ? ($directorate->name_en ?? $recipientName) : $recipientName) . '. We will contact you shortly.',
+        ]);
+    }
+
+    /**
+     * Get department name based on department key
+     */
+    private function getDepartmentName(string $department): string
+    {
+        $names = [
+            'general' => 'الإدارة العامة',
+            'complaints' => 'قسم الشكاوى',
+            'media' => 'الإدارة الإعلامية',
+        ];
+
+        return $names[$department] ?? 'وزارة الاقتصاد والصناعة';
+    }
+
+    /**
+     * Submit suggestion rating
+     */
+    public function submitSuggestionRating(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tracking_number' => 'required|string|max:50',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+            'feedback_type' => 'nullable|in:positive,negative',
+        ]);
+
+        // Check if rating already exists for this tracking number from same IP
+        $existingRating = SuggestionRating::where('tracking_number', $validated['tracking_number'])
+            ->where('ip_address', $request->ip())
+            ->first();
+
+        if ($existingRating) {
+            // Update existing rating
+            $existingRating->update([
+                'rating' => $validated['rating'],
+                'comment' => $validated['comment'] ?? null,
+                'feedback_type' => $validated['feedback_type'] ?? null,
+            ]);
+
+            Log::info('Suggestion rating updated', [
+                'tracking_number' => $validated['tracking_number'],
+                'rating' => $validated['rating'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث تقييمك بنجاح',
+                'message_en' => 'Your rating has been updated successfully',
+            ]);
+        }
+
+        // Create new rating
+        SuggestionRating::create([
+            'tracking_number' => $validated['tracking_number'],
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
+            'feedback_type' => $validated['feedback_type'] ?? null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        Log::info('Suggestion rating submitted', [
+            'tracking_number' => $validated['tracking_number'],
+            'rating' => $validated['rating'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'شكراً لتقييمك! نقدّر ملاحظاتك',
+            'message_en' => 'Thank you for your rating! We appreciate your feedback',
+        ]);
+    }
+
+    /**
+     * Get suggestion ratings statistics
+     */
+    public function getSuggestionRatingsStats(Request $request): JsonResponse
+    {
+        $trackingNumber = $request->query('tracking_number');
+
+        $query = SuggestionRating::query();
+
+        if ($trackingNumber) {
+            $query->where('tracking_number', $trackingNumber);
+        }
+
+        $stats = [
+            'total_ratings' => $query->count(),
+            'average_rating' => round($query->avg('rating'), 2),
+            'rating_distribution' => [
+                '5' => (clone $query)->where('rating', 5)->count(),
+                '4' => (clone $query)->where('rating', 4)->count(),
+                '3' => (clone $query)->where('rating', 3)->count(),
+                '2' => (clone $query)->where('rating', 2)->count(),
+                '1' => (clone $query)->where('rating', 1)->count(),
+            ],
+            'helpful_count' => [
+                'positive' => (clone $query)->where('feedback_type', 'positive')->count(),
+                'negative' => (clone $query)->where('feedback_type', 'negative')->count(),
+            ],
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $stats,
         ]);
     }
 

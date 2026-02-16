@@ -99,9 +99,13 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'role_id' => 'nullable|exists:roles,id',
             'directorate_id' => 'nullable|exists:directorates,id',
-            'national_id' => ['nullable', Rule::unique('users')->ignore($user->id)],
+            'national_id' => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
+        ], [
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
         ]);
 
         $oldData = $user->only(['first_name', 'father_name', 'last_name', 'email', 'phone', 'role_id', 'directorate_id', 'national_id', 'birth_date', 'governorate']);
@@ -182,7 +186,7 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $request->validate([
+        $rules = [
             'first_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -191,7 +195,23 @@ class UserController extends Controller
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
             'password' => 'nullable|min:8|confirmed',
-        ]);
+        ];
+
+        // Require current_password when changing password
+        if ($request->filled('password')) {
+            $rules['current_password'] = 'required|string';
+        }
+
+        $request->validate($rules);
+
+        // Verify current password before allowing change
+        if ($request->filled('password')) {
+            if (! Hash::check($request->current_password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => [__('كلمة المرور الحالية غير صحيحة')],
+                ]);
+            }
+        }
 
         $oldData = $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate']);
 
@@ -455,11 +475,16 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'national_id' => 'required|unique:users,national_id',
+            'national_id' => 'required|string|size:11|regex:/^\d{11}$/|unique:users,national_id',
             'phone' => 'required|string',
             'birth_date' => 'required|date',
             'governorate' => 'required|string|max:255',
             'recaptcha_token' => 'nullable|string',
+        ], [
+            'national_id.required' => 'الرقم الوطني مطلوب',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
         ]);
 
         $citizenRole = Role::where('name', 'citizen')->first();

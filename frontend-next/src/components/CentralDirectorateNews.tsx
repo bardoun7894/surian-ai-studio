@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, ChevronLeft, Loader2, Newspaper, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Calendar, ChevronLeft, Newspaper, ArrowLeft, ArrowRight } from 'lucide-react';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -50,11 +51,7 @@ const CentralDirectorateNews: React.FC = () => {
             <div className="h-8 w-48 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-6 animate-pulse" />
             <div className="h-12 w-96 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-4 animate-pulse" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-80 bg-gray-200 dark:bg-dm-surface rounded-[1.5rem] animate-pulse" />
-            ))}
-          </div>
+          <SkeletonGrid cards={6} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
         </div>
       </section>
     );

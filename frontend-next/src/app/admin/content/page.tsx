@@ -22,16 +22,22 @@ import {
   Upload,
   History,
   RotateCcw,
-  ArrowRightLeft
+  ArrowRightLeft,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/repository';
 import AIContentTools from '@/components/AIContentTools';
 import { DIRECTORATES } from '@/constants';
+import { TableRowSkeleton } from '@/components/Skeleton';
+import { SkeletonText } from '@/components/SkeletonLoader';
 
 interface ContentItem {
   id: number;
@@ -44,6 +50,7 @@ interface ContentItem {
   status: string;
   featured: boolean;
   published_at?: string;
+  expires_at?: string;
   author?: { name: string };
   view_count: number;
   created_at: string;
@@ -54,13 +61,16 @@ export default function ContentManagementPage() {
   const { language } = useLanguage();
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category') || '';
 
   // State
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState(initialCategory);
   const [statusFilter, setStatusFilter] = useState('');
+  const [expiryFilter, setExpiryFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -80,9 +90,11 @@ export default function ContentManagementPage() {
     category: 'news',
     status: 'draft',
     featured: false,
-    published_at: ''
+    published_at: '',
+    expires_at: ''
   });
   const [formErrors, setFormErrors] = useState<any>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
 
   const categories = [
@@ -99,6 +111,12 @@ export default function ContentManagementPage() {
     { value: 'draft', label_ar: 'مسودة', label_en: 'Draft', color: 'bg-gray-100 text-gray-700' },
     { value: 'published', label_ar: 'منشور', label_en: 'Published', color: 'bg-green-100 text-green-700' },
     { value: 'archived', label_ar: 'مؤرشف', label_en: 'Archived', color: 'bg-red-100 text-red-700' }
+  ];
+
+  const expiryFilters = [
+    { value: '', label_ar: 'كل الإعلانات', label_en: 'All Announcements' },
+    { value: 'active', label_ar: 'إعلانات سارية', label_en: 'Active' },
+    { value: 'expired', label_ar: 'إعلانات منتهية', label_en: 'Expired' }
   ];
 
   // Redirect if not authenticated or not admin
@@ -124,6 +142,7 @@ export default function ContentManagementPage() {
         if (searchTerm) params.search = searchTerm;
         if (categoryFilter) params.category = categoryFilter;
         if (statusFilter) params.status = statusFilter;
+        if (expiryFilter) params.expiry_status = expiryFilter;
 
         const response = await API.content.getAll(params);
         setContents(response.data || []);
@@ -138,15 +157,113 @@ export default function ContentManagementPage() {
     if (isAuthenticated) {
       fetchContents();
     }
-  }, [isAuthenticated, currentPage, searchTerm, categoryFilter, statusFilter]);
+  }, [isAuthenticated, currentPage, searchTerm, categoryFilter, statusFilter, expiryFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
   };
 
+  const validateField = (fieldName: string, value: any): string | null => {
+    switch (fieldName) {
+      case 'title_ar':
+        if (!value || !value.trim()) {
+          return language === 'ar' 
+            ? 'يرجى إدخال عنوان الإعلان بالعربية - مثال: مناقصة عامة لتوريد معدات' 
+            : 'Please enter the announcement title in Arabic - Example: Public tender for equipment supply';
+        }
+        if (value.trim().length < 5) {
+          return language === 'ar' 
+            ? 'يجب أن يكون العنوان 5 أحرف على الأقل' 
+            : 'Title must be at least 5 characters';
+        }
+        return null;
+      
+      case 'content_ar':
+        if (!value || !value.trim()) {
+          return language === 'ar' 
+            ? 'يرجى إدخال تفاصيل الإعلان بالعربية' 
+            : 'Please enter the announcement details in Arabic';
+        }
+        if (value.trim().length < 20) {
+          return language === 'ar' 
+            ? 'يجب أن يحتوي المحتوى على 20 حرفاً على الأقل' 
+            : 'Content must be at least 20 characters';
+        }
+        return null;
+      
+      case 'expires_at':
+        if (formData.category === 'announcement' && !value) {
+          return language === 'ar' 
+            ? 'يرجى تحديد تاريخ ووقت انتهاء الإعلان - مطلوب للإعلانات' 
+            : 'Please specify the announcement expiry date and time - Required for announcements';
+        }
+        if (formData.published_at && value) {
+          const publishDate = new Date(formData.published_at);
+          const expiryDate = new Date(value);
+          if (expiryDate <= publishDate) {
+            return language === 'ar' 
+              ? 'تاريخ الانتهاء يجب أن يكون بعد تاريخ النشر - يرجى اختيار تاريخ لاحق' 
+              : 'Expiry date must be after publish date - Please select a later date';
+          }
+        }
+        return null;
+      
+      default:
+        return null;
+    }
+  };
+
+  const handleBlur = (fieldName: string) => {
+    setTouchedFields(prev => new Set(prev).add(fieldName));
+    const error = validateField(fieldName, formData[fieldName as keyof typeof formData]);
+    setFormErrors((prev: any) => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
+  const getFieldStatus = (fieldName: string): 'valid' | 'invalid' | 'neutral' => {
+    if (!touchedFields.has(fieldName)) return 'neutral';
+    const error = validateField(fieldName, formData[fieldName as keyof typeof formData]);
+    return error ? 'invalid' : 'valid';
+  };
+
+  const validateForm = () => {
+    const errors: any = {};
+    
+    // Required fields validation
+    const titleError = validateField('title_ar', formData.title_ar);
+    if (titleError) errors.title_ar = titleError;
+    
+    const contentError = validateField('content_ar', formData.content_ar);
+    if (contentError) errors.content_ar = contentError;
+
+    const expiryError = validateField('expires_at', formData.expires_at);
+    if (expiryError) errors.expires_at = expiryError;
+
+    return errors;
+  };
+
+  const isContentExpired = (content: ContentItem) => {
+    if (content.category !== 'announcement' || !content.expires_at) return false;
+    return new Date(content.expires_at) < new Date();
+  };
+
+  const isContentActive = (content: ContentItem) => {
+    if (content.category !== 'announcement' || !content.expires_at) return false;
+    return new Date(content.expires_at) >= new Date();
+  };
+
   const handleCreateContent = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      return;
+    }
+
     setFormErrors({});
     setIsSaving(true);
 
@@ -162,7 +279,8 @@ export default function ContentManagementPage() {
         category: 'news',
         status: 'draft',
         featured: false,
-        published_at: ''
+        published_at: '',
+        expires_at: ''
       });
       setCurrentPage(1);
 
@@ -170,7 +288,7 @@ export default function ContentManagementPage() {
       const response = await API.content.getAll({ page: 1, per_page: 15 });
       setContents(response.data || []);
     } catch (error: any) {
-      setFormErrors({ general: error.message || 'Failed to create content' });
+      setFormErrors({ general: error.message || (language === 'ar' ? 'فشل إنشاء المحتوى' : 'Failed to create content') });
     } finally {
       setIsSaving(false);
     }
@@ -179,6 +297,12 @@ export default function ContentManagementPage() {
   const handleUpdateContent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedContent) return;
+
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      return;
+    }
 
     setFormErrors({});
     setIsSaving(true);
@@ -196,7 +320,8 @@ export default function ContentManagementPage() {
         category: 'news',
         status: 'draft',
         featured: false,
-        published_at: ''
+        published_at: '',
+        expires_at: ''
       });
 
       // Refresh contents list
@@ -209,7 +334,7 @@ export default function ContentManagementPage() {
       });
       setContents(response.data || []);
     } catch (error: any) {
-      setFormErrors({ general: error.message || 'Failed to update content' });
+      setFormErrors({ general: error.message || (language === 'ar' ? 'فشل تحديث المحتوى' : 'Failed to update content') });
     } finally {
       setIsSaving(false);
     }
@@ -247,8 +372,11 @@ export default function ContentManagementPage() {
       category: content.category,
       status: content.status,
       featured: content.featured,
-      published_at: content.published_at ? new Date(content.published_at).toISOString().split('T')[0] : ''
+      published_at: content.published_at ? new Date(content.published_at).toISOString().split('T')[0] : '',
+      expires_at: content.expires_at ? new Date(content.expires_at).toISOString().slice(0, 16) : ''
     });
+    setFormErrors({});
+    setTouchedFields(new Set());
     setShowEditModal(true);
   };
 
@@ -300,6 +428,33 @@ export default function ContentManagementPage() {
     return statuses.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-700';
   };
 
+  const formatDateTime = (dateString: string | undefined) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title_ar: '',
+      title_en: '',
+      content_ar: '',
+      content_en: '',
+      category: 'news',
+      status: 'draft',
+      featured: false,
+      published_at: '',
+      expires_at: ''
+    });
+    setFormErrors({});
+    setTouchedFields(new Set());
+  };
+
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg">
@@ -322,8 +477,8 @@ export default function ContentManagementPage() {
               </h1>
               <p className="text-gray-500 dark:text-white/70">
                 {language === 'ar'
-                  ? 'إدارة الأخبار والمقالات والمراسيم'
-                  : 'Manage news, articles, and decrees'}
+                  ? 'إدارة الأخبار والمقالات والمراسيم والإعلانات'
+                  : 'Manage news, articles, decrees, and announcements'}
               </p>
             </div>
             <button
@@ -337,7 +492,7 @@ export default function ContentManagementPage() {
 
           {/* Filters */}
           <div className="mb-6 bg-white dark:bg-gov-card/10 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gov-border/15">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* Search */}
               <form onSubmit={handleSearch} className="md:col-span-2">
                 <div className="relative">
@@ -379,14 +534,40 @@ export default function ContentManagementPage() {
                   </option>
                 ))}
               </select>
+
+              {/* Expiry Filter */}
+              <select
+                value={expiryFilter}
+                onChange={(e) => { setExpiryFilter(e.target.value); setCurrentPage(1); }}
+                className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
+              >
+                {expiryFilters.map(filter => (
+                  <option key={filter.value} value={filter.value}>
+                    {language === 'ar' ? filter.label_ar : filter.label_en}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {/* Contents Table */}
           <div className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="animate-spin text-gov-gold" size={40} />
+              <div className="p-6">
+                {/* Header Skeleton */}
+                <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gov-border/15 mb-4">
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[10%]"><SkeletonText lines={1} /></div>
+                </div>
+                {/* Table Rows Skeleton */}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <TableRowSkeleton key={i} />
+                ))}
               </div>
             ) : contents.length === 0 ? (
               <div className="text-center py-12 text-gray-500 dark:text-white/70">
@@ -413,66 +594,92 @@ export default function ContentManagementPage() {
                         {language === 'ar' ? 'تاريخ النشر' : 'Published'}
                       </th>
                       <th className="px-6 py-4 text-right text-sm font-bold text-gov-charcoal dark:text-white">
+                        {language === 'ar' ? 'تاريخ الانتهاء' : 'Expires At'}
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'الإجراءات' : 'Actions'}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                    {contents.map((content) => (
-                      <tr key={content.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {content.featured && <Star size={16} className="text-gov-gold fill-gov-gold" />}
-                            <span className="text-gov-charcoal dark:text-white font-medium">
-                              {language === 'ar' ? content.title_ar : (content.title_en || content.title_ar)}
+                    {contents.map((content) => {
+                      const expired = isContentExpired(content);
+                      const active = isContentActive(content);
+                      
+                      return (
+                        <tr key={content.id} className={`hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${expired ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {content.featured && <Star size={16} className="text-gov-gold fill-gov-gold" />}
+                              <span className="text-gov-charcoal dark:text-white font-medium">
+                                {language === 'ar' ? content.title_ar : (content.title_en || content.title_ar)}
+                              </span>
+                              {expired && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                  <AlertCircle size={12} />
+                                  {language === 'ar' ? 'منتهي' : 'Expired'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex px-3 py-1 rounded-full text-sm font-bold bg-gov-teal/10 text-gov-teal">
+                              {getCategoryLabel(content.category)}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex px-3 py-1 rounded-full text-sm font-bold bg-gov-teal/10 text-gov-teal">
-                            {getCategoryLabel(content.category)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(content.status)}`}>
-                            {getStatusLabel(content.status)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-white/70">
-                          {content.view_count.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
-                          {content.published_at
-                            ? new Date(content.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
-                            : '-'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditContent(content)}
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gov-teal transition-colors"
-                              title={language === 'ar' ? 'تعديل' : 'Edit'}
-                            >
-                              <Edit size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleViewHistory(content)}
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gov-gold transition-colors"
-                              title={language === 'ar' ? 'تاريخ الإصدارات' : 'Version History'}
-                            >
-                              <History size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteContent(content.id)}
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-red-600 transition-colors"
-                              title={language === 'ar' ? 'حذف' : 'Delete'}
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(content.status)}`}>
+                              {getStatusLabel(content.status)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-white/70">
+                            {content.view_count.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
+                            {content.published_at
+                              ? new Date(content.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
+                              : '-'}
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
+                            {content.expires_at ? (
+                              <div className="flex items-center gap-2">
+                                <Clock size={14} className={expired ? 'text-red-500' : 'text-green-500'} />
+                                <span className={expired ? 'text-red-600 dark:text-red-400' : ''}>
+                                  {formatDateTime(content.expires_at)}
+                                </span>
+                              </div>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditContent(content)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gov-teal transition-colors"
+                                title={language === 'ar' ? 'تعديل' : 'Edit'}
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleViewHistory(content)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gov-gold transition-colors"
+                                title={language === 'ar' ? 'تاريخ الإصدارات' : 'Version History'}
+                              >
+                                <History size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteContent(content.id)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-red-600 transition-colors"
+                                title={language === 'ar' ? 'حذف' : 'Delete'}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -515,17 +722,7 @@ export default function ContentManagementPage() {
               <button
                 onClick={() => {
                   setShowCreateModal(false);
-                  setFormData({
-                    title_ar: '',
-                    title_en: '',
-                    content_ar: '',
-                    content_en: '',
-                    category: 'news',
-                    status: 'draft',
-                    featured: false,
-                    published_at: ''
-                  });
-                  setFormErrors({});
+                  resetForm();
                 }}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
@@ -550,26 +747,74 @@ export default function ContentManagementPage() {
                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                     {language === 'ar' ? 'العنوان بالعربية' : 'Title in Arabic'} *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title_ar}
-                    onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.title_ar}
+                      onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
+                      onBlur={() => handleBlur('title_ar')}
+                      className={`w-full px-4 py-3 rounded-xl border pl-12 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('title_ar') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('title_ar') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      {getFieldStatus('title_ar') === 'valid' && (
+                        <CheckCircle2 className="text-green-500" size={20} />
+                      )}
+                      {getFieldStatus('title_ar') === 'invalid' && (
+                        <XCircle className="text-gov-red" size={20} />
+                      )}
+                    </div>
+                  </div>
+                  {formErrors.title_ar && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.title_ar}
+                    </p>
+                  )}
+                  {getFieldStatus('title_ar') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                     {language === 'ar' ? 'المحتوى بالعربية' : 'Content in Arabic'} *
                   </label>
-                  <textarea
-                    required
-                    rows={6}
-                    value={formData.content_ar}
-                    onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
-                  />
+                  <div className="relative">
+                    <textarea
+                      rows={6}
+                      value={formData.content_ar}
+                      onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
+                      onBlur={() => handleBlur('content_ar')}
+                      className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('content_ar') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('content_ar') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                  </div>
+                  {formErrors.content_ar && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.content_ar}
+                    </p>
+                  )}
+                  {getFieldStatus('content_ar') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
                   {/* FR-14: AI Content Tools for Arabic content */}
                   <AIContentTools
                     content={formData.content_ar}
@@ -678,6 +923,47 @@ export default function ContentManagementPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                    {language === 'ar' ? 'تاريخ الانتهاء' : 'Expiry Date'}
+                    {formData.category === 'announcement' && (
+                      <span className="text-gov-red mr-1">*</span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="datetime-local"
+                      value={formData.expires_at}
+                      onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+                      onBlur={() => handleBlur('expires_at')}
+                      className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('expires_at') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('expires_at') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                  </div>
+                  {formErrors.expires_at && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.expires_at}
+                    </p>
+                  )}
+                  {getFieldStatus('expires_at') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
+                  {formData.category === 'announcement' && getFieldStatus('expires_at') === 'neutral' && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      {language === 'ar' ? 'مطلوب للإعلانات - يرجى تحديد تاريخ ووقت الانتهاء' : 'Required for announcements - Please specify expiry date and time'}
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
@@ -697,17 +983,7 @@ export default function ContentManagementPage() {
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
-                    setFormData({
-                      title_ar: '',
-                      title_en: '',
-                      content_ar: '',
-                      content_en: '',
-                      category: 'news',
-                      status: 'draft',
-                      featured: false,
-                      published_at: ''
-                    });
-                    setFormErrors({});
+                    resetForm();
                   }}
                   className="flex-1 px-6 py-3 bg-gray-200 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-white/20 transition-all"
                 >
@@ -748,17 +1024,7 @@ export default function ContentManagementPage() {
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedContent(null);
-                  setFormData({
-                    title_ar: '',
-                    title_en: '',
-                    content_ar: '',
-                    content_en: '',
-                    category: 'news',
-                    status: 'draft',
-                    featured: false,
-                    published_at: ''
-                  });
-                  setFormErrors({});
+                  resetForm();
                 }}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
@@ -783,26 +1049,74 @@ export default function ContentManagementPage() {
                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                     {language === 'ar' ? 'العنوان بالعربية' : 'Title in Arabic'} *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title_ar}
-                    onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.title_ar}
+                      onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
+                      onBlur={() => handleBlur('title_ar')}
+                      className={`w-full px-4 py-3 rounded-xl border pl-12 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('title_ar') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('title_ar') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      {getFieldStatus('title_ar') === 'valid' && (
+                        <CheckCircle2 className="text-green-500" size={20} />
+                      )}
+                      {getFieldStatus('title_ar') === 'invalid' && (
+                        <XCircle className="text-gov-red" size={20} />
+                      )}
+                    </div>
+                  </div>
+                  {formErrors.title_ar && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.title_ar}
+                    </p>
+                  )}
+                  {getFieldStatus('title_ar') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
                     {language === 'ar' ? 'المحتوى بالعربية' : 'Content in Arabic'} *
                   </label>
-                  <textarea
-                    required
-                    rows={6}
-                    value={formData.content_ar}
-                    onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
-                  />
+                  <div className="relative">
+                    <textarea
+                      rows={6}
+                      value={formData.content_ar}
+                      onChange={(e) => setFormData({ ...formData, content_ar: e.target.value })}
+                      onBlur={() => handleBlur('content_ar')}
+                      className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('content_ar') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('content_ar') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                  </div>
+                  {formErrors.content_ar && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.content_ar}
+                    </p>
+                  )}
+                  {getFieldStatus('content_ar') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
                   {/* FR-14: AI Content Tools for Arabic content */}
                   <AIContentTools
                     content={formData.content_ar}
@@ -911,6 +1225,47 @@ export default function ContentManagementPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                    {language === 'ar' ? 'تاريخ الانتهاء' : 'Expiry Date'}
+                    {formData.category === 'announcement' && (
+                      <span className="text-gov-red mr-1">*</span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="datetime-local"
+                      value={formData.expires_at}
+                      onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+                      onBlur={() => handleBlur('expires_at')}
+                      className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none transition-all duration-200 ${
+                        getFieldStatus('expires_at') === 'invalid'
+                          ? 'border-gov-red dark:border-gov-red'
+                          : getFieldStatus('expires_at') === 'valid'
+                          ? 'border-green-500 dark:border-green-500'
+                          : 'border-gray-300 dark:border-gov-border/15'
+                      }`}
+                    />
+                  </div>
+                  {formErrors.expires_at && (
+                    <p className="mt-2 text-sm text-gov-red dark:text-gov-red flex items-center gap-1">
+                      <XCircle size={14} />
+                      {formErrors.expires_at}
+                    </p>
+                  )}
+                  {getFieldStatus('expires_at') === 'valid' && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 size={14} />
+                      {language === 'ar' ? 'الحقل صالح' : 'Field is valid'}
+                    </p>
+                  )}
+                  {formData.category === 'announcement' && getFieldStatus('expires_at') === 'neutral' && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      {language === 'ar' ? 'مطلوب للإعلانات - يرجى تحديد تاريخ ووقت الانتهاء' : 'Required for announcements - Please specify expiry date and time'}
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
@@ -931,17 +1286,7 @@ export default function ContentManagementPage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedContent(null);
-                    setFormData({
-                      title_ar: '',
-                      title_en: '',
-                      content_ar: '',
-                      content_en: '',
-                      category: 'news',
-                      status: 'draft',
-                      featured: false,
-                      published_at: ''
-                    });
-                    setFormErrors({});
+                    resetForm();
                   }}
                   className="flex-1 px-6 py-3 bg-gray-200 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-white/20 transition-all"
                 >

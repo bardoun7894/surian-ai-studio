@@ -6,7 +6,6 @@ import { Service, Directorate } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import {
-    Loader2,
     ChevronRight,
     ChevronLeft,
     Clock,
@@ -46,8 +45,11 @@ import {
     Gavel,
     FileSignature,
     UserCog,
-    Settings
+    Settings,
+    Heart
 } from 'lucide-react';
+import { SkeletonText } from '@/components/SkeletonLoader';
+import FavoriteButton from '@/components/FavoriteButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getLocalizedField, getLocalizedName } from '@/lib/utils';
 import Link from 'next/link';
@@ -159,8 +161,103 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center">
-                    <Loader2 className="animate-spin text-gov-teal" size={40} />
+                <main className="flex-grow pt-20 md:pt-24">
+                    {/* Hero Section Skeleton */}
+                    <div className="bg-gov-forest text-white py-16 px-4">
+                        <div className="max-w-5xl mx-auto">
+                            <div className="inline-flex items-center gap-2 mb-8">
+                                <div className="w-5 h-5 rounded-full bg-white/10 animate-pulse" />
+                                <div className="h-5 w-40 bg-white/10 rounded animate-pulse" />
+                            </div>
+
+                            <div className="flex flex-col md:flex-row items-start gap-8 relative">
+                                <div className="absolute top-0 ltr:right-0 rtl:left-0 z-10">
+                                    <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" />
+                                </div>
+                                <div className="w-24 h-24 rounded-3xl bg-white/10 animate-pulse" />
+                                <div className="flex-1 space-y-4">
+                                    <div className="h-6 w-32 bg-white/10 rounded-full animate-pulse" />
+                                    <div className="h-12 md:h-16 w-3/4 bg-white/10 rounded-xl animate-pulse" />
+                                    <div className="h-6 w-full bg-white/10 rounded animate-pulse" />
+                                    <div className="h-6 w-1/2 bg-white/10 rounded animate-pulse" />
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="h-10 w-32 bg-white/10 rounded-2xl animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content Section Skeleton */}
+                    <div className="max-w-5xl mx-auto px-4 py-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                            {/* Main Info Skeleton */}
+                            <div className="lg:col-span-2 space-y-12">
+                                {/* About Service */}
+                                <section>
+                                    <div className="h-8 w-40 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse mb-6" />
+                                    <div className="space-y-3">
+                                        <SkeletonText lines={4} />
+                                        <div className="h-4 w-full bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                        <div className="h-4 w-4/5 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                    </div>
+                                </section>
+
+                                {/* Requirements */}
+                                <section>
+                                    <div className="h-8 w-48 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse mb-6" />
+                                    <div className="space-y-4">
+                                        {[...Array(4)].map((_, i) => (
+                                            <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15">
+                                                <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/10 animate-pulse mt-1" />
+                                                <div className="h-4 flex-1 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+
+                                {/* Steps */}
+                                <section>
+                                    <div className="h-8 w-48 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse mb-6" />
+                                    <div className="space-y-4">
+                                        {[...Array(3)].map((_, i) => (
+                                            <div key={i} className="flex gap-4">
+                                                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 animate-pulse" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse" />
+                                                    <div className="h-4 w-full bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+
+                            {/* Sidebar Skeleton */}
+                            <div className="space-y-6">
+                                {/* Service Info Card */}
+                                <div className="bg-white dark:bg-gov-card/10 p-6 rounded-3xl border border-gray-100 dark:border-gov-border/15">
+                                    <div className="h-6 w-32 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse mb-6" />
+                                    <div className="space-y-6">
+                                        {[...Array(4)].map((_, i) => (
+                                            <div key={i} className="flex justify-between items-center pb-4 border-b border-gray-50 dark:border-white/5">
+                                                <div className="h-4 w-24 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                                <div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Support Card */}
+                                <div className="bg-gov-teal/5 dark:bg-gov-gold/5 p-6 rounded-3xl border border-gov-teal/10 dark:border-gov-border/15">
+                                    <div className="h-6 w-24 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse mb-4" />
+                                    <div className="h-4 w-full bg-gray-200 dark:bg-white/5 rounded animate-pulse mb-2" />
+                                    <div className="h-4 w-3/4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
+                                    <div className="mt-4 h-8 w-32 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
                 <Footer />
             </div>
@@ -296,7 +393,20 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                             {language === 'ar' ? 'العودة لدليل الخدمات' : 'Back to Services Guide'}
                         </Link>
 
-                        <div className="flex flex-col md:flex-row items-start gap-8">
+                        <div className="flex flex-col md:flex-row items-start gap-8 relative">
+                            <div className="absolute top-0 ltr:right-0 rtl:left-0 z-10">
+                                <FavoriteButton
+                                    contentType="service"
+                                    contentId={service.id}
+                                    size={24}
+                                    variant="default"
+                                    metadata={{
+                                        title: getLocalizedField(service, 'title', language as 'ar' | 'en'),
+                                        description: getLocalizedField(service, 'description', language as 'ar' | 'en'),
+                                        url: `/services/${service.id}`
+                                    }}
+                                />
+                            </div>
                             <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
                                 {(() => {
                                     const DirectorateIcon = directorate ? (iconMap[directorate.icon] || Building) : Building;

@@ -15,7 +15,9 @@ import {
   CheckCircle,
   Send,
   Smartphone,
-  MessageCircle
+  MessageCircle,
+  Flag,
+  Scale
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -95,8 +97,8 @@ export default function SystemSettingsPage() {
         }
 
         // After settings are loaded, initialize channel toggles from real values
-        const allSettings = Object.values(fetchedSettings).flat();
-        const findSetting = (key: string) => allSettings.find((s: any) => s.key === key);
+        const allSettings = Object.values(fetchedSettings).flat() as Setting[];
+        const findSetting = (key: string) => allSettings.find(s => s.key === key);
         const emailSetting = findSetting('email_enabled');
         const smsSetting = findSetting('sms_enabled');
         const whatsappSetting = findSetting('whatsapp_enabled');
@@ -259,6 +261,8 @@ export default function SystemSettingsPage() {
       case 'security': return Shield;
       case 'system': return Database;
       case 'channels': return Send;
+      case 'feature_flags': return Flag;
+      case 'rules': return Scale;
       default: return Settings;
     }
   };
@@ -290,6 +294,8 @@ export default function SystemSettingsPage() {
       security: { ar: 'إعدادات الأمان', en: 'Security Settings' },
       system: { ar: 'إعدادات النظام', en: 'System Settings' },
       channels: { ar: 'قنوات الإرسال الخارجية', en: 'External Channels' },
+      rules: { ar: 'القواعد والشروط', en: 'Rules & Regulations' },
+      feature_flags: { ar: 'خيارات التفعيل', en: 'Feature Flags' },
     };
 
     return language === 'ar' ? (labels[group]?.ar || group) : (labels[group]?.en || group);
@@ -381,6 +387,29 @@ export default function SystemSettingsPage() {
                 }
               }}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none font-mono text-sm"
+            />
+          </div>
+        );
+
+      case 'text':
+        return (
+          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl">
+            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+              {label}
+              {setting.is_encrypted && (
+                <span className="ml-2 text-xs bg-gov-red/10 text-gov-red px-2 py-1 rounded">
+                  {language === 'ar' ? 'محمي' : 'Encrypted'}
+                </span>
+              )}
+            </label>
+            {description && (
+              <p className="text-xs text-gray-500 dark:text-white/70 mb-2">{description}</p>
+            )}
+            <textarea
+              rows={4}
+              value={currentValue || ''}
+              onChange={(e) => handleValueChange(setting.key, e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gov-border/15 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-teal outline-none"
             />
           </div>
         );

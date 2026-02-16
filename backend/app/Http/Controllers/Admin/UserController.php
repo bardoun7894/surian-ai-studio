@@ -52,9 +52,13 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
             'directorate_id' => 'nullable|exists:directorates,id',
             'phone' => 'nullable|string|max:20',
-            'national_id' => 'nullable|string|max:50|unique:users,national_id',
+            'national_id' => 'nullable|string|size:11|regex:/^\d{11}$/|unique:users,national_id',
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
+        ], [
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
         ]);
 
         $role = Role::where('name', $validated['role'])->first();
@@ -95,10 +99,14 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
             'directorate_id' => 'nullable|exists:directorates,id',
             'phone' => 'nullable|string|max:20',
-            'national_id' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
+            'national_id' => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
             'is_active' => 'nullable',
+        ], [
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
         ]);
 
         $role = Role::where('name', $validated['role'])->first();

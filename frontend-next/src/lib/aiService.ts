@@ -14,7 +14,7 @@ export interface ComplaintAnalysis {
 export interface AIServiceClient {
   chat(prompt: string): Promise<string>;
   analyzeComplaint(text: string): Promise<ComplaintAnalysis>;
-  summarize(text: string): Promise<string>;
+  summarize(text: string, language?: string): Promise<string>;
   suggestTitle(text: string): Promise<string>;
   proofread(text: string): Promise<string>;
   extractTextFromImage(file: File): Promise<string>;
@@ -51,11 +51,11 @@ class AIService implements AIServiceClient {
     return await response.json();
   }
 
-  async summarize(text: string): Promise<string> {
+  async summarize(text: string, language: string = 'ar'): Promise<string> {
     const response = await fetch(`/ai/summarize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, language }),
     });
 
     if (!response.ok) {

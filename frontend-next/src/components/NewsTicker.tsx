@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { API } from '@/lib/repository';
 import { useLanguage } from '../contexts/LanguageContext';
+import { SkeletonText } from '@/components/SkeletonLoader';
 
 interface BreakingNewsItem {
   title_ar: string;
@@ -10,23 +12,19 @@ interface BreakingNewsItem {
 
 interface NewsTickerProps {
   onNewsLoaded?: (hasNews: boolean) => void;
+  className?: string;
 }
 
-const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
+const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded, className = '' }) => {
   const { t, language } = useLanguage();
-  const tickerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const [breakingNews, setBreakingNews] = useState<BreakingNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const animationRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
     const fetchBreaking = async () => {
       try {
         const rawData = await API.news.getBreakingNews();
         const data = Array.isArray(rawData) ? rawData : [];
-        // Handle both old format (string[]) and new format ({title_ar, title_en}[])
         const normalizedData = data.map((item: string | BreakingNewsItem) => {
           if (typeof item === 'string') {
             return { title_ar: item, title_en: item };
@@ -49,68 +47,58 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded }) => {
     return language === 'en' ? (item.title_en || item.title_ar) : item.title_ar;
   };
 
-  useEffect(() => {
-    if (!contentRef.current || !tickerRef.current || loading || breakingNews.length === 0) return;
-
-    // Reset animation
-    gsap.killTweensOf(contentRef.current);
-
-    const contentWidth = contentRef.current.scrollWidth / 3; // Divide by 3 since we triplicate content
-
-    // Create seamless loop - For RTL, scroll from right to left (negative X)
-    const tl = gsap.timeline({ repeat: -1 });
-    tl.fromTo(contentRef.current,
-      { x: 0 },
-      {
-        x: -contentWidth,
-        duration: 50, // Slower for readability
-        ease: "none",
-      }
+  if (loading) {
+    return (
+      <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-10 flex items-center ${className}`}>
+        {/* Label */}
+        <div className="flex-shrink-0 bg-gov-gold px-4 h-full z-20 flex items-center font-bold shadow-lg">
+          <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2 h-2 bg-gov-cherry rounded-full animate-pulse"></span>
+          <span className="text-sm font-display text-gov-forest">{t('news_breaking')}</span>
+        </div>
+        {/* Skeleton content */}
+        <div className="flex-1 overflow-hidden h-full px-4">
+          <div className="flex items-center h-full gap-4">
+            <SkeletonText lines={1} className="w-64" />
+            <SkeletonText lines={1} className="w-48" />
+            <SkeletonText lines={1} className="w-56" />
+          </div>
+        </div>
+      </div>
     );
+  }
 
-    // Add pause instruction
-    const el = tickerRef.current;
-    if (el) {
-      el.addEventListener('mouseenter', () => tl.pause());
-      el.addEventListener('mouseleave', () => tl.play());
-    }
+  if (breakingNews.length === 0) return null;
 
-    animationRef.current = tl;
+  if (breakingNews.length === 0) return null;
 
-    return () => {
-      tl.kill();
-    };
-  }, [loading, breakingNews]);
-
-  // Handle pause on hover
-  useEffect(() => {
-    if (!animationRef.current) return;
-    if (isPaused) {
-      animationRef.current.pause();
-    } else {
-      animationRef.current.resume();
-    }
-  }, [isPaused]);
-
-  if (loading || breakingNews.length === 0) return null;
+  // Triple the items to ensure it feels "longer" and has plenty of content to scroll through
+  const items = [...breakingNews, ...breakingNews, ...breakingNews];
+  // Increase multiplier from 2.8 to 6.0 to make it significantly slower
+  const animationDuration = Math.max(30, items.length * 6.0);
 
   return (
-    <div
-      className="bg-gradient-to-r from-gov-forest via-gov-teal to-gov-forest dark:from-gov-emeraldStatic dark:to-gov-emeraldStatic dark:via-gov-emeraldStatic text-white border-b border-gov-gold/20 relative overflow-hidden h-16 flex items-center"
-      ref={tickerRef}
-    >
-      <div className="absolute right-0 top-0 bottom-0 bg-gov-teal px-6 z-20 flex items-center font-bold shadow-lg border-l border-gov-gold/20 rtl:border-l-0 rtl:border-r rtl:border-gov-gold/20">
-        <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2.5 h-2.5 bg-gov-cherry rounded-full animate-pulse shadow-[0_0_12px_rgba(200,16,46,0.7)]"></span>
-        <span className="text-base">{t('news_breaking')}</span>
+    <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md text-gov-forest dark:text-white border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-10 flex items-center ${className}`}>
+      {/* Label */}
+      <div className="flex-shrink-0 bg-gov-gold px-4 h-full z-20 flex items-center font-bold shadow-lg">
+        <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2 h-2 bg-gov-cherry rounded-full animate-pulse"></span>
+        <span className="text-sm font-display text-gov-forest">{t('news_breaking')}</span>
       </div>
 
-      <div className="flex-1 overflow-hidden relative h-full">
-        <div ref={contentRef} className="absolute top-0 right-0 h-full flex items-center whitespace-nowrap gap-16 pr-[160px]">
-          {[...breakingNews, ...breakingNews, ...breakingNews].map((news, idx) => (
-            <div key={`${idx}-${news.title_ar.slice(0, 10)}`} className="flex items-center gap-4 text-base text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
+      {/* Scrolling content - Force LTR layout for consistency with absolute positioning/negative margins if any */}
+      <div className="flex-1 overflow-hidden h-full" dir="ltr">
+        <div
+          className={`${language === 'ar' ? 'animate-ticker-rtl' : 'animate-ticker-ltr'} h-full w-max min-w-full flex items-center whitespace-nowrap gap-12 px-4 will-change-transform`}
+          style={{ animationDuration: `${animationDuration}s` }}
+        >
+          {items.map((news, idx) => (
+            <span
+              key={idx}
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              className="shrink-0 flex items-center gap-4 text-base text-gov-forest dark:text-white"
+            >
               <span className="font-medium">{getTitle(news)}</span>
               <span className="text-gov-gold text-sm">●</span>
-            </div>
+            </span>
           ))}
         </div>
       </div>

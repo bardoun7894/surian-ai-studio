@@ -90,6 +90,7 @@ const ResetPasswordPage = () => {
                             width={160}
                             height={160}
                             className="relative z-10 drop-shadow-2xl"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
                     <h1 className="text-3xl font-display font-bold text-white text-center mb-4">

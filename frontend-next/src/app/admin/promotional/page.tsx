@@ -110,7 +110,7 @@ export default function AdminPromotionalPage() {
           description_en: 'Discover investment opportunities in Syria',
           button_text_ar: 'اكتشف المزيد',
           button_text_en: 'Discover More',
-          button_url: '/investments',
+          button_url: '/investment',
           image: '/assets/investment.jpg',
           video_url: null,
           background_color: '#1a4d3e',

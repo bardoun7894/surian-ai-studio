@@ -26,6 +26,7 @@ import {
     Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
 
 interface DirectoratesListProps {
     variant?: 'full' | 'compact';
@@ -91,13 +92,26 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     };
 
     const filteredDirectorates = variant === 'full'
-        ? directorates.filter(dir => dir.name.includes(searchTerm) || dir.description.includes(searchTerm))
+        ? directorates.filter(dir => {
+            const name = typeof dir.name === 'string' ? dir.name : (language === 'ar' ? dir.name.ar : dir.name.en);
+            const desc = typeof dir.description === 'string' ? dir.description : (language === 'ar' ? dir.description.ar : dir.description.en);
+            return name.includes(searchTerm) || desc.includes(searchTerm);
+        })
         : directorates.slice(0, 6); // Show only top 6 in compact mode
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-20">
-                <Loader2 className="animate-spin text-gov-teal" size={40} />
+            <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${variant === 'full' ? 'py-16 min-h-screen' : 'py-12'}`}>
+                <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+                    <div className={`text-center ${variant === 'full' ? 'md:text-right rtl:md:text-right ltr:md:text-left' : 'md:text-center w-full'}`}>
+                        <div className="h-8 w-64 bg-gray-200 dark:bg-white/10 rounded animate-pulse mb-2 mx-auto md:mx-0"></div>
+                        <div className="h-4 w-96 bg-gray-200 dark:bg-white/10 rounded animate-pulse mx-auto md:mx-0"></div>
+                    </div>
+                </div>
+                <SkeletonGrid cards={variant === 'full' ? 9 : 6} className={variant === 'full'
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+                } />
             </div>
         );
     }
@@ -109,7 +123,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                 <div className={`text-center ${variant === 'full' ? 'md:text-right rtl:md:text-right ltr:md:text-left' : 'md:text-center w-full'}`}>
                     <h2 className={`text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2 flex items-center gap-3 justify-center ${variant === 'full' ? 'md:justify-start' : ''}`}>
                         <LayoutGrid className="text-gov-teal dark:text-gov-gold" />
-                        {variant === 'full' ? t('dir_title_full') : t('dir_title_compact')}
+                        {variant === 'full' ? (t('organizational_structure') || (language === 'ar' ? 'الهيكل التنظيمي' : 'Organizational Structure')) : t('dir_title_compact')}
                     </h2>
                     <p className="text-gov-stone/60 dark:text-white/70">
                         {variant === 'full'
@@ -161,14 +175,18 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                         {getIcon(dir.icon, isCompact)}
                                     </div>
                                     <div>
-                                        <h3 className={`${isCompact ? 'text-sm' : 'text-lg'} font-bold text-gov-charcoal dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors`}>{dir.name}</h3>
+                                        <h3 className={`${isCompact ? 'text-sm' : 'text-lg'} font-bold text-gov-charcoal dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors`}>
+                                            {typeof dir.name === 'string' ? dir.name : (language === 'ar' ? dir.name.ar : dir.name.en)}
+                                        </h3>
                                         {!isCompact && <span className="text-xs text-gov-sand font-medium">{dir.servicesCount} {language === 'ar' ? 'خدمة متاحة' : 'Services'}</span>}
                                     </div>
                                 </div>
 
                                 {/* Description - Hidden in Compact Mode */}
                                 {!isCompact && (
-                                    <p className="text-sm text-gov-stone/60 dark:text-white/70 mb-6 leading-relaxed line-clamp-2 min-h-[40px]">{dir.description}</p>
+                                    <p className="text-sm text-gov-stone/60 dark:text-white/70 mb-6 leading-relaxed line-clamp-2 min-h-[40px]">
+                                        {typeof dir.description === 'string' ? dir.description : (language === 'ar' ? dir.description.ar : dir.description.en)}
+                                    </p>
                                 )}
 
                                 {/* Services List - Hidden in Compact Mode */}

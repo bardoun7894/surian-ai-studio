@@ -14,6 +14,9 @@ return new class extends Migration
             $table->text('question_en')->nullable();
             $table->text('answer_ar');
             $table->text('answer_en')->nullable();
+            $table->string('category')->nullable(); // Added
+            $table->integer('order')->default(0); // Added
+            $table->boolean('is_active')->default(true); // Added
             $table->boolean('suggested_by_ai')->default(false);
             $table->boolean('is_published')->default(true);
             $table->timestamps();

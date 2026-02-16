@@ -2,21 +2,21 @@
 
 import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Calendar, ChevronLeft, Loader2, Sparkles, X, Clock, Search, Landmark, Building2, LayoutGrid } from 'lucide-react';
+import { Calendar, ChevronLeft, Loader2, Sparkles, X, Clock, Search, Landmark, Building2, LayoutGrid, ArrowLeft, Star } from 'lucide-react';
 import { API } from '@/lib/repository';
-import { NewsItem, Directorate } from '@/types';
+import { NewsItem, Directorate, PaginatedResponse } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FavoriteButton from '@/components/FavoriteButton';
+import Pagination from '@/components/Pagination';
 import Image from 'next/image';
 import Link from 'next/link';
 import { aiService } from '@/lib/aiService';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const MONTHS_AR = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
-const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
+import { formatRelativeTime } from '@/lib/utils';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
+import ContentFilter from '@/components/ContentFilter';
+import ScrollAnimation from '@/components/ui/ScrollAnimation';
 
 export default function NewsPage() {
   return (
@@ -26,46 +26,68 @@ export default function NewsPage() {
   );
 }
 
+interface DirectorateNewsGroup {
+  directorate: { id: string; name: string; name_ar?: string; name_en?: string; icon: string };
+  news: NewsItem[];
+}
+
 function NewsPageContent() {
   const { language } = useLanguage();
   const searchParams = useSearchParams();
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const isAr = language === 'ar';
+
+  const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [groupedNews, setGroupedNews] = useState<DirectorateNewsGroup[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dirFilter, setDirFilter] = useState(() => searchParams.get('directorate') || 'all');
-  const [timeFilter, setTimeFilter] = useState('all');
+
+  // Filter state
+  const [activeView, setActiveView] = useState<string>(() => searchParams.get('directorate') || 'organized');
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-  const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
+
+  // Pagination state for flat views
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [perPage] = useState(12);
+
+  // AI summary modal
   const [summaryModal, setSummaryModal] = useState<{ isOpen: boolean; title: string; summary: string; loading: boolean }>({
-    isOpen: false,
-    title: '',
-    summary: '',
-    loading: false
+    isOpen: false, title: '', summary: '', loading: false
   });
 
   const handleAISummary = async (item: NewsItem) => {
     setSummaryModal({ isOpen: true, title: item.title, summary: '', loading: true });
     try {
-      const summary = await aiService.summarize(item.summary || item.title);
+      const textToSummarize = isAr
+        ? ((item as any).summary_ar || item.summary || item.title)
+        : ((item as any).summary_en || item.summary || item.title);
+      const summary = await aiService.summarize(textToSummarize, language);
       setSummaryModal(prev => ({ ...prev, summary, loading: false }));
-    } catch (e) {
-      setSummaryModal(prev => ({ ...prev, summary: language === 'ar' ? 'فشل في إنشاء الملخص. يرجى المحاولة مرة أخرى.' : 'Failed to generate summary. Please try again.', loading: false }));
+    } catch {
+      setSummaryModal(prev => ({
+        ...prev,
+        summary: isAr ? 'فشل في إنشاء الملخص. يرجى المحاولة مرة أخرى.' : 'Failed to generate summary.',
+        loading: false
+      }));
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [newsData, dirsData] = await Promise.all([
+        const [newsData, dirsData, grouped] = await Promise.all([
           API.news.getOfficialNews(),
-          API.directorates.getFeatured()
+          API.directorates.getFeatured(),
+          API.news.getGroupedByDirectorate()
         ]);
-        setNews(newsData);
+        // allNews from getOfficialNews is used for organized view (featured hero, "All News" section)
+        setAllNews(newsData);
         setDirectorates(dirsData);
+        setGroupedNews(grouped);
       } catch (e) {
         console.error(e);
       } finally {
@@ -75,33 +97,53 @@ function NewsPageContent() {
     fetchData();
   }, []);
 
-  const directorateFilters = useMemo(() => {
-    const filters: { key: string; label_ar: string; label_en: string; icon: typeof LayoutGrid }[] = [
-      { key: 'all', label_ar: 'جميع الأخبار', label_en: 'All News', icon: LayoutGrid },
-      { key: 'central', label_ar: 'أخبار الإدارة المركزية', label_en: 'Central Administration News', icon: Landmark },
+  // Paginated fetch for flat views (non-organized)
+  useEffect(() => {
+    if (activeView === 'organized') return;
+
+    const fetchPaginated = async () => {
+      setLoading(true);
+      try {
+        const directorateId = (activeView !== 'all' && activeView !== 'central') ? activeView : undefined;
+        const response = await API.news.getPaginated(currentPage, perPage, directorateId);
+        setAllNews(response.data);
+        setCurrentPage(response.current_page);
+        setLastPage(response.last_page);
+        setTotalItems(response.total);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPaginated();
+  }, [activeView, currentPage, perPage]);
+
+  // View tabs
+  const viewTabs = useMemo(() => {
+    const t = [
+      { key: 'organized', label: isAr ? 'عرض منظم' : 'Organized View', icon: LayoutGrid },
+      { key: 'all', label: isAr ? 'جميع الأخبار' : 'All News', icon: LayoutGrid },
+      { key: 'central', label: isAr ? 'أخبار الإدارة المركزية' : 'Central Admin News', icon: Landmark },
     ];
     directorates.forEach(d => {
       const nameAr = (d as any).name_ar || (typeof d.name === 'object' ? (d.name as any).ar : d.name);
       const nameEn = (d as any).name_en || (typeof d.name === 'object' ? (d.name as any).en : d.name);
-      filters.push({
-        key: String(d.id),
-        label_ar: nameAr,
-        label_en: nameEn,
-        icon: Building2,
-      });
+      t.push({ key: String(d.id), label: isAr ? nameAr : nameEn, icon: Building2 });
     });
-    return filters;
-  }, [directorates]);
+    return t;
+  }, [directorates, language, isAr]);
 
-  const allFiltered = useMemo(() => {
-    let result = [...news];
+  // Filtered flat news (for non-organized views)
+  const filteredFlatNews = useMemo(() => {
+    let result = [...allNews];
 
-    // Directorate filter
-    if (dirFilter !== 'all') {
-      if (dirFilter === 'central') {
+    // View filter
+    if (activeView !== 'organized' && activeView !== 'all') {
+      if (activeView === 'central') {
         result = result.filter(item => !(item as any).directorate_id && !(item as any).directorate_name);
       } else {
-        result = result.filter(item => String((item as any).directorate_id) === dirFilter);
+        result = result.filter(item => String((item as any).directorate_id) === activeView);
       }
     }
 
@@ -116,45 +158,271 @@ function NewsPageContent() {
       );
     }
 
-    // Time filter
-    if (timeFilter !== 'all') {
-      const now = new Date();
-      const cutoff = new Date();
-      switch (timeFilter) {
-        case 'today':
-          cutoff.setHours(0, 0, 0, 0);
-          break;
-        case 'week':
-          cutoff.setDate(now.getDate() - 7);
-          break;
-        case 'month':
-          cutoff.setMonth(now.getMonth() - 1);
-          break;
-        case 'year':
-          cutoff.setFullYear(now.getFullYear() - 1);
-          break;
-      }
-      result = result.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate >= cutoff;
-      });
-    }
-
     // Month/Year filter
     if (selectedMonth !== null || selectedYear !== null) {
       result = result.filter(item => {
-        const itemDate = new Date(item.date);
-        if (selectedYear !== null && itemDate.getFullYear() !== selectedYear) return false;
-        if (selectedMonth !== null && itemDate.getMonth() !== selectedMonth) return false;
+        const d = new Date(item.date);
+        if (selectedYear !== null && d.getFullYear() !== selectedYear) return false;
+        if (selectedMonth !== null && d.getMonth() !== selectedMonth) return false;
         return true;
       });
     }
 
     return result;
-  }, [news, dirFilter, searchQuery, timeFilter, selectedMonth, selectedYear]);
+  }, [allNews, activeView, searchQuery, selectedMonth, selectedYear]);
 
-  const filteredNews = allFiltered.slice(0, visibleCount);
-  const isAr = language === 'ar';
+  // Featured / hero news (most recent or marked urgent)
+  const featuredNews = useMemo(() => {
+    const sorted = [...allNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const urgent = sorted.find(n => n.isUrgent);
+    if (urgent) return urgent;
+    return sorted[0] || null;
+  }, [allNews]);
+
+  // News card component
+  const NewsCard = ({ item, index = 0, compact = false }: { item: NewsItem; index?: number; compact?: boolean }) => (
+    <div className="bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
+      <div className={`${compact ? 'h-36' : 'h-48'} w-full relative`}>
+        <Link href={`/news/${item.id}`} className="block h-full w-full">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={item.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
+              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gov-forest/10 to-gov-teal/10 dark:from-gov-gold/5 dark:to-gov-forest/10 flex items-center justify-center">
+              <Landmark size={40} className="text-gov-teal/30 dark:text-gov-gold/30" />
+            </div>
+          )}
+        </Link>
+        <div className="absolute top-3 ltr:right-3 rtl:left-3 z-10">
+          <FavoriteButton
+            contentType="news"
+            contentId={String(item.id)}
+            variant="overlay"
+            size={16}
+            metadata={{
+              title: isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title),
+              description: isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary),
+              image: item.imageUrl,
+              url: `/news/${item.id}`,
+            }}
+          />
+        </div>
+        {(item as any).directorate_name && (
+          <div className="absolute bottom-3 right-3 z-10">
+            <span className="px-2.5 py-1 bg-black/60 text-white text-[10px] font-bold rounded-lg backdrop-blur-sm">
+              {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-2">
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-gov-gold" />
+            {formatRelativeTime(item.date, language as 'ar' | 'en')}
+          </div>
+          <button
+            onClick={(e) => { e.preventDefault(); handleAISummary(item); }}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold hover:bg-gov-gold hover:text-white transition-colors"
+            title={isAr ? 'ملخص ذكي' : 'AI Summary'}
+          >
+            <Sparkles size={12} />
+            <span className="text-[10px] font-bold">{isAr ? 'ملخص AI' : 'AI'}</span>
+          </button>
+        </div>
+        <Link href={`/news/${item.id}`}>
+          <h3 className={`font-bold text-gov-charcoal dark:text-gov-gold mb-2 leading-snug group-hover:text-gov-teal dark:group-hover:text-white transition-colors ${compact ? 'line-clamp-2 text-sm' : 'line-clamp-2'}`}>
+            {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+          </h3>
+        </Link>
+        {!compact && (
+          <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2 mb-3 flex-1">
+            {isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary)}
+          </p>
+        )}
+        <Link href={`/news/${item.id}`} className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto">
+          {isAr ? 'اقرأ التفاصيل' : 'Read More'}
+          <ChevronLeft size={14} className={language === 'ar' ? '' : 'rotate-180'} />
+        </Link>
+      </div>
+    </div>
+  );
+
+  // Organized view: Hero + Per-Directorate + All
+  const renderOrganizedView = () => {
+    if (loading) {
+      return <SkeletonGrid cards={8} />;
+    }
+
+    return (
+      <div className="space-y-16">
+        {/* 1. Featured / Hero News */}
+        {featuredNews && (
+          <ScrollAnimation>
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gov-gold/10 dark:bg-gov-gold/20 flex items-center justify-center">
+                  <Star size={20} className="text-gov-gold" />
+                </div>
+                <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
+                  {isAr ? 'الخبر الرئيسي' : 'Featured News'}
+                </h2>
+              </div>
+
+              <Link href={`/news/${featuredNews.id}`} className="block group">
+                <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px]">
+                  {featuredNews.imageUrl ? (
+                    <Image
+                      src={featuredNews.imageUrl}
+                      alt={featuredNews.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      priority
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                    {featuredNews.isUrgent && (
+                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
+                        {isAr ? 'عاجل' : 'Breaking'}
+                      </span>
+                    )}
+                    {(featuredNews as any).directorate_name && (
+                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
+                        {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
+                      </span>
+                    )}
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                      {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
+                    </h3>
+                    <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
+                      {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
+                    </p>
+                    <div className="flex items-center gap-4 text-white/60 text-sm">
+                      <span className="flex items-center gap-1">
+                        <Calendar size={14} />
+                        {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </section>
+          </ScrollAnimation>
+        )}
+
+        {/* 2. News Per Directorate (3 per directorate) */}
+        {groupedNews.map((group, gIdx) => (
+          <ScrollAnimation key={group.directorate.id} delay={gIdx * 0.05}>
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
+                    <Building2 size={20} className="text-gov-forest dark:text-gov-gold" />
+                  </div>
+                  <h2 className="text-xl font-display font-bold text-gov-forest dark:text-gov-gold">
+                    {isAr ? (group.directorate.name_ar || group.directorate.name) : (group.directorate.name_en || group.directorate.name)}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => { setActiveView(group.directorate.id); setVisibleCount(12); }}
+                  className="text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1"
+                >
+                  {isAr ? 'عرض الكل' : 'View All'}
+                  <ArrowLeft size={14} className={isAr ? '' : 'rotate-180'} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {group.news.slice(0, 3).map((item, idx) => (
+                  <NewsCard key={item.id} item={item} index={idx} compact />
+                ))}
+              </div>
+            </section>
+          </ScrollAnimation>
+        ))}
+
+        {/* 3. All News */}
+        <ScrollAnimation>
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-teal/20 flex items-center justify-center">
+                <LayoutGrid size={20} className="text-gov-teal dark:text-gov-teal" />
+              </div>
+              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
+                {isAr ? 'جميع الأخبار' : 'All News'}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {allNews.slice(0, visibleCount).map((item, idx) => (
+                <NewsCard key={`all-${item.id}-${idx}`} item={item} index={idx} />
+              ))}
+            </div>
+
+            {visibleCount < allNews.length && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={() => { setActiveView('all'); setCurrentPage(1); }}
+                  className="px-8 py-3 bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                >
+                  {isAr ? 'عرض جميع الأخبار' : 'View All News'}
+                </button>
+              </div>
+            )}
+          </section>
+        </ScrollAnimation>
+      </div>
+    );
+  };
+
+  // Flat filtered view (for specific directorate/central/all tabs)
+  const renderFlatView = () => {
+    if (loading) {
+      return <SkeletonGrid cards={8} />;
+    }
+
+    if (filteredFlatNews.length === 0) {
+      return (
+        <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
+          <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
+          <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
+            {isAr ? 'لا توجد نتائج' : 'No Results'}
+          </h3>
+          <p className="text-gray-500 dark:text-white/70 text-sm">
+            {isAr ? 'لم يتم العثور على أخبار مطابقة.' : 'No news found matching your criteria.'}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {filteredFlatNews.map((item, index) => (
+            <ScrollAnimation key={`${item.id}-${index}`} delay={index * 0.05}>
+              <NewsCard item={item} index={index} />
+            </ScrollAnimation>
+          ))}
+        </div>
+        <Pagination
+          currentPage={currentPage}
+          lastPage={lastPage}
+          total={totalItems}
+          perPage={perPage}
+          onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        />
+      </>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
@@ -170,251 +438,71 @@ function NewsPageContent() {
             <p className="text-white/70 mb-6">
               {isAr ? 'تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة.' : 'Browse all news, decisions, and press reports.'}
             </p>
-
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Directorate Filters */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            {directorateFilters.map(df => {
-              const Icon = df.icon;
-              const isActive = dirFilter === df.key;
-              return (
-                <button
-                  key={df.key}
-                  onClick={() => { setDirFilter(df.key); setVisibleCount(12); }}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
-                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-lg shadow-gov-forest/20 dark:shadow-gov-button/20'
-                    : 'bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white/70 border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
-                    }`}
-                >
-                  <Icon size={16} className={isActive ? '' : 'text-gov-teal dark:text-gov-gold'} />
-                  <span>{isAr ? df.label_ar : df.label_en}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Time Filter + Count */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
-                <Clock size={16} />
-                <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>
-              </div>
-              <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
-
-              {/* Month Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
-                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
-                    }`}
-                >
-                  {selectedMonth !== null
-                    ? (isAr ? MONTHS_AR[selectedMonth] : MONTHS_EN[selectedMonth])
-                    : (isAr ? 'الشهر' : 'Month')}
-                  <Calendar size={12} />
-                </button>
-                {showMonthDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
-                    <button
-                      onClick={() => { setSelectedMonth(null); setShowMonthDropdown(false); setVisibleCount(12); }}
-                      className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
-                    >
-                      {isAr ? 'الكل' : 'All'}
-                    </button>
-                    {(isAr ? MONTHS_AR : MONTHS_EN).map((m, i) => (
-                      <button
-                        key={i}
-                        onClick={() => { setSelectedMonth(i); setTimeFilter('all'); setShowMonthDropdown(false); setVisibleCount(12); }}
-                        className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${selectedMonth === i ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gov-charcoal dark:text-white'}`}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Year Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
-                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
-                    }`}
-                >
-                  {selectedYear !== null ? selectedYear : (isAr ? 'السنة' : 'Year')}
-                  <Calendar size={12} />
-                </button>
-                {showYearDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-32 z-50">
-                    <button
-                      onClick={() => { setSelectedYear(null); setShowYearDropdown(false); setVisibleCount(12); }}
-                      className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
-                    >
-                      {isAr ? 'الكل' : 'All'}
-                    </button>
-                    {YEARS.map(y => (
-                      <button
-                        key={y}
-                        onClick={() => { setSelectedYear(y); setTimeFilter('all'); setShowYearDropdown(false); setVisibleCount(12); }}
-                        className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${selectedYear === y ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gov-charcoal dark:text-white'}`}
-                      >
-                        {y}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Clear filters */}
-              {(selectedMonth !== null || selectedYear !== null) && (
-                <button
-                  onClick={() => { setSelectedMonth(null); setSelectedYear(null); setVisibleCount(12); }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
-                >
-                  <X size={12} />
-                  {isAr ? 'مسح' : 'Clear'}
-                </button>
-              )}
-            </div>
-            <span className="text-sm text-gray-400 dark:text-white/50 font-medium">
-              {allFiltered.length} {isAr ? 'خبر' : 'articles'}
-            </span>
-          </div>
+          {/* Unified Content Filter */}
+          <ContentFilter
+            tabs={viewTabs}
+            activeTab={activeView}
+            onTabChange={(k) => { setActiveView(k); setVisibleCount(12); setCurrentPage(1); }}
+            showDateFilter={activeView !== 'organized'}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setVisibleCount(12); }}
+            onSearch={activeView !== 'organized' ? (q) => setSearchQuery(q) : undefined}
+            searchValue={searchQuery}
+            totalCount={activeView === 'organized' ? allNews.length : totalItems}
+            countLabel={isAr ? 'خبر' : 'articles'}
+            className="mb-8"
+          />
 
           {/* Content */}
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="animate-spin text-gov-teal" size={40} />
-            </div>
-          ) : filteredNews.length === 0 ? (
-            <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
-              <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
-              <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
-                {isAr ? 'لا توجد نتائج' : 'No Results'}
-              </h3>
-              <p className="text-gray-500 dark:text-white/70 text-sm">
-                {isAr ? 'لم يتم العثور على أخبار مطابقة للبحث أو الفلتر المحدد.' : 'No news found matching your search or filter.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredNews.map((item, index) => (
-                <div
-                  key={`${item.id}-${index}`}
-                  className="bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col"
-                >
-                  <Link href={`/news/${item.id}`} className="h-48 overflow-hidden relative block">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gov-forest/10 to-gov-teal/10 dark:from-gov-gold/5 dark:to-gov-forest/10 flex items-center justify-center">
-                        <Landmark size={40} className="text-gov-teal/30 dark:text-gov-gold/30" />
-                      </div>
-                    )}
-                    {(item as any).directorate_name && (
-                      <div className="absolute bottom-3 right-3 z-10">
-                        <span className="px-2.5 py-1 bg-black/60 text-white text-[10px] font-bold rounded-lg backdrop-blur-sm">
-                          {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
-                        </span>
-                      </div>
-                    )}
-                  </Link>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={14} className="text-gov-gold" />
-                        {item.date}
-                      </div>
-                      <button
-                        onClick={(e) => { e.preventDefault(); handleAISummary(item); }}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold hover:bg-gov-gold hover:text-white transition-colors"
-                        title={isAr ? 'ملخص ذكي' : 'AI Summary'}
-                      >
-                        <Sparkles size={12} />
-                        <span className="text-[10px] font-bold">{isAr ? 'ملخص AI' : 'AI'}</span>
-                      </button>
-                    </div>
-                    <Link href={`/news/${item.id}`}>
-                      <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-3 leading-snug group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2">
-                        {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
-                      </h3>
-                    </Link>
-                    <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-3 mb-4 flex-1">
-                      {isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary)}
-                    </p>
-                    <Link href={`/news/${item.id}`} className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto">
-                      {isAr ? 'اقرأ التفاصيل' : 'Read More'}
-                      <ChevronLeft size={14} className={language === 'ar' ? '' : 'rotate-180'} />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {activeView === 'organized' ? renderOrganizedView() : renderFlatView()}
 
-          {visibleCount < allFiltered.length && (
-            <div className="mt-12 flex justify-center">
-              <button
-                onClick={() => setVisibleCount(prev => prev + 12)}
-                className="px-8 py-3 bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
-              >
-                {isAr ? 'تحميل المزيد' : 'Load More'}
-              </button>
+          {/* FAQ Section */}
+          {activeView !== 'organized' && (
+            <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
+              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
+                {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
+              </h2>
+              <div className="space-y-4">
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr ? 'كيف أبقى على اطلاع بآخر الأخبار؟' : 'How do I stay updated with latest news?'}
+                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr ? 'يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة.' : 'You can follow the latest news through this page or subscribe to the ministry newsletter.'}
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr ? 'هل يمكنني تصفية الأخبار حسب المديرية؟' : 'Can I filter news by directorate?'}
+                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr ? 'نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية.' : 'Yes, use the filter buttons above to filter news by directorate or time period.'}
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr ? 'ما هو الملخص الذكي؟' : 'What is AI Summary?'}
+                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr ? 'خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد.' : 'An AI-powered service that summarizes long news content into a concise and useful format.'}
+                  </p>
+                </details>
+              </div>
+              <div className="mt-4 text-center">
+                <Link href="/faq" className="text-gov-teal dark:text-gov-gold font-bold text-sm hover:underline">
+                  {isAr ? 'عرض جميع الأسئلة الشائعة ←' : '→ View all FAQs'}
+                </Link>
+              </div>
             </div>
           )}
-          {/* FAQ Section */}
-          <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
-            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
-              {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
-            </h2>
-            <div className="space-y-4">
-              <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                  {isAr ? 'كيف أبقى على اطلاع بآخر الأخبار؟' : 'How do I stay updated with latest news?'}
-                  <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
-                </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                  {isAr ? 'يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة.' : 'You can follow the latest news through this page or subscribe to the ministry newsletter.'}
-                </p>
-              </details>
-              <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                  {isAr ? 'هل يمكنني تصفية الأخبار حسب المديرية؟' : 'Can I filter news by directorate?'}
-                  <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
-                </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                  {isAr ? 'نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية.' : 'Yes, use the filter buttons above to filter news by directorate or time period.'}
-                </p>
-              </details>
-              <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                  {isAr ? 'ما هو الملخص الذكي؟' : 'What is AI Summary?'}
-                  <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
-                </summary>
-                <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                  {isAr ? 'خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد.' : 'An AI-powered service that summarizes long news content into a concise and useful format.'}
-                </p>
-              </details>
-            </div>
-            <div className="mt-4 text-center">
-              <Link href="/faq" className="text-gov-teal dark:text-gov-gold font-bold text-sm hover:underline">
-                {isAr ? 'عرض جميع الأسئلة الشائعة ←' : '→ View all FAQs'}
-              </Link>
-            </div>
-          </div>
         </div>
       </main>
 

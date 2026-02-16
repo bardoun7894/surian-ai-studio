@@ -3,7 +3,7 @@
 import React from 'react';
 import { PlayCircle, Clock } from 'lucide-react';
 import { Article } from '@/types';
-import { getLocalizedField } from '@/lib/utils';
+import { getLocalizedField, formatRelativeTime } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,8 +25,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'default' 
 
   if (variant === 'compact') {
     return (
-      <Link href={href} className="group flex items-start gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5">
-        <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden relative">
+      <Link href={href} className="group flex items-start gap-4 rounded-2xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5 overflow-hidden">
+        <div className="w-32 h-32 flex-shrink-0 relative">
           <Image
             src={article.imageUrl}
             alt={title}
@@ -34,14 +34,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'default' 
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 py-3 pr-3 rtl:pr-0 rtl:pl-3">
           <span className="text-xs font-bold text-gov-gold mb-1 block">{category}</span>
           <h4 className="text-sm font-bold text-white dark:text-gov-teal leading-snug mb-2 line-clamp-2 group-hover:text-gov-gold transition-colors">
             {title}
           </h4>
           <div className="flex items-center gap-2 text-xs text-gov-sand">
             <Clock size={12} />
-            <span>{article.date}</span>
+            <span>{formatRelativeTime(article.date, lang)}</span>
           </div>
         </div>
       </Link>
@@ -83,8 +83,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'default' 
 
   // Default
   return (
-    <Link href={href} className="group flex flex-col gap-4 p-4 rounded-3xl bg-gov-forest/40 dark:bg-dm-surface border border-gov-gold/10 hover:border-gov-gold/30 hover:bg-gov-forest/60 transition-all cursor-pointer h-full">
-      <div className="w-full aspect-video rounded-2xl overflow-hidden relative">
+    <Link href={href} className="group flex flex-col rounded-3xl bg-gov-forest/40 dark:bg-dm-surface border border-gov-gold/10 hover:border-gov-gold/30 hover:bg-gov-forest/60 transition-all cursor-pointer h-full overflow-hidden">
+      <div className="w-full aspect-video relative">
         <Image
           src={article.imageUrl}
           alt={title}
@@ -95,7 +95,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'default' 
           <PlayCircle size={40} className="text-white drop-shadow-lg" />
         </div>
       </div>
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="w-2 h-2 rounded-full bg-gov-gold"></span>
           <span className="text-xs font-bold text-gov-sand uppercase tracking-wider">{category}</span>
@@ -111,7 +111,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'default' 
             {author?.[0] || ''}
           </div>
           <span className="text-xs text-gov-sand">{author}</span>
-          <span className="text-xs text-gov-sand/60 mr-auto">{article.date}</span>
+          <span className="text-xs text-gov-sand/60 mr-auto">{formatRelativeTime(article.date, lang)}</span>
         </div>
       </div>
     </Link>

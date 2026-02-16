@@ -143,6 +143,7 @@ class OpenAIProvider(AIProvider):
         text: str,
         max_length: int = 200,
         language: str = "ar",
+        system_prompt: Optional[str] = None,
     ) -> SummarizeResponse:
         """Summarize text using OpenAI."""
         lang_instruction = "باللغة العربية" if language == "ar" else "in English"
@@ -159,9 +160,14 @@ class OpenAIProvider(AIProvider):
     "key_points": ["نقطة 1", "نقطة 2", "نقطة 3"]
 }}"""
 
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
         response = await self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=0.3,
             max_tokens=800,
             response_format={"type": "json_object"},

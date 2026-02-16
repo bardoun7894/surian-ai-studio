@@ -1,5 +1,7 @@
 import { Directorate, Service, Article, NewsItem, Decree, MediaItem } from './types';
 
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 export const MOCK_MEDIA: MediaItem[] = [
   {
     id: 'm1',
@@ -64,7 +66,14 @@ export const DIRECTORATES: Directorate[] = [
       { id: 'sd1-1', name: { ar: 'مديرية التراخيص الصناعية', en: 'Directorate of Industrial Licensing' }, url: '/directorates/industry/licensing' },
       { id: 'sd1-2', name: { ar: 'مديرية المواصفات والمقاييس', en: 'Directorate of Standards & Specifications' }, url: '/directorates/industry/standards' },
       { id: 'sd1-3', name: { ar: 'مديرية المدن الصناعية', en: 'Directorate of Industrial Zones' }, url: '/directorates/industry/zones' }
-    ]
+    ],
+    latitude: 33.5138,
+    longitude: 36.2765,
+    address_ar: 'دمشق - الجمارك مقابل الأمن الجنائي',
+    address_en: 'Damascus - Customs, opposite Criminal Security',
+    phone: '+963 11 222 3333',
+    email: 'contact@ministry.gov.sy',
+    website: 'www.ministry.gov.sy'
   },
   {
     id: 'd2',
@@ -76,7 +85,14 @@ export const DIRECTORATES: Directorate[] = [
       { id: 'sd2-1', name: { ar: 'مديرية التجارة الخارجية', en: 'Directorate of Foreign Trade' }, url: '/directorates/economy/trade' },
       { id: 'sd2-2', name: { ar: 'هيئة المشروعات الصغيرة', en: 'SME Development Authority' }, url: 'https://sme.gov.sy', isExternal: true },
       { id: 'sd2-3', name: { ar: 'مديرية السياسات الاقتصادية', en: 'Directorate of Economic Policies' }, url: '/directorates/economy/policies' }
-    ]
+    ],
+    latitude: 33.5100,
+    longitude: 36.2800,
+    address_ar: 'دمشق - الجمارك مقابل الأمن الجنائي',
+    address_en: 'Damascus - Customs, opposite Criminal Security',
+    phone: '+963 11 222 3333',
+    email: 'contact@ministry.gov.sy',
+    website: 'www.ministry.gov.sy'
   },
   {
     id: 'd3',
@@ -88,7 +104,14 @@ export const DIRECTORATES: Directorate[] = [
       { id: 'sd3-1', name: { ar: 'مديرية حماية المستهلك', en: 'Directorate of Consumer Protection' }, url: '/directorates/trade/protection' },
       { id: 'sd3-2', name: { ar: 'مديرية الشركات', en: 'Directorate of Companies' }, url: '/directorates/trade/companies' },
       { id: 'sd3-3', name: { ar: 'مديرية الأسعار', en: 'Directorate of Prices' }, url: '/directorates/trade/prices' }
-    ]
+    ],
+    latitude: 33.5200,
+    longitude: 36.3100,
+    address_ar: 'دمشق - الجمارك مقابل الأمن الجنائي',
+    address_en: 'Damascus - Customs, opposite Criminal Security',
+    phone: '+963 11 222 3333',
+    email: 'contact@ministry.gov.sy',
+    website: 'www.ministry.gov.sy'
   }
 ];
 
@@ -255,16 +278,16 @@ export const DECREES: Decree[] = [
 // Bilingual data structures - Ministry of Economy and Industry
 export const DIRECTORATES_BILINGUAL: Record<string, { ar: Directorate; en: Directorate }> = {
   'd1': {
-    ar: { id: 'd1', name: 'الإدارة العامة للصناعة', description: 'إدارة شؤون الصناعة والمصانع والمناطق الصناعية والمواصفات والمقاييس.', icon: 'Factory', servicesCount: 6 },
-    en: { id: 'd1', name: 'General Administration for Industry', description: 'Industrial affairs, factories, industrial zones, standards and specifications.', icon: 'Factory', servicesCount: 6 }
+    ar: { id: 'd1', name: 'الإدارة العامة للصناعة', description: 'إدارة شؤون الصناعة والمصانع والمناطق الصناعية والمواصفات والمقاييس.', icon: 'Factory', servicesCount: 6, address: 'دمشق - الجمارك مقابل الأمن الجنائي', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' },
+    en: { id: 'd1', name: 'General Administration for Industry', description: 'Industrial affairs, factories, industrial zones, standards and specifications.', icon: 'Factory', servicesCount: 6, address: 'Damascus - Customs, opposite Criminal Security', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' }
   },
   'd2': {
-    ar: { id: 'd2', name: 'الإدارة العامة للاقتصاد', description: 'إدارة شؤون الاقتصاد والتجارة الخارجية والسياسات الاقتصادية والمشروعات الصغيرة والمتوسطة.', icon: 'TrendingUp', servicesCount: 6 },
-    en: { id: 'd2', name: 'General Administration for Economy', description: 'Economic affairs, foreign trade, economic policies, and SME development.', icon: 'TrendingUp', servicesCount: 6 }
+    ar: { id: 'd2', name: 'الإدارة العامة للاقتصاد', description: 'إدارة شؤون الاقتصاد والتجارة الخارجية والسياسات الاقتصادية والمشروعات الصغيرة والمتوسطة.', icon: 'TrendingUp', servicesCount: 6, address: 'دمشق - الجمارك مقابل الأمن الجنائي', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' },
+    en: { id: 'd2', name: 'General Administration for Economy', description: 'Economic affairs, foreign trade, economic policies, and SME development.', icon: 'TrendingUp', servicesCount: 6, address: 'Damascus - Customs, opposite Criminal Security', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' }
   },
   'd3': {
-    ar: { id: 'd3', name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', description: 'إدارة شؤون التجارة الداخلية وحماية المستهلك والرقابة على الأسواق والشركات.', icon: 'ShieldCheck', servicesCount: 6 },
-    en: { id: 'd3', name: 'General Administration for Internal Trade & Consumer Protection', description: 'Internal trade, consumer protection, market regulation, and company registration.', icon: 'ShieldCheck', servicesCount: 6 }
+    ar: { id: 'd3', name: 'الإدارة العامة للتجارة الداخلية وحماية المستهلك', description: 'إدارة شؤون التجارة الداخلية وحماية المستهلك والرقابة على الأسواق والشركات.', icon: 'ShieldCheck', servicesCount: 6, address: 'دمشق - الجمارك مقابل الأمن الجنائي', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' },
+    en: { id: 'd3', name: 'General Administration for Internal Trade & Consumer Protection', description: 'Internal trade, consumer protection, market regulation, and company registration.', icon: 'ShieldCheck', servicesCount: 6, address: 'Damascus - Customs, opposite Criminal Security', phone: '+963 11 222 3333', email: 'contact@ministry.gov.sy', website: 'www.ministry.gov.sy' }
   }
 };
 

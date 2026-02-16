@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Cairo, Noto_Sans_Arabic, Noto_Kufi_Arabic } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import LayoutExtras from "@/components/LayoutExtras";
+import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 
 // Google Fonts
 const cairo = Cairo({
@@ -85,7 +87,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          {children}
+          <ClientLayoutWrapper>
+            <LayoutExtras />
+            {children}
+          </ClientLayoutWrapper>
         </Providers>
       </body>
     </html>

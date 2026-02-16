@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'invalid_credentials' => 'Invalid email or password.',
+    'invalid_credentials' => 'Invalid credentials.',
+    'login_identifier_required' => 'Please provide an email, phone number, or national ID.',
     'account_disabled' => 'Account is disabled.',
     'too_many_attempts' => 'Too many login attempts. Please try again in :seconds seconds.',
     'otp_sent' => 'Verification code sent to your email.',

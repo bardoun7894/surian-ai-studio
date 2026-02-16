@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, Download, Calendar, Scale, Loader2, Sparkles, X, ChevronDown, Clock } from 'lucide-react';
+import { FileText, Download, Calendar, Scale, Loader2, Sparkles, X, ChevronDown } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Decree } from '@/types';
 import { getLocalizedField } from '@/lib/utils';
@@ -10,6 +10,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { aiService } from '@/lib/aiService';
+import FavoriteButton from '@/components/FavoriteButton';
 
 // Type label mappings
 const typeLabels: Record<string, { ar: string; en: string }> = {
@@ -110,53 +111,42 @@ export default function DecreesPage() {
       <Navbar />
 
       <main className="flex-grow pt-20 md:pt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in-up">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
 
           {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 flex items-center justify-center gap-3">
-              <Scale size={32} className="text-gov-gold" />
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center justify-center gap-2">
+              <Scale size={26} className="text-gov-gold" />
               {isAr ? 'الجريدة الرسمية والتشريعات' : 'Official Gazette & Legislation'}
             </h2>
-            <p className="text-gray-500 dark:text-white/70 max-w-2xl mx-auto">
+            <p className="text-sm text-gray-500 dark:text-white/70 max-w-2xl mx-auto">
               {isAr
                 ? 'البوابة الرسمية للوصول إلى كافة المراسيم التشريعية، القوانين، والقرارات الحكومية الصادرة في الجمهورية العربية السورية.'
                 : 'The official portal for accessing all legislative decrees, laws, and government decisions issued in the Syrian Arab Republic.'}
             </p>
           </div>
 
-          {/* Filters & Search */}
-          <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 mb-8">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                {filterTypes.map(ft => (
-                  <button
-                    key={ft.value}
-                    onClick={() => setFilterType(ft.value)}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors border ${filterType === ft.value ? 'bg-gov-emerald text-white border-gov-emerald' : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border-gray-200 dark:border-gov-border/25 hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                  >
-                    {isAr ? ft.ar : ft.en}
-                  </button>
-                ))}
-              </div>
+          {/* Unified Filter Bar */}
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 px-3 py-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Type Filters */}
+              {filterTypes.map(ft => (
+                <button
+                  key={ft.value}
+                  onClick={() => setFilterType(ft.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${filterType === ft.value ? 'bg-gov-emerald text-white' : 'text-gray-600 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'}`}
+                >
+                  {isAr ? ft.ar : ft.en}
+                </button>
+              ))}
 
-            </div>
-          </div>
-
-          {/* Time Filter Bar */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
-                <Clock size={16} />
-                <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>
-              </div>
-              <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+              <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-1"></div>
 
               {/* Month Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
                     ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
@@ -191,7 +181,7 @@ export default function DecreesPage() {
               <div className="relative">
                 <button
                   onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
                     ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
@@ -224,26 +214,26 @@ export default function DecreesPage() {
               {(selectedMonth !== null || selectedYear !== null) && (
                 <button
                   onClick={() => { setSelectedMonth(null); setSelectedYear(null); }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
+                  className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
                 >
                   <X size={12} />
                   {isAr ? 'مسح' : 'Clear'}
                 </button>
               )}
             </div>
-            <span className="text-sm text-gray-400 dark:text-white/50 font-medium">
+            <span className="text-xs text-gray-400 dark:text-white/50 font-medium">
               {filteredDecrees.length} {isAr ? 'وثيقة' : 'documents'}
             </span>
           </div>
 
           {/* Results */}
-          <div className="space-y-4">
+          <div className="space-y-1.5">
             {loading ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="animate-spin text-gov-teal" size={32} />
               </div>
             ) : filteredDecrees.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-200 dark:border-gov-border/25">
+              <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-xl border border-dashed border-gray-200 dark:border-gov-border/25">
                 <FileText size={48} className="mx-auto text-gray-300 mb-4" />
                 <p className="text-gray-500 dark:text-white/70">
                   {isAr ? 'لا توجد وثائق مطابقة للبحث' : 'No documents match your search'}
@@ -251,16 +241,16 @@ export default function DecreesPage() {
               </div>
             ) : (
               filteredDecrees.map((decree) => (
-                <div key={decree.id} className="bg-white dark:bg-dm-surface p-6 rounded-2xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-lg transition-all duration-300 group">
-                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div key={decree.id} className="bg-white dark:bg-dm-surface px-4 py-3 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-md transition-all duration-300 group">
+                  <div className="flex flex-col md:flex-row gap-3 items-start">
 
                     {/* Icon Box */}
-                    <div className="w-16 h-16 rounded-xl bg-gov-beige dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0 border border-gray-100 dark:border-gov-border/15 group-hover:bg-gov-forest group-hover:text-white transition-colors">
-                      <FileText size={28} />
+                    <div className="w-11 h-11 rounded-lg bg-gov-beige dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0 border border-gray-100 dark:border-gov-border/15 group-hover:bg-gov-forest group-hover:text-white transition-colors">
+                      <FileText size={20} />
                     </div>
 
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className={`px-2 py-1 rounded-md text-xs font-bold ${decree.type === 'قانون' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                           decree.type === 'مرسوم تشريعي' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
                             'bg-gray-100 text-gray-700 dark:bg-dm-surface dark:text-white/70'
@@ -275,14 +265,14 @@ export default function DecreesPage() {
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
+                      <h3 className="text-sm font-display font-bold text-gov-forest dark:text-gov-gold mb-0.5 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors leading-snug">
                         {getLocalizedField(decree, 'title', lang)}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-white/70 mb-4 leading-relaxed">
+                      <p className="text-xs text-gray-600 dark:text-white/70 mb-1.5 leading-relaxed line-clamp-2">
                         {getLocalizedField(decree, 'description', lang)}
                       </p>
 
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <div className="flex items-center gap-3 text-xs text-gray-400">
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>{isAr ? `تاريخ الصدور: ${decree.date}` : `Issued: ${decree.date}`}</span>
@@ -290,18 +280,29 @@ export default function DecreesPage() {
                       </div>
                     </div>
 
-                    <div className="self-center md:self-start flex flex-col gap-2">
+                    <div className="self-center md:self-start flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => handleAISummary(decree)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-sm"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-xs"
                       >
-                        <Sparkles size={16} />
-                        {isAr ? 'ملخص ذكي' : 'AI Summary'}
+                        <Sparkles size={14} />
+                        {isAr ? 'ملخص' : 'Summary'}
                       </button>
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold font-bold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all text-sm border border-transparent hover:border-gov-forest dark:hover:border-gov-gold">
-                        <Download size={16} />
-                        {isAr ? 'تحميل PDF' : 'Download PDF'}
+                      <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold font-bold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all text-xs">
+                        <Download size={14} />
+                        PDF
                       </button>
+                      <FavoriteButton
+                        contentType="law"
+                        contentId={String(decree.id)}
+                        size={16}
+                        variant="default"
+                        metadata={{
+                          title: getLocalizedField(decree, 'title', lang),
+                          description: getLocalizedField(decree, 'description', lang),
+                          url: `/decrees`
+                        }}
+                      />
                     </div>
 
                   </div>

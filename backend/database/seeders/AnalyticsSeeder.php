@@ -29,8 +29,7 @@ class AnalyticsSeeder extends Seeder
                 Complaint::create([
                     'tracking_number' => 'CMP-' . $date->format('Ymd') . '-' . rand(1000, 9999),
                     'user_id' => 1, // Admin user as dummy
-                    'directorate_id' => rand(1, 5), // Assuming 5 directorates exist
-                    'service_id' => rand(1, 5),
+                    'directorate_id' => 'd' . rand(1, 5), // Assuming 5 directorates exist
                     'template_id' => null,
                     'title' => 'Complaint from ' . $date->format('Y-m-d'),
                     'description' => 'Simulated complaint description for analytics testing.',

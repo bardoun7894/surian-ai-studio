@@ -88,6 +88,7 @@ class AIProvider(ABC):
         text: str,
         max_length: int = 200,
         language: str = "ar",
+        system_prompt: Optional[str] = None,
     ) -> SummarizeResponse:
         """
         Summarize text content.
@@ -96,6 +97,7 @@ class AIProvider(ABC):
             text: Text to summarize
             max_length: Maximum summary length in words
             language: Target language code
+            system_prompt: Optional system prompt with domain context
 
         Returns:
             SummarizeResponse with summary and key points

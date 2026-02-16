@@ -7,6 +7,8 @@ import { AlertCircle, CheckCircle, Clock, Filter, Search } from 'lucide-react';
 import Link from 'next/link';
 import SnoozeButton from '@/components/SnoozeButton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { TableRowSkeleton } from '@/components/Skeleton';
+import { SkeletonText } from '@/components/SkeletonLoader';
 
 export default function AdminComplaintsPage() {
     const { language } = useLanguage();
@@ -86,7 +88,23 @@ export default function AdminComplaintsPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                             {loading ? (
-                                <tr><td colSpan={6} className="text-center py-8">جاري التحميل...</td></tr>
+                              <tr>
+                                <td colSpan={6} className="p-6">
+                                  {/* Header Skeleton */}
+                                  <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gov-border/15 mb-4">
+                                    <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                                    <div className="w-[30%]"><SkeletonText lines={1} /></div>
+                                    <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                                    <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                                    <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                                    <div className="w-[10%]"><SkeletonText lines={1} /></div>
+                                  </div>
+                                  {/* Table Rows Skeleton */}
+                                  {Array.from({ length: 6 }).map((_, i) => (
+                                    <TableRowSkeleton key={i} />
+                                  ))}
+                                </td>
+                              </tr>
                             ) : complaints.length === 0 ? (
                                 <tr><td colSpan={6} className="text-center py-8">لا توجد شكاوى</td></tr>
                             ) : (

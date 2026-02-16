@@ -34,7 +34,7 @@ const config: Config = {
           stone: '#3d3a3b',
           border: 'rgb(var(--color-gov-border) / <alpha-value>)',
           button: 'rgb(var(--color-gov-button) / <alpha-value>)',
-          card: '#b3a3d3',
+          card: '#ffffff',
         },
         mofa: {
           teal: 'rgb(var(--color-mofa-teal) / <alpha-value>)',
@@ -49,6 +49,9 @@ const config: Config = {
           border: 'var(--dm-border)',
           input: 'var(--dm-input-bg)',
         }
+      },
+      boxShadow: {
+        gov: '5px 5px 10px #b9a779',
       },
       backgroundImage: {
         'pattern-islamic': "url('/assets/header-bg.png')",

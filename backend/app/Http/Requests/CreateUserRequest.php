@@ -26,7 +26,7 @@ class CreateUserRequest extends FormRequest
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'nullable|string|regex:/^09[0-9]{8}$/|unique:users,phone',
-            'national_id' => 'nullable|string|size:11|unique:users,national_id',
+            'national_id' => 'nullable|string|size:11|regex:/^\d{11}$/|unique:users,national_id',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'role_id' => 'required|exists:roles,id',
             'directorate_id' => 'nullable|exists:directorates,id',

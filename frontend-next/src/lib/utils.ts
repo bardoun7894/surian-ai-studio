@@ -57,7 +57,6 @@ export async function shareContent(title: string, url: string): Promise<boolean>
       return true;
     } catch (err: any) {
       if (err.name === 'AbortError') return false;
-      // Fall through to clipboard fallback
     }
   }
   return copyToClipboard(url);
@@ -67,7 +66,9 @@ export async function shareContent(title: string, url: string): Promise<boolean>
  * Format a date as locale-aware relative time (e.g., "2 hours ago", "منذ ساعتين").
  */
 export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);

@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import DirectoratesMap from '@/components/DirectoratesMap';
 
 interface ContactInfo {
     contact_phone?: string;
@@ -129,16 +130,16 @@ export default function ContactPage() {
                             </div>
 
                             {/* Working Hours */}
-                            <div className="bg-gov-forest text-white p-6 rounded-2xl shadow-lg border border-gov-gold/20 flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-gov-gold shrink-0">
+                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
                                     <Clock size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white mb-1">{language === 'ar' ? 'ساعات العمل' : 'Working Hours'}</h3>
-                                    <p className="text-sm text-gray-300 mb-2">
+                                    <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'ساعات العمل' : 'Working Hours'}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-white/70 mb-2">
                                         {workingHours}
                                     </p>
-                                    <span className="text-xs bg-white/20 px-2 py-1 rounded text-white">
+                                    <span className="text-xs bg-gov-forest/10 dark:bg-gov-gold/10 px-2 py-1 rounded text-gov-forest dark:text-gov-gold">
                                         {language === 'ar' ? 'الجمعة والسبت عطلة رسمية' : 'Fri & Sat Closed'}
                                     </span>
                                 </div>
@@ -232,6 +233,8 @@ export default function ContactPage() {
                                 )}
                             </div>
 
+                            {/* Map Section */}
+                            <DirectoratesMap />
                         </div>
                     </div>
                 </div>

@@ -23,6 +23,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/repository';
 import { User, Role } from '@/types';
+import { TableRowSkeleton } from '@/components/Skeleton';
+import { SkeletonText } from '@/components/SkeletonLoader';
 
 export default function UsersManagementPage() {
   const { language } = useLanguage();
@@ -330,8 +332,20 @@ export default function UsersManagementPage() {
           {/* Users Table */}
           <div className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="animate-spin text-gov-gold" size={40} />
+              <div className="p-6">
+                {/* Header Skeleton */}
+                <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gov-border/15 mb-4">
+                  <div className="w-[20%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[25%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                  <div className="w-[10%]"><SkeletonText lines={1} /></div>
+                </div>
+                {/* Table Rows Skeleton */}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <TableRowSkeleton key={i} />
+                ))}
               </div>
             ) : users.length === 0 ? (
               <div className="text-center py-12 text-gray-500 dark:text-white/70">

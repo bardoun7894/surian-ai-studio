@@ -280,9 +280,8 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                 return (
                   <div
                     key={version.id}
-                    className={`border rounded-lg overflow-hidden ${
-                      isLatest ? 'border-primary-300 bg-primary-50' : 'border-gray-200'
-                    }`}
+                    className={`border rounded-lg overflow-hidden ${isLatest ? 'border-primary-300 bg-primary-50' : 'border-gray-200'
+                      }`}
                   >
                     {/* Version Header */}
                     <div className="p-4 flex items-center justify-between">
@@ -298,7 +297,7 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                           )}
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-white/70">
                           <span className="flex items-center gap-1">
                             <User className="w-4 h-4" />
                             {version.editor.name}
@@ -330,11 +329,10 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                           <button
                             onClick={() => handleCompare(version.version_number)}
                             disabled={compareLoading === version.version_number}
-                            className={`px-3 py-1.5 border rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
-                              comparingVersion === version.version_number
-                                ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                                : 'border-gray-300 hover:bg-gray-50'
-                            }`}
+                            className={`px-3 py-1.5 border rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${comparingVersion === version.version_number
+                              ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                              : 'border-gray-300 hover:bg-gray-50'
+                              }`}
                           >
                             {compareLoading === version.version_number ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -405,7 +403,7 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
                         {compareError === version.version_number ? (
                           <p className="text-sm text-red-600">{t.compareError}</p>
                         ) : compareDiff[version.version_number]?.length === 0 ? (
-                          <p className="text-sm text-gray-600 italic">{t.compareNoChanges}</p>
+                          <p className="text-sm text-gray-600 dark:text-white/70 italic">{t.compareNoChanges}</p>
                         ) : (
                           <div className="space-y-3">
                             {compareDiff[version.version_number]?.map((change, idx) => (
@@ -436,7 +434,7 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
 
                     {/* Created indicator */}
                     {version.changes?.created && (
-                      <div className="border-t border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 italic">
+                      <div className="border-t border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-white/5 p-4 text-sm text-gray-600 dark:text-white/70 italic">
                         {t.created}
                       </div>
                     )}

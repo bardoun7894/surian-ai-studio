@@ -19,8 +19,8 @@ RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd intl zip
 # Install Redis extension via PECL
 RUN pecl install redis && docker-php-ext-enable redis
 
-# PHP upload limits for video files (up to 64MB)
-RUN echo "upload_max_filesize=64M\npost_max_size=64M\nmemory_limit=256M\nmax_execution_time=120" > /usr/local/etc/php/conf.d/uploads.ini
+# PHP upload limits for video files (up to 512MB)
+RUN echo "upload_max_filesize=512M\npost_max_size=512M\nmemory_limit=512M\nmax_execution_time=300" > /usr/local/etc/php/conf.d/uploads.ini
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

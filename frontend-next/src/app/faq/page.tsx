@@ -84,7 +84,7 @@ export default function FAQPage() {
                                     key={faq.id}
                                     className={`bg-white dark:bg-dm-surface rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                                         ? 'border-gov-gold/50 shadow-md'
-                                        : 'border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30'
+                                        : 'border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-gov'
                                         }`}
                                 >
                                     <button

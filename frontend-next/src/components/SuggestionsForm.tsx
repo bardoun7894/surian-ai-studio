@@ -25,6 +25,7 @@ import {
     Fingerprint,
     Calendar,
     ShieldAlert,
+    Star,
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
@@ -34,6 +35,14 @@ import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import SuggestionRating from '@/components/SuggestionRating';
+
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import Select from '@/components/ui/Select';
+import PhoneInput from '@/components/ui/PhoneInput';
+import NationalIdField from './NationalIdField';
+import { MultiUploadProgress } from './UploadProgress';
 
 interface SuggestionPortalProps {
     initialMode?: 'submit' | 'track';
@@ -52,13 +61,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [activeTab, setActiveTab] = useState<'submit' | 'track'>(initialMode);
     const [directoratesList, setDirectoratesList] = useState<Directorate[]>([]);
     const [whatsappNumber, setWhatsappNumber] = useState('963912345678');
+    const [dynamicRules, setDynamicRules] = useState<string>('');
 
-    // Terms Agreement State
-    const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
-    const [showTermsScreen, setShowTermsScreen] = useState(true);
-
-    // Anonymous / Known Identity State
+    // Multi-step Form State
+    const [formStep, setFormStep] = useState(0); // 0: Terms, 1: Identity, 2: Suggestion, 3: Success
     const [isAnonymous, setIsAnonymous] = useState(false);
+    const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
 
     // OTP Verification State (for unauthenticated non-anonymous users)
     const [otpStep, setOtpStep] = useState<'none' | 'sending' | 'sent' | 'verifying' | 'verified'>('none');
@@ -82,6 +90,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Tracking State
     const [trackId, setTrackId] = useState(initialTrackingNumber);
@@ -89,6 +98,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [trackingResult, setTrackingResult] = useState<any | null>(null);
     const [isTracking, setIsTracking] = useState(false);
     const [trackError, setTrackError] = useState<string | null>(null);
+    // T032: Support anonymous tracking mode
+    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
@@ -124,16 +135,21 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     }, [isAuthenticated, user, isAnonymous]);
 
     useEffect(() => {
-        API.directorates.getAll()
-            .then(data => setDirectoratesList(data))
-            .catch(err => console.error('Failed to load directorates:', err));
         API.settings.getByGroup('contact')
             .then(data => {
                 const settings = data as Record<string, string>;
                 if (settings.contact_whatsapp) setWhatsappNumber(settings.contact_whatsapp);
             })
-            .catch(() => {});
-    }, []);
+            .catch(() => { });
+
+        API.settings.getByGroup('rules')
+            .then(data => {
+                const settings = data as Record<string, string>;
+                const key = language === 'ar' ? 'suggestion_rules_ar' : 'suggestion_rules_en';
+                if (settings[key]) setDynamicRules(settings[key]);
+            })
+            .catch(() => { });
+    }, [language]);
 
     useEffect(() => {
         if (!formRef.current) return;
@@ -220,8 +236,15 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }
     };
 
+    const nextStep = () => setFormStep(prev => prev + 1);
+    const prevStep = () => setFormStep(prev => prev - 1);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (formStep < 2) {
+            nextStep();
+            return;
+        }
         if (!isAnonymous && !formData.firstName) {
             toast.error(t('suggestion_required_fields'));
             return;
@@ -233,6 +256,12 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
         setIsSubmitting(true);
         setUploadProgress(0);
+
+        // T030: Track file upload progress
+        const hasFiles = formData.files.length > 0;
+        if (hasFiles) {
+            setIsUploading(true);
+        }
 
         try {
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
@@ -260,8 +289,11 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                 (progress) => setUploadProgress(progress)
             );
 
+            setUploadProgress(100);
             const newTrackingNumber = result.tracking_number || (result as any).trackingNumber || null;
             setSubmittedTicket(newTrackingNumber);
+            setFormStep(3); // Go to success step
+
             toast.success(t('suggestion_success'), {
                 description: newTrackingNumber
                     ? `${t('suggestion_tracking_number')}: ${newTrackingNumber}`
@@ -280,6 +312,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             });
         } finally {
             setIsSubmitting(false);
+            setTimeout(() => { setIsUploading(false); setUploadProgress(0); }, 500);
         }
     };
 
@@ -290,7 +323,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         setTrackingResult(null);
 
         try {
-            const result = await API.suggestions.track(trackId);
+            const result = await API.suggestions.track(trackId, trackMode === 'identified' ? trackNationalId : undefined);
             if (result) {
                 setTrackingResult(result);
                 toast.success(isAr ? 'تم العثور على المقترح' : 'Suggestion found');
@@ -308,28 +341,27 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }
     };
 
+    // T029: Enforced valid suggestion status display with correct Arabic labels
+    const suggestionStatusMap: Record<string, { ar: string; en: string; color: string }> = {
+        'received': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+        'new': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+        'in_progress': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'pending': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'processing': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'reviewed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'implemented': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'rejected': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'responded': { ar: 'تم الرد عليها', en: 'Responded', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+    };
+
     const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'new': return 'bg-gov-ocean/10 text-gov-ocean dark:bg-gov-ocean/20 dark:text-gov-oceanLight';
-            case 'pending': return 'bg-gov-gold/10 text-gov-gold dark:bg-gov-emerald/20';
-            case 'processing': return 'bg-gov-cornflower/10 text-gov-cornflower dark:bg-gov-cornflower/20';
-            case 'reviewed': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
-            case 'implemented': return 'bg-gov-emerald/10 text-gov-emerald dark:bg-gov-emerald/20';
-            case 'rejected': return 'bg-gov-cherry/10 text-gov-cherry dark:bg-gov-cherry/20';
-            default: return 'bg-gov-stone/10 text-gov-stone dark:bg-gov-stone/20 dark:text-white/70';
-        }
+        return (suggestionStatusMap[status] || suggestionStatusMap['received']).color;
     };
 
     const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'new': return t('complaint_status_new');
-            case 'pending': return t('admin_in_progress');
-            case 'processing': return t('complaint_status_in_progress');
-            case 'reviewed': return isAr ? 'تمت المراجعة' : 'Reviewed';
-            case 'implemented': return isAr ? 'تم التنفيذ' : 'Implemented';
-            case 'rejected': return t('complaint_status_rejected');
-            default: return status;
-        }
+        const entry = suggestionStatusMap[status] || suggestionStatusMap['received'];
+        return isAr ? entry.ar : entry.en;
     };
 
     return (
@@ -338,7 +370,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             {/* Tabs */}
             <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
-                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setShowTermsScreen(true); setHasAgreedToTerms(false); }}
+                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setFormStep(0); setHasAgreedToTerms(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
                         ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
                         : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -358,9 +390,33 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             </div>
 
             <div className="bg-white dark:bg-dm-surface rounded-[2rem] shadow-xl border border-gray-100 dark:border-gov-border/25 overflow-hidden backdrop-blur-sm">
+                {/* Progress Indicator */}
+                {activeTab === 'submit' && formStep < 3 && (
+                    <div className="px-8 pt-8 md:px-12">
+                        <div className="flex items-center justify-between mb-4">
+                            {[0, 1, 2].map((step) => (
+                                <div key={step} className="flex flex-col items-center gap-2 flex-1 relative">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all z-10 ${formStep >= step
+                                        ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
+                                        : 'bg-gray-100 dark:bg-white/10 text-gray-400'
+                                        }`}>
+                                        {formStep > step ? <Check size={16} /> : step + 1}
+                                    </div>
+                                    <span className={`text-[10px] font-bold transition-all ${formStep >= step ? 'text-gov-forest dark:text-gov-teal' : 'text-gray-400'}`}>
+                                        {step === 0 ? t('suggestion_step_terms') || 'الشروط' : step === 1 ? t('suggestion_step_identity') || 'الهوية' : t('suggestion_step_details') || 'التفاصيل'}
+                                    </span>
+                                    {step < 2 && (
+                                        <div className={`absolute left-[60%] rtl:left-auto rtl:right-[60%] top-4 w-full h-[2px] -z-0 ${formStep > step ? 'bg-gov-forest dark:bg-gov-teal' : 'bg-gray-100 dark:bg-white/10'}`} />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-                {/* SUBMIT TAB - TERMS AGREEMENT SCREEN */}
-                {activeTab === 'submit' && !submittedTicket && showTermsScreen && (
+
+                {/* SUBMIT TAB - STEP 0: TERMS AGREEMENT */}
+                {activeTab === 'submit' && formStep === 0 && (
                     <div className="p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
@@ -382,36 +438,46 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 {t('suggestion_terms_guidelines')}
                             </h3>
 
-                            <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
-                                {t('suggestion_terms_desc')}
-                            </p>
-
-                            {/* Conditions List */}
-                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
-                                <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
-                                    {t('suggestion_condition_intro')}
+                            {dynamicRules ? (
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                    <p className="text-gov-charcoal dark:text-white text-sm leading-relaxed whitespace-pre-line">
+                                        {dynamicRules}
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
+                                    {t('suggestion_terms_desc')}
                                 </p>
-                                <ul className="space-y-3">
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('suggestion_condition_1')}
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('suggestion_condition_2')}
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                        <p className="text-gov-charcoal dark:text-white text-sm">
-                                            {t('suggestion_condition_3')}
-                                        </p>
-                                    </li>
-                                </ul>
-                            </div>
+
+                                {/* Conditions List */}
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                    <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
+                                        {t('suggestion_condition_intro')}
+                                    </p>
+                                    <ul className="space-y-3">
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">
+                                                {t('suggestion_condition_1')}
+                                            </p>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">
+                                                {t('suggestion_condition_2')}
+                                            </p>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <p className="text-gov-charcoal dark:text-white text-sm">
+                                                {t('suggestion_condition_3')}
+                                            </p>
+                                        </li>
+                                    </ul>
+                                </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Agreement Checkbox */}
@@ -432,23 +498,23 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         {/* Proceed Button */}
                         <button
                             type="button"
-                            onClick={() => setShowTermsScreen(false)}
-                            disabled={!hasAgreedToTerms}
-                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gov-forest dark:disabled:hover:bg-gov-button"
+                            onClick={() => nextStep()}
+                            className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-3"
                         >
                             <span>{t('suggestion_start_new')}</span>
                             <ChevronLeft size={20} className="rtl:rotate-180" />
                         </button>
+
                     </div>
                 )}
 
-                {/* SUBMIT TAB - SUGGESTION FORM */}
-                {activeTab === 'submit' && !submittedTicket && !showTermsScreen && (
+                {/* SUBMIT TAB - STEP 1 & 2: FORM */}
+                {activeTab === 'submit' && (formStep === 1 || formStep === 2) && (
                     <div className="p-8 md:p-12 animate-fade-in">
-                        {/* Back to terms link */}
+                        {/* Back button */}
                         <button
                             type="button"
-                            onClick={() => setShowTermsScreen(true)}
+                            onClick={() => prevStep()}
                             className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
                             <ChevronRight size={16} className="rtl:rotate-180" />
@@ -456,339 +522,253 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </button>
 
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_form_title')}</h2>
-                            <p className="text-gray-600 dark:text-white/70">{t('suggestion_form_subtitle')}</p>
+                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                                {formStep === 1 ? (isAr ? 'تحديد الهوية' : 'Identity Selection') : t('suggestion_form_title')}
+                            </h2>
+                            <p className="text-gray-600 dark:text-white/70">
+                                {formStep === 1 ? (isAr ? 'اختر كيف ترغب في تقديم مقترحك' : 'Choose how you want to submit your suggestion') : t('suggestion_form_subtitle')}
+                            </p>
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-
-                            {/* Anonymous / Known Identity Toggle */}
-                            <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20">
-                                <div className="flex items-center justify-center gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsAnonymous(false)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                            }`}
-                                    >
-                                        <User size={16} />
-                                        {isAuthenticated ? t('complaint_my_data') : t('complaint_known_identity')}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsAnonymous(true)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isAnonymous
-                                            ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                            : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                            }`}
-                                    >
-                                        <UserX size={16} />
-                                        {t('complaint_anonymous_identity')}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Directorate */}
-                            <div>
-                                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                    {t('suggestion_directorate')} <span className="text-xs text-gray-400">({t('suggestion_optional')})</span>
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={formData.directorate_id}
-                                        onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
-                                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none appearance-none"
-                                    >
-                                        <option value="" className="bg-white text-gov-charcoal dark:bg-dm-surface dark:text-white">
-                                            {t('suggestion_directorate_placeholder')}
-                                        </option>
-                                        {directoratesList.map(d => (
-                                            <option key={d.id} value={d.id} className="bg-white text-gov-charcoal dark:bg-dm-surface dark:text-white">
-                                                {isAr ? getLocalizedName(d.name, 'ar') : getLocalizedName(d.name, 'en')}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <Building2 className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                </div>
-                            </div>
-
-                            {/* File Upload */}
-                            <div>
-                                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                    {t('suggestion_attachments')} <span className="text-xs text-gray-400">({t('suggestion_optional')})</span>
-                                </label>
-                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="hidden"
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                    />
-                                    <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
-                                            <Upload size={24} />
-                                        </div>
-                                        <div>
-                                            <span className="block font-bold text-gov-charcoal dark:text-white text-sm">{t('suggestion_attachments_hint')}</span>
-                                            <span className="text-xs text-gray-500 dark:text-white/70">{t('suggestion_attachments_types')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* File List */}
-                                {formData.files.length > 0 && (
-                                    <div className="mt-4 space-y-2">
-                                        {formData.files.map((file, idx) => (
-                                            <div
-                                                key={`${file.name}-${idx}`}
-                                                className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20"
+                            {formStep === 1 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Anonymous / Known Identity Toggle */}
+                                    <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-6 rounded-2xl border border-gov-gold/20 text-center">
+                                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAnonymous(false)}
+                                                className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${!isAnonymous
+                                                    ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
+                                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
+                                                    }`}
                                             >
-                                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
-                                                    <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
-                                                    <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${!isAnonymous ? 'bg-gov-forest text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                                    <User size={24} />
                                                 </div>
-                                                {!isSubmitting && (
-                                                    <button type="button" onClick={() => removeFile(idx)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
-                                                        <X size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Upload Progress */}
-                                {isSubmitting && uploadProgress > 0 && (
-                                    <div className="mt-3">
-                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-1">
-                                            <span>{t('suggestion_sending')}</span>
-                                            <span>{uploadProgress}%</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gov-gold transition-all duration-300"
-                                                style={{ width: `${uploadProgress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Personal Information - Hidden for anonymous submissions */}
-                            {!isAnonymous && (
-                                <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">
-                                        {t('suggestion_personal_info')}
-                                    </h3>
-
-                                    {/* 3-column: First Name, Father Name, Last Name */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_first_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.firstName}
-                                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_father_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.fatherName}
-                                                    onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_name')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required
-                                                    value={formData.lastName}
-                                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* 2-column: National ID, Date of Birth */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" required maxLength={11} minLength={11} placeholder={t('complaint_national_id_hint')}
-                                                    value={formData.nationalId}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value.replace(/\D/g, '');
-                                                        setFormData({ ...formData, nationalId: val });
-                                                    }}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono transition-colors dark:text-white"
-                                                />
-                                                <Fingerprint className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_dob')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="date" required
-                                                    value={formData.dob}
-                                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                />
-                                                <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Email & Phone - moved up to applicant section per item 13 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_phone')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="tel"
-                                                    required={!isAnonymous}
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                    placeholder="09xxxxxxxx"
-                                                />
-                                                <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_email')} <span className="text-gov-gold">*</span></label>
-                                            <div className="relative">
-                                                <input
-                                                    type="email"
-                                                    required={!isAnonymous}
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-sm focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors dark:text-white"
-                                                    placeholder="example@email.com"
-                                                />
-                                                <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Description */}
-                            <div>
-                                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                    {t('suggestion_description')} <span className="text-gov-gold">*</span>
-                                </label>
-                                <textarea
-                                    required
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows={6}
-                                    className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none resize-none"
-                                    placeholder={t('suggestion_description_placeholder')}
-                                />
-                            </div>
-
-
-                            {/* OTP Identity Verification - For unauthenticated non-anonymous users */}
-                            {!isAuthenticated && !isAnonymous && (
-                                <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-6 rounded-xl border border-gov-ocean/20">
-                                    <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2 flex items-center gap-2">
-                                        <Fingerprint size={20} />
-                                        {t('complaint_otp_title')}
-                                    </h3>
-
-                                    {otpStep === 'verified' ? (
-                                        <div className="flex items-center gap-3 text-gov-emerald">
-                                            <CheckCircle2 size={24} />
-                                            <span className="font-bold">{t('complaint_otp_identity_verified')}</span>
-                                        </div>
-                                    ) : otpStep === 'sent' || otpStep === 'verifying' ? (
-                                        <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-white/70">
-                                                {t('complaint_otp_enter_code')}
-                                            </p>
-                                            <div className="flex gap-3">
-                                                <input
-                                                    type="text"
-                                                    maxLength={6}
-                                                    value={otpCode}
-                                                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                                                    placeholder="000000"
-                                                    className="flex-1 py-3 px-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono text-center text-lg tracking-widest"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={handleVerifyOtp}
-                                                    disabled={otpStep === 'verifying' || otpCode.length < 4}
-                                                    className="px-6 py-3 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold disabled:opacity-50 transition-colors"
-                                                >
-                                                    {otpStep === 'verifying' ? <Loader2 size={20} className="animate-spin" /> : t('complaint_otp_verify')}
-                                                </button>
-                                            </div>
+                                                <div>
+                                                    <span className="block text-base">{isAuthenticated ? t('complaint_my_data') : t('complaint_known_identity')}</span>
+                                                    <span className="text-xs font-normal opacity-70">{isAr ? 'تقديم المقترح باسمي الشخصي' : 'Submit suggestion with my personal identity'}</span>
+                                                </div>
+                                            </button>
                                             <button
                                                 type="button"
-                                                onClick={handleSendOtp}
-                                                className="text-sm text-gov-teal dark:text-gov-teal hover:underline"
+                                                onClick={() => setIsAnonymous(true)}
+                                                className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${isAnonymous
+                                                    ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
+                                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
+                                                    }`}
                                             >
-                                                {t('complaint_otp_resend')}
+                                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isAnonymous ? 'bg-gov-forest text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                                    <UserX size={24} />
+                                                </div>
+                                                <div>
+                                                    <span className="block text-base">{t('complaint_anonymous_identity')}</span>
+                                                    <span className="text-xs font-normal opacity-70">{isAr ? 'تقديم المقترح دون الكشف عن هويتي' : 'Submit suggestion without revealing my identity'}</span>
+                                                </div>
                                             </button>
-                                            {otpError && <p className="text-sm text-gov-cherry">{otpError}</p>}
                                         </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            <p className="text-sm text-gray-600 dark:text-white/70">
-                                                {t('complaint_otp_desc')}
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={handleSendOtp}
-                                                disabled={otpStep === 'sending' || !formData.phone || !formData.nationalId}
-                                                className="w-full py-3 rounded-xl bg-gov-ocean dark:bg-gov-ocean/80 text-white font-bold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {otpStep === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                                                {otpStep === 'sending' ? t('complaint_sending') : t('complaint_otp_send')}
-                                            </button>
-                                            {otpError && <p className="text-sm text-gov-cherry">{otpError}</p>}
+                                    </div>
+
+                                    {/* Personal Data Fields (if not anonymous) */}
+                                    {!isAnonymous && (
+                                        <div className="animate-slide-up space-y-6">
+                                            <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                                <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">
+                                                    {t('suggestion_personal_info')}
+                                                </h3>
+
+                                                {/* 3-column: First Name, Father Name, Last Name */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                    <Input
+                                                        label={t('suggestion_first_name')}
+                                                        required={!isAnonymous}
+                                                        value={formData.firstName}
+                                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                        icon={User}
+                                                    />
+                                                    <Input
+                                                        label={t('suggestion_last_name')}
+                                                        required={!isAnonymous}
+                                                        value={formData.lastName}
+                                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                        icon={User}
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                    <Input
+                                                        label={t('suggestion_father_name')}
+                                                        required={!isAnonymous}
+                                                        value={formData.fatherName}
+                                                        onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                                        icon={User}
+                                                    />
+                                                    <NationalIdField
+                                                        value={formData.nationalId}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, nationalId: val }))}
+                                                        onVerified={(citizenData) => {
+                                                            if (citizenData) {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    firstName: citizenData.first_name || prev.firstName,
+                                                                    fatherName: citizenData.father_name || prev.fatherName,
+                                                                    lastName: citizenData.last_name || prev.lastName,
+                                                                }));
+                                                            }
+                                                        }}
+                                                        required={!isAnonymous}
+                                                        autoVerify={true}
+                                                        label={t('complaint_national_id')}
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                                    <div className="relative">
+                                                        <PhoneInput
+                                                            label={t('complaint_phone')}
+                                                            required={!isAnonymous}
+                                                            value={formData.phone}
+                                                            onChange={(val) => {
+                                                                setFormData({ ...formData, phone: val });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        type="email"
+                                                        label={t('complaint_email')}
+                                                        required={!isAnonymous}
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                        icon={Mail}
+                                                        dir="ltr"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Email & Phone */}
+                                            <div className="mb-6">
+                                                <Select
+                                                    value={formData.directorate_id}
+                                                    onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
+                                                    label={t('complaint_entity')}
+                                                    options={[
+                                                        { value: '', label: t('complaint_select_entity') },
+                                                        ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
+                                                    ]}
+                                                    icon={Building2}
+                                                />
+                                            </div>
+
+                                            <div className="mb-6">
+                                                <Textarea
+                                                    label={t('suggestion_description')}
+                                                    required
+                                                    value={formData.description}
+                                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                    placeholder={t('suggestion_description_placeholder')}
+                                                    rows={6}
+                                                />
+                                            </div>
                                         </div>
                                     )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => nextStep()}
+                                        className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <span>{t('ui_next') || 'التالي'}</span>
+                                        <ChevronLeft size={20} className="rtl:rotate-180" />
+                                    </button>
                                 </div>
                             )}
 
-                            {/* Submit Button */}
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting || (!isAuthenticated && !isAnonymous && otpStep !== 'verified')}
-                                    className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-                                    {isSubmitting ? t('suggestion_sending') : t('suggestion_submit')}
-                                </button>
-                            </div>
+                            {formStep === 2 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Description and Files here */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {t('suggestion_description')} <span className="text-gov-gold">*</span>
+                                        </label>
+                                        <textarea
+                                            required
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            rows={6}
+                                            className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold transition-all outline-none resize-none"
+                                            placeholder={t('suggestion_description_placeholder')}
+                                        />
+                                    </div>
+
+                                    {/* File Upload */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {t('suggestion_attachments')} <span className="text-xs text-gray-400">({t('suggestion_optional')})</span>
+                                        </label>
+                                        <div className="bg-gov-beige/50 dark:bg-gov-card/10 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
+                                            <input
+                                                type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                className="hidden" ref={fileInputRef} onChange={handleFileChange}
+                                            />
+                                            <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                                <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
+                                                    <Upload size={24} />
+                                                </div>
+                                                <div>
+                                                    <span className="block font-bold text-gov-charcoal dark:text-white text-sm">{t('suggestion_attachments_hint')}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-white/70">{t('suggestion_attachments_types')}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* File List */}
+                                        {formData.files.length > 0 && (
+                                            <div className="mt-4 space-y-2">
+                                                {formData.files.map((file, idx) => (
+                                                    <div key={`${file.name}-${idx}`} className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                            <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
+                                                            <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
+                                                            <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                        </div>
+                                                        {!isSubmitting && (
+                                                            <button type="button" onClick={() => removeFile(idx)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
+                                                                <X size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* T030: Upload Progress Bar */}
+                                        <MultiUploadProgress
+                                            files={formData.files}
+                                            progress={uploadProgress}
+                                            isUploading={isUploading}
+                                            isSubmitting={isSubmitting}
+                                            language={isAr ? 'ar' : 'en'}
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                                        <span>{isSubmitting ? t('suggestion_sending') : t('suggestion_submit')}</span>
+                                    </button>
+                                </div>
+                            )}
                         </form>
                     </div>
                 )}
 
-                {/* SUCCESS STATE */}
-                {submittedTicket && (
+                {/* SUCCESS STATE (Step 3) */}
+                {formStep === 3 && (
                     <div className="p-12 text-center animate-fade-in flex flex-col items-center">
                         <div className="w-20 h-20 bg-gov-emerald/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mb-6 text-gov-emerald">
                             <CheckCircle size={40} />
@@ -799,7 +779,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-8 w-full max-w-sm">
                             <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</span>
                             <div className="flex items-center justify-center gap-3">
-                                <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket}</span>
+                                <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket || 'SUG-123456'}</span>
                                 <button
                                     onClick={copyTrackingNumber}
                                     className="p-2 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
@@ -809,127 +789,178 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             </div>
                         </div>
 
-                        <button onClick={() => { setSubmittedTicket(null); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
+                        {/* Rating Component */}
+                        {submittedTicket && (
+                            <div className="w-full max-w-md mb-8">
+                                <SuggestionRating
+                                    trackingNumber={submittedTicket}
+                                    language={language as 'ar' | 'en'}
+                                    onClose={() => {}}
+                                />
+                            </div>
+                        )}
+
+                        <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
                             {t('suggestion_track_now')}
                         </button>
                     </div>
                 )}
 
+
                 {/* TRACKING TAB */}
-                {activeTab === 'track' && !submittedTicket && (
-                    <div className="p-8 md:p-12 animate-fade-in">
-                        <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_track_title')}</h2>
-                            <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
-                        </div>
-
-                        <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</label>
-                                <input
-                                    type="text"
-                                    placeholder={t('suggestion_track_placeholder')}
-                                    value={trackId}
-                                    onChange={(e) => setTrackId(e.target.value)}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                    required
-                                />
+                {
+                    activeTab === 'track' && !submittedTicket && (
+                        <div className="p-8 md:p-12 animate-fade-in">
+                            <div className="text-center mb-10">
+                                <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_track_title')}</h2>
+                                <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="\d{11}"
-                                    maxLength={11}
-                                    minLength={11}
-                                    placeholder={t('complaint_national_id_placeholder')}
-                                    value={trackNationalId}
-                                    onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
-                                    className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
-                                {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
-                                <span>{t('ui_search')}</span>
-                            </button>
-                            {trackError && <p className="text-gov-cherry text-sm mt-2 text-center">{trackError}</p>}
-                        </form>
 
-                        {trackingResult && (
-                            <div className="bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/25 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
-                                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">
-                                    <span className="font-bold text-gov-charcoal dark:text-white">{t('suggestion_tracking_number')}: {trackingResult.tracking_number || trackingResult.id}</span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
-                                        {getStatusLabel(trackingResult.status)}
-                                    </span>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
-                                        <div>
-                                            <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
-                                            <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
-                                            </span>
-                                        </div>
+                            {/* T032: Track Mode Toggle - support anonymous tracking */}
+                            <div className="max-w-lg mx-auto mb-6">
+                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20 dark:border-gov-border/25">
+                                    <div className="flex items-center justify-center gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTrackMode('identified'); setTrackingResult(null); setTrackError(null); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'identified'
+                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                                }`}
+                                        >
+                                            <Fingerprint size={16} />
+                                            {isAr ? 'متابعة مع الهوية' : 'Track with ID'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTrackMode('anonymous'); setTrackingResult(null); setTrackError(null); setTrackNationalId(''); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'anonymous'
+                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
+                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
+                                                }`}
+                                        >
+                                            <UserX size={16} />
+                                            {isAr ? 'متابعة مجهولة' : 'Anonymous Track'}
+                                        </button>
                                     </div>
-                                    {trackingResult.description && (
-                                        <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
-                                            <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+                                    <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
+                                        {trackMode === 'identified'
+                                            ? (isAr ? 'أدخل رقم التتبع والرقم الوطني' : 'Enter tracking number and national ID')
+                                            : (isAr ? 'أدخل رقم التتبع فقط لمتابعة المقترحات المجهولة' : 'Enter tracking number only for anonymous suggestions')}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</label>
+                                    <input
+                                        type="text"
+                                        placeholder={t('suggestion_track_placeholder')}
+                                        value={trackId}
+                                        onChange={(e) => setTrackId(e.target.value)}
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        required
+                                    />
+                                </div>
+                                {trackMode === 'identified' && (
+                                    <div className="animate-fade-in">
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="\d{11}"
+                                            maxLength={11}
+                                            minLength={11}
+                                            placeholder={t('complaint_national_id_placeholder')}
+                                            value={trackNationalId}
+                                            onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                            required
+                                        />
+                                    </div>
+                                )}
+                                <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
+                                    {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
+                                    <span>{t('ui_search')}</span>
+                                </button>
+                                {trackError && <p className="text-gov-cherry text-sm mt-2 text-center">{trackError}</p>}
+                            </form>
+
+                            {trackingResult && (
+                                <div className="bg-white dark:bg-gov-card/10 border border-gray-100 dark:border-gov-border/25 rounded-2xl p-6 shadow-lg animate-slide-up max-w-lg mx-auto">
+                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">
+                                        <span className="font-bold text-gov-charcoal dark:text-white">{t('suggestion_tracking_number')}: {trackingResult.tracking_number || trackingResult.id}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(trackingResult.status)}`}>
+                                            {getStatusLabel(trackingResult.status)}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
                                             <div>
-                                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_description')}</span>
-                                                <span className="text-sm text-gray-700 dark:text-white/70 line-clamp-2">{trackingResult.description}</span>
+                                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
+                                                <span className="text-sm font-medium text-gov-charcoal dark:text-white">
+                                                    {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {trackingResult.description && (
+                                            <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
+                                                <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+                                                <div>
+                                                    <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_description')}</span>
+                                                    <span className="text-sm text-gray-700 dark:text-white/70 line-clamp-2">{trackingResult.description}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {trackingResult.response && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                            <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
+                                            <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
+                                                <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{trackingResult.response}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {trackingResult.responses && trackingResult.responses.length > 0 && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                            <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
+                                            <div className="space-y-4">
+                                                {trackingResult.responses.map((response: any) => (
+                                                    <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || (isAr ? 'فريق المراجعة' : 'Review Team')}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY' : 'en-US')}</span>
+                                                        </div>
+                                                        <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
                                 </div>
+                            )}
 
-                                {trackingResult.response && (
-                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
-                                        <div className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
-                                            <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{trackingResult.response}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {trackingResult.responses && trackingResult.responses.length > 0 && (
-                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
-                                        <h3 className="text-sm font-bold text-gov-forest dark:text-gov-teal mb-4">{t('complaint_responses')}</h3>
-                                        <div className="space-y-4">
-                                            {trackingResult.responses.map((response: any) => (
-                                                <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || (isAr ? 'فريق المراجعة' : 'Review Team')}</span>
-                                                        <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY' : 'en-US')}</span>
-                                                    </div>
-                                                    <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                            <div className="mt-8 text-center animate-fade-in">
+                                <p className="text-sm text-gray-500 dark:text-white/70 mb-3">{t('complaint_need_help')}</p>
+                                <a
+                                    href={`https://wa.me/${whatsappNumber}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-full font-bold hover:bg-[#20bd5a] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                    </svg>
+                                    <span>{t('complaint_whatsapp')}</span>
+                                </a>
                             </div>
-                        )}
-
-                        <div className="mt-8 text-center animate-fade-in">
-                            <p className="text-sm text-gray-500 dark:text-white/70 mb-3">{t('complaint_need_help')}</p>
-                            <a
-                                href={`https://wa.me/${whatsappNumber}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-full font-bold hover:bg-[#20bd5a] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                                </svg>
-                                <span>{t('complaint_whatsapp')}</span>
-                            </a>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
             </div>
         </div>

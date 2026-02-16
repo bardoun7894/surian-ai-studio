@@ -24,6 +24,8 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
+import { TableRowSkeleton } from '@/components/Skeleton';
+import { SkeletonCard, SkeletonText } from '@/components/SkeletonLoader';
 
 const translations = {
   ar: {
@@ -376,10 +378,56 @@ export default function AuditLogPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t.loading}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-dm-bg p-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8"><SkeletonText lines={1} /></div>
+              <div className="w-52"><SkeletonText lines={1} /></div>
+            </div>
+            <div className="w-72"><SkeletonText lines={1} /></div>
+          </div>
+
+          {/* Controls Skeleton */}
+          <div className="bg-white dark:bg-gov-card/10 rounded-lg shadow-sm p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <SkeletonText lines={2} className="flex-1" />
+              <div className="flex items-center gap-2">
+                <div className="w-32"><SkeletonText lines={1} /></div>
+              </div>
+              <div className="w-24"><SkeletonText lines={1} /></div>
+            </div>
+          </div>
+
+          {/* Summary Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} className="rounded-lg shadow-sm p-4" />
+            ))}
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="bg-white dark:bg-gov-card/10 rounded-lg shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gov-border/15">
+              <div className="w-40"><SkeletonText lines={1} /></div>
+            </div>
+            <div className="p-6">
+              {/* Header Skeleton */}
+              <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gov-border/15 mb-4">
+                <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                <div className="w-[20%]"><SkeletonText lines={1} /></div>
+                <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                <div className="w-[15%]"><SkeletonText lines={1} /></div>
+                <div className="w-[20%]"><SkeletonText lines={1} /></div>
+              </div>
+              {/* Table Rows Skeleton */}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <TableRowSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

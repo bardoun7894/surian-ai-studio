@@ -8,15 +8,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const UserSatisfactionIndicator: React.FC = () => {
     const { language } = useLanguage();
     const [isVisible, setIsVisible] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [rating, setRating] = useState<number | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [showThankYou, setShowThankYou] = useState(false);
 
     useEffect(() => {
-        // Check if user already rated
         const hasRated = localStorage.getItem('gov_satisfaction_rated');
         if (!hasRated) {
-            // Show after 10 seconds
             const timer = setTimeout(() => {
                 setIsVisible(true);
             }, 10000);
@@ -26,47 +24,68 @@ const UserSatisfactionIndicator: React.FC = () => {
 
     const handleRating = (value: number) => {
         setRating(value);
-        
-        // Simulate API call
         setTimeout(() => {
             setHasSubmitted(true);
-            setShowThankYou(true);
             localStorage.setItem('gov_satisfaction_rated', 'true');
-            
-            // Hide after showing thank you
             setTimeout(() => {
                 setIsVisible(false);
-            }, 3000);
+            }, 2500);
         }, 500);
     };
 
-    const handleClose = () => {
-        setIsVisible(false);
-    };
-
-    const getRatingIcon = (value: number) => {
-        if (value <= 2) return <Frown size={24} />;
-        if (value === 3) return <Meh size={24} />;
-        return <Smile size={24} />;
-    };
-
-    const getRatingColor = (value: number) => {
-        if (value <= 2) return 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20';
-        if (value === 3) return 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20';
-        return 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20';
-    };
+    if (!isVisible) return null;
 
     return (
-        <AnimatePresence>
-            {isVisible && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className={`fixed bottom-36 z-[55] pointer-events-auto ${language === 'ar' ? 'left-6' : 'right-6'}`}
-                >
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gov-gold/20 dark:border-gov-gold/30 p-4 min-w-[280px]">
+        <div className={`fixed bottom-36 z-[55] ${language === 'ar' ? 'left-6' : 'right-6'}`}>
+            <AnimatePresence mode="wait">
+                {hasSubmitted ? (
+                    /* Thank You */
+                    <motion.div
+                        key="thanks"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-green-300/40 p-4 text-center"
+                    >
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+                            className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2"
+                        >
+                            <ThumbsUp size={24} className="text-green-600 dark:text-green-400" />
+                        </motion.div>
+                        <p className="text-sm font-bold text-gov-forest dark:text-white mb-1">
+                            {language === 'ar' ? 'شكراً لك!' : 'Thank you!'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-white/60">
+                            {language === 'ar' ? 'نقدّر تقييمك ونسعى دائماً للتحسين' : 'We appreciate your feedback'}
+                        </p>
+                    </motion.div>
+                ) : !isExpanded ? (
+                    /* Collapsed: Single emoji button */
+                    <motion.button
+                        key="trigger"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsExpanded(true)}
+                        className="w-14 h-14 bg-white dark:bg-dm-surface rounded-full shadow-lg flex items-center justify-center text-gov-forest dark:text-gov-gold border border-gray-100 dark:border-gov-border/15 hover:shadow-xl transition-all duration-300"
+                        title={language === 'ar' ? 'قيّم تجربتك' : 'Rate your experience'}
+                    >
+                        <Smile size={32} strokeWidth={1.5} />
+                    </motion.button>
+                ) : (
+                    /* Expanded: Full rating panel */
+                    <motion.div
+                        key="panel"
+                        initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.8, opacity: 0, y: 10 }}
+                        className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gov-gold/20 dark:border-gov-gold/30 p-4 min-w-[280px]"
+                    >
                         {/* Header */}
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -78,78 +97,55 @@ const UserSatisfactionIndicator: React.FC = () => {
                                 </span>
                             </div>
                             <button
-                                onClick={handleClose}
+                                onClick={() => setIsExpanded(false)}
                                 className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full p-1 transition-colors"
                             >
                                 <X size={16} />
                             </button>
                         </div>
 
-                        {/* Content */}
-                        {!hasSubmitted ? (
-                            <div className="space-y-3">
-                                <p className="text-xs text-gray-500 dark:text-white/60 text-center">
-                                    {language === 'ar' 
-                                        ? 'كيف تقيّم تجربتك في موقعنا؟' 
-                                        : 'How would you rate your experience?'}
-                                </p>
-                                
-                                {/* Rating Buttons */}
-                                <div className="flex justify-center gap-2">
-                                    {[1, 2, 3, 4, 5].map((value) => (
-                                        <motion.button
-                                            key={value}
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={() => handleRating(value)}
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                                                rating === value 
-                                                    ? 'bg-gov-gold text-white shadow-lg shadow-gov-gold/30' 
-                                                    : `bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/40 hover:bg-gov-gold/20 hover:text-gov-gold`
-                                            }`}
-                                        >
-                                            {value <= 2 && <Frown size={20} />}
-                                            {value === 3 && <Meh size={20} />}
-                                            {value >= 4 && <Smile size={20} />}
-                                        </motion.button>
-                                    ))}
-                                </div>
+                        {/* Question */}
+                        <p className="text-xs text-gray-500 dark:text-white/60 text-center mb-3">
+                            {language === 'ar' ? 'كيف تقيّم تجربتك في موقعنا؟' : 'How would you rate your experience?'}
+                        </p>
 
-                                {/* Rating Labels */}
-                                <div className="flex justify-between text-[10px] text-gray-400 dark:text-white/40 px-1">
-                                    <span>{language === 'ar' ? 'ضعيف' : 'Poor'}</span>
-                                    <span>{language === 'ar' ? 'ممتاز' : 'Excellent'}</span>
-                                </div>
-                            </div>
-                        ) : (
-                            /* Thank You Message */
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="text-center py-2"
-                            >
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-                                    className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2"
-                                >
-                                    <ThumbsUp size={24} className="text-green-600 dark:text-green-400" />
-                                </motion.div>
-                                <p className="text-sm font-bold text-gov-forest dark:text-white mb-1">
-                                    {language === 'ar' ? 'شكراً لك!' : 'Thank you!'}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-white/60">
-                                    {language === 'ar' 
-                                        ? 'نقدّر تقييمك ونسعى دائماً للتحسين' 
-                                        : 'We appreciate your feedback'}
-                                </p>
-                            </motion.div>
-                        )}
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                        {/* Rating Buttons */}
+                        <div className="flex justify-center gap-2">
+                            {[1, 2, 3, 4, 5].map((value, i) => {
+                                return (
+                                    <motion.button
+                                        key={value}
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ delay: i * 0.06 }}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => handleRating(value)}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${rating === value
+                                            ? 'bg-gov-gold text-white shadow-lg shadow-gov-gold/30'
+                                            : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/40 hover:bg-gov-gold/20 hover:text-gov-gold'
+                                            }`}
+                                    >
+                                        {/* 1: Angry/Frown, 2: Slight Frown/Annoyed, 3: Neutral/Meh, 4: Smile, 5: Big Smile/Laugh */}
+                                        {value === 1 && <Frown size={22} strokeWidth={1.5} />}
+                                        {value === 2 && <Frown size={22} strokeWidth={1.5} style={{ clipPath: 'inset(0 0 40% 0)' }} className="translate-y-1" />}
+                                        {value === 3 && <Meh size={22} strokeWidth={1.5} />}
+                                        {value === 4 && <Smile size={22} strokeWidth={1.5} style={{ clipPath: 'inset(40% 0 0 0)' }} className="-translate-y-1" />}
+                                        {value === 5 && <Smile size={22} strokeWidth={1.5} />}
+                                    </motion.button>
+                                )
+                            })}
+                        </div>
+
+                        {/* Labels */}
+                        <div className="flex justify-between text-[10px] text-gray-400 dark:text-white/40 px-1 mt-2">
+                            <span>{language === 'ar' ? 'ممتاز' : 'Excellent'}</span>
+                            <span>{language === 'ar' ? 'ضعيف' : 'Poor'}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 };
 

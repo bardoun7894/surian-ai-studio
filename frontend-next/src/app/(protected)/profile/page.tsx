@@ -528,7 +528,7 @@ export default function ProfilePage() {
                                         )}
 
                                         <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
                                             </label>
                                             <div className="relative group">
@@ -536,14 +536,14 @@ export default function ProfilePage() {
                                                     type="tel"
                                                     value={formData.phone}
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 />
-                                                <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'}
                                             </label>
                                             <div className="relative group">
@@ -551,28 +551,28 @@ export default function ProfilePage() {
                                                     type="date"
                                                     value={formData.birth_date}
                                                     onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 />
-                                                <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'المحافظة' : 'Governorate'}
                                             </label>
                                             <div className="relative group">
                                                 <select
                                                     value={formData.governorate}
                                                     onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                    className="w-full py-3 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
+                                                    className="w-full py-3 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all appearance-none"
                                                 >
                                                     <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
                                                     {governorates.map((gov) => (
                                                         <option key={gov} value={gov}>{gov}</option>
                                                     ))}
                                                 </select>
-                                                <MapPin className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors pointer-events-none" size={20} />
+                                                <MapPin className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors pointer-events-none" size={20} />
                                                 <ChevronDown className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                                             </div>
                                         </div>
@@ -588,7 +588,7 @@ export default function ProfilePage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'كلمة المرور الحالية' : 'Current Password'}
                                             </label>
                                             <div className="relative group">
@@ -597,16 +597,16 @@ export default function ProfilePage() {
                                                     value={formData.current_password}
                                                     onChange={(e) => setFormData({ ...formData, current_password: e.target.value })}
                                                     placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
-                                                    className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                    className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 />
-                                                <Lock className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                <Lock className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                             </div>
                                             <p className="text-xs text-gray-400 mt-1">
                                                 {language === 'ar' ? 'مطلوبة فقط عند تغيير كلمة المرور' : 'Required only when changing password'}
                                             </p>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
                                             </label>
                                             <div className="relative group">
@@ -615,12 +615,18 @@ export default function ProfilePage() {
                                                     value={formData.password}
                                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                     placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
-                                                    className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                    className={`w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
+                                                        ${formData.password && formData.password.length >= 8
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : formData.password && formData.password.length > 0 && formData.password.length < 8
+                                                                ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                                : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                        }`}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                                                    className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
                                                 >
                                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                                 </button>
@@ -628,7 +634,7 @@ export default function ProfilePage() {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                                 {language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm New Password'}
                                             </label>
                                             <div className="relative group">
@@ -636,9 +642,15 @@ export default function ProfilePage() {
                                                     type={showPassword ? 'text' : 'password'}
                                                     value={formData.password_confirmation}
                                                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                    className={`w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
+                                                        ${formData.password_confirmation && formData.password_confirmation === formData.password && formData.password.length >= 8
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : formData.password_confirmation && formData.password_confirmation !== formData.password
+                                                                ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                                : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                        }`}
                                                 />
-                                                <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                                <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                             </div>
                                         </div>
                                     </div>
@@ -754,7 +766,18 @@ export default function ProfilePage() {
                                             <div className="p-5">
                                                 <div className="flex items-start justify-between gap-3 mb-2">
                                                     <span className="px-2 py-1 rounded-lg bg-gov-teal/10 text-gov-teal text-xs font-bold uppercase">
-                                                        {fav.content_type}
+                                                        {(() => {
+                                                            const labels: Record<string, string> = {
+                                                                news: language === 'ar' ? 'أخبار' : 'News',
+                                                                announcement: language === 'ar' ? 'إعلان' : 'Announcement',
+                                                                service: language === 'ar' ? 'خدمة' : 'Service',
+                                                                services: language === 'ar' ? 'خدمة' : 'Service',
+                                                                law: language === 'ar' ? 'قانون' : 'Law',
+                                                                decree: language === 'ar' ? 'مرسوم' : 'Decree',
+                                                                decrees: language === 'ar' ? 'مرسوم' : 'Decree',
+                                                            };
+                                                            return labels[fav.content_type] || fav.content_type;
+                                                        })()}
                                                     </span>
                                                     <button
                                                         onClick={async (e) => {
@@ -785,7 +808,17 @@ export default function ProfilePage() {
                                                         if (fav.metadata?.url) {
                                                             router.push(fav.metadata.url);
                                                         } else {
-                                                            router.push(`/${fav.content_type === 'news' ? 'news' : fav.content_type === 'service' ? 'services' : fav.content_type}s/${fav.content_id}`);
+                                                            const routeMap: Record<string, string> = {
+                                                                news: 'news',
+                                                                announcement: 'announcements',
+                                                                service: 'services',
+                                                                services: 'services',
+                                                                law: 'decrees',
+                                                                decree: 'decrees',
+                                                                decrees: 'decrees',
+                                                            };
+                                                            const route = routeMap[fav.content_type] || fav.content_type;
+                                                            router.push(`/${route}/${fav.content_id}`);
                                                         }
                                                     }}
                                                     className="w-full mt-2 py-2 bg-gray-50 dark:bg-white/10 text-gov-charcoal dark:text-white rounded-lg text-sm font-bold hover:bg-gov-teal hover:text-white transition-all flex items-center justify-center gap-2"

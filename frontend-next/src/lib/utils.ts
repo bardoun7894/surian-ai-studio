@@ -80,9 +80,11 @@ export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
   if (diffHrs < 24) return lang === 'ar' ? `منذ ${diffHrs} ساعة` : `${diffHrs}h ago`;
   if (diffDays < 7) return lang === 'ar' ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
 
-  return date.toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', {
+  // Use en-US for number formatting to avoid Hindi numerals
+  const formatted = date.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+  return formatted;
 }

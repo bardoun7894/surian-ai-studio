@@ -27,6 +27,7 @@ const SubDirectorateDetail = () => {
     const { t, language } = useLanguage();
     const [subDirectorate, setSubDirectorate] = useState<SubDirectorate | null>(null);
     const [parentDirectorate, setParentDirectorate] = useState<Directorate | null>(null);
+    const [ministryContact, setMinistryContact] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -35,10 +36,12 @@ const SubDirectorateDetail = () => {
 
             try {
                 setLoading(true);
-                // In a real app, we might need a specific endpoint for sub-directorates
-                // For now, we fetch the parent and find the sub-directorate
-                const directorate = await API.directorates.getById(id as string);
+                const [directorate, contactSettings] = await Promise.all([
+                    API.directorates.getById(id as string),
+                    API.settings.getByGroup('contact'),
+                ]);
                 setParentDirectorate(directorate);
+                setMinistryContact((contactSettings ?? {}) as Record<string, string>);
 
                 if (directorate && directorate.subDirectorates) {
                     const found = directorate.subDirectorates.find(s => s.id === subId);
@@ -139,6 +142,37 @@ const SubDirectorateDetail = () => {
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Contact Card */}
+                        {(() => {
+                            // Resolve contact: parent directorate -> ministry settings -> translation fallback
+                            const loc = (obj: any, field: string): string => {
+                                const val = obj?.[field];
+                                if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
+                                    return (language in val && val[language]) ? val[language] : val['ar'] || '';
+                                }
+                                const ar = obj?.[`${field}_ar`] || (typeof val === 'string' ? val : '') || '';
+                                const en = obj?.[`${field}_en`] || '';
+                                return language === 'en' && en ? en : ar;
+                            };
+
+                            const contactAddress = loc(parentDirectorate, 'address')
+                                || (parentDirectorate as any)?.contact?.address
+                                || (language === 'ar'
+                                    ? (ministryContact.contact_address_ar || t('directorate_address'))
+                                    : (ministryContact.contact_address_en || t('directorate_address')));
+                            const contactPhone = parentDirectorate?.phone
+                                || (parentDirectorate as any)?.contact?.phone
+                                || ministryContact.contact_phone
+                                || t('directorate_phone');
+                            const contactEmail = parentDirectorate?.email
+                                || (parentDirectorate as any)?.contact?.email
+                                || ministryContact.contact_email
+                                || t('directorate_email');
+                            const contactWorkingHours = (language === 'ar'
+                                ? (parentDirectorate?.working_hours_ar || ministryContact.contact_working_hours_ar)
+                                : (parentDirectorate?.working_hours_en || ministryContact.contact_working_hours_en))
+                                || '';
+
+                            return (
                         <div className="bg-white dark:bg-dm-surface rounded-3xl p-6 shadow-sm border border-gov-gold/10 sticky top-24">
                             <h3 className="text-lg font-bold text-gov-forest dark:text-white mb-6 border-b border-gray-100 dark:border-white/10 pb-4">
                                 {t('directorate_contact')}
@@ -151,7 +185,7 @@ const SubDirectorateDetail = () => {
                                     </div>
                                     <div>
                                         <span className="text-xs text-gov-sand font-bold uppercase block mb-1">{t('contact_headquarters')}</span>
-                                        <p className="text-sm text-gov-charcoal dark:text-white font-medium">{t('directorate_address')}</p>
+                                        <p className="text-sm text-gov-charcoal dark:text-white font-medium">{contactAddress}</p>
                                     </div>
                                 </div>
 
@@ -162,8 +196,8 @@ const SubDirectorateDetail = () => {
                                     <div>
                                         <span className="text-xs text-gov-sand font-bold uppercase block mb-1">{t('contact_info')}</span>
                                         <p className="text-sm text-gov-charcoal dark:text-white font-medium dir-ltr">
-                                            <a href={`tel:${t('directorate_phone').replace(/[^\d+]/g, '')}`} className="hover:text-gov-teal transition-colors text-lg font-bold">
-                                                {t('directorate_phone')}
+                                            <a href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`} className="hover:text-gov-teal transition-colors text-lg font-bold">
+                                                {contactPhone}
                                             </a>
                                         </p>
                                     </div>
@@ -176,8 +210,8 @@ const SubDirectorateDetail = () => {
                                     <div>
                                         <span className="text-xs text-gov-sand font-bold uppercase block mb-1">{t('contact_email_label')}</span>
                                         <p className="text-sm text-gov-charcoal dark:text-white font-medium">
-                                            <a href={`mailto:${t('directorate_email')}`} className="hover:text-gov-teal transition-colors">
-                                                {t('directorate_email')}
+                                            <a href={`mailto:${contactEmail}`} className="hover:text-gov-teal transition-colors">
+                                                {contactEmail}
                                             </a>
                                         </p>
                                     </div>
@@ -189,8 +223,14 @@ const SubDirectorateDetail = () => {
                                     </div>
                                     <div>
                                         <span className="text-xs text-gov-sand font-bold uppercase block mb-1">{t('directorate_hours')}</span>
-                                        <p className="text-sm text-gov-charcoal dark:text-white font-medium">{t('directorate_hours_sun_thu')}</p>
-                                        <p className="text-xs text-gov-charcoal/60 dark:text-white/60 mt-1">{t('directorate_hours_value')}</p>
+                                        {contactWorkingHours ? (
+                                            <p className="text-sm text-gov-charcoal dark:text-white font-medium">{contactWorkingHours}</p>
+                                        ) : (
+                                            <>
+                                                <p className="text-sm text-gov-charcoal dark:text-white font-medium">{t('directorate_hours_sun_thu')}</p>
+                                                <p className="text-xs text-gov-charcoal/60 dark:text-white/60 mt-1">{t('directorate_hours_value')}</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -199,6 +239,8 @@ const SubDirectorateDetail = () => {
                                 {t('contact_us')}
                             </button>
                         </div>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

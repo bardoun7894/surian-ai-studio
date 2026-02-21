@@ -61,6 +61,62 @@
                     @error('parent_directorate_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                <!-- Description AR -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الوصف بالعربية</label>
+                    <textarea name="description_ar" rows="3"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="معلومات عن الإدارة ومهامها">{{ old('description_ar', $subDirectorate->description_ar) }}</textarea>
+                    @error('description_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Description EN -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الوصف بالإنجليزية</label>
+                    <textarea name="description_en" rows="3" dir="ltr"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="Information about the department">{{ old('description_en', $subDirectorate->description_en) }}</textarea>
+                    @error('description_en') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Phone -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رقم الهاتف</label>
+                        <input type="text" name="phone" value="{{ old('phone', $subDirectorate->phone) }}" dir="ltr"
+                            class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                            placeholder="+963 ...">
+                        @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">البريد الإلكتروني</label>
+                        <input type="email" name="email" value="{{ old('email', $subDirectorate->email) }}" dir="ltr"
+                            class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                            placeholder="email@example.com">
+                        @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Address AR -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">العنوان بالعربية</label>
+                        <input type="text" name="address_ar" value="{{ old('address_ar', $subDirectorate->address_ar) }}"
+                            class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                            placeholder="دمشق - ...">
+                        @error('address_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Address EN -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">العنوان بالإنجليزية</label>
+                        <input type="text" name="address_en" value="{{ old('address_en', $subDirectorate->address_en) }}" dir="ltr"
+                            class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                            placeholder="Damascus - ...">
+                        @error('address_en') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
                 <!-- URL -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الرابط</label>

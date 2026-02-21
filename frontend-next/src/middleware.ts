@@ -15,6 +15,9 @@ const authRoutes = [
   '/register',
 ];
 
+// 2FA route: accessible only without auth token (mid-login flow)
+const twoFactorRoute = '/two-factor';
+
 // Admin/Staff only routes
 const staffRoutes = [
   '/admin',
@@ -67,6 +70,18 @@ export function middleware(request: NextRequest) {
   // Redirect to dashboard if accessing auth routes while logged in
   if (isAuthRoute && authToken) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // 2FA page: redirect to dashboard if already authenticated,
+  // redirect to login if no email param (not coming from login flow)
+  if (pathname.startsWith(twoFactorRoute)) {
+    if (authToken) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    const emailParam = request.nextUrl.searchParams.get('email');
+    if (!emailParam) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   // Staff routes need additional role check (handled by the page itself)

@@ -33,16 +33,16 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   const buttonText = isArabic ? section.button_text_ar : section.button_text_en;
   const Icon = iconMap[section.icon] || Play;
 
-  // Video type card - Use VideoCard component when video_url is present
-  if (section.type === 'video') {
-    const badge = isArabic
-      ? (section.metadata?.badge_ar || 'فيديو حصري')
-      : (section.metadata?.badge_en || 'Exclusive Video');
+    // Video type card - Use VideoCard component when video_url is present
+    if (section.type === 'video') {
+      const badge = isArabic
+        ? (section.metadata?.badge_ar || 'فيديو حصري')
+        : (section.metadata?.badge_en || 'Exclusive Video');
 
-    // If video_url is present, use actual video player
-    if (section.video_url) {
-      return (
-        <div className="lg:col-span-4 min-h-[220px] rounded-[2rem] relative overflow-hidden">
+      // If video_url is present, use actual video player
+      if (section.video_url) {
+        return (
+          <div className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden">
           <VideoCard
             videoUrl={section.video_url}
             posterUrl={section.image || undefined}
@@ -64,7 +64,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
     // Fallback to static card if no video_url
     return (
       <div
-        className="lg:col-span-4 min-h-[220px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+        className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -78,7 +78,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
         <div className="absolute top-0 right-0 p-40 bg-white/10 rounded-full blur-3xl transform -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 p-32 bg-black/20 rounded-full blur-2xl transform translate-y-1/3 -translate-x-1/3"></div>
 
-        <div className="relative z-10 p-8 h-full flex flex-col justify-between">
+        <div className="relative z-10 p-5 h-full flex flex-col justify-between">
           <div>
             <span className="inline-block px-3 py-1 rounded-full bg-black/20 text-white text-xs font-bold mb-4 border border-white/10">
               {badge}
@@ -109,7 +109,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
 
     return (
       <div
-        className="lg:col-span-4 min-h-[200px] p-6 rounded-[2rem] border border-gov-gold/10 flex flex-col justify-center items-center text-center group hover:bg-gov-emerald/20 transition-all duration-500"
+        className="h-full min-h-[100px] p-4 rounded-[2rem] border border-gov-gold/10 flex flex-col justify-center items-center text-center group hover:bg-gov-emerald/20 transition-all duration-500"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -123,8 +123,8 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
           </div>
         )}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gov-gold to-gov-sand mb-4 flex items-center justify-center text-gov-forest shadow-lg group-hover:scale-110 transition-transform">
-            <span className="font-display font-bold text-2xl">{statValue}</span>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gov-gold to-gov-sand mb-2 flex items-center justify-center text-gov-forest shadow-lg group-hover:scale-110 transition-transform">
+            <span className="font-display font-bold text-xl">{statValue}</span>
           </div>
           <h3 className="text-xl font-bold text-white mb-2">{statLabel}</h3>
           {description && <p className="text-gov-beige/60 text-sm mb-6">{description}</p>}
@@ -145,7 +145,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   if (section.type === 'promo') {
     return (
       <div
-        className="lg:col-span-4 min-h-[200px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+        className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
         style={{ backgroundColor: section.background_color }}
       >
         {section.image && (
@@ -158,10 +158,10 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-        <div className="relative z-10 p-8 h-full flex flex-col justify-end">
-          <div className="flex items-center gap-2 mb-3">
-            <Icon size={20} className="text-gov-gold" />
-            <h3 className="text-xl font-bold text-white">{title}</h3>
+        <div className="relative z-10 p-5 h-full flex flex-col justify-end">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon size={18} className="text-gov-gold" />
+            <h3 className="text-lg font-bold text-white">{title}</h3>
           </div>
           {description && <p className="text-white/80 text-sm mb-4">{description}</p>}
           {buttonText && (
@@ -180,7 +180,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   // Banner type card
   return (
     <div
-      className="lg:col-span-4 min-h-[200px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
+      className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden group cursor-pointer border border-transparent hover:border-white/20 transition-all"
       style={{ backgroundColor: section.background_color }}
     >
       {section.image && (
@@ -193,8 +193,8 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
-      <div className="relative z-10 p-8 h-full flex flex-col justify-end">
-        <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+      <div className="relative z-10 p-5 h-full flex flex-col justify-end">
+        <h3 className="text-lg font-bold text-white mb-1">{title}</h3>
         {description && <p className="text-white/80 text-sm mb-4">{description}</p>}
         {buttonText && (
           <a
@@ -291,29 +291,31 @@ const HeroGrid: React.FC = () => {
 
   if (!heroArticle) return null;
 
-  return (
-    <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
+  // Combine hero + grid articles for the headline layout
+  const sideArticles = gridArticles.slice(0, 3);
 
-        {/* Main Hero Item (Span 6 cols on large - 50%) */}
-        <div className="lg:col-span-6 lg:row-span-2 relative group rounded-[2.5rem] overflow-hidden min-h-[400px] border border-white/10 shadow-2xl shadow-black/50 transition-all duration-500 hover:shadow-gov-gold/20">
+  return (
+    <section className="py-6 md:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Main headline + 3 side headlines */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+
+        {/* Main Headline (latest hero news) */}
+        <div className="lg:col-span-7 relative group rounded-2xl overflow-hidden min-h-[250px] md:min-h-[320px] border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
           <div className="absolute inset-0">
             {heroArticle.imageUrl && (
               <Image
                 src={heroArticle.imageUrl}
                 alt={getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || 'News'}
                 fill
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             )}
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-gov-forest via-gov-forest/70 to-transparent opacity-95"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-gov-forest via-gov-forest/60 to-transparent opacity-95"></div>
           </div>
 
-          <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end items-start z-10">
+          <div className="absolute inset-0 p-5 md:p-8 flex flex-col justify-end z-10">
             <div className="mb-auto flex w-full justify-between items-start">
-              <span className="px-4 py-1.5 rounded-full bg-gov-red text-white text-sm font-bold shadow-lg shadow-gov-red/20 animate-pulse">
+              <span className="px-3 py-1 rounded-full bg-gov-red text-white text-xs font-bold shadow-lg animate-pulse">
                 {t('hero_live_badge')}
               </span>
               <div className="flex gap-2">
@@ -324,17 +326,16 @@ const HeroGrid: React.FC = () => {
                       url: `${window.location.origin}/news/${heroArticle.id}`
                     });
                   }}
-                  className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10"
-                  title={locale === 'ar' ? 'مشاركة' : 'Share'}
+                  className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10"
                 >
-                  <Share2 size={20} />
+                  <Share2 size={16} />
                 </button>
                 <FavoriteButton
                   contentType="news"
                   contentId={heroArticle.id}
                   variant="overlay"
-                  size={20}
-                  className="!p-3 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
+                  size={16}
+                  className="!p-2 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
                   metadata={{
                     title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
                     description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
@@ -345,89 +346,68 @@ const HeroGrid: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-6 max-w-3xl">
-              <div className="flex items-center gap-3 text-gov-beige/80">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-gov-beige/80 text-xs">
                 <span className="font-semibold text-gov-gold">{getLocalizedField(heroArticle, 'category', locale as 'ar' | 'en')}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-gov-gold/30"></span>
+                <span className="w-1 h-1 rounded-full bg-gov-gold/30"></span>
                 <span>{heroArticle.date}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-gov-gold/30"></span>
-                <span className="flex items-center gap-1"><Sparkles size={14} className="text-gov-gold" /> {t('hero_ai_label')}</span>
               </div>
 
-              <h1 className="text-3xl md:text-5xl lg:text-5xl font-display font-bold text-white leading-tight">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-white leading-tight line-clamp-3">
                 {getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en')}
-              </h1>
+              </h2>
 
-              <p className="text-lg text-gov-beige/90 leading-relaxed md:w-3/4 line-clamp-3">
+              <p className="text-sm text-gov-beige/80 leading-relaxed line-clamp-2 hidden md:block">
                 {getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en')}
               </p>
 
-              {/* AI Summary Section */}
-              {summary && (
-                <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md animate-fade-in-up">
-                  <h5 className="flex items-center gap-2 text-gov-gold font-bold mb-2">
-                    <Sparkles size={16} /> {t('hero_smart_summary')}
-                  </h5>
-                  <div className="text-gov-beige text-sm whitespace-pre-line leading-relaxed">
-                    {summary}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <Link href={`/news/${heroArticle.id}`} className="px-8 py-3.5 rounded-full bg-gov-gold text-gov-forest font-bold hover:bg-white transition-all flex items-center gap-2 group/btn shadow-lg shadow-gov-gold/20">
-                  {t('hero_read_more')}
-                  <ArrowLeft size={18} className="transition-transform group-hover/btn:-translate-x-1" />
-                </Link>
-
-                <button
-                  onClick={handleSummarize}
-                  disabled={isSummarizing}
-                  className="px-6 py-3.5 rounded-full bg-white/5 text-white font-medium hover:bg-white/10 border border-white/10 transition-colors flex items-center gap-2 backdrop-blur-md"
-                >
-                  {isSummarizing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      {t('hero_analyzing')}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} className="text-gov-gold" />
-                      {summary ? t('hero_hide_summary') : t('hero_summarize')}
-                    </>
-                  )}
-                </button>
-              </div>
+              <Link href={`/news/${heroArticle.id}`} className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gov-gold text-gov-forest text-sm font-bold hover:bg-white transition-all group/btn shadow-md">
+                {t('hero_read_more')}
+                <ArrowLeft size={14} className="transition-transform group-hover/btn:-translate-x-1" />
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Side Column Items (Span 6 cols) */}
-        {gridArticles.length > 0 && (
-          <div className="lg:col-span-6 lg:row-span-2 flex flex-col gap-6">
-            <div className="flex-1 min-h-[180px]">
-              <ArticleCard article={gridArticles[0]} variant="visual" />
-            </div>
-            {gridArticles[1] && (
-              <div className="flex-1 min-h-[180px]">
-                <ArticleCard article={gridArticles[1]} variant="default" />
+        {/* 3 Side Headlines */}
+        <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
+          {sideArticles.map((article) => (
+            <Link
+              key={article.id}
+              href={`/news/${article.id}`}
+              className="group flex gap-3 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+            >
+              {article.imageUrl && (
+                <div className="relative w-24 h-20 md:w-28 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image
+                    src={article.imageUrl}
+                    alt={getLocalizedField(article, 'title', locale as 'ar' | 'en') || ''}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              )}
+              <div className="flex-1 flex flex-col justify-center min-w-0">
+                <span className="text-[10px] md:text-xs text-gov-gold font-bold mb-1">
+                  {getLocalizedField(article, 'category', locale as 'ar' | 'en')}
+                </span>
+                <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors">
+                  {getLocalizedField(article, 'title', locale as 'ar' | 'en')}
+                </h3>
+                <span className="text-[10px] md:text-xs text-gray-400 dark:text-white/50 mt-1">
+                  {article.date}
+                </span>
               </div>
-            )}
-          </div>
-        )}
+            </Link>
+          ))}
+        </div>
 
-        {/* Bottom Row */}
-        {gridArticles[2] && (
-          <div className="lg:col-span-4 min-h-[180px]">
-            <ArticleCard article={gridArticles[2]} variant="default" />
+        {/* Promotional Sections - compact row */}
+        {promotionalSections.length > 0 && promotionalSections.map((section) => (
+          <div key={section.id} className="lg:col-span-4 min-h-[140px]">
+            <PromotionalCard section={section} locale={locale} />
           </div>
-        )}
-
-        {/* Dynamic Promotional Sections */}
-        {promotionalSections.map((section) => (
-          <PromotionalCard key={section.id} section={section} locale={locale} />
         ))}
-
       </div>
 
       <ShareMenu

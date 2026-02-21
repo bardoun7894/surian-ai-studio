@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon, ArrowUpRight } from 'lucide-react';
+import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Link from 'next/link';
-import { SkeletonGrid } from '@/components/SkeletonLoader';
 
 const iconMap: Record<string, LucideIcon> = {
   Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning,
@@ -27,17 +26,44 @@ const FALLBACK_LINKS = [
   { id: 3, label_ar: 'الإعلانات', label_en: 'Announcements', url: '/#announcements', icon: 'Megaphone' },
   { id: 4, label_ar: 'الخدمات', label_en: 'Services', url: '/services', icon: 'Briefcase' },
   { id: 5, label_ar: 'الشكاوى', label_en: 'Complaints', url: '/complaints', icon: 'MessageSquareWarning' },
-  { id: 6, label_ar: 'الأسئلة الشائعة', label_en: 'FAQ', url: '/#faq', icon: 'HelpCircle' },
-  { id: 7, label_ar: 'اتصل بنا', label_en: 'Contact Us', url: '/#contact', icon: 'Phone' },
+  { id: 6, label_ar: 'الأسئلة الشائعة', label_en: 'FAQ', url: '/faq', icon: 'HelpCircle' },
+  { id: 7, label_ar: 'اتصل بنا', label_en: 'Contact Us', url: '/contact', icon: 'Phone' },
   { id: 8, label_ar: 'حول الوزارة', label_en: 'About', url: '/about', icon: 'Building2' },
 ];
+
+const normalizeQuickLinkUrl = (url: string, labelAr: string, labelEn: string): string => {
+  const normalizedUrl = url.trim().toLowerCase();
+  const normalizedAr = labelAr.trim();
+  const normalizedEn = labelEn.trim().toLowerCase();
+
+  if (
+    normalizedUrl === '/#faq' ||
+    normalizedUrl === '#faq' ||
+    normalizedAr === 'الأسئلة الشائعة' ||
+    normalizedEn === 'faq'
+  ) {
+    return '/faq';
+  }
+
+  if (
+    normalizedUrl === '/#contact' ||
+    normalizedUrl === '#contact' ||
+    normalizedAr === 'اتصل بنا' ||
+    normalizedEn === 'contact us' ||
+    normalizedEn === 'contact'
+  ) {
+    return '/contact';
+  }
+
+  return url;
+};
 
 interface QuickLinksProps {
   section?: string;
 }
 
 const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const isAr = language === 'ar';
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
   const [loading, setLoading] = useState(true);
@@ -161,6 +187,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
           ) : links.map((link, idx) => {
             const Icon = iconMap[link.icon || ''] || Building2;
             const label = language === 'ar' ? link.label_ar : link.label_en;
+            const href = normalizeQuickLinkUrl(link.url, link.label_ar, link.label_en);
 
             // Unified brand gradients
             const gradients = [
@@ -176,7 +203,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
                 className="group relative"
               >
                 <Link
-                  href={link.url}
+                  href={href}
                   className="flex flex-col items-center gap-3"
                 >
                   {/* Icon Container - Now the main element */}

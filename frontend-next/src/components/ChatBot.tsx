@@ -127,7 +127,7 @@ const ChatBot: React.FC = () => {
     const resetChat = async () => {
         const welcomeMsg: ChatMessage = {
             id: 'welcome',
-            text: language === 'ar' ? 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك في خدمات الصناعة والتجارة والاقتصاد؟' : 'Welcome to the Ministry of Economy and Industry portal. I am the smart assistant, how can I help you with industry, trade, and economy services?',
+            text: language === 'ar' ? 'مرحباً بك في البوابة الإلكترونية لوزارة الاقتصاد والصناعة. أنا المساعد الذكي، كيف يمكنني مساعدتك؟\n\nملاحظة: قد يطّلع المشرفون على المحادثات لتحسين جودة الخدمة، دون معرفة هوية المرسل.' : 'Welcome to the Ministry of Economy and Industry portal. I am the smart assistant, how can I help you?\n\nNote: Supervisors may review conversations to improve service quality, without knowing the sender\'s identity.',
             sender: 'bot',
             timestamp: new Date()
         };
@@ -296,7 +296,7 @@ const ChatBot: React.FC = () => {
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
             {/* For Arabic: positioned on the LEFT side (left-6) */}
-            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
+            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row-reverse' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
                 {/* Hint bubble sits inward from screen edge */}
                 <AnimatePresence>
                     {!isOpen && showWelcome && (

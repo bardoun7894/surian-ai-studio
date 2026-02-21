@@ -28,10 +28,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { API } from '@/lib/repository';
 import { Ticket, Suggestion, Favorite } from '@/types';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getPhoneHelperText, detectCountryRule, normalizePhoneWithCountryCode } from '@/lib/phone';
 
 interface Notification {
   id: string;
@@ -253,12 +255,17 @@ export default function UserDashboard() {
     if (!deleteModal.complaint) return;
     setIsDeleting(true);
     try {
-      await API.complaints.delete(deleteModal.complaint.id);
-      setComplaints(complaints.filter(c => c.id !== deleteModal.complaint!.id));
-      setDeleteModal({ open: false, complaint: null });
+      const success = await API.complaints.delete(deleteModal.complaint.id);
+      if (success) {
+        setComplaints(complaints.filter(c => c.id !== deleteModal.complaint!.id));
+        setDeleteModal({ open: false, complaint: null });
+        toast.success(language === 'ar' ? 'تم حذف الشكوى بنجاح' : 'Complaint deleted successfully');
+      } else {
+        toast.error(language === 'ar' ? 'فشل حذف الشكوى' : 'Failed to delete complaint');
+      }
     } catch (e) {
       console.error('Error deleting complaint:', e);
-      alert(language === 'ar' ? 'حدث خطأ أثناء حذف الشكوى' : 'Error deleting complaint');
+      toast.error(language === 'ar' ? 'حدث خطأ أثناء حذف الشكوى' : 'Error deleting complaint');
     } finally {
       setIsDeleting(false);
     }
@@ -373,7 +380,10 @@ export default function UserDashboard() {
       news: language === 'ar' ? 'أخبار' : 'News',
       announcement: language === 'ar' ? 'إعلان' : 'Announcement',
       service: language === 'ar' ? 'خدمة' : 'Service',
+      services: language === 'ar' ? 'خدمة' : 'Service',
       law: language === 'ar' ? 'قانون' : 'Law',
+      decree: language === 'ar' ? 'مرسوم' : 'Decree',
+      decrees: language === 'ar' ? 'مرسوم' : 'Decree',
     };
     return labels[type] || type;
   };
@@ -384,7 +394,10 @@ export default function UserDashboard() {
       news: 'news',
       announcement: 'announcements',
       service: 'services',
+      services: 'services',
       law: 'decrees',
+      decree: 'decrees',
+      decrees: 'decrees',
     };
     return `/${typeRoutes[fav.content_type] || fav.content_type}/${fav.content_id}`;
   };
@@ -656,7 +669,7 @@ export default function UserDashboard() {
                       <h3 className="text-xl font-display font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'آخر الشكاوى' : 'Recent Complaints'}
                       </h3>
-                      <Link href="/complaints" className="text-gov-teal dark:text-gov-gold font-bold text-sm flex items-center gap-1 hover:underline">
+                      <Link href="/complaints/track" className="text-gov-teal dark:text-gov-gold font-bold text-sm flex items-center gap-1 hover:underline">
                         {language === 'ar' ? 'عرض الكل' : 'View All'}
                         <ForwardArrow size={16} />
                       </Link>
@@ -1086,82 +1099,82 @@ export default function UserDashboard() {
                   <div className="max-w-xl mx-auto space-y-8 bg-white/50 dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'الاسم الأول' : 'First Name'}
                         </label>
                         <input
                           type="text"
                           value={profileData.first_name}
                           onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'اسم الأب' : 'Father Name'}
                         </label>
                         <input
                           type="text"
                           value={profileData.father_name}
                           onChange={(e) => setProfileData({ ...profileData, father_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'الكنية' : 'Last Name'}
                         </label>
                         <input
                           type="text"
                           value={profileData.last_name}
                           onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                      <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                         {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
                       </label>
                       <input
                         type="email"
                         value={profileData.email}
                         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                      <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                         {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
                       </label>
                       <input
                         type="tel"
                         value={profileData.phone}
                         onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                        placeholder="09xxxxxxxx"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                        placeholder={getPhoneHelperText(detectCountryRule(normalizePhoneWithCountryCode(profileData.phone))?.code || '+963')}
+                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'}
                         </label>
                         <input
                           type="date"
                           value={profileData.birth_date}
                           onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'المحافظة' : 'Governorate'}
                         </label>
                         <select
                           value={profileData.governorate}
                           onChange={(e) => setProfileData({ ...profileData, governorate: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white appearance-none"
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white appearance-none"
                         >
                           <option value="">{language === 'ar' ? 'اختر المحافظة' : 'Select governorate'}</option>
                           {['دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس', 'دير الزور', 'الحسكة', 'الرقة', 'إدلب', 'درعا', 'السويداء', 'القنيطرة'].map((gov) => (
@@ -1172,14 +1185,14 @@ export default function UserDashboard() {
                     </div>
                     {authUser?.national_id && (
                       <div>
-                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                           {language === 'ar' ? 'الرقم الوطني' : 'National ID'}
                         </label>
                         <input
                           type="text"
                           value={authUser.national_id}
                           readOnly
-                          className="w-full px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 outline-none font-bold text-gov-charcoal dark:text-white cursor-default"
+                          className="w-full px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-gov-card/10 border border-gov-gold/20 dark:border-gov-border/15 outline-none font-bold text-gov-charcoal dark:text-white cursor-default"
                         />
                         <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'الرقم الوطني لا يمكن تغييره' : 'National ID cannot be changed'}</p>
                       </div>
@@ -1194,7 +1207,7 @@ export default function UserDashboard() {
                       </p>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'كلمة المرور الحالية' : 'Current Password'}
                           </label>
                           <input
@@ -1202,11 +1215,11 @@ export default function UserDashboard() {
                             value={profileData.current_password}
                             onChange={(e) => setProfileData({ ...profileData, current_password: e.target.value })}
                             placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
-                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
                           </label>
                           <input
@@ -1214,11 +1227,17 @@ export default function UserDashboard() {
                             value={profileData.password}
                             onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                             placeholder={language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'}
-                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                            className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
+                              ${profileData.password && profileData.password.length >= 8
+                                ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                : profileData.password && profileData.password.length > 0 && profileData.password.length < 8
+                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                    : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                              }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-3 ml-1">
+                          <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}
                           </label>
                           <input
@@ -1226,7 +1245,13 @@ export default function UserDashboard() {
                             value={profileData.password_confirmation}
                             onChange={(e) => setProfileData({ ...profileData, password_confirmation: e.target.value })}
                             placeholder={language === 'ar' ? 'أعد إدخال كلمة المرور الجديدة' : 'Re-enter new password'}
-                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/15 focus:border-gov-teal focus:ring-4 focus:ring-gov-teal/10 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                            className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
+                              ${profileData.password_confirmation && profileData.password_confirmation === profileData.password && profileData.password.length >= 8
+                                ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                : profileData.password_confirmation && profileData.password_confirmation !== profileData.password
+                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                    : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                              }`}
                           />
                         </div>
                       </div>
@@ -1258,7 +1283,6 @@ export default function UserDashboard() {
                         <div className="space-y-4">
                           {[
                             { key: 'email_complaint_updates', label: language === 'ar' ? 'تحديثات الشكاوى عبر البريد' : 'Complaint updates via email' },
-                            { key: 'sms_complaint_updates', label: language === 'ar' ? 'تحديثات الشكاوى عبر SMS' : 'Complaint updates via SMS' },
                             { key: 'email_suggestion_updates', label: language === 'ar' ? 'تحديثات الاقتراحات عبر البريد' : 'Suggestion updates via email' },
                             { key: 'email_newsletter', label: language === 'ar' ? 'النشرة البريدية' : 'Newsletter emails' },
                             { key: 'push_notifications', label: language === 'ar' ? 'إشعارات الموقع' : 'Push notifications' },

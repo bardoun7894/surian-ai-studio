@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Calendar, ChevronDown, X, Clock, SlidersHorizontal } from 'lucide-react';
+import { Search, ChevronDown, X, Clock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface FilterTab {
@@ -117,7 +117,7 @@ export default function ContentFilter({
                             value={internalSearch}
                             onChange={handleSearch}
                             placeholder={searchPlaceholder || t('search_placeholder')}
-                            className="w-full py-2.5 px-4 pr-10 rtl:pr-4 rtl:pl-10 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-1 focus:ring-gov-teal/20 transition-all shadow-sm"
+                            className="w-full py-2.5 ltr:pl-10 ltr:pr-4 rtl:pr-10 rtl:pl-4 rounded-xl bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-1 focus:ring-gov-teal/20 transition-all shadow-sm"
                         />
                         <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         {internalSearch && (
@@ -134,9 +134,9 @@ export default function ContentFilter({
 
             {/* Secondary Filters Row (Date, Extras, Count) */}
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
-                <div className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-4">
+                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
 
-                    <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
 
                         {/* Date Filters */}
                         {showDateFilter && (
@@ -236,7 +236,7 @@ export default function ContentFilter({
                         {extraFilters && (
                             <>
                                 {showDateFilter && <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>}
-                                <div className="flex items-center gap-2">
+                                <div className="flex w-full sm:w-auto flex-wrap items-stretch sm:items-center gap-2">
                                     {extraFilters}
                                 </div>
                             </>
@@ -245,7 +245,7 @@ export default function ContentFilter({
 
                     {/* Results Count */}
                     {totalCount !== undefined && (
-                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap">
+                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-full sm:w-auto text-center sm:text-start">
                             {totalCount} {countLabel || (isAr ? 'عنصر' : 'items')}
                         </div>
                     )}

@@ -63,9 +63,9 @@ export const DIRECTORATES: Directorate[] = [
     icon: 'Factory',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd1-1', name: { ar: 'مديرية التراخيص الصناعية', en: 'Directorate of Industrial Licensing' }, url: '/directorates/industry/licensing' },
-      { id: 'sd1-2', name: { ar: 'مديرية المواصفات والمقاييس', en: 'Directorate of Standards & Specifications' }, url: '/directorates/industry/standards' },
-      { id: 'sd1-3', name: { ar: 'مديرية المدن الصناعية', en: 'Directorate of Industrial Zones' }, url: '/directorates/industry/zones' }
+      { id: 'sd1-1', name: { ar: 'مديرية التراخيص الصناعية', en: 'Directorate of Industrial Licensing' }, url: '/directorates/industry/licensing', phone: '+963 11 123 4567', email: 'licensing@industry.gov.sy', description: { ar: 'معنية بإصدار وتجديد التراخيص للمنشآت الصناعية.', en: 'Responsible for issuing and renewing licenses for industrial facilities.' }, address: { ar: 'دمشق، بناء وزارة الصناعة، الطابق الثاني', en: 'Damascus, Ministry of Industry Building, 2nd Floor' } },
+      { id: 'sd1-2', name: { ar: 'مديرية المواصفات والمقاييس', en: 'Directorate of Standards & Specifications' }, url: '/directorates/industry/standards', phone: '+963 11 234 5678', email: 'standards@industry.gov.sy', description: { ar: 'وضع وتحديث المواصفات القياسية السورية لضمان جودة المنتجات.', en: 'Develops and updates Syrian national standards to ensure product quality.' }, address: { ar: 'دمشق، منطقة الجمارك', en: 'Damascus, Customs Area' } },
+      { id: 'sd1-3', name: { ar: 'مديرية المدن الصناعية', en: 'Directorate of Industrial Zones' }, url: '/directorates/industry/zones', phone: '+963 11 345 6789', email: 'zones@industry.gov.sy', description: { ar: 'الإشراف على تطوير وتنظيم المدن والمناطق الصناعية.', en: 'Supervises the development and organization of industrial cities and zones.' }, address: { ar: 'دمشق، بناء وزارة الصناعة، الطابق الثالث', en: 'Damascus, Ministry of Industry Building, 3rd Floor' } }
     ],
     latitude: 33.5138,
     longitude: 36.2765,
@@ -82,9 +82,9 @@ export const DIRECTORATES: Directorate[] = [
     icon: 'TrendingUp',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd2-1', name: { ar: 'مديرية التجارة الخارجية', en: 'Directorate of Foreign Trade' }, url: '/directorates/economy/trade' },
-      { id: 'sd2-2', name: { ar: 'هيئة المشروعات الصغيرة', en: 'SME Development Authority' }, url: 'https://sme.gov.sy', isExternal: true },
-      { id: 'sd2-3', name: { ar: 'مديرية السياسات الاقتصادية', en: 'Directorate of Economic Policies' }, url: '/directorates/economy/policies' }
+      { id: 'sd2-1', name: { ar: 'مديرية التجارة الخارجية', en: 'Directorate of Foreign Trade' }, url: '/directorates/economy/trade', phone: '+963 11 456 7890', email: 'trade@economy.gov.sy', description: { ar: 'تنظيم شؤون التجارة الخارجية وعمليات الاستيراد والتصدير.', en: 'Regulates foreign trade affairs, import, and export operations.' }, address: { ar: 'دمشق، ساحة المحافظة', en: 'Damascus, Governorate Square' } },
+      { id: 'sd2-2', name: { ar: 'هيئة المشروعات الصغيرة', en: 'SME Development Authority' }, url: 'https://sme.gov.sy', isExternal: true, phone: '+963 11 567 8901', email: 'info@sme.gov.sy', description: { ar: 'تطوير ودعم المشاريع متناهية الصغر والصغيرة والمتوسطة.', en: 'Develops and supports micro, small, and medium enterprises.' }, address: { ar: 'دمشق، المزة، فيلات شرقية', en: 'Damascus, Mezzeh, Eastern Villas' } },
+      { id: 'sd2-3', name: { ar: 'مديرية السياسات الاقتصادية', en: 'Directorate of Economic Policies' }, url: '/directorates/economy/policies', phone: '+963 11 678 9012', email: 'policies@economy.gov.sy', description: { ar: 'إعداد وتحليل السياسات والخطط الاقتصادية والاستثمارية.', en: 'Prepares and analyzes economic and investment policies and plans.' }, address: { ar: 'دمشق، ساحة المحافظة', en: 'Damascus, Governorate Square' } }
     ],
     latitude: 33.5100,
     longitude: 36.2800,
@@ -101,9 +101,9 @@ export const DIRECTORATES: Directorate[] = [
     icon: 'ShieldCheck',
     servicesCount: 6,
     subDirectorates: [
-      { id: 'sd3-1', name: { ar: 'مديرية حماية المستهلك', en: 'Directorate of Consumer Protection' }, url: '/directorates/trade/protection' },
-      { id: 'sd3-2', name: { ar: 'مديرية الشركات', en: 'Directorate of Companies' }, url: '/directorates/trade/companies' },
-      { id: 'sd3-3', name: { ar: 'مديرية الأسعار', en: 'Directorate of Prices' }, url: '/directorates/trade/prices' }
+      { id: 'sd3-1', name: { ar: 'مديرية حماية المستهلك', en: 'Directorate of Consumer Protection' }, url: '/directorates/trade/protection', phone: '+963 11 789 0123', email: 'protection@trade.gov.sy', description: { ar: 'الرقابة على الأسواق لضمان جودة السلع والالتزام بالأسعار.', en: 'Market monitoring to ensure goods quality and price compliance.' }, address: { ar: 'دمشق، ركن الدين', en: 'Damascus, Rukn Eddin' } },
+      { id: 'sd3-2', name: { ar: 'مديرية الشركات', en: 'Directorate of Companies' }, url: '/directorates/trade/companies', phone: '+963 11 890 1234', email: 'companies@trade.gov.sy', description: { ar: 'تسجيل وتنظيم وتأسيس الشركات التجارية بمختلف أنواعها.', en: 'Registering, organizing, and establishing various commercial companies.' }, address: { ar: 'دمشق، ركن الدين', en: 'Damascus, Rukn Eddin' } },
+      { id: 'sd3-3', name: { ar: 'مديرية الأسعار', en: 'Directorate of Prices' }, url: '/directorates/trade/prices', phone: '+963 11 901 2345', email: 'prices@trade.gov.sy', description: { ar: 'تحديد ودراسة ومتابعة أسعار السلع والمواد الأساسية.', en: 'Determining, studying, and tracking the prices of basic goods and materials.' }, address: { ar: 'دمشق، ركن الدين', en: 'Damascus, Rukn Eddin' } }
     ],
     latitude: 33.5200,
     longitude: 36.3100,

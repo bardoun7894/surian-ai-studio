@@ -14,7 +14,7 @@ export interface ComplaintAnalysis {
 export interface AIServiceClient {
   chat(prompt: string): Promise<string>;
   analyzeComplaint(text: string): Promise<ComplaintAnalysis>;
-  summarize(text: string, language?: string): Promise<string>;
+  summarize(text: string, language?: string, maxLength?: number): Promise<string>;
   suggestTitle(text: string): Promise<string>;
   proofread(text: string): Promise<string>;
   extractTextFromImage(file: File): Promise<string>;
@@ -22,6 +22,54 @@ export interface AIServiceClient {
 }
 
 class AIService implements AIServiceClient {
+  private readonly summarizeTimeoutMs = 25000;
+  private readonly maxSummarizeInputChars = 12000;
+
+  private normalizeSummaryInput(text: string): string {
+    return (text || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private buildFallbackSummary(text: string, language: string): string {
+    if (!text) {
+      return language === 'en'
+        ? 'Not enough content to generate a summary.'
+        : 'لا يوجد محتوى كافٍ لإنشاء ملخص.';
+    }
+
+    const sentenceRegex = language === 'en'
+      ? /[^.!?]+[.!?]?/g
+      : /[^.!؟\n]+[.!؟]?/g;
+    const sentences = text.match(sentenceRegex) || [text];
+    const selected = sentences
+      .map((sentence) => sentence.trim())
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(' ');
+
+    const fallback = selected || text;
+    return fallback.slice(0, 420).trim();
+  }
+
+  private extractSummaryFromResponse(data: unknown): string {
+    if (!data || typeof data !== 'object') return '';
+
+    const payload = data as {
+      summary?: unknown;
+      result?: { summary?: unknown };
+      key_points?: unknown;
+    };
+
+    if (typeof payload.summary === 'string' && payload.summary.trim()) return payload.summary.trim();
+    if (typeof payload.result?.summary === 'string' && payload.result.summary.trim()) return payload.result.summary.trim();
+    if (Array.isArray(payload.key_points) && payload.key_points.length > 0) {
+      return payload.key_points.filter(Boolean).slice(0, 4).join(' ');
+    }
+    return '';
+  }
+
   async chat(prompt: string): Promise<string> {
     const response = await fetch(`/ai/chat`, {
       method: 'POST',
@@ -51,19 +99,35 @@ class AIService implements AIServiceClient {
     return await response.json();
   }
 
-  async summarize(text: string, language: string = 'ar'): Promise<string> {
-    const response = await fetch(`/ai/summarize`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, language }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Summarization failed');
+  async summarize(text: string, language: string = 'ar', maxLength: number = 120): Promise<string> {
+    const normalizedText = this.normalizeSummaryInput(text);
+    if (!normalizedText) {
+      return this.buildFallbackSummary('', language);
     }
 
-    const data = await response.json();
-    return data.summary;
+    const boundedText = normalizedText.slice(0, this.maxSummarizeInputChars);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.summarizeTimeoutMs);
+
+    try {
+      const response = await fetch(`/ai/summarize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: boundedText, language, max_length: maxLength }),
+        signal: controller.signal,
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.detail || `Summarization failed (${response.status})`);
+      }
+
+      return this.extractSummaryFromResponse(data) || this.buildFallbackSummary(boundedText, language);
+    } catch {
+      return this.buildFallbackSummary(boundedText, language);
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   async suggestTitle(text: string): Promise<string> {

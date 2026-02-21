@@ -113,8 +113,9 @@ class GeminiProvider(AIProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1000,
+        use_google_search: bool = False,
     ) -> ChatResponse:
-        """Send chat message to Gemini."""
+        """Send chat message to Gemini, optionally with Google Search grounding."""
         # Build contents list
         contents = []
         for msg in messages:
@@ -132,6 +133,11 @@ class GeminiProvider(AIProvider):
         )
         if system_prompt:
             config.system_instruction = system_prompt
+
+        # Enable Google Search grounding when RAG context is weak
+        if use_google_search and settings.ENABLE_GOOGLE_SEARCH_GROUNDING:
+            config.tools = [types.Tool(google_search=types.GoogleSearch())]
+            logger.info("Google Search grounding enabled for this request")
 
         response = self.client.models.generate_content(
             model=self.model_name,

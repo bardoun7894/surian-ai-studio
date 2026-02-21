@@ -179,6 +179,74 @@
                             @error('images.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
+                        <!-- Video Upload -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">الفيديو</label>
+
+                            <!-- New video preview -->
+                            <div id="new-video-preview" class="hidden mb-3 rounded-lg overflow-hidden border border-primary/30 bg-primary/5">
+                                <div class="bg-primary/10 px-3 py-2 flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-primary">معاينة الفيديو</span>
+                                    <button type="button" id="clear-video-preview" class="text-primary/60 hover:text-primary">
+                                        <span class="material-symbols-outlined text-[16px]">close</span>
+                                    </button>
+                                </div>
+                                <div id="new-video-container"></div>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                <!-- Video file upload -->
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">رفع ملف فيديو (MP4, WebM, OGG)</label>
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <span class="material-symbols-outlined text-[14px] text-amber-500">info</span>
+                                        <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400">الحد الأقصى لحجم الملف: 50MB</span>
+                                    </div>
+                                    <input type="file" name="video_file" id="video-file-input" accept="video/mp4,video/webm,video/ogg"
+                                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100">
+                                    <div id="video-size-error" class="hidden mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                                        <div class="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+                                            <span class="material-symbols-outlined text-[16px]">error</span>
+                                            <span>حجم الملف يتجاوز الحد الأقصى (50MB). يرجى اختيار ملف أصغر.</span>
+                                        </div>
+                                    </div>
+                                    <div id="video-file-info" class="hidden mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                        <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                            <span class="material-symbols-outlined text-[16px] text-primary">video_file</span>
+                                            <span id="video-file-name" class="truncate flex-1"></span>
+                                            <span id="video-file-size" class="text-slate-400 whitespace-nowrap"></span>
+                                        </div>
+                                    </div>
+                                    <!-- Upload progress bar -->
+                                    <div id="video-upload-progress" class="hidden mt-2">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-[10px] font-bold text-primary">جاري رفع الفيديو...</span>
+                                            <span id="video-progress-text" class="text-[10px] text-slate-500">0%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div id="video-progress-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    @error('video_file') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <!-- OR divider -->
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div>
+                                    <span class="text-[10px] text-slate-400 font-bold">أو</span>
+                                    <div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div>
+                                </div>
+                                <!-- YouTube URL -->
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">رابط يوتيوب</label>
+                                    <input type="url" name="video_url" id="video-url-input" value="{{ old('video_url') }}" dir="ltr"
+                                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-primary focus:border-primary text-sm"
+                                        placeholder="https://youtube.com/watch?v=...">
+                                    @error('video_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">رفع ملف فيديو له أولوية على رابط يوتيوب</p>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5">الكلمات الدلالية (Tags)</label>
                             <input type="text" name="tags" value="{{ old('tags') }}"
@@ -317,6 +385,152 @@
                 }
             }
         });
+    });
+
+    // ── Video Upload Preview & Validation ──
+    document.addEventListener('DOMContentLoaded', function() {
+        const previewWrap = document.getElementById('new-video-preview');
+        const previewContainer = document.getElementById('new-video-container');
+        const videoInput = document.getElementById('video-file-input');
+        const videoInfo = document.getElementById('video-file-info');
+        const videoFileName = document.getElementById('video-file-name');
+        const videoFileSize = document.getElementById('video-file-size');
+        const videoUrlInput = document.getElementById('video-url-input');
+        const clearBtn = document.getElementById('clear-video-preview');
+        const sizeError = document.getElementById('video-size-error');
+        const maxFileSize = 50 * 1024 * 1024;
+
+        if (!videoInput) return;
+
+        function getYouTubeId(url) {
+            const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+            return m ? m[1] : null;
+        }
+
+        function showVideoPreview(html) {
+            previewContainer.innerHTML = html;
+            previewWrap.classList.remove('hidden');
+        }
+
+        function hideVideoPreview() {
+            previewContainer.innerHTML = '';
+            previewWrap.classList.add('hidden');
+        }
+
+        videoInput.addEventListener('change', function() {
+            sizeError.classList.add('hidden');
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+
+                if (file.size > maxFileSize) {
+                    sizeError.classList.remove('hidden');
+                    this.value = '';
+                    videoInfo.classList.add('hidden');
+                    hideVideoPreview();
+                    return;
+                }
+
+                videoFileName.textContent = file.name;
+                videoFileSize.textContent = sizeMB + ' MB';
+                videoInfo.classList.remove('hidden');
+
+                const objectUrl = URL.createObjectURL(file);
+                showVideoPreview(
+                    '<video controls class="w-full aspect-video bg-black"><source src="' + objectUrl + '" type="' + file.type + '">المتصفح لا يدعم تشغيل الفيديو</video>'
+                );
+                if (videoUrlInput) videoUrlInput.value = '';
+            } else {
+                videoInfo.classList.add('hidden');
+                hideVideoPreview();
+            }
+        });
+
+        let ytDebounce;
+        if (videoUrlInput) {
+            videoUrlInput.addEventListener('input', function() {
+                clearTimeout(ytDebounce);
+                ytDebounce = setTimeout(() => {
+                    const url = this.value.trim();
+                    if (!url) { hideVideoPreview(); return; }
+                    const ytId = getYouTubeId(url);
+                    if (ytId) {
+                        showVideoPreview(
+                            '<iframe src="https://www.youtube.com/embed/' + ytId + '" class="w-full aspect-video" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>'
+                        );
+                        if (videoInput) { videoInput.value = ''; videoInfo.classList.add('hidden'); }
+                    } else {
+                        hideVideoPreview();
+                    }
+                }, 500);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                hideVideoPreview();
+                if (videoInput) { videoInput.value = ''; videoInfo.classList.add('hidden'); }
+                if (videoUrlInput) videoUrlInput.value = '';
+            });
+        }
+
+        // Override form submit for video upload progress
+        const contentForm = document.getElementById('contentForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressWrap = document.getElementById('video-upload-progress');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressText = document.getElementById('video-progress-text');
+
+        if (contentForm) {
+            const origSubmit = contentForm.submit.bind(contentForm);
+            contentForm.addEventListener('submit', function(e) {
+                if (videoInput && videoInput.files[0] && videoInput.files[0].size > maxFileSize) {
+                    e.preventDefault();
+                    sizeError.classList.remove('hidden');
+                    return;
+                }
+            });
+
+            // Monkey-patch form.submit() to add progress when video is present
+            const nativeSubmit = HTMLFormElement.prototype.submit;
+            const patchedSubmit = function() {
+                if (videoInput && videoInput.files && videoInput.files.length > 0) {
+                    progressWrap.classList.remove('hidden');
+                    const formData = new FormData(contentForm);
+                    const xhr = new XMLHttpRequest();
+                    xhr.open(contentForm.method, contentForm.action, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    xhr.upload.addEventListener('progress', function(evt) {
+                        if (evt.lengthComputable) {
+                            const pct = Math.round((evt.loaded / evt.total) * 100);
+                            progressBar.style.width = pct + '%';
+                            progressText.textContent = pct + '%';
+                        }
+                    });
+
+                    xhr.addEventListener('load', function() {
+                        if (xhr.status >= 200 && xhr.status < 400) {
+                            window.location.href = xhr.responseURL || '{{ route("admin.content.index") }}';
+                        } else {
+                            nativeSubmit.call(contentForm);
+                        }
+                    });
+
+                    xhr.addEventListener('error', function() {
+                        progressWrap.classList.add('hidden');
+                        alert('حدث خطأ أثناء الرفع. يرجى المحاولة مرة أخرى.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> حفظ ونشر';
+                    });
+
+                    xhr.send(formData);
+                } else {
+                    nativeSubmit.call(contentForm);
+                }
+            };
+            contentForm.submit = patchedSubmit;
+        }
     });
 
     // ── Image Gallery Upload with Preview ──

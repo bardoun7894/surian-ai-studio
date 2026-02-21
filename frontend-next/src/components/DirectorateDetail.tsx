@@ -38,6 +38,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
+    const [ministryContact, setMinistryContact] = useState<Record<string, string>>({});
 
     // Filtering state
     const [searchQuery, setSearchQuery] = useState('');
@@ -61,12 +62,14 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dir, servs] = await Promise.all([
+                const [dir, servs, contactSettings] = await Promise.all([
                     API.directorates.getById(directorateId),
                     API.directorates.getServicesByDirectorate(directorateId),
+                    API.settings.getByGroup('contact'),
                 ]);
                 setDirectorate(dir);
                 setServices(servs);
+                setMinistryContact((contactSettings ?? {}) as Record<string, string>);
             } catch (e) {
                 console.error(e);
             } finally {
@@ -100,12 +103,16 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
         return matchesSearch && matchesType;
     });
 
+    const subDirectoratesCount = Array.isArray(directorate.subDirectorates)
+        ? directorate.subDirectorates.length
+        : Number((directorate as any).subDirectoratesCount ?? (directorate as any).sub_directorates_count) || 0;
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-dm-bg">
             {/* Hero Section - Like Homepage */}
             <DirectorateHero
-                directorate={directorate}
-                hasSubDirectorates={!!directorate.subDirectorates?.length}
+                directorate={{ ...directorate, servicesCount: services.length }}
+                hasSubDirectorates={subDirectoratesCount > 0}
             />
 
             {/* News & Announcements Grid - Like Homepage HeroGrid */}
@@ -297,6 +304,30 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* Contact & Working Hours — Horizontal Layout */}
             <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <ScrollAnimation>
+                    {(() => {
+                        // Resolve contact info: directorate-specific -> ministry settings API -> translation fallback
+                        const contactAddress = loc(directorate, 'address')
+                            || (directorate as any).contact?.address
+                            || (language === 'ar'
+                                ? (ministryContact.contact_address_ar || t('directorate_address'))
+                                : (ministryContact.contact_address_en || t('directorate_address')));
+                        const contactPhone = directorate.phone
+                            || (directorate as any).contact?.phone
+                            || ministryContact.contact_phone
+                            || t('directorate_phone');
+                        const contactEmail = directorate.email
+                            || (directorate as any).contact?.email
+                            || ministryContact.contact_email
+                            || t('directorate_email');
+                        const contactWebsite = directorate.website
+                            || (directorate as any).contact?.website
+                            || '';
+                        const contactWorkingHours = (language === 'ar'
+                            ? (directorate.working_hours_ar || ministryContact.contact_working_hours_ar)
+                            : (directorate.working_hours_en || ministryContact.contact_working_hours_en))
+                            || '';
+
+                        return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Contact Info Card */}
                         <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-6">
@@ -307,30 +338,30 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-white/70">
                                     <MapPin className="shrink-0 text-gov-forest dark:text-gov-teal mt-0.5" size={18} />
-                                    <span>{loc(directorate, 'address') || (directorate as any).contact?.address || t('directorate_address')}</span>
+                                    <span>{contactAddress}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
                                     <Phone className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    <a href={`tel:${((directorate as any).phone || (directorate as any).contact?.phone || t('directorate_phone')).replace(/[^\d+]/g, '')}`} className="hover:text-gov-forest dark:hover:text-gov-gold dir-ltr transition-colors">
-                                        {(directorate as any).phone || (directorate as any).contact?.phone || t('directorate_phone')}
+                                    <a href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`} className="hover:text-gov-forest dark:hover:text-gov-gold dir-ltr transition-colors">
+                                        {contactPhone}
                                     </a>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
                                     <Mail className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    <a href={`mailto:${(directorate as any).email || (directorate as any).contact?.email || t('directorate_email')}`} className="hover:text-gov-forest dark:hover:text-gov-gold transition-colors">
-                                        {(directorate as any).email || (directorate as any).contact?.email || t('directorate_email')}
+                                    <a href={`mailto:${contactEmail}`} className="hover:text-gov-forest dark:hover:text-gov-gold transition-colors">
+                                        {contactEmail}
                                     </a>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
                                     <Globe className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    {((directorate as any).website || (directorate as any).contact?.website) ? (
+                                    {contactWebsite ? (
                                         <a
-                                            href={(directorate as any).website || (directorate as any).contact?.website}
+                                            href={contactWebsite}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="hover:text-gov-forest dark:hover:text-gov-gold underline"
                                         >
-                                            {(directorate as any).website || (directorate as any).contact?.website}
+                                            {contactWebsite}
                                         </a>
                                     ) : (
                                         <span>{t('directorate_website')}</span>
@@ -347,10 +378,16 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                                 {t('directorate_hours')}
                             </h3>
                             <div className="space-y-3 text-sm relative z-10">
-                                <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
-                                    <span className="font-medium">{t('directorate_hours_sun_thu')}</span>
-                                    <span className="font-bold text-gov-gold">{t('directorate_hours_value')}</span>
-                                </div>
+                                {contactWorkingHours ? (
+                                    <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
+                                        <span className="font-bold text-gov-gold">{contactWorkingHours}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
+                                        <span className="font-medium">{t('directorate_hours_sun_thu')}</span>
+                                        <span className="font-bold text-gov-gold">{t('directorate_hours_value')}</span>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
                                     <span className="font-medium">{t('directorate_fri_sat')}</span>
                                     <span className="font-bold text-red-300">{t('directorate_holiday')}</span>
@@ -358,6 +395,8 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                             </div>
                         </div>
                     </div>
+                        );
+                    })()}
                 </ScrollAnimation>
             </section>
         </div>

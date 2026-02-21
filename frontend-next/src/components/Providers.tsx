@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect, useRef } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -20,85 +20,75 @@ interface ProvidersProps {
 // Component to handle link clicks with loading
 function LinkClickHandler({ children }: { children: ReactNode }) {
   const [externalUrl, setExternalUrl] = useState<string | null>(null);
-  const { startLoading, stopLoading } = useLoading();
-  const pathname = usePathname();
+  const { startLoading } = useLoading();
   const router = useRouter();
-  const pendingNavigation = useRef<string | null>(null);
-  
-  // Stop loading when pathname changes (page loaded)
-  useEffect(() => {
-    if (pendingNavigation.current) {
-      pendingNavigation.current = null;
-      // Keep loading visible briefly after page load for smooth transition
-      setTimeout(() => {
-        stopLoading();
-      }, 300);
-    }
-  }, [pathname, stopLoading]);
+  const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Handle pending navigation
   useEffect(() => {
-    if (pendingNavigation.current) {
-      // Small delay to allow loading screen to render
-      const timeout = setTimeout(() => {
-        if (pendingNavigation.current) {
-          router.push(pendingNavigation.current);
-        }
-      }, 100);
-      return () => clearTimeout(timeout);
-    }
-  }, [pendingNavigation.current, router]);
+    return () => {
+      if (pushTimeoutRef.current) {
+        clearTimeout(pushTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Handle link clicks
   useEffect(() => {
     const handleLinkClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+
       const target = (e.target as HTMLElement).closest('a');
-      if (target && target.href) {
-        try {
-          const url = new URL(target.href);
-          const isExternal = url.host !== window.location.host;
-          const isSpecialLink = target.href.startsWith('mailto:') || 
-                               target.href.startsWith('tel:') || 
-                               target.href.startsWith('javascript:') || 
-                               target.href.startsWith('#') ||
-                               target.getAttribute('download');
-          
-          // Handle external links
-          if (isExternal && !isSpecialLink) {
-            e.preventDefault();
-            setExternalUrl(target.href);
-            return;
-          }
-          
-          // Handle internal navigation - show loading first
-          if (!isExternal && !isSpecialLink && !target.target) {
-            const href = target.getAttribute('href');
-            if (!href || href.startsWith('#')) return;
-            
-            // Prevent default to show loading first
-            e.preventDefault();
-            
-            // Start loading
-            startLoading();
-            
-            // Store pending navigation
-            pendingNavigation.current = href;
-            
-            // Trigger navigation effect
-            window.dispatchEvent(new Event('pending-navigation'));
-          }
-        } catch (err) {
-          // Invalid URL, ignore
+      if (!target || !target.href) {
+        return;
+      }
+
+      try {
+        const url = new URL(target.href, window.location.origin);
+        const isExternal = url.host !== window.location.host;
+        const isSpecialLink = target.href.startsWith('mailto:') ||
+          target.href.startsWith('tel:') ||
+          target.href.startsWith('javascript:') ||
+          target.getAttribute('download') !== null;
+
+        if (isExternal && !isSpecialLink) {
+          e.preventDefault();
+          setExternalUrl(target.href);
+          return;
         }
+
+        if (isExternal || isSpecialLink || target.target) {
+          return;
+        }
+
+        const href = target.getAttribute('href');
+        if (!href || href.startsWith('#')) {
+          return;
+        }
+
+        e.preventDefault();
+        startLoading();
+
+        if (pushTimeoutRef.current) {
+          clearTimeout(pushTimeoutRef.current);
+        }
+
+        // Small delay so the transition loader is visible before route push.
+        pushTimeoutRef.current = setTimeout(() => {
+          router.push(href);
+        }, 80);
+      } catch {
+        // Ignore malformed URLs.
       }
     };
 
     document.addEventListener('click', handleLinkClick, true);
-    
+
     return () => {
       document.removeEventListener('click', handleLinkClick, true);
     };
-  }, [startLoading]);
+  }, [router, startLoading]);
 
   return (
     <>

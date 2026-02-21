@@ -76,6 +76,20 @@ export default function RootLayout({
                   } else {
                     document.documentElement.classList.remove('dark');
                   }
+                  var fs = localStorage.getItem('gov_font_size');
+                  if (fs) {
+                    var parsedSize = parseInt(fs, 10);
+                    if (!isNaN(parsedSize)) {
+                      var clampedSize = Math.min(Math.max(parsedSize, 80), 150);
+                      document.documentElement.style.fontSize = clampedSize + '%';
+                    }
+                  }
+                  if (localStorage.getItem('gov_high_contrast') === 'true') {
+                    document.documentElement.classList.add('high-contrast');
+                    if (document.body) {
+                      document.body.classList.add('high-contrast');
+                    }
+                  }
                 } catch (e) {}
               })();
             `,

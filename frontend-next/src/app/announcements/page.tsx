@@ -522,21 +522,7 @@ export default function AnnouncementsPage() {
                       >
                         <Share2 size={14} />
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault(); e.stopPropagation();
-                          setDownloadData({
-                            id: announcement.id,
-                            title: getLocalizedField(announcement, 'title', language as 'ar' | 'en'),
-                            description: getLocalizedField(announcement, 'description', language as 'ar' | 'en'),
-                            date: announcement.date
-                          });
-                        }}
-                        className="p-2 rounded-lg bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 dark:hover:bg-white/10 transition-colors"
-                        title={isAr ? 'تحميل' : 'Download'}
-                      >
-                        <Download size={14} />
-                      </button>
+                      {/* Download button removed per ministry request */}
                     </div>
 
                     {/* Footer (Date & CTA) - Push to bottom */}

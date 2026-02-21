@@ -41,33 +41,38 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  // Check favorite status on mount
+  const getCheckTypes = useCallback(() => {
+    if (contentType === 'service') return ['service', 'services'];
+    return [contentType];
+  }, [contentType]);
+
+  // Reset checked state when content changes
+  useEffect(() => {
+    setChecked(false);
+    setIsFavorite(false);
+  }, [contentType, contentId]);
+
+  // Check favorite status on mount and when content changes
   useEffect(() => {
     if (!isAuthenticated || !contentId || checked) return;
 
     const checkStatus = async () => {
       try {
         const id = String(contentId);
-        const status = await API.favorites.check([
-          { content_type: contentType, content_id: id },
-        ]);
-        // Try both key formats: "type_id" and just check all keys
-        const key = `${contentType}_${id}`;
-        if (key in status) {
-          setIsFavorite(status[key] || false);
-        } else {
-          // Fallback: check if any key matches the content id
-          const match = Object.entries(status).find(([k]) => k.includes(id));
-          setIsFavorite(match ? match[1] : false);
-        }
-      } catch (e) {
+        const checkTypes = getCheckTypes();
+        const status = await API.favorites.check(
+          checkTypes.map((type) => ({ content_type: type, content_id: id }))
+        );
+        const isMatched = checkTypes.some((type) => Boolean(status[`${type}_${id}`]));
+        setIsFavorite(isMatched);
+      } catch {
         // Silently fail - not critical
       } finally {
         setChecked(true);
       }
     };
     checkStatus();
-  }, [isAuthenticated, contentType, contentId, checked]);
+  }, [isAuthenticated, contentType, contentId, checked, getCheckTypes]);
 
   const handleToggle = useCallback(
     async (e: React.MouseEvent) => {
@@ -75,6 +80,11 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       e.stopPropagation();
 
       if (!isAuthenticated) {
+        toast.error(
+          language === 'ar'
+            ? 'يجب تسجيل الدخول أولاً'
+            : 'You must be logged in to add favorites'
+        );
         router.push('/login');
         return;
       }
@@ -85,7 +95,12 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       const id = String(contentId);
       try {
         if (isFavorite) {
-          const success = await API.favorites.remove(contentType, id);
+          const removeTypes = getCheckTypes();
+          let success = false;
+          for (const type of removeTypes) {
+            const removed = await API.favorites.remove(type, id);
+            success = success || removed;
+          }
           if (success) {
             setIsFavorite(false);
             toast.success(
@@ -109,7 +124,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
             );
           }
         }
-      } catch (e) {
+      } catch {
         toast.error(
           language === 'ar' ? 'حدث خطأ ما' : 'An error occurred'
         );
@@ -117,7 +132,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         setLoading(false);
       }
     },
-    [isAuthenticated, isFavorite, loading, contentType, contentId, metadata, language]
+    [isAuthenticated, isFavorite, loading, contentType, contentId, metadata, language, router, getCheckTypes]
   );
 
   const baseClasses = {
@@ -131,10 +146,10 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
   const stateClasses = isFavorite
     ? variant === 'overlay'
-      ? 'bg-red-500/80 text-white hover:bg-red-600/80'
+      ? 'bg-red-500/90 text-white hover:bg-red-600/90 shadow-lg shadow-red-500/30 ring-2 ring-white/50'
       : 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
     : variant === 'overlay'
-      ? 'bg-black/40 text-white/80 hover:bg-black/60 hover:text-white'
+      ? 'bg-white/90 dark:bg-black/60 text-gov-charcoal dark:text-white/90 hover:bg-white hover:text-red-500 dark:hover:bg-black/80 dark:hover:text-red-400 shadow-md ring-1 ring-black/10 dark:ring-white/20 backdrop-blur-sm'
       : 'text-gray-400 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-white/70';
 
   return (

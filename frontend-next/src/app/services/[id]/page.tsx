@@ -397,7 +397,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                             <div className="absolute top-0 ltr:right-0 rtl:left-0 z-10">
                                 <FavoriteButton
                                     contentType="service"
-                                    contentId={service.id}
+                                    contentId={String(service.id)}
                                     size={24}
                                     variant="default"
                                     metadata={{

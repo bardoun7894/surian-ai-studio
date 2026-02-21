@@ -135,7 +135,7 @@ export default function DirectorateDetailPage({ params }: { params: { id: string
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
+            <main className="flex-grow pt-20 md:pt-24">
                 <DirectorateDetail directorateId={params.id} />
             </main>
 

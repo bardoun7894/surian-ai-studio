@@ -26,8 +26,16 @@ function getInitialTheme(): Theme {
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
-  const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
-  const [fontSize, setFontSizeState] = useState<number>(100);
+  const [isHighContrast, setIsHighContrast] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('gov_high_contrast') === 'true';
+  });
+  const [fontSize, setFontSizeState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 100;
+    const savedFontSize = Number.parseInt(localStorage.getItem('gov_font_size') || '100', 10);
+    if (Number.isNaN(savedFontSize)) return 100;
+    return Math.min(Math.max(savedFontSize, 80), 150);
+  });
   const [mounted, setMounted] = useState(false);
 
   // Tailwind theme colors from config - FIXED with correct dark mode colors
@@ -44,22 +52,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     setMounted(true);
-    // Load accessibility settings from localStorage
-    const savedContrast = localStorage.getItem('gov_high_contrast') === 'true';
-    const savedFontSize = localStorage.getItem('gov_font_size');
-
-    if (savedContrast) setIsHighContrast(true);
-    if (savedFontSize) setFontSizeState(parseInt(savedFontSize, 10));
   }, []);
-
-  // Function to update CSS variables when theme changes
-  const updateCssVariables = (theme: Theme) => {
-    const root = document.documentElement;
-    const colors = themeColors[theme];
-
-    root.style.setProperty('--background', colors.background);
-    root.style.setProperty('--foreground', colors.foreground);
-  };
 
   useEffect(() => {
     if (mounted) {
@@ -69,30 +62,30 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } else {
         document.documentElement.classList.remove('dark');
       }
-      updateCssVariables(theme);
+      const colors = themeColors[theme];
+      document.documentElement.style.setProperty('--background', colors.background);
+      document.documentElement.style.setProperty('--foreground', colors.foreground);
     }
   }, [theme, mounted]);
 
   // Accessibility Effects
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('gov_high_contrast', String(isHighContrast));
-      if (isHighContrast) {
-        document.documentElement.classList.add('high-contrast');
-        document.body.classList.add('high-contrast');
-      } else {
-        document.documentElement.classList.remove('high-contrast');
-        document.body.classList.remove('high-contrast');
-      }
+    if (typeof window === 'undefined') return;
+
+    localStorage.setItem('gov_high_contrast', String(isHighContrast));
+    document.documentElement.classList.toggle('high-contrast', isHighContrast);
+    if (document.body) {
+      document.body.classList.toggle('high-contrast', isHighContrast);
     }
-  }, [isHighContrast, mounted]);
+  }, [isHighContrast]);
 
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('gov_font_size', String(fontSize));
-      document.documentElement.style.fontSize = `${fontSize}%`;
-    }
-  }, [fontSize, mounted]);
+    if (typeof window === 'undefined') return;
+
+    const nextSize = Math.min(Math.max(fontSize, 80), 150);
+    localStorage.setItem('gov_font_size', String(nextSize));
+    document.documentElement.style.fontSize = `${nextSize}%`;
+  }, [fontSize]);
 
   const toggleTheme = () => {
     setThemeState(prev => prev === 'light' ? 'dark' : 'light');
@@ -100,7 +93,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    updateCssVariables(newTheme);
+    const colors = themeColors[newTheme];
+    document.documentElement.style.setProperty('--background', colors.background);
+    document.documentElement.style.setProperty('--foreground', colors.foreground);
   };
 
   const toggleHighContrast = () => {
@@ -108,7 +103,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const setFontSize = (size: number) => {
-    setFontSizeState(size);
+    const nextSize = Math.min(Math.max(size, 80), 150);
+    setFontSizeState(nextSize);
   };
 
   return (

@@ -6,7 +6,8 @@ import HeroSection from '@/components/HeroSection';
 import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import Footer from '@/components/Footer';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { API } from '@/lib/repository';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';
 
@@ -20,8 +21,8 @@ const HomeSuggestionsSection = dynamic(() => import('@/components/HomeSuggestion
 const FAQSection = dynamic(() => import('@/components/FAQSection'));
 const ContactSection = dynamic(() => import('@/components/ContactSection'));
 const SyriaMap = dynamic(() => import('@/components/SyriaMap'), { ssr: false });
-const HomeSatisfactionWidget = dynamic(() => import('@/components/HomeSatisfactionWidget'), { ssr: false });
 const InvestmentSection = dynamic(() => import('@/components/InvestmentSection'));
+
 
 export default function HomePage() {
   const [hasBreakingNews, setHasBreakingNews] = useState(false);
@@ -36,17 +37,137 @@ export default function HomePage() {
     });
   }, []);
 
-  // Handle smooth scroll for hash navigation
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hash = window.location.hash;
-      const element = document.querySelector(hash);
+  // Scroll to a section by hash - retries to handle dynamic components
+  const scrollToHash = useCallback((hash?: string) => {
+    const target = hash || window.location.hash ||
+      (sessionStorage.getItem('homepage-section') ? `#${sessionStorage.getItem('homepage-section')}` : '');
+    if (!target) return;
+
+    const tryScroll = (attempts: number) => {
+      const element = document.querySelector(target);
       if (element) {
+        // Use instant scroll first, then smooth for visual polish
+        element.scrollIntoView({ behavior: 'instant', block: 'start' });
+      } else if (attempts > 0) {
+        setTimeout(() => tryScroll(attempts - 1), 300);
+      }
+    };
+
+    // Start trying immediately, retry up to 15 times (4.5s total)
+    tryScroll(15);
+  }, []);
+
+  // Detect when returning to homepage (pathname changes back to '/')
+  const pathname = usePathname();
+  const prevPathname = useRef(pathname);
+
+  useEffect(() => {
+    if (pathname === '/' && prevPathname.current !== '/') {
+      // We just returned to homepage from another page
+      const saved = sessionStorage.getItem('homepage-section');
+      if (saved) {
+        // Wait for dynamic components to render
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+          window.history.replaceState(null, '', `#${saved}`);
+          scrollToHash(`#${saved}`);
+        }, 300);
       }
     }
+    prevPathname.current = pathname;
+  }, [pathname, scrollToHash]);
+
+  // On initial mount, scroll to hash if present
+  useEffect(() => {
+    const hash = window.location.hash;
+    const saved = sessionStorage.getItem('homepage-section');
+    if (hash) {
+      scrollToHash(hash);
+    } else if (saved) {
+      window.history.replaceState(null, '', `#${saved}`);
+      scrollToHash(`#${saved}`);
+    }
+  }, [scrollToHash]);
+
+  // Handle browser back/forward and hash changes
+  useEffect(() => {
+    const restoreScroll = () => {
+      const hash = window.location.hash;
+      const saved = sessionStorage.getItem('homepage-section');
+      if (hash) {
+        scrollToHash(hash);
+      } else if (saved) {
+        window.history.replaceState(null, '', `#${saved}`);
+        scrollToHash(`#${saved}`);
+      }
+    };
+
+    // popstate fires on browser back/forward
+    window.addEventListener('popstate', restoreScroll);
+    window.addEventListener('hashchange', restoreScroll);
+
+    // Also handle page becoming visible again (e.g. tab switching, bfcache)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && window.location.pathname === '/') {
+        const saved = sessionStorage.getItem('homepage-section');
+        if (saved && !window.location.hash) {
+          window.history.replaceState(null, '', `#${saved}`);
+          scrollToHash(`#${saved}`);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Handle bfcache (back-forward cache) restoration
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && window.location.pathname === '/') {
+        restoreScroll();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      window.removeEventListener('popstate', restoreScroll);
+      window.removeEventListener('hashchange', restoreScroll);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, [scrollToHash]);
+
+  // Update URL hash based on visible section
+  const sectionIds = useRef([
+    'hero', 'directorates', 'services', 'central-news', 'news',
+    'announcements', 'investment', 'complaints', 'quick-links',
+    'partners', 'suggestions', 'faq', 'contact', 'map'
+  ]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.target.id) {
+            const newHash = `#${entry.target.id}`;
+            if (window.location.hash !== newHash) {
+              window.history.replaceState(null, '', newHash);
+            }
+            sessionStorage.setItem('homepage-section', entry.target.id);
+          }
+        }
+      },
+      { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
+    );
+
+    // Small delay to let dynamic components render
+    const timer = setTimeout(() => {
+      sectionIds.current.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, []);
 
   const handleSearch = (query: string) => {
@@ -58,65 +179,92 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar onSearch={handleSearch} />
 
-      <main className="flex-grow pt-16 md:pt-20 overflow-hidden">
-        <HeroSection hasBreakingNews={hasBreakingNews} onNewsLoaded={setHasBreakingNews} />
+      <main className="flex-grow pt-16 md:pt-20">
+        <section id="hero">
+          <HeroSection hasBreakingNews={hasBreakingNews} onNewsLoaded={setHasBreakingNews} />
+        </section>
 
-        <ScrollAnimation delay={0.1}>
-          <FeaturedDirectorates />
-        </ScrollAnimation>
+        <section id="directorates">
+          <ScrollAnimation delay={0.1}>
+            <FeaturedDirectorates />
+          </ScrollAnimation>
+        </section>
 
-        <ScrollAnimation delay={0.2}>
-          <HeroGrid />
-        </ScrollAnimation>
+        <section id="services">
+          <ScrollAnimation delay={0.2}>
+            <HeroGrid />
+          </ScrollAnimation>
+        </section>
+
+
 
         {/* News & Announcements */}
-        <ScrollAnimation delay={0.3}>
-          <NewsSection />
-        </ScrollAnimation>
+        <section id="news">
+          <ScrollAnimation delay={0.3}>
+            <NewsSection />
+          </ScrollAnimation>
+        </section>
 
-        <ScrollAnimation delay={0.4}>
-          <Announcements />
-        </ScrollAnimation>
+        <section id="announcements">
+          <ScrollAnimation delay={0.4}>
+            <Announcements />
+          </ScrollAnimation>
+        </section>
 
         {/* Investment Opportunities */}
-        {investmentEnabled && <InvestmentSection />}
+        {investmentEnabled && (
+          <section id="investment">
+            <InvestmentSection />
+          </section>
+        )}
 
         {/* Complaints Section */}
-        <ScrollAnimation delay={0.2}>
-          <HomeComplaintsSection />
-        </ScrollAnimation>
+        <section id="complaints">
+          <ScrollAnimation delay={0.2}>
+            <HomeComplaintsSection />
+          </ScrollAnimation>
+        </section>
 
         {/* Quick Links */}
-        <ScrollAnimation delay={0.2}>
-          <QuickLinks />
-        </ScrollAnimation>
+        <section id="quick-links">
+          <ScrollAnimation delay={0.2}>
+            <QuickLinks />
+          </ScrollAnimation>
+        </section>
 
         {/* Government Partners */}
-        <ScrollAnimation delay={0.2}>
-          <GovernmentPartners />
-        </ScrollAnimation>
+        <section id="partners">
+          <ScrollAnimation delay={0.2}>
+            <GovernmentPartners />
+          </ScrollAnimation>
+        </section>
 
         {/* Suggestions Section */}
-        <ScrollAnimation delay={0.2}>
-          <HomeSuggestionsSection />
-        </ScrollAnimation>
+        <section id="suggestions">
+          <ScrollAnimation delay={0.2}>
+            <HomeSuggestionsSection />
+          </ScrollAnimation>
+        </section>
 
         {/* FAQ & Contact Sections */}
-        <ScrollAnimation delay={0.2}>
-          <FAQSection />
-        </ScrollAnimation>
+        <section id="faq">
+          <ScrollAnimation delay={0.2}>
+            <FAQSection />
+          </ScrollAnimation>
+        </section>
 
-        <ScrollAnimation delay={0.2}>
-          <ContactSection />
-        </ScrollAnimation>
+        <section id="contact">
+          <ScrollAnimation delay={0.2}>
+            <ContactSection />
+          </ScrollAnimation>
+        </section>
 
-        <ScrollAnimation delay={0.2}>
-          <SyriaMap />
-        </ScrollAnimation>
+        <section id="map">
+          <ScrollAnimation delay={0.2}>
+            <SyriaMap />
+          </ScrollAnimation>
+        </section>
 
-        <ScrollAnimation delay={0.2}>
-          <HomeSatisfactionWidget />
-        </ScrollAnimation>
       </main>
 
 

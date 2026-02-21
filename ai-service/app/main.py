@@ -48,6 +48,7 @@ def get_ai_provider(
 class ChatRequest(BaseModel):
     prompt: str
     system_prompt: Optional[str] = None
+    use_google_search: bool = False
 
 
 class ComplaintRequest(BaseModel):
@@ -112,8 +113,16 @@ async def chat(request: ChatRequest, provider: AIProvider = Depends(get_ai_provi
             if request.system_prompt
             else settings.CHAT_SYSTEM_PROMPT
         )
-        response = await provider.chat(messages, system_prompt=system)
-        return {"response": response.content, "provider": settings.AI_PROVIDER}
+        response = await provider.chat(
+            messages,
+            system_prompt=system,
+            use_google_search=request.use_google_search,
+        )
+        return {
+            "response": response.content,
+            "provider": settings.AI_PROVIDER,
+            "grounded": request.use_google_search,
+        }
     except Exception as e:
         logger.error(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

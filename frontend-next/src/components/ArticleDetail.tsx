@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, User, Clock, Share2, Printer, ChevronRight, ChevronLeft, X, ZoomIn, Images, Sparkles, ChevronDown, ChevronUp, Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
-import { formatRelativeTime } from '@/lib/utils';
+import { formatRelativeTime, copyToClipboard } from '@/lib/utils';
 import { toast } from 'sonner';
+import ShareMenu from '@/components/ShareMenu';
+import PrintHeader from '@/components/PrintHeader';
+import PrintFooter from '@/components/PrintFooter';
 
 interface ArticleDetailProps {
     title: string;
@@ -57,6 +60,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
     // T047: AI Smart Summary state
     const [summaryLoading, setSummaryLoading] = useState(false);
@@ -87,34 +91,19 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     };
 
     const handleShare = async () => {
-        const shareData = {
-            title: title,
-            url: window.location.href,
-        };
+        // On mobile devices that support native share, use it directly
         if (navigator.share) {
             try {
-                await navigator.share(shareData);
+                await navigator.share({ title, url: window.location.href });
+                return;
             } catch (err: any) {
-                // User cancelled or share failed - only show error if not a user cancellation
-                if (err?.name !== 'AbortError') {
-                    // Fallback to clipboard
-                    try {
-                        await navigator.clipboard.writeText(window.location.href);
-                        toast.success(lang === 'ar' ? 'تم نسخ الرابط' : 'Link copied to clipboard');
-                    } catch {
-                        toast.error(lang === 'ar' ? 'فشل في نسخ الرابط' : 'Failed to copy link');
-                    }
-                }
-            }
-        } else {
-            // Fallback: copy URL to clipboard
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                toast.success(lang === 'ar' ? 'تم نسخ الرابط' : 'Link copied to clipboard');
-            } catch {
-                toast.error(lang === 'ar' ? 'فشل في نسخ الرابط' : 'Failed to copy link');
+                // User cancelled - do nothing
+                if (err?.name === 'AbortError') return;
+                // Native share failed, fall through to ShareMenu
             }
         }
+        // Open the ShareMenu modal for desktop / fallback
+        setShareMenuOpen(true);
     };
 
     const handlePrint = () => {
@@ -139,20 +128,43 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
         setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
     };
 
+    // Keyboard navigation for lightbox
+    useEffect(() => {
+        if (!lightboxOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowRight') nextImage();
+            else if (e.key === 'ArrowLeft') prevImage();
+            else if (e.key === 'Escape') closeLightbox();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [lightboxOpen, galleryImages.length]);
+
+    const formattedDate = date && !isNaN(new Date(date).getTime())
+        ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : '';
+
     return (
-        <div className="bg-gov-beige dark:bg-dm-bg min-h-screen pb-20">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        <div className="bg-gov-beige dark:bg-dm-bg min-h-screen pb-20 print:bg-white print:pb-0 print:min-h-0">
+            {/* Official Ministry Print Header */}
+            <PrintHeader
+                documentTitle={category}
+                date={formattedDate}
+                language={lang as 'ar' | 'en'}
+            />
+
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 print:pt-4 print:px-0">
 
                 {/* Back Link */}
                 <Link
                     href={backLink.href}
-                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-teal font-bold mb-8 hover:gap-3 transition-all"
+                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-teal font-bold mb-8 hover:gap-3 transition-all print:hidden"
                 >
                     <ChevronRight size={20} className="rtl:rotate-0 rotate-180" />
                     {backLink.label}
                 </Link>
 
-                <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15">
+                <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 print:shadow-none print:border-none print:rounded-none print:bg-white">
 
                     {/* Featured Image */}
                     {imageUrl && (
@@ -213,7 +225,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                             <div className="flex-1" />
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 print:hidden" data-print-hide="true">
                                 {onToggleFavorite && (
                                     <button
                                         onClick={onToggleFavorite}
@@ -232,18 +244,18 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                     <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
                                 )}
                                 <button
-                                    onClick={handlePrint}
-                                    className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors"
-                                    title={lang === 'ar' ? 'طباعة' : 'Print'}
-                                >
-                                    <Printer size={18} />
-                                </button>
-                                <button
                                     onClick={handleShare}
                                     className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors"
                                     title={lang === 'ar' ? 'مشاركة' : 'Share'}
                                 >
                                     <Share2 size={18} />
+                                </button>
+                                <button
+                                    onClick={handlePrint}
+                                    className="p-2.5 text-gray-400 hover:text-gov-teal hover:bg-gov-teal/5 dark:hover:bg-white/10 rounded-full transition-colors"
+                                    title={lang === 'ar' ? 'طباعة' : 'Print'}
+                                >
+                                    <Printer size={18} />
                                 </button>
                             </div>
                         </div>
@@ -254,7 +266,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </h1>
 
                         {/* T047: AI Smart Summary */}
-                        <div className="mb-8 p-1 bg-gradient-to-br from-gov-gold/20 to-gov-forest/5 rounded-2xl border border-gov-gold/30">
+                        <div className="mb-8 p-1 bg-gradient-to-br from-gov-gold/20 to-gov-forest/5 rounded-2xl border border-gov-gold/30" data-print-hide="true">
                             <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 transition-all">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold">
@@ -334,7 +346,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                 {/* Related Items */}
                 {relatedItems && relatedItems.length > 0 && (
-                    <div className="mt-16">
+                    <div className="mt-16 print:hidden">
                         <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-8 border-r-4 border-gov-gold pr-4">
                             {language === 'ar' ? 'مواضيع ذات صلة' : 'Related Topics'}
                         </h2>
@@ -371,6 +383,17 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Official Ministry Print Footer */}
+            <PrintFooter language={lang as 'ar' | 'en'} />
+
+            {/* Share Menu */}
+            <ShareMenu
+                isOpen={shareMenuOpen}
+                onClose={() => setShareMenuOpen(false)}
+                title={title}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
+            />
 
             {/* Lightbox */}
             {lightboxOpen && galleryImages.length > 0 && (

@@ -56,84 +56,28 @@ export default function FeaturedDirectorates() {
 
     if (directorates.length === 0) return null;
 
-    // Reorder for triangular layout: [0] top, [1,2] bottom
-    const topDirectorate = directorates[0];
-    const bottomDirectorates = directorates.slice(1, 3);
-
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.2,
+                staggerChildren: 0.15,
                 delayChildren: 0.1
             }
         }
     };
 
-    const topCardVariants = {
-        hidden: {
-            opacity: 0,
-            y: -50,
-            scale: 0.8,
-            rotateX: 15
-        },
+    const cardVariants = {
+        hidden: { opacity: 0, y: 30, scale: 0.95 },
         visible: {
             opacity: 1,
             y: 0,
             scale: 1,
-            rotateX: 0,
             transition: {
                 type: "spring",
                 stiffness: 100,
                 damping: 15,
-                duration: 0.8
-            }
-        }
-    };
-
-    const leftCardVariants = {
-        hidden: {
-            opacity: 0,
-            x: -100,
-            y: 50,
-            scale: 0.8,
-            rotate: -10
-        },
-        visible: {
-            opacity: 1,
-            x: 0,
-            y: 0,
-            scale: 1,
-            rotate: 0,
-            transition: {
-                type: "spring",
-                stiffness: 100,
-                damping: 15,
-                duration: 0.8
-            }
-        }
-    };
-
-    const rightCardVariants = {
-        hidden: {
-            opacity: 0,
-            x: 100,
-            y: 50,
-            scale: 0.8,
-            rotate: 10
-        },
-        visible: {
-            opacity: 1,
-            x: 0,
-            y: 0,
-            scale: 1,
-            rotate: 0,
-            transition: {
-                type: "spring",
-                stiffness: 100,
-                damping: 15,
-                duration: 0.8
+                duration: 0.6
             }
         }
     };
@@ -212,52 +156,27 @@ export default function FeaturedDirectorates() {
                     />
                 </motion.div>
 
-                {/* Triangular Layout */}
+                {/* Side by Side Layout */}
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: "-100px" }}
-                    className="flex flex-col items-center gap-6 md:gap-8"
+                    className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto"
                 >
-                    {/* Top Card */}
-                    <motion.div
-                        variants={topCardVariants}
-                        whileHover={{
-                            scale: 1.05,
-                            y: -10,
-                            transition: { type: "spring", stiffness: 300 }
-                        }}
-                        className="w-full md:w-[380px] perspective-1000"
-                    >
-                        <div className="relative">
-                            {/* Glow Effect */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-gov-gold/20 via-gov-teal/20 to-gov-gold/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            <DirectorateCard directorate={topDirectorate} />
-                        </div>
-                    </motion.div>
-
-                    {/* Bottom Row */}
-                    <div className="flex flex-col md:flex-row items-stretch justify-center gap-6 md:gap-8 w-full">
-                        {bottomDirectorates.map((directorate, idx) => (
-                            <motion.div
-                                key={directorate.id}
-                                variants={idx === 0 ? leftCardVariants : rightCardVariants}
-                                whileHover={{
-                                    scale: 1.05,
-                                    y: -10,
-                                    transition: { type: "spring", stiffness: 300 }
-                                }}
-                                className="w-full md:w-[380px] perspective-1000"
-                            >
-                                <div className="relative h-full">
-                                    {/* Glow Effect */}
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-gov-gold/20 via-gov-teal/20 to-gov-gold/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <DirectorateCard directorate={directorate} />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                    {directorates.map((directorate) => (
+                        <motion.div
+                            key={directorate.id}
+                            variants={cardVariants}
+                            whileHover={{
+                                scale: 1.05,
+                                y: -8,
+                                transition: { type: "spring", stiffness: 300 }
+                            }}
+                        >
+                            <DirectorateCard directorate={directorate} />
+                        </motion.div>
+                    ))}
                 </motion.div>
 
                 {/* Connection Lines (SVG) - Removed per user request */}

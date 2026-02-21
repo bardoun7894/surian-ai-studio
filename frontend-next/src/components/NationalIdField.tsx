@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useEffect, useRef, useCallback } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Loader2, Fingerprint } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, AlertCircle, Loader2, Fingerprint } from 'lucide-react';
 import { useNationalIdVerification } from '@/hooks/useNationalIdVerification';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NationalIdFieldProps {
     value: string;
     onChange: (value: string) => void;
+    onBlur?: () => void;
     onVerified?: (citizenData: any) => void;
     onError?: (error: string) => void;
+    error?: string;
     label?: string;
     required?: boolean;
     disabled?: boolean;
@@ -21,8 +23,10 @@ interface NationalIdFieldProps {
 export default function NationalIdField({
     value,
     onChange,
+    onBlur,
     onVerified,
     onError,
+    error,
     label,
     required = false,
     disabled = false,
@@ -98,19 +102,22 @@ export default function NationalIdField({
 
     // Border color based on status
     const borderClass = (() => {
+        if (error && verificationStatus === 'idle') {
+            return 'border-red-500 dark:border-gov-cherry focus-within:border-red-500 dark:focus-within:border-gov-cherry focus-within:ring-2 focus-within:ring-red-500/20 dark:focus-within:ring-gov-cherry/20';
+        }
         switch (verificationStatus) {
             case 'validating':
                 return 'border-blue-400 focus-within:border-blue-500';
             case 'verifying':
                 return 'border-gov-gold focus-within:border-gov-gold';
             case 'verified':
-                return 'border-emerald-500 focus-within:border-emerald-500';
+                return 'border-emerald-500 dark:border-gov-emerald focus-within:border-emerald-500 dark:focus-within:border-gov-emerald';
             case 'error':
                 return 'border-gov-red focus-within:border-gov-red';
             case 'mismatch':
                 return 'border-orange-400 focus-within:border-orange-500';
             default:
-                return 'border-gray-200 dark:border-gov-border/25 focus-within:border-gov-teal focus-within:ring-2 focus-within:ring-gov-teal/20';
+                return 'border-gov-gold/20 dark:border-gov-border/25 focus-within:border-gov-teal dark:focus-within:border-gov-gold focus-within:ring-2 focus-within:ring-gov-teal/20 dark:focus-within:ring-gov-gold/20';
         }
     })();
 
@@ -123,7 +130,7 @@ export default function NationalIdField({
             case 'verified':
                 return <CheckCircle2 size={18} className="text-emerald-500" />;
             case 'error':
-                return <XCircle size={18} className="text-gov-red" />;
+                return <XCircle size={18} className="text-red-500 dark:text-gov-cherry" />;
             case 'mismatch':
                 return <AlertTriangle size={18} className="text-orange-500" />;
             default:
@@ -152,56 +159,63 @@ export default function NationalIdField({
         <div className={`w-full ${className}`}>
             {/* Label */}
             {resolvedLabel && (
-                <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                    {resolvedLabel} {required && <span className="text-red-500">*</span>}
+                <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                    {resolvedLabel} {required && <span className="text-gov-cherry">*</span>}
                 </label>
             )}
 
             {/* Input container */}
-            <div className={`relative group flex items-center rounded-xl bg-gray-50 dark:bg-white/10 border outline-none transition-all ${borderClass}`}>
+            <div className={`relative group flex items-center rounded-xl bg-gov-beige/20 dark:bg-white/10 border outline-none transition-all ${borderClass}`}>
                 {/* Fingerprint icon */}
                 <Fingerprint
                     size={20}
-                    className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
+                    className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                         ${verificationStatus === 'verified'
-                            ? 'text-emerald-500'
+                            ? 'text-emerald-500 dark:text-gov-emerald'
                             : verificationStatus === 'error'
-                                ? 'text-gov-red'
-                                : 'text-gray-400 group-focus-within:text-gov-teal'
+                                ? 'text-red-500 dark:text-gov-cherry'
+                                : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                         }`}
                 />
 
                 <input
                     type="text"
                     inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={11}
                     value={value}
                     onChange={handleChange}
+                    onBlur={onBlur}
                     disabled={disabled || verificationStatus === 'verifying'}
                     placeholder={language === 'ar' ? 'أدخل الرقم الوطني المؤلف من 11 رقماً' : 'Enter 11-digit National ID'}
-                    dir="ltr"
-                    className={`w-full py-2.5 px-4 ltr:pl-12 rtl:pr-12 rounded-xl bg-transparent outline-none text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-left text-sm`}
+                    className={`w-full py-3 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-transparent outline-none text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
                     required={required}
                 />
 
                 {/* Status icon on opposite side */}
-                <div className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                     <StatusIcon />
                 </div>
             </div>
 
-            {/* Helper text and counter */}
-            <div className="mt-1.5">
+            {/* Helper text and counter - min-height prevents layout shift */}
+            <div className="mt-1.5 min-h-[1.25rem]">
                 {/* Format validation hint while typing */}
-                {formatValidation && !formatValidation.valid && value.length > 0 && verificationStatus === 'idle' && (
+                {formatValidation && !formatValidation.valid && value.length > 0 && verificationStatus === 'idle' && !error && (
                     <p className="text-xs text-gray-500 dark:text-white/60 flex items-center gap-1 animate-fade-in">
                         {formatValidation.error}
+                        {/* Inline counter when showing format hint */}
+                        <span className="ltr:ml-auto rtl:mr-auto tabular-nums">{value.length}/11</span>
                     </p>
                 )}
 
-                {/* Verification status message */}
-                {verificationMessage && (
+                {error && verificationStatus === 'idle' && (
+                    <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                        <AlertCircle size={12} className="shrink-0" />
+                        {error}
+                    </p>
+                )}
+
+                {/* Verification status message - hide "verified" success message, only show errors */}
+                {verificationMessage && verificationStatus !== 'verified' && (
                     <p className={`text-xs flex items-center gap-1.5 animate-fade-in ${messageClass}`}>
                         <StatusIcon />
                         {verificationMessage}
@@ -220,9 +234,9 @@ export default function NationalIdField({
                     </div>
                 )}
 
-                {/* Counter */}
-                {value.length > 0 && (
-                    <p className={`text-xs tabular-nums mt-0.5 ${
+                {/* Counter - only show standalone when no other message is displayed */}
+                {value.length > 0 && !error && !(formatValidation && !formatValidation.valid) && !verificationMessage && (
+                    <p className={`text-xs tabular-nums ${
                         value.length === 11
                             ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                             : 'text-gray-500 dark:text-white/60'

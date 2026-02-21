@@ -67,13 +67,16 @@ class ContentController extends Controller
             'images.*' => 'image|max:5120',
             'tags' => 'nullable|string',
             'directorate_id' => 'nullable|string|exists:directorates,id',
+            'video_file' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
+            'video_url' => 'nullable|string|max:500',
             // Service specific fields (optional)
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
             'service_duration' => 'nullable|string',
         ]);
-        
+
         $data = $validated;
+        unset($data['video_file'], $data['video_url']);
         $data['slug'] = \Illuminate\Support\Str::slug($validated['title_ar']) . '-' . uniqid();
         $data['author_id'] = auth()->id();
 
@@ -81,7 +84,7 @@ class ContentController extends Controller
         if ($data['category'] !== Content::CATEGORY_NEWS) {
             unset($data['directorate_id']);
         }
-        
+
         // Prepare metadata
         $metadata = [];
 
@@ -95,6 +98,14 @@ class ContentController extends Controller
         } elseif ($request->hasFile('image')) {
             $path = '/storage/' . $request->file('image')->store('content', 'public');
             $metadata['image'] = $path;
+        }
+
+        // Handle video upload
+        if ($request->hasFile('video_file')) {
+            $videoPath = '/storage/' . $request->file('video_file')->store('content/videos', 'public');
+            $metadata['video_url'] = $videoPath;
+        } elseif ($request->filled('video_url')) {
+            $metadata['video_url'] = $request->input('video_url');
         }
 
         // Add service metadata if exists
@@ -143,12 +154,15 @@ class ContentController extends Controller
             'images.*' => 'image|max:5120',
             'tags' => 'nullable|string',
             'directorate_id' => 'nullable|string|exists:directorates,id',
+            'video_file' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
+            'video_url' => 'nullable|string|max:500',
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
             'service_duration' => 'nullable|string',
         ]);
-        
+
         $data = $validated;
+        unset($data['video_file'], $data['video_url']);
 
         // Clear directorate_id if category is not news
         if ($data['category'] !== Content::CATEGORY_NEWS) {
@@ -157,7 +171,7 @@ class ContentController extends Controller
 
         // Prepare metadata - Start with existing
         $metadata = $content->metadata ?? [];
-        
+
         if ($request->hasFile('images')) {
             $imagePaths = [];
             foreach ($request->file('images') as $image) {
@@ -168,6 +182,14 @@ class ContentController extends Controller
         } elseif ($request->hasFile('image')) {
             $path = '/storage/' . $request->file('image')->store('content', 'public');
             $metadata['image'] = $path;
+        }
+
+        // Handle video upload
+        if ($request->hasFile('video_file')) {
+            $videoPath = '/storage/' . $request->file('video_file')->store('content/videos', 'public');
+            $metadata['video_url'] = $videoPath;
+        } elseif ($request->filled('video_url')) {
+            $metadata['video_url'] = $request->input('video_url');
         }
 
         // Update/Merge service metadata

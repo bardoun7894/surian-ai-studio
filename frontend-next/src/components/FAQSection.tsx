@@ -237,7 +237,7 @@ const FAQSection: React.FC = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="space-y-4"
+          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth"
         >
           <AnimatePresence mode="popLayout">
             {filteredFaqs.map((faq, index) => (

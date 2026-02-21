@@ -1,6 +1,13 @@
 import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
-import { LucideIcon, AlertCircle, CheckCircle2, ChevronDown, Phone, Globe } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+    COUNTRY_PHONE_RULES,
+    detectCountryRule,
+    normalizePhoneWithCountryCode,
+    sanitizeNationalPhoneInput,
+    localizeNumbers,
+} from '@/lib/phone';
 
 export interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
     label?: string;
@@ -9,30 +16,13 @@ export interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputEleme
     containerClassName?: string;
     value: string;
     onChange: (value: string) => void;
+    /** Lock only the country code dropdown while keeping the phone number input editable */
+    disableCountryCode?: boolean;
 }
 
-const COUNTRY_CODES = [
-    { code: '+963', country: 'Syria', flag: '🇸🇾' },
-    { code: '+961', country: 'Lebanon', flag: '🇱🇧' },
-    { code: '+962', country: 'Jordan', flag: '🇯🇴' },
-    { code: '+964', country: 'Iraq', flag: '🇮🇶' },
-    { code: '+971', country: 'UAE', flag: '🇦🇪' },
-    { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
-    { code: '+20', country: 'Egypt', flag: '🇪🇬' },
-    { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
-    { code: '+44', country: 'UK', flag: '🇬🇧' },
-    { code: '+33', country: 'France', flag: '🇫🇷' },
-    { code: '+49', country: 'Germany', flag: '🇩🇪' },
-    { code: '+90', country: 'Turkey', flag: '🇹🇷' },
-    { code: '+98', country: 'Iran', flag: '🇮🇷' },
-    { code: '+7', country: 'Russia', flag: '🇷🇺' },
-    { code: '+86', country: 'China', flag: '🇨🇳' },
-];
-
 const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
-    ({ className, label, error, isValid, containerClassName, value, onChange, ...props }, ref) => {
-        const { language } = useLanguage();
-        const isAr = language === 'ar';
+    ({ className, label, error, isValid, containerClassName, value, onChange, disableCountryCode, ...props }, ref) => {
+        const { language, direction } = useLanguage();
         const [isOpen, setIsOpen] = useState(false);
         const [selectedCode, setSelectedCode] = useState('+963');
         const [phoneNumber, setPhoneNumber] = useState('');
@@ -40,34 +30,41 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
 
         // Initialize state from value prop
         useEffect(() => {
-            if (value) {
-                // Try to find matching country code
-                const matchingCountry = COUNTRY_CODES.find(c => value.startsWith(c.code));
-                if (matchingCountry) {
-                    setSelectedCode(matchingCountry.code);
-                    setPhoneNumber(value.replace(matchingCountry.code, ''));
-                } else {
-                    // Default to Syria if no match found or empty
-                    if (!value.startsWith('+')) {
-                        setPhoneNumber(value);
-                    } else {
-                        // Keep full value if it's some other code
-                        setPhoneNumber(value);
-                    }
-                }
-            } else {
+            const normalizedValue = normalizePhoneWithCountryCode(value);
+
+            if (!normalizedValue) {
                 setPhoneNumber('');
+                return;
             }
+
+            const matchingCountry = detectCountryRule(normalizedValue);
+            if (matchingCountry) {
+                const sanitizedNumber = sanitizeNationalPhoneInput(
+                    normalizedValue.slice(matchingCountry.code.length),
+                    matchingCountry.maxDigits
+                );
+                setSelectedCode(matchingCountry.code);
+                setPhoneNumber(sanitizedNumber);
+                return;
+            }
+
+            setPhoneNumber(sanitizeNationalPhoneInput(normalizedValue, 15));
         }, [value]);
 
         const handleCodeSelect = (code: string) => {
+            const selectedCountry = COUNTRY_PHONE_RULES.find((country) => country.code === code);
+            const nextPhoneNumber = sanitizeNationalPhoneInput(phoneNumber, selectedCountry?.maxDigits || 15);
             setSelectedCode(code);
+            setPhoneNumber(nextPhoneNumber);
             setIsOpen(false);
-            onChange(`${code}${phoneNumber}`);
+            onChange(`${code}${nextPhoneNumber}`);
         };
 
+        const currentCountry = COUNTRY_PHONE_RULES.find(c => c.code === selectedCode);
+        const maxDigits = currentCountry?.maxDigits || 15;
+
         const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const val = e.target.value.replace(/[^\d]/g, '').slice(0, 10); // Allow digits only, max 10
+            const val = sanitizeNationalPhoneInput(e.target.value, maxDigits);
             setPhoneNumber(val);
             onChange(`${selectedCode}${val}`);
         };
@@ -83,19 +80,18 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }, []);
 
-        const selectedCountry = COUNTRY_CODES.find(c => c.code === selectedCode);
-
         return (
-            <div className={`w-full ${containerClassName || ''}`}>
+            <div className={`w-full ${containerClassName || ''}`} dir={direction}>
                 {label && (
                     <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                         {label} {props.required && <span className="text-gov-cherry">*</span>}
                     </label>
                 )}
-                <div className="relative flex" ref={dropdownRef}>
-                    {/* Country Code Dropdown Trigger */}
+                <div className="relative flex w-full items-stretch" dir="ltr" ref={dropdownRef}>
+                    {/* Country Code Dropdown Trigger - always on the left visually due to flex row and dir="ltr" */}
                     <div
-                        className={`flex items-center justify-between px-3 min-w-[100px] cursor-pointer bg-gov-beige/20 dark:bg-white/10 border-y border-l rtl:border-r rtl:border-l-0 rounded-l-xl rtl:rounded-l-none rtl:rounded-r-xl transition-all
+                        className={`flex shrink-0 items-center gap-2 px-3 sm:px-4 min-w-[92px] sm:min-w-[104px] bg-gov-beige/20 dark:bg-white/10 border-y border-l rounded-l-xl transition-all
+                            ${(props.disabled || disableCountryCode) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                             ${error
                                 ? 'border-red-500 dark:border-gov-cherry'
                                 : isValid
@@ -103,25 +99,31 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                                     : 'border-gov-gold/20 dark:border-gov-border/15'
                             }
                         `}
-                        onClick={() => setIsOpen(!isOpen)}
+                        onClick={() => !props.disabled && !disableCountryCode && setIsOpen(!isOpen)}
                     >
-                        <span className="text-xl mr-2">{selectedCountry?.flag}</span>
-                        <span className="text-sm font-mono text-gov-charcoal dark:text-white" dir="ltr">{selectedCode}</span>
-                        <ChevronDown size={14} className={`ml-1 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        <span className="text-lg leading-none">{currentCountry?.flag}</span>
+                        <span className="text-sm font-bold text-gov-charcoal dark:text-white" dir="ltr">
+                            {localizeNumbers(selectedCode, language)}
+                        </span>
+                        <ChevronDown size={14} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </div>
 
                     {/* Country Code Dropdown Menu */}
                     {isOpen && (
-                        <div className="absolute top-full ltr:left-0 rtl:right-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl shadow-lg z-50">
-                            {COUNTRY_CODES.map((country) => (
+                        <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-dm-surface border border-gray-200 dark:border-gov-border/25 rounded-xl shadow-lg z-50">
+                            {COUNTRY_PHONE_RULES.map((country) => (
                                 <div
                                     key={country.code}
                                     className={`flex items-center px-4 py-2 hover:bg-gov-beige/20 dark:hover:bg-white/5 cursor-pointer transition-colors ${selectedCode === country.code ? 'bg-gov-beige/40 dark:bg-white/10' : ''}`}
                                     onClick={() => handleCodeSelect(country.code)}
                                 >
                                     <span className="text-xl mr-3">{country.flag}</span>
-                                    <span className="flex-1 text-sm text-gov-charcoal dark:text-white">{country.country}</span>
-                                    <span className="text-sm font-mono text-gray-500 dark:text-gray-400" dir="ltr">{country.code}</span>
+                                    <span className="flex-1 text-sm font-medium text-gov-charcoal dark:text-white">
+                                        {language === 'ar' ? country.countryAr : country.country}
+                                    </span>
+                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400" dir="ltr">
+                                        {localizeNumbers(country.code, language)}
+                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -134,13 +136,17 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                             type="tel"
                             value={phoneNumber}
                             onChange={handlePhoneChange}
-                            maxLength={10}
-                            className={`w-full py-3 px-4 rounded-r-xl rtl:rounded-r-none rtl:rounded-l-xl bg-gov-beige/20 dark:bg-white/10 border border-l-0 rtl:border-r-0 outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gov-sand disabled:opacity-50 disabled:cursor-not-allowed
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="tel-national"
+                            maxLength={maxDigits}
+                            placeholder={currentCountry?.placeholder || ''}
+                            className={`w-full py-3 px-4 rounded-r-xl bg-gov-beige/20 dark:bg-white/10 border border-l-0 outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed
                                 ${error
-                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-1 focus:ring-red-500 dark:focus:ring-gov-cherry'
+                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
                                     : isValid
-                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald'
-                                        : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-emerald'
+                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                        : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                 }
                                 ${className || ''}`}
                             dir="ltr"
@@ -155,12 +161,15 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                         )}
                     </div>
                 </div>
-                {error && (
-                    <p className="mt-1.5 text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
-                        <AlertCircle size={12} />
-                        {error}
-                    </p>
-                )}
+                {/* Validation message below field - min-height prevents layout shift */}
+                <div className="min-h-[1.25rem] mt-1">
+                    {error && (
+                        <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                            <AlertCircle size={12} className="shrink-0" />
+                            {error}
+                        </p>
+                    )}
+                </div>
             </div>
         );
     }

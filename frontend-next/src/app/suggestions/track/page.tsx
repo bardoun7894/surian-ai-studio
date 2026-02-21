@@ -1,11 +1,13 @@
 'use client';
 
 import React, { Suspense, useState, useEffect } from 'react';
-import { Search, Loader2, CheckCircle, Clock, XCircle, AlertCircle, FileText, ArrowLeft, Calendar, User, UserX, Fingerprint, Printer, Star } from 'lucide-react';
+import { Search, Loader2, CheckCircle, Clock, XCircle, AlertCircle, FileText, ArrowLeft, Calendar, User, Printer, Star } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import SuggestionRating from '@/components/SuggestionRating';
+import PrintHeader from '@/components/PrintHeader';
+import PrintFooter from '@/components/PrintFooter';
 
 interface SuggestionStatus {
     tracking_number: string;
@@ -56,8 +58,6 @@ function SuggestionTrackPageContent() {
     const initialId = searchParams.get('id') || '';
 
     const [trackingNumber, setTrackingNumber] = useState(initialId);
-    const [nationalId, setNationalId] = useState('');
-    const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<SuggestionStatus | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -79,10 +79,7 @@ function SuggestionTrackPageContent() {
         setResult(null);
 
         try {
-            const data = await API.suggestions.track(
-                trackingNumber,
-                trackMode === 'identified' ? nationalId : undefined
-            );
+            const data = await API.suggestions.track(trackingNumber);
             if (data?.success && data?.data) {
                 setResult(data.data);
             } else if (data?.data) {
@@ -144,41 +141,6 @@ function SuggestionTrackPageContent() {
                     </p>
                 </div>
 
-                {/* Track Mode Toggle */}
-                <div className="mb-4 print:hidden">
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-4 shadow-sm border border-gov-gold/20">
-                        <div className="flex items-center justify-center gap-4">
-                            <button
-                                type="button"
-                                onClick={() => { setTrackMode('identified'); setResult(null); setError(null); }}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${trackMode === 'identified'
-                                    ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
-                                    : 'bg-gray-50 dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                    }`}
-                            >
-                                <Fingerprint size={16} />
-                                متابعة بالهوية
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setTrackMode('anonymous'); setResult(null); setError(null); setNationalId(''); }}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${trackMode === 'anonymous'
-                                    ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
-                                    : 'bg-gray-50 dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                    }`}
-                            >
-                                <UserX size={16} />
-                                متابعة مجهولة
-                            </button>
-                        </div>
-                        <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
-                            {trackMode === 'identified'
-                                ? 'أدخل رقم التتبع والرقم الوطني للتحقق من هويتك'
-                                : 'أدخل رقم التتبع فقط لمتابعة المقترحات المجهولة'}
-                        </p>
-                    </div>
-                </div>
-
                 {/* Search Form */}
                 <form onSubmit={handleSearch} className="mb-8 print:hidden">
                     <div className="bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gov-gold/20 space-y-4">
@@ -195,26 +157,6 @@ function SuggestionTrackPageContent() {
                                 required
                             />
                         </div>
-
-                        {trackMode === 'identified' && (
-                            <div>
-                                <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
-                                    الرقم الوطني
-                                </label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="\d{11}"
-                                    maxLength={11}
-                                    minLength={11}
-                                    value={nationalId}
-                                    onChange={(e) => setNationalId(e.target.value.replace(/\D/g, ''))}
-                                    placeholder="أدخل الرقم الوطني (11 رقم)"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all"
-                                    required
-                                />
-                            </div>
-                        )}
 
                         <button
                             type="submit"
@@ -238,6 +180,14 @@ function SuggestionTrackPageContent() {
                 {/* Result Card */}
                 {result && (
                     <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-lg border border-gov-gold/20 overflow-hidden animate-fade-in print:shadow-none print:border-none">
+                        {/* Official Print Header */}
+                        <PrintHeader
+                            documentTitle="متابعة مقترح"
+                            referenceNumber={result.tracking_number}
+                            date={result.submitted_at ? new Date(result.submitted_at).toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                            language="ar"
+                        />
+
                         {/* Status Header */}
                         <div className={`${getStatusInfo(result.status).bg} p-6 flex justify-between items-start`}>
                             <div className="flex items-center gap-4">
@@ -322,22 +272,19 @@ function SuggestionTrackPageContent() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Official Print Footer */}
+                        <PrintFooter language="ar" />
                     </div>
                 )}
 
-                {/* T032: Links to suggestions page */}
-                <div className="text-center mt-8 print:hidden space-y-3">
+                {/* Link to suggestions page */}
+                <div className="text-center mt-8 print:hidden">
                     <Link
                         href="/suggestions"
-                        className="block text-gov-forest dark:text-gov-gold hover:underline font-bold"
+                        className="text-gov-forest dark:text-gov-gold hover:underline font-bold"
                     >
                         تقديم مقترح جديد
-                    </Link>
-                    <Link
-                        href="/suggestions"
-                        className="block text-gray-500 dark:text-white/70 hover:underline text-sm"
-                    >
-                        العودة لصفحة المقترحات
                     </Link>
                 </div>
             </div>

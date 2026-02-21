@@ -71,6 +71,11 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         fetchData();
     }, [articleId]);
 
+    // Reset favorite status when article changes
+    useEffect(() => {
+        setIsFavorite(false);
+    }, [articleId]);
+
     // Check favorite status
     useEffect(() => {
         const checkFavorite = async () => {
@@ -249,10 +254,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                         ? (news.author || 'المكتب الإعلامي')
                         : ((news as any).author_en || (news.author === 'المكتب الإعلامي' ? 'Media Office' : news.author) || 'Media Office')
                     }
-                    readTime={language === 'ar'
-                        ? (news.read_time || undefined)
-                        : (news.read_time ? news.read_time.replace(/(\d+)\s*دقائق/, '$1 min read').replace(/(\d+)\s*دقيقة/, '$1 min read') : undefined)
-                    }
+                    readTime={undefined}
                     content={language === 'ar'
                         ? (news.content_ar || news.summary_ar || news.summary || '')
                         : (news.content_en || news.summary_en || news.summary || '')

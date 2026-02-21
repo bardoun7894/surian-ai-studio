@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const routeLabels: Record<string, { ar: string; en: string }> = {
+  // Public pages
   'news': { ar: 'الأخبار', en: 'News' },
   'announcements': { ar: 'الإعلانات', en: 'Announcements' },
   'complaints': { ar: 'الشكاوى', en: 'Complaints' },
@@ -16,25 +17,48 @@ const routeLabels: Record<string, { ar: string; en: string }> = {
   'media': { ar: 'المركز الإعلامي', en: 'Media Center' },
   'faq': { ar: 'الأسئلة الشائعة', en: 'FAQ' },
   'contact': { ar: 'اتصل بنا', en: 'Contact Us' },
-  'profile': { ar: 'الملف الشخصي', en: 'Profile' },
-  'settings': { ar: 'الإعدادات', en: 'Settings' },
-  'notifications': { ar: 'الإشعارات', en: 'Notifications' },
-  'login': { ar: 'تسجيل الدخول', en: 'Login' },
-  'register': { ar: 'إنشاء حساب', en: 'Register' },
-  'forgot-password': { ar: 'نسيت كلمة المرور', en: 'Forgot Password' },
-  'two-factor': { ar: 'التحقق بخطوتين', en: 'Two-Factor Auth' },
   'decrees': { ar: 'المراسيم والقوانين', en: 'Decrees & Laws' },
   'search': { ar: 'البحث', en: 'Search' },
+  'semantic': { ar: 'البحث الذكي', en: 'Smart Search' },
   'investments': { ar: 'الاستثمار', en: 'Investments' },
   'investment': { ar: 'الاستثمار', en: 'Investment' },
   'about': { ar: 'عن البوابة', en: 'About Portal' },
-  'site-map': { ar: 'خريطة الموقع', en: 'Site Map' },
   'open-data': { ar: 'البيانات المفتوحة', en: 'Open Data' },
-  'dashboard': { ar: 'لوحة التحكم', en: 'Dashboard' },
-  'admin': { ar: 'الإدارة', en: 'Admin' },
-  'sub-directorates': { ar: 'المديريات الفرعية', en: 'Sub-Directorates' },
-  'audit': { ar: 'سجل التدقيق', en: 'Audit Log' },
+  'sitemap': { ar: 'خريطة الموقع', en: 'Site Map' },
+  'site-map': { ar: 'خريطة الموقع', en: 'Site Map' },
+  'privacy-policy': { ar: 'سياسة الخصوصية', en: 'Privacy Policy' },
+  'terms': { ar: 'الشروط والأحكام', en: 'Terms & Conditions' },
+  'unauthorized': { ar: 'غير مصرّح', en: 'Unauthorized' },
+  'newsletter': { ar: 'النشرة البريدية', en: 'Newsletter' },
+  'unsubscribe': { ar: 'إلغاء الاشتراك', en: 'Unsubscribe' },
+  'track': { ar: 'تتبع الطلب', en: 'Track Request' },
+
+  // Auth pages
+  'login': { ar: 'تسجيل الدخول', en: 'Login' },
+  'register': { ar: 'إنشاء حساب', en: 'Register' },
+  'forgot-password': { ar: 'نسيت كلمة المرور', en: 'Forgot Password' },
   'reset-password': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },
+  'two-factor': { ar: 'التحقق بخطوتين', en: 'Two-Factor Auth' },
+
+  // User pages
+  'profile': { ar: 'الملف الشخصي', en: 'Profile' },
+  'settings': { ar: 'الإعدادات', en: 'Settings' },
+  'notifications': { ar: 'الإشعارات', en: 'Notifications' },
+  'dashboard': { ar: 'لوحة التحكم', en: 'Dashboard' },
+
+  // Admin pages
+  'admin': { ar: 'الإدارة', en: 'Admin' },
+  'users': { ar: 'المستخدمون', en: 'Users' },
+  'content': { ar: 'إدارة المحتوى', en: 'Content Management' },
+  'backups': { ar: 'النسخ الاحتياطية', en: 'Backups' },
+  'promotional': { ar: 'المحتوى الترويجي', en: 'Promotional' },
+  'webhooks': { ar: 'الربط البرمجي', en: 'Webhooks' },
+  'reports': { ar: 'التقارير', en: 'Reports' },
+  'newsletters': { ar: 'النشرات البريدية', en: 'Newsletters' },
+  'faqs': { ar: 'الأسئلة الشائعة', en: 'FAQs' },
+  'chat-handoffs': { ar: 'تحويلات المحادثات', en: 'Chat Handoffs' },
+  'audit': { ar: 'سجل التدقيق', en: 'Audit Log' },
+  'sub-directorates': { ar: 'المديريات الفرعية', en: 'Sub-Directorates' },
 };
 
 // Contextual labels for dynamic segments (IDs, slugs, tracking numbers)
@@ -45,6 +69,7 @@ const dynamicSegmentLabels: Record<string, { ar: string; en: string }> = {
   'complaints': { ar: 'تفاصيل الشكوى', en: 'Complaint Details' },
   'services': { ar: 'تفاصيل الخدمة', en: 'Service Details' },
   'directorates': { ar: 'تفاصيل المديرية', en: 'Directorate Details' },
+  'sub-directorates': { ar: 'تفاصيل المديرية الفرعية', en: 'Sub-Directorate Details' },
   'investment': { ar: 'تفاصيل الاستثمار', en: 'Investment Details' },
   'investments': { ar: 'تفاصيل الاستثمار', en: 'Investment Details' },
   'decrees': { ar: 'تفاصيل المرسوم', en: 'Decree Details' },
@@ -96,16 +121,21 @@ export default function Breadcrumbs() {
       // Known named route
       label = isAr ? routeLabels[segment].ar : routeLabels[segment].en;
     } else if (isDynamicSegment(segment)) {
-      // Dynamic segment (ID, UUID, tracking number) - use contextual label from parent
-      const parentSegment = index > 0 ? segments[index - 1] : '';
-      const contextLabel = dynamicSegmentLabels[parentSegment];
+      // Dynamic segment (ID, UUID, tracking number) - find contextual label
+      // by walking backwards through ancestor segments to find the nearest
+      // named route with a dynamic label (handles /directorates/123/456)
+      let contextLabel: { ar: string; en: string } | undefined;
+      for (let i = index - 1; i >= 0; i--) {
+        contextLabel = dynamicSegmentLabels[segments[i]];
+        if (contextLabel) break;
+      }
       if (contextLabel) {
         label = isAr ? contextLabel.ar : contextLabel.en;
       } else {
         label = isAr ? 'التفاصيل' : 'Details';
       }
     } else {
-      // Unknown segment - capitalize and clean up for display
+      // Unknown segment (e.g., slugs) - capitalize and clean up for display
       label = decodeURIComponent(segment)
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, c => c.toUpperCase());

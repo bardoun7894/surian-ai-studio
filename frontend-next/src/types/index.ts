@@ -18,6 +18,14 @@ export interface SubDirectorate {
   name: LocalizedString | string;
   url: string;
   isExternal?: boolean;
+  description?: LocalizedString | string;
+  description_ar?: string;
+  description_en?: string;
+  phone?: string;
+  email?: string;
+  address?: LocalizedString | string;
+  address_ar?: string;
+  address_en?: string;
 }
 
 export interface DirectorateTeam {
@@ -51,6 +59,8 @@ export interface Directorate {
   email?: string;
   phone?: string;
   website?: string;
+  working_hours_ar?: string;
+  working_hours_en?: string;
 }
 
 export interface Service {
@@ -128,12 +138,30 @@ export interface Ticket {
   subject?: string;
   status: 'new' | 'in_progress' | 'resolved' | 'rejected' | string;
   priority?: 'low' | 'normal' | 'medium' | 'high' | 'urgent';
+  ai_category?: string;
+  ai_priority?: string;
+  template_id?: string | number;
+  template_fields?: Record<string, string>;
   created_at?: string;
   lastUpdate?: string;
   updated_at?: string;
   notes?: string;
   description?: string;
-  directorate?: string;
+  directorate?: string | {
+    id?: string;
+    name?: string;
+    name_ar?: string;
+    name_en?: string;
+  };
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  attachments?: Array<{
+    id?: string | number;
+    file_name?: string;
+    mime_type?: string;
+    size?: number;
+  }>;
   responses?: TicketResponse[];
   rating?: number;
 }
@@ -167,6 +195,7 @@ export interface ComplaintData {
   previousTrackingNumber?: string;
   recaptcha_token?: string;
   file?: File | null;
+  files?: File[];
 }
 
 export interface SuggestionData {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import auth, { User, LoginCredentials, RegisterData, AuthResponse, TwoFactorVerifyData } from '@/lib/auth';
+import auth, { User, LoginCredentials, RegisterData, AuthResponse, TwoFactorVerifyData, TwoFactorResendData } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
   verify2fa: (data: TwoFactorVerifyData) => Promise<AuthResponse>;
+  resend2fa: (data: TwoFactorResendData) => Promise<{ message: string }>;
   register: (data: RegisterData) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -102,6 +103,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return response;
   };
 
+  const resend2fa = async (data: TwoFactorResendData): Promise<{ message: string }> => {
+    return auth.resend2fa(data);
+  };
+
   const register = async (data: RegisterData): Promise<AuthResponse> => {
     const response = await auth.register(data);
     // If 2FA is required, don't set the user yet
@@ -138,6 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user,
     login,
     verify2fa,
+    resend2fa,
     register,
     logout,
     refreshUser,

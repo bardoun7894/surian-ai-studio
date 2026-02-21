@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
     Mail,
     Lock,
@@ -9,10 +9,10 @@ import {
     ArrowRight,
     ArrowLeft,
     User,
-    Phone,
-    Fingerprint,
     Shield,
     CheckCircle,
+    CheckCircle2,
+    AlertCircle,
     MapPin,
     Calendar,
     ChevronRight,
@@ -28,11 +28,94 @@ import { ApiError } from '@/lib/api';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import PhoneInput from '@/components/ui/PhoneInput';
 import NationalIdField from '@/components/NationalIdField';
+import { validatePhoneWithCountryCode } from '@/lib/phone';
 
 const RegisterPage = () => {
     const { language, t } = useLanguage();
     const { register } = useAuth();
     const router = useRouter();
+    const DOB_MIN_AGE = 13;
+    const DOB_MAX_AGE = 120;
+
+    const formatDateForInput = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const parseDateInput = (value: string): number | null => {
+        const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) {
+            return null;
+        }
+
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const timestamp = Date.UTC(year, month - 1, day);
+        const parsed = new Date(timestamp);
+
+        if (
+            parsed.getUTCFullYear() !== year ||
+            parsed.getUTCMonth() + 1 !== month ||
+            parsed.getUTCDate() !== day
+        ) {
+            return null;
+        }
+
+        return timestamp;
+    };
+
+    const getDobLimits = () => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const month = today.getMonth();
+        const day = today.getDate();
+
+        const minDate = new Date(currentYear - DOB_MAX_AGE, month, day);
+        const maxDate = new Date(currentYear - DOB_MIN_AGE, month, day);
+        const todayTimestamp = Date.UTC(currentYear, month, day);
+
+        return {
+            minDate,
+            maxDate,
+            minTimestamp: Date.UTC(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()),
+            maxTimestamp: Date.UTC(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()),
+            todayTimestamp,
+        };
+    };
+
+    const validateBirthDate = (birthDate: string): string | null => {
+        if (!birthDate) {
+            return t('validation_required');
+        }
+
+        const dobTimestamp = parseDateInput(birthDate);
+        if (dobTimestamp === null) {
+            return t('validation_dob_invalid');
+        }
+
+        const { minTimestamp, maxTimestamp, todayTimestamp } = getDobLimits();
+
+        if (dobTimestamp > todayTimestamp) {
+            return t('validation_dob_future');
+        }
+
+        if (dobTimestamp > maxTimestamp) {
+            return t('validation_dob_too_young');
+        }
+
+        if (dobTimestamp < minTimestamp) {
+            return t('validation_dob_too_old');
+        }
+
+        return null;
+    };
+
+    const { minDate, maxDate } = getDobLimits();
+    const minBirthDate = formatDateForInput(minDate);
+    const maxBirthDate = formatDateForInput(maxDate);
 
     const [showPassword, setShowPassword] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
@@ -55,26 +138,59 @@ const RegisterPage = () => {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const { executeRecaptcha } = useRecaptcha();
 
+    const getPhoneValidationError = (phone: string): string | null => {
+        const phoneValidation = validatePhoneWithCountryCode(phone);
+        if (phoneValidation.isValid) {
+            return null;
+        }
+
+        if (phoneValidation.reason === 'required') {
+            return t('validation_required');
+        }
+
+        return t('validation_phone_invalid');
+    };
+
+    const passwordRules = [
+        { key: 'length', test: (pw: string) => pw.length >= 8 },
+        { key: 'uppercase', test: (pw: string) => /[A-Z]/.test(pw) },
+        { key: 'lowercase', test: (pw: string) => /[a-z]/.test(pw) },
+        { key: 'number', test: (pw: string) => /[0-9]/.test(pw) },
+        { key: 'special', test: (pw: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw) },
+    ];
+
+    const isPasswordValid = (pw: string): boolean =>
+        passwordRules.every((rule) => rule.test(pw));
+
     const validateStep = (step: number): boolean => {
         const errors: Record<string, string> = {};
 
         if (step === 1) {
-            // Date of birth validation
-            if (formData.birthDate) {
-                const dob = new Date(formData.birthDate);
-                if (isNaN(dob.getTime())) {
-                    errors.birthDate = t('validation_dob_invalid');
-                } else if (dob > new Date()) {
-                    errors.birthDate = t('validation_dob_future');
-                }
+            const birthDateError = validateBirthDate(formData.birthDate);
+            if (birthDateError) {
+                errors.birthDate = birthDateError;
             }
         }
 
-        if (step === 2) {
+        if (step === 3) {
             // Email validation
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (formData.email && !emailRegex.test(formData.email)) {
                 errors.email = t('validation_email_invalid');
+            }
+
+            const phoneError = getPhoneValidationError(formData.phone);
+            if (phoneError) {
+                errors.phone = phoneError;
+            }
+        }
+
+        if (step === 4) {
+            if (!isPasswordValid(formData.password)) {
+                errors.password = t('validation_password_weak');
+            }
+            if (formData.password !== formData.confirmPassword) {
+                errors.confirmPassword = t('validation_password_mismatch');
             }
         }
 
@@ -82,33 +198,70 @@ const RegisterPage = () => {
         return Object.keys(errors).length === 0;
     };
 
+    const validateBeforeSubmit = (): boolean => {
+        const errors: Record<string, string> = {};
+
+        const birthDateError = validateBirthDate(formData.birthDate);
+        if (birthDateError) {
+            errors.birthDate = birthDateError;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email || !emailRegex.test(formData.email)) {
+            errors.email = t('validation_email_invalid');
+        }
+
+        const phoneError = getPhoneValidationError(formData.phone);
+        if (phoneError) {
+            errors.phone = phoneError;
+        }
+
+        if (!isPasswordValid(formData.password)) {
+            errors.password = t('validation_password_weak');
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            errors.confirmPassword = t('validation_password_mismatch');
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const governorates = [
-        'دمشق',
-        'ريف دمشق',
-        'حلب',
-        'حمص',
-        'حماة',
-        'اللاذقية',
-        'طرطوس',
-        'دير الزور',
-        'الحسكة',
-        'الرقة',
-        'إدلب',
-        'درعا',
-        'السويداء',
-        'القنيطرة'
+        { ar: 'دمشق', en: 'Damascus' },
+        { ar: 'ريف دمشق', en: 'Rural Damascus' },
+        { ar: 'حلب', en: 'Aleppo' },
+        { ar: 'حمص', en: 'Homs' },
+        { ar: 'حماة', en: 'Hama' },
+        { ar: 'اللاذقية', en: 'Latakia' },
+        { ar: 'طرطوس', en: 'Tartus' },
+        { ar: 'دير الزور', en: 'Deir ez-Zor' },
+        { ar: 'الحسكة', en: 'Al-Hasakah' },
+        { ar: 'الرقة', en: 'Raqqa' },
+        { ar: 'إدلب', en: 'Idlib' },
+        { ar: 'درعا', en: 'Daraa' },
+        { ar: 'السويداء', en: 'As-Suwayda' },
+        { ar: 'القنيطرة', en: 'Quneitra' },
     ];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
-        if (!validateStep(currentStep)) {
+        if (currentStep < 4) {
+            if (!validateStep(currentStep)) {
+                return;
+            }
+
+            setCurrentStep(currentStep + 1);
             return;
         }
 
-        if (currentStep < 4) {
-            setCurrentStep(currentStep + 1);
+        if (!validateBeforeSubmit()) {
+            const birthDateError = validateBirthDate(formData.birthDate);
+            const hasPasswordError = !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
+            setCurrentStep(birthDateError ? 1 : hasPasswordError ? 4 : 3);
             return;
         }
 
@@ -132,13 +285,13 @@ const RegisterPage = () => {
             });
 
             if (response.require_2fa) {
-                // Redirect to 2FA verification page
-                router.push(`/two-factor?email=${encodeURIComponent(formData.email)}`);
+                // Redirect to 2FA verification page (replace so user can't go back to completed form)
+                router.replace(`/two-factor?email=${encodeURIComponent(response.email || formData.email)}`);
                 return;
             }
 
             // Redirect to dashboard
-            router.push('/dashboard');
+            router.replace('/dashboard');
         } catch (err) {
             if (err instanceof ApiError) {
                 setError(err.message);
@@ -171,32 +324,38 @@ const RegisterPage = () => {
                     <div className="absolute inset-0 bg-pattern-islamic bg-repeat bg-center" />
                 </div>
 
-                {/* Decorative Circles */}
-                <div className="absolute top-20 -right-20 w-80 h-80 rounded-full border border-gov-gold/20" />
-                <div className="absolute bottom-20 -left-20 w-96 h-96 rounded-full border border-gov-gold/10" />
+                {/* Islamic Geometric Decorations */}
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                    {/* Mihrab-inspired Arch Backdrop */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] border-[2px] border-gov-gold/30 rounded-[100%_100%_0_0] transform rotate-12" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border-[1px] border-gov-gold/20 rounded-[100%_100%_0_0] transform -rotate-6" />
+
+                    {/* Corner Islamic Patterns */}
+                    <div className="absolute top-0 right-0 w-64 h-64 border-r-2 border-t-2 border-gov-gold/20 rounded-bl-[100%] opacity-50" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 border-l-2 border-b-2 border-gov-gold/15 rounded-tr-[100%] opacity-40" />
+
+                    {/* Subtle Star Patterns */}
+                    <div className="absolute top-1/4 left-10 w-4 h-4 bg-gov-gold/40 rotate-45 animate-pulse-slow" />
+                    <div className="absolute top-1/3 right-20 w-3 h-3 bg-gov-gold/30 rotate-12 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+                    <div className="absolute bottom-1/4 right-10 w-5 h-5 bg-gov-gold/20 rotate-45 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+                </div>
 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full px-12">
+
+
                     {/* Government Emblem */}
                     <div className="relative mb-8">
                         <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-3xl scale-150" />
                         <Image
-                            src="/assets/logo/Asset-14@3x.png"
-                            alt="Syrian Arab Republic Emblem"
-                            width={120}
-                            height={120}
-                            className="relative z-10 drop-shadow-2xl max-w-[120px] max-h-[120px]"
+                            src="/assets/logo/Asset-15@2x.png"
+                            alt="Ministry of Economy and Industry"
+                            width={140}
+                            height={140}
+                            className="relative z-10 drop-shadow-2xl max-w-[140px] max-h-[140px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
-
-                    {/* Title */}
-                    <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {t('auth_ministry_name')}
-                    </h1>
-                    <p className="text-gov-gold text-lg text-center mb-8">
-                        {t('republic_name')}
-                    </p>
 
                     {/* Decorative Line */}
                     <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mb-8" />
@@ -223,6 +382,20 @@ const RegisterPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Bottom Decorative Pattern & Copyright */}
+                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gov-gold/10 to-transparent opacity-50 pointer-events-none" />
+
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+                    <p className="text-gov-gold/60 text-sm font-medium mb-2 whitespace-nowrap">
+                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
+                    </p>
+                    <div className="flex gap-4 opacity-50">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '0s' }} />
+                        <div className="w-2 h-2 rounded-full bg-gov-gold animate-pulse" style={{ animationDelay: '0.5s' }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '1s' }} />
+                    </div>
+                </div>
             </div>
 
             {/* Right Panel - Register Form */}
@@ -240,11 +413,11 @@ const RegisterPage = () => {
                     {/* Mobile Logo */}
                     <div className="lg:hidden text-center mb-6">
                         <Image
-                            src="/assets/logo/Asset-14@3x.png"
-                            alt="Emblem"
-                            width={64}
-                            height={64}
-                            className="mx-auto mb-3 max-w-[64px] max-h-[64px]"
+                            src="/assets/logo/Asset-15@2x.png"
+                            alt="Logo"
+                            width={112}
+                            height={112}
+                            className="mx-auto mb-3 max-w-[112px] max-h-[112px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -322,22 +495,57 @@ const RegisterPage = () => {
 
                                     {/* Birth Date */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('reg_birth_date')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('reg_birth_date')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type="date"
                                                 value={formData.birthDate}
-                                                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                                className="w-full py-2.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white text-sm focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, birthDate: e.target.value });
+                                                    if (fieldErrors.birthDate) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.birthDate; return next; });
+                                                    }
+                                                }}
+                                                min={minBirthDate}
+                                                max={maxBirthDate}
+                                                className={`w-full py-2.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white text-sm focus:outline-none transition-all
+                                                    ${fieldErrors.birthDate
+                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        : formData.birthDate && !validateBirthDate(formData.birthDate)
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    }`}
                                                 required
                                             />
-                                            <Calendar className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <Calendar className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
+                                                ${fieldErrors.birthDate
+                                                    ? 'text-red-500 dark:text-gov-cherry'
+                                                    : formData.birthDate && !validateBirthDate(formData.birthDate)
+                                                        ? 'text-green-500 dark:text-gov-emerald'
+                                                        : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
+                                                }`} size={20} />
+                                            {/* Validation icon */}
+                                            {fieldErrors.birthDate && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                </div>
+                                            )}
+                                            {formData.birthDate && !validateBirthDate(formData.birthDate) && !fieldErrors.birthDate && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
                                         </div>
-                                        {fieldErrors.birthDate && (
-                                            <p className="text-red-500 text-sm mt-1">{fieldErrors.birthDate}</p>
-                                        )}
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.birthDate && (
+                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.birthDate}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -347,8 +555,8 @@ const RegisterPage = () => {
                                 <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* First Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -356,17 +564,17 @@ const RegisterPage = () => {
                                                 value={formData.firstName}
                                                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 required
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                         </div>
                                     </div>
 
                                     {/* Father Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -374,17 +582,17 @@ const RegisterPage = () => {
                                                 value={formData.fatherName}
                                                 onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'اسم الأب' : 'Father Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 required
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                         </div>
                                     </div>
 
                                     {/* Last Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -392,32 +600,45 @@ const RegisterPage = () => {
                                                 value={formData.lastName}
                                                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                 placeholder={language === 'ar' ? 'الكنية' : 'Last Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 required
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
                                         </div>
                                     </div>
 
                                     {/* Governorate */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('reg_governorate')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('reg_governorate')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <select
                                                 value={formData.governorate}
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                className="w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gray-50 dark:bg-dm-surface dark:text-white dark:border-gov-border/15 border border-gray-200 text-gov-charcoal focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all appearance-none"
+                                                className={`w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
+                                                    ${formData.governorate
+                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                        : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    }`}
                                                 required
                                             >
                                                 <option value="" className="dark:bg-dm-surface dark:text-white">{t('reg_select_governorate')}</option>
                                                 {governorates.map((gov) => (
-                                                    <option key={gov} value={gov} className="dark:bg-dm-surface dark:text-white">{gov}</option>
+                                                    <option key={gov.ar} value={gov.ar} className="dark:bg-dm-surface dark:text-white">{language === 'ar' ? gov.ar : gov.en}</option>
                                                 ))}
                                             </select>
-                                            <MapPin className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors pointer-events-none" size={20} />
+                                            <MapPin className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
+                                                ${formData.governorate
+                                                    ? 'text-green-500 dark:text-gov-emerald'
+                                                    : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
+                                                }`} size={20} />
                                             <ChevronDown className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                                            {formData.governorate && (
+                                                <div className="absolute ltr:right-8 rtl:left-8 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={16} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -428,36 +649,73 @@ const RegisterPage = () => {
                                 <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* Email */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('auth_email')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('auth_email')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
                                                 type="email"
                                                 value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, email: e.target.value });
+                                                    if (fieldErrors.email) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.email; return next; });
+                                                    }
+                                                }}
                                                 placeholder="example@email.com"
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${fieldErrors.email
+                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    }`}
                                                 required
                                             />
-                                            <Mail className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <Mail className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
+                                                ${fieldErrors.email ? 'text-red-500 dark:text-gov-cherry' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                            {/* Validation icons */}
+                                            {fieldErrors.email && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.email && formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
                                         </div>
-                                        {fieldErrors.email && (
-                                            <p className="text-red-500 text-sm mt-1">{fieldErrors.email}</p>
-                                        )}
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.email && (
+                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.email}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Phone */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('auth_phone')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('auth_phone')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <PhoneInput
                                                 value={formData.phone}
-                                                onChange={(val) => setFormData({ ...formData, phone: val })}
-                                                placeholder="09xxxxxxxx"
-                                                className="w-full py-4 px-4 pr-12 rtl:pr-12 rtl:pl-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-4 focus:ring-gov-teal/5 dark:focus:ring-gov-gold/5 transition-all text-sm"
+                                                onChange={(val) => {
+                                                    setFormData({ ...formData, phone: val });
+                                                    if (fieldErrors.phone) {
+                                                        setFieldErrors((prev) => {
+                                                            const next = { ...prev };
+                                                            delete next.phone;
+                                                            return next;
+                                                        });
+                                                    }
+                                                }}
+                                                error={fieldErrors.phone}
+                                                isValid={!!formData.phone && !fieldErrors.phone && validatePhoneWithCountryCode(formData.phone).isValid}
                                                 required
                                             />
                                         </div>
@@ -478,10 +736,10 @@ const RegisterPage = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-gov-forest dark:text-white/90 group-hover:text-gov-emerald transition-colors">
-                                                {language === 'ar' ? 'تفعيل الواتساب للتنبيهات' : 'Enable WhatsApp Notifications'}
+                                                {t('reg_whatsapp_enable')}
                                             </span>
                                             <span className="text-[10px] text-gray-500 dark:text-white/50">
-                                                {language === 'ar' ? 'سوف يصلك رمز التحقق عبر الواتساب بدلاً من الرسائل النصية' : 'You will receive verification codes via WhatsApp'}
+                                                {t('reg_whatsapp_desc')}
                                             </span>
                                         </div>
                                     </label>
@@ -500,8 +758,8 @@ const RegisterPage = () => {
                                 <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* Password */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('auth_password')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('auth_password')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -509,25 +767,41 @@ const RegisterPage = () => {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 placeholder={t('reg_password_placeholder')}
-                                                className="w-full py-3.5 px-4 ltr:pl-12 ltr:pr-12 rtl:pr-12 rtl:pl-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-16 rtl:pr-12 rtl:pl-16 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${fieldErrors.password
+                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        : formData.password && isPasswordValid(formData.password)
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    }`}
                                                 required
                                                 minLength={8}
                                             />
-                                            <Lock className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
+                                                ${fieldErrors.password ? 'text-red-500 dark:text-gov-cherry' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors z-10"
+                                                aria-label={showPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                                                className="absolute top-0 bottom-0 ltr:right-0 rtl:left-0 w-12 flex items-center justify-center text-gray-400 hover:text-gov-teal transition-colors z-10 touch-manipulation"
                                             >
                                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.password && (
+                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.password}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
                                     {/* Confirm Password */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
-                                            {t('reg_confirm_password')} <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                            {t('reg_confirm_password')} <span className="text-gov-cherry">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -535,10 +809,36 @@ const RegisterPage = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                                 placeholder={t('reg_reenter_password')}
-                                                className="w-full py-3.5 px-4 ltr:pl-12 rtl:pr-12 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all"
+                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${fieldErrors.confirmPassword
+                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password)
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    }`}
                                                 required
                                             />
-                                            <Lock className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
+                                            <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
+                                                ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-gov-cherry' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                            {/* Validation icons */}
+                                            {fieldErrors.confirmPassword && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.confirmPassword && formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.confirmPassword && (
+                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.confirmPassword}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -548,24 +848,22 @@ const RegisterPage = () => {
                                             {t('reg_password_requirements')}
                                         </p>
                                         <ul className="text-sm text-gray-500 dark:text-white/70 space-y-2">
-                                            <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.password.length >= 8 ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
-                                                    <CheckCircle size={10} />
-                                                </div>
-                                                <span className={formData.password.length >= 8 ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_length')}</span>
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.password) ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
-                                                    <CheckCircle size={10} />
-                                                </div>
-                                                <span className={/[A-Z]/.test(formData.password) ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_uppercase')}</span>
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${/[0-9]/.test(formData.password) ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
-                                                    <CheckCircle size={10} />
-                                                </div>
-                                                <span className={/[0-9]/.test(formData.password) ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t('reg_password_number')}</span>
-                                            </li>
+                                            {passwordRules.map((rule) => {
+                                                const passed = rule.test(formData.password);
+                                                const labelKey = rule.key === 'length' ? 'reg_password_length'
+                                                    : rule.key === 'uppercase' ? 'reg_password_uppercase'
+                                                        : rule.key === 'lowercase' ? 'reg_password_lowercase'
+                                                            : rule.key === 'number' ? 'reg_password_number'
+                                                                : 'reg_password_special';
+                                                return (
+                                                    <li key={rule.key} className="flex items-center gap-2">
+                                                        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${passed ? 'bg-gov-emerald dark:bg-gov-gold text-white dark:text-gov-forest' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}>
+                                                            <CheckCircle size={10} />
+                                                        </div>
+                                                        <span className={passed ? 'text-gov-emerald dark:text-gov-gold font-medium' : ''}>{t(labelKey)}</span>
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     </div>
 

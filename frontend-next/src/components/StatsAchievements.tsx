@@ -146,7 +146,7 @@ const StatsAchievements: React.FC = () => {
   }, [statsValues]);
 
   const formatNumber = (num: number): string => {
-    return num.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US');
+    return num.toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US');
   };
 
   return (

@@ -204,14 +204,34 @@
                             <div class="flex flex-col gap-3">
                                 <!-- Video file upload -->
                                 <div>
-                                    <label class="block text-[10px] text-slate-400 mb-1">رفع ملف فيديو (MP4, WebM, OGG - حتى 50MB)</label>
+                                    <label class="block text-[10px] text-slate-400 mb-1">رفع ملف فيديو (MP4, WebM, OGG)</label>
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <span class="material-symbols-outlined text-[14px] text-amber-500">info</span>
+                                        <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400">الحد الأقصى لحجم الملف: 50MB</span>
+                                    </div>
                                     <input type="file" name="video_file" id="video-file-input" accept="video/mp4,video/webm,video/ogg"
                                         class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100">
+                                    <div id="video-size-error" class="hidden mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                                        <div class="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+                                            <span class="material-symbols-outlined text-[16px]">error</span>
+                                            <span>حجم الملف يتجاوز الحد الأقصى (50MB). يرجى اختيار ملف أصغر.</span>
+                                        </div>
+                                    </div>
                                     <div id="video-file-info" class="hidden mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
                                             <span class="material-symbols-outlined text-[16px] text-primary">video_file</span>
                                             <span id="video-file-name" class="truncate flex-1"></span>
                                             <span id="video-file-size" class="text-slate-400 whitespace-nowrap"></span>
+                                        </div>
+                                    </div>
+                                    <!-- Upload progress bar -->
+                                    <div id="video-upload-progress" class="hidden mt-2">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-[10px] font-bold text-primary">جاري رفع الفيديو...</span>
+                                            <span id="video-progress-text" class="text-[10px] text-slate-500">0%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div id="video-progress-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                                         </div>
                                     </div>
                                     @error('video_file') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -298,12 +318,25 @@
             previewWrap.classList.add('hidden');
         }
 
+        const maxFileSize = 50 * 1024 * 1024; // 50MB
+        const sizeError = document.getElementById('video-size-error');
+
         // Uploaded file preview
         if (videoInput) {
             videoInput.addEventListener('change', function() {
+                sizeError.classList.add('hidden');
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
                     const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+
+                    if (file.size > maxFileSize) {
+                        sizeError.classList.remove('hidden');
+                        this.value = '';
+                        videoInfo.classList.add('hidden');
+                        hideVideoPreview();
+                        return;
+                    }
+
                     videoFileName.textContent = file.name;
                     videoFileSize.textContent = sizeMB + ' MB';
                     videoInfo.classList.remove('hidden');
@@ -350,19 +383,81 @@
             });
         }
 
-        // Form submit loading state
+        // Form submit with upload progress
         const form = document.querySelector('form');
         const submitBtn = document.getElementById('submit-btn');
         const submitIcon = document.getElementById('submit-icon');
         const submitSpinner = document.getElementById('submit-spinner');
         const submitText = document.getElementById('submit-text');
+        const progressWrap = document.getElementById('video-upload-progress');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressText = document.getElementById('video-progress-text');
+
         if (form && submitBtn) {
-            form.addEventListener('submit', function() {
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-                submitIcon.classList.add('hidden');
-                submitSpinner.classList.remove('hidden');
-                submitText.textContent = 'جاري الرفع والإنشاء...';
+            form.addEventListener('submit', function(e) {
+                // Client-side size check before submit
+                if (videoInput && videoInput.files[0] && videoInput.files[0].size > maxFileSize) {
+                    e.preventDefault();
+                    sizeError.classList.remove('hidden');
+                    return;
+                }
+
+                const hasVideoFile = videoInput && videoInput.files && videoInput.files.length > 0;
+
+                if (hasVideoFile) {
+                    e.preventDefault();
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                    submitIcon.classList.add('hidden');
+                    submitSpinner.classList.remove('hidden');
+                    submitText.textContent = 'جاري رفع الفيديو...';
+                    progressWrap.classList.remove('hidden');
+
+                    const formData = new FormData(form);
+                    const xhr = new XMLHttpRequest();
+                    xhr.open(form.method, form.action, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    xhr.upload.addEventListener('progress', function(evt) {
+                        if (evt.lengthComputable) {
+                            const pct = Math.round((evt.loaded / evt.total) * 100);
+                            progressBar.style.width = pct + '%';
+                            progressText.textContent = pct + '%';
+                            if (pct >= 100) {
+                                submitText.textContent = 'جاري المعالجة...';
+                            }
+                        }
+                    });
+
+                    xhr.addEventListener('load', function() {
+                        if (xhr.status >= 200 && xhr.status < 400) {
+                            // Redirect on success (Laravel returns redirect)
+                            window.location.href = xhr.responseURL || '{{ route("admin.promotional.index") }}';
+                        } else {
+                            // Re-submit normally to show validation errors
+                            progressWrap.classList.add('hidden');
+                            form.submit();
+                        }
+                    });
+
+                    xhr.addEventListener('error', function() {
+                        progressWrap.classList.add('hidden');
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        submitIcon.classList.remove('hidden');
+                        submitSpinner.classList.add('hidden');
+                        submitText.textContent = 'إنشاء القسم';
+                        alert('حدث خطأ أثناء الرفع. يرجى المحاولة مرة أخرى.');
+                    });
+
+                    xhr.send(formData);
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                    submitIcon.classList.add('hidden');
+                    submitSpinner.classList.remove('hidden');
+                    submitText.textContent = 'جاري الإنشاء...';
+                }
             });
         }
     });

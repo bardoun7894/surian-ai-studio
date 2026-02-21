@@ -152,62 +152,48 @@ const HomeComplaintsSection = () => {
                         animate={isInView ? "visible" : "hidden"}
                         className="w-full lg:w-5/12"
                     >
-                        <div className="grid grid-cols-1 gap-6">
-                            {/* Main Stat Card */}
-                            <motion.div 
+                        <div className="grid grid-cols-3 gap-4">
+                            <motion.div
                                 variants={itemVariants}
-                                whileHover={{ y: -8, scale: 1.02 }}
-                                className="relative group"
+                                whileHover={{ y: -5 }}
+                                className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/15 text-center"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/30 to-gov-teal/30 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="relative bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gov-gold/20 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2" />
-                                    
-                                    <div className="relative z-10">
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <div className="w-16 h-16 rounded-2xl bg-gov-gold/20 flex items-center justify-center">
-                                                <CheckCircle size={32} className="text-gov-gold" />
-                                            </div>
-                                            <div>
-                                                <div className="text-5xl font-display font-bold text-gov-gold">100%</div>
-                                                <div className="text-white/60 text-sm font-medium">
-                                                    {t('complaints_stat') || (isAr ? 'نسبة الاستجابة' : 'Response Rate')}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p className="text-white/70 text-sm">
-                                            {isAr ? 'نسبة الاستجابة للشكاوى الواردة' : 'Response rate to incoming complaints'}
-                                        </p>
-                                    </div>
+                                <div className="w-12 h-12 rounded-xl bg-gov-gold/20 flex items-center justify-center mx-auto mb-3">
+                                    <CheckCircle size={24} className="text-gov-gold" />
+                                </div>
+                                <div className="text-2xl font-display font-bold text-gov-gold mb-1">100%</div>
+                                <div className="text-white/60 text-xs">
+                                    {isAr ? 'نسبة الاستجابة' : 'Response Rate'}
                                 </div>
                             </motion.div>
 
-                            {/* Secondary Stats */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <motion.div 
-                                    variants={itemVariants}
-                                    whileHover={{ y: -5 }}
-                                    className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10"
-                                >
-                                    <Clock size={24} className="text-gov-teal mb-3" />
-                                    <div className="text-2xl font-bold text-white mb-1">24/7</div>
-                                    <div className="text-white/50 text-sm">
-                                        {isAr ? 'دعم مستمر' : '24/7 Support'}
-                                    </div>
-                                </motion.div>
+                            <motion.div
+                                variants={itemVariants}
+                                whileHover={{ y: -5 }}
+                                className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/15 text-center"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-gov-teal/20 flex items-center justify-center mx-auto mb-3">
+                                    <Clock size={24} className="text-gov-teal" />
+                                </div>
+                                <div className="text-2xl font-display font-bold text-white mb-1">24/7</div>
+                                <div className="text-white/60 text-xs">
+                                    {isAr ? 'دعم مستمر' : '24/7 Support'}
+                                </div>
+                            </motion.div>
 
-                                <motion.div 
-                                    variants={itemVariants}
-                                    whileHover={{ y: -5 }}
-                                    className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10"
-                                >
-                                    <Users size={24} className="text-gov-gold mb-3" />
-                                    <div className="text-2xl font-bold text-white mb-1">+50K</div>
-                                    <div className="text-white/50 text-sm">
-                                        {isAr ? 'شكوى تم حلها' : 'Complaints Resolved'}
-                                    </div>
-                                </motion.div>
-                            </div>
+                            <motion.div
+                                variants={itemVariants}
+                                whileHover={{ y: -5 }}
+                                className="bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/15 text-center"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-gov-gold/20 flex items-center justify-center mx-auto mb-3">
+                                    <Users size={24} className="text-gov-gold" />
+                                </div>
+                                <div className="text-2xl font-display font-bold text-white mb-1">+50K</div>
+                                <div className="text-white/60 text-xs">
+                                    {isAr ? 'شكوى تم حلها' : 'Resolved'}
+                                </div>
+                            </motion.div>
                         </div>
                     </motion.div>
                 </div>

@@ -92,6 +92,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         type: 'faq',
                         url: '/faq'
                     }));
+                // Valid route prefixes to filter out broken suggestions
+                const validRoutes = ['/news/', '/services/', '/announcements/', '/directorates/', '/complaints', '/suggestions', '/media', '/faq', '/contact', '/about', '/search', '/decrees/'];
+
                 // Merge API suggestions with FAQ suggestions (deduplicate by text)
                 const allSuggestions = [...results];
                 for (const faqSug of faqSuggestions) {
@@ -99,7 +102,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         allSuggestions.push(faqSug);
                     }
                 }
-                setSuggestions(allSuggestions.slice(0, 8));
+                // Filter out suggestions with URLs that don't match valid routes
+                const validSuggestions = allSuggestions.filter(s => {
+                    if (!s.url) return true; // Keep text-only suggestions
+                    return validRoutes.some(route => s.url!.startsWith(route)) || s.url === '/';
+                });
+                setSuggestions(validSuggestions.slice(0, 8));
                 setShowSuggestions(allSuggestions.length > 0);
                 setSelectedSuggestionIndex(-1);
             } catch {
@@ -142,7 +150,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                 tabType,
                 filters.dateFrom || undefined,
                 filters.dateTo || undefined,
-                filters.entity || undefined
+                filters.entity || undefined,
+                language
             );
 
             // Client-side FAQ fallback: if the API returned no FAQ results,

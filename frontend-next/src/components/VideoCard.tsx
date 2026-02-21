@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useRef, useState, useMemo, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface VideoCardProps {
     videoUrl: string;
@@ -12,12 +13,6 @@ interface VideoCardProps {
     autoPlayOnHover?: boolean;
 }
 
-/**
- * Extract YouTube video ID from various URL formats:
- * - https://www.youtube.com/watch?v=ID
- * - https://youtu.be/ID
- * - https://www.youtube.com/embed/ID
- */
 function getYouTubeId(url: string): string | null {
     const match = url.match(
         /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
@@ -29,6 +24,147 @@ function isYouTubeUrl(url: string): boolean {
     return /(?:youtube\.com|youtu\.be)/.test(url);
 }
 
+// Fullscreen modal player for both YouTube and native video
+const VideoModal: React.FC<{
+    videoUrl: string;
+    youtubeId: string | null;
+    isYoutube: boolean;
+    title?: string;
+    posterUrl?: string;
+    onClose: () => void;
+}> = ({ videoUrl, youtubeId, isYoutube, title, posterUrl, onClose }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', handleEsc);
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', handleEsc);
+            document.body.style.overflow = '';
+        };
+    }, [onClose]);
+
+    useEffect(() => {
+        if (!isYoutube && videoRef.current) {
+            videoRef.current.play().catch(() => {});
+        }
+    }, [isYoutube]);
+
+    const handleTimeUpdate = () => {
+        if (videoRef.current) {
+            setProgress((videoRef.current.currentTime / videoRef.current.duration) * 100);
+        }
+    };
+
+    const youtubeEmbedUrl = youtubeId
+        ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+        : '';
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center" onClick={onClose}>
+            <div className="relative w-full max-w-5xl mx-4" onClick={(e) => e.stopPropagation()}>
+                {/* Close button */}
+                <button
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors z-50"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Title */}
+                {title && (
+                    <div className="absolute -top-12 left-0 text-white font-bold text-lg truncate max-w-[70%]">
+                        {title}
+                    </div>
+                )}
+
+                {isYoutube ? (
+                    <div className="aspect-video rounded-xl overflow-hidden">
+                        <iframe
+                            src={youtubeEmbedUrl}
+                            title={title || 'Video'}
+                            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full border-0"
+                        />
+                    </div>
+                ) : (
+                    <div className="aspect-video rounded-xl overflow-hidden relative bg-black">
+                        <video
+                            ref={videoRef}
+                            src={videoUrl}
+                            poster={posterUrl}
+                            className="w-full h-full object-contain"
+                            onTimeUpdate={handleTimeUpdate}
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onClick={() => {
+                                if (videoRef.current) {
+                                    isPlaying ? videoRef.current.pause() : videoRef.current.play();
+                                }
+                            }}
+                        />
+
+                        {/* Custom controls */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                            {/* Progress bar */}
+                            <div
+                                className="w-full h-1 bg-white/20 rounded-full mb-3 cursor-pointer"
+                                onClick={(e) => {
+                                    if (videoRef.current) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const pct = (e.clientX - rect.left) / rect.width;
+                                        videoRef.current.currentTime = pct * videoRef.current.duration;
+                                    }
+                                }}
+                            >
+                                <div className="h-full bg-gov-gold rounded-full" style={{ width: `${progress}%` }} />
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        if (videoRef.current) {
+                                            isPlaying ? videoRef.current.pause() : videoRef.current.play();
+                                        }
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                                >
+                                    {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (videoRef.current) {
+                                            videoRef.current.muted = !isMuted;
+                                            setIsMuted(!isMuted);
+                                        }
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                                >
+                                    {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                                </button>
+                                <button
+                                    onClick={() => videoRef.current?.requestFullscreen?.()}
+                                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors ml-auto"
+                                >
+                                    <Maximize2 size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>,
+        document.body
+    );
+};
+
 export default function VideoCard({
     videoUrl,
     posterUrl,
@@ -38,10 +174,9 @@ export default function VideoCard({
     autoPlayOnHover = true,
 }: VideoCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const [youtubeActive, setYoutubeActive] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
     const aspectClasses = {
         video: 'aspect-video',
@@ -51,20 +186,14 @@ export default function VideoCard({
 
     const youtubeId = useMemo(() => getYouTubeId(videoUrl), [videoUrl]);
     const isYoutube = isYouTubeUrl(videoUrl);
-
     const youtubeThumbnail = youtubeId
         ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
         : undefined;
 
     const handleMouseEnter = useCallback(() => {
         setIsHovered(true);
-        if (isYoutube && autoPlayOnHover) {
-            setYoutubeActive(true);
-            setIsPlaying(true);
-        } else if (autoPlayOnHover && videoRef.current) {
-            // Browsers require muted for autoplay; mute temporarily for hover play
+        if (!isYoutube && autoPlayOnHover && videoRef.current) {
             videoRef.current.muted = true;
-            setIsMuted(true);
             videoRef.current.play().catch(() => {});
             setIsPlaying(true);
         }
@@ -72,149 +201,150 @@ export default function VideoCard({
 
     const handleMouseLeave = useCallback(() => {
         setIsHovered(false);
-        if (isYoutube) {
-            setYoutubeActive(false);
-            setIsPlaying(false);
-        } else if (autoPlayOnHover && videoRef.current) {
+        if (!isYoutube && autoPlayOnHover && videoRef.current) {
             videoRef.current.pause();
-            videoRef.current.currentTime = 0;
             setIsPlaying(false);
         }
     }, [isYoutube, autoPlayOnHover]);
 
-    const togglePlay = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isYoutube) {
-            setYoutubeActive(true);
-            setIsPlaying(true);
-            return;
-        }
-        if (videoRef.current) {
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
-            }
-            setIsPlaying(!isPlaying);
-        }
-    };
+    const [youtubeActive, setYoutubeActive] = useState(false);
+    const ytIframeRef = useRef<HTMLIFrameElement>(null);
 
-    const toggleMute = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (videoRef.current) {
-            videoRef.current.muted = !isMuted;
-            setIsMuted(!isMuted);
-        }
-    };
-
-    // YouTube embed URL: mute=1 required for autoplay, enablejsapi for control
     const youtubeEmbedUrl = youtubeId
-        ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`
+        ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`
         : '';
 
+    const sendYtCommand = useCallback((func: string) => {
+        if (ytIframeRef.current?.contentWindow) {
+            ytIframeRef.current.contentWindow.postMessage(
+                JSON.stringify({ event: 'command', func, args: [] }),
+                'https://www.youtube.com'
+            );
+        }
+    }, []);
+
+    const [ytMuted, setYtMuted] = useState(true);
+
+    const openPlayer = () => {
+        if (!isYoutube) setShowModal(true);
+    };
+
     return (
-        <div
-            className={`relative overflow-hidden rounded-xl group cursor-pointer ${aspectClasses[aspectRatio]} ${className}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-        >
-            {isYoutube ? (
-                <>
-                    {/* YouTube thumbnail - always rendered underneath */}
-                    <img
-                        src={posterUrl || youtubeThumbnail || ''}
-                        alt={title || 'Video thumbnail'}
-                        className="w-full h-full object-cover"
-                    />
-
-                    {/* YouTube iframe - overlaid on hover */}
-                    {youtubeActive && youtubeId && (
-                        <iframe
-                            src={youtubeEmbedUrl}
-                            title={title || 'Video'}
-                            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            className="absolute inset-0 w-full h-full border-0 z-10"
+        <>
+            <div
+                className={`relative overflow-hidden rounded-xl group cursor-pointer ${aspectClasses[aspectRatio]} ${className}`}
+                onMouseEnter={(e) => {
+                    handleMouseEnter();
+                    if (isYoutube && autoPlayOnHover) {
+                        setYoutubeActive(true);
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    handleMouseLeave();
+                    if (isYoutube) {
+                        setYoutubeActive(false);
+                        setYtMuted(true);
+                    }
+                }}
+                onClick={openPlayer}
+            >
+                {isYoutube ? (
+                    <>
+                        {/* YouTube thumbnail */}
+                        <img
+                            src={posterUrl || youtubeThumbnail || ''}
+                            alt={title || 'Video thumbnail'}
+                            className="w-full h-full object-cover"
                         />
-                    )}
 
-                    {/* Overlay + play button when not active */}
-                    {!youtubeActive && (
-                        <>
-                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
-                            <div
-                                className="absolute inset-0 flex items-center justify-center z-10"
-                                onClick={togglePlay}
-                            >
-                                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                                    <Play size={28} className="text-white ml-1" fill="white" />
+                        {/* YouTube iframe on hover */}
+                        {youtubeActive && youtubeId && (
+                            <iframe
+                                ref={ytIframeRef}
+                                src={youtubeEmbedUrl}
+                                title={title || 'Video'}
+                                allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="absolute inset-0 w-full h-full border-0 z-10"
+                            />
+                        )}
+
+                        {/* Play button when not active */}
+                        {!youtubeActive && (
+                            <>
+                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
+                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                    <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                                        <Play size={28} className="text-white ml-1" fill="white" />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Sound toggle + title when YouTube active */}
+                        {youtubeActive && (
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-20 flex items-center justify-between">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (ytMuted) { sendYtCommand('unMute'); } else { sendYtCommand('mute'); }
+                                        setYtMuted(!ytMuted);
+                                    }}
+                                    className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                                >
+                                    {ytMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                                </button>
+                                {title && <span className="text-white text-sm font-medium truncate max-w-[60%]">{title}</span>}
+                            </div>
+                        )}
+
+                        {/* Title when not active */}
+                        {!youtubeActive && title && (
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
+                                <span className="text-white text-sm font-medium truncate block">{title}</span>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <video
+                            ref={videoRef}
+                            src={videoUrl}
+                            poster={posterUrl}
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-cover pointer-events-none transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        {!isPlaying && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                                    <Play size={28} className="text-gov-forest ml-1" />
                                 </div>
                             </div>
-                        </>
-                    )}
-
-                    {/* Title */}
-                    {!youtubeActive && title && (
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
-                            <span className="text-white text-sm font-medium truncate block">
-                                {title}
-                            </span>
-                        </div>
-                    )}
-                </>
-            ) : (
-                <>
-                    {/* Native Video Element */}
-                    <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        poster={posterUrl}
-                        muted={isMuted}
-                        loop
-                        playsInline
-                        controls
-                        preload="metadata"
-                        crossOrigin="anonymous"
-                        className="w-full h-full object-cover"
-                    />
-
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    {/* Play Icon (when not playing) */}
-                    {!isPlaying && (
-                        <div className="absolute inset-0 flex items-center justify-center" onClick={togglePlay}>
-                            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                                <Play size={28} className="text-gov-forest ml-1" />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Controls (on hover) */}
-                    <div className={`absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={togglePlay}
-                                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                            >
-                                {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
-                            </button>
-                            <button
-                                onClick={toggleMute}
-                                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                            >
-                                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                            </button>
-                        </div>
-
-                        {title && (
-                            <span className="text-white text-sm font-medium truncate max-w-[60%]">
-                                {title}
-                            </span>
                         )}
-                    </div>
-                </>
+                        {title && (
+                            <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                                <span className="text-white text-sm font-medium truncate block">{title}</span>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {showModal && (
+                <VideoModal
+                    videoUrl={videoUrl}
+                    youtubeId={youtubeId}
+                    isYoutube={isYoutube}
+                    title={title}
+                    posterUrl={posterUrl}
+                    onClose={() => setShowModal(false)}
+                />
             )}
-        </div>
+        </>
     );
 }

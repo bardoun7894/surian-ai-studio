@@ -56,7 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, isDarkMode, to
                 <button
                   key={item.label}
                   onClick={() => onNavigate(item.view)}
-                  className={`relative px-5 py-2 text-sm font-bold transition-all duration-300 overflow-hidden group ${currentView === item.view
+                  className={`relative ${language === 'en' ? 'px-3 text-xs' : 'px-5 text-sm'} py-2 font-bold transition-all duration-300 overflow-hidden group ${currentView === item.view
                     ? 'text-gov-gold ring-1 ring-white/10'
                     : 'text-white/80 hover:text-white border-transparent hover:bg-white/10 rounded-lg'
                     }`}
@@ -123,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, isDarkMode, to
               ) : (
                 <button
                   onClick={() => onNavigate('LOGIN')}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className={`hidden sm:flex items-center gap-2 ${language === 'en' ? 'px-3 text-xs' : 'px-4 py-2 text-sm'} font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all duration-300 shadow-md hover:shadow-lg`}
                 >
                   <UserIcon size={16} />
                   <span>{t('nav_login')}</span>

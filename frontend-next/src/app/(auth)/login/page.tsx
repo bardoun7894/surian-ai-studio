@@ -11,20 +11,24 @@ import {
     Phone,
     Fingerprint,
     Shield,
+    AlertCircle,
     ChevronRight,
     ChevronLeft
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
+import type { LoginCredentials } from '@/lib/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ApiError } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import PhoneInput from '@/components/ui/PhoneInput';
+import { formatPhoneForLogin, validatePhoneWithCountryCode } from '@/lib/phone';
 
 const LoginPage = () => {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const { login, isAuthenticated } = useAuth();
     const { startLoading } = useLoading();
     const router = useRouter();
@@ -39,6 +43,9 @@ const LoginPage = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [phoneFieldError, setPhoneFieldError] = useState<string | null>(null);
+    const [nationalIdFieldError, setNationalIdFieldError] = useState<string | null>(null);
+    const [emailFieldError, setEmailFieldError] = useState<string | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -65,26 +72,53 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        setPhoneFieldError(null);
+        setNationalIdFieldError(null);
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
         try {
             // Prepare credentials based on method
-            let loginIdentifier = '';
-            if (loginMethod === 'email') loginIdentifier = formData.email;
-            else if (loginMethod === 'phone') loginIdentifier = formData.phone;
-            else loginIdentifier = formData.nationalId;
+            const credentials: LoginCredentials = { password: formData.password };
+            if (loginMethod === 'email') {
+                credentials.email = formData.email;
+            } else if (loginMethod === 'phone') {
+                const phoneValidation = validatePhoneWithCountryCode(formData.phone);
+                if (!phoneValidation.isValid) {
+                    setPhoneFieldError(
+                        phoneValidation.reason === 'required'
+                            ? t('validation_required')
+                            : t('validation_phone_invalid')
+                    );
+                    setIsLoading(false);
+                    return;
+                }
 
-            const response = await login({
-                email: loginIdentifier,
-                password: formData.password,
-            });
+                credentials.phone = formatPhoneForLogin(phoneValidation.normalized);
+            } else {
+                const nationalId = formData.nationalId.trim();
+                if (!/^\d{11}$/.test(nationalId)) {
+                    setNationalIdFieldError(t('national_id_format_error'));
+                    setIsLoading(false);
+                    return;
+                }
+
+                credentials.national_id = nationalId;
+            }
+
+            const response = await login(credentials);
 
             if (response.require_2fa) {
+                const twoFactorEmail = response.email;
+                if (!twoFactorEmail) {
+                    setIsLoading(false);
+                    setError(language === 'ar' ? 'تعذر بدء التحقق الثنائي. يرجى المحاولة مرة أخرى.' : 'Unable to start two-factor verification. Please try again.');
+                    return;
+                }
                 // Show loading badge and redirect to 2FA verification page
                 startLoading();
                 setIsLoading(false);
-                router.replace(`/two-factor?email=${encodeURIComponent(loginIdentifier)}`);
+                router.replace(`/two-factor?email=${encodeURIComponent(twoFactorEmail)}`);
                 return;
             }
 
@@ -126,32 +160,38 @@ const LoginPage = () => {
                     <div className="absolute inset-0 bg-pattern-islamic bg-repeat bg-center" />
                 </div>
 
-                {/* Decorative Circles */}
-                <div className="absolute top-20 -right-20 w-80 h-80 rounded-full border border-gov-gold/20" />
-                <div className="absolute bottom-20 -left-20 w-96 h-96 rounded-full border border-gov-gold/10" />
+                {/* Islamic Geometric Decorations */}
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                    {/* Mihrab-inspired Arch Backdrop */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] border-[2px] border-gov-gold/30 rounded-[100%_100%_0_0] transform rotate-12" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border-[1px] border-gov-gold/20 rounded-[100%_100%_0_0] transform -rotate-6" />
+
+                    {/* Corner Islamic Patterns */}
+                    <div className="absolute top-0 right-0 w-64 h-64 border-r-2 border-t-2 border-gov-gold/20 rounded-bl-[100%] opacity-50" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 border-l-2 border-b-2 border-gov-gold/15 rounded-tr-[100%] opacity-40" />
+
+                    {/* Subtle Star Patterns */}
+                    <div className="absolute top-1/4 left-10 w-4 h-4 bg-gov-gold/40 rotate-45 animate-pulse-slow" />
+                    <div className="absolute top-1/3 right-20 w-3 h-3 bg-gov-gold/30 rotate-12 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+                    <div className="absolute bottom-1/4 right-10 w-5 h-5 bg-gov-gold/20 rotate-45 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+                </div>
 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full px-12">
+
+
                     {/* Government Emblem */}
                     <div className="relative mb-8">
                         <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-3xl scale-150" />
                         <Image
-                            src="/assets/logo/Asset-14@3x.png"
-                            alt="Syrian Arab Republic Emblem"
-                            width={160}
-                            height={160}
-                            className="relative z-10 drop-shadow-2xl"
+                            src="/assets/logo/Asset-15@2x.png"
+                            alt="Ministry of Economy and Industry"
+                            width={140}
+                            height={140}
+                            className="relative z-10 drop-shadow-2xl max-w-[140px] max-h-[140px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
-
-                    {/* Title */}
-                    <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy & Industry'}
-                    </h1>
-                    <p className="text-gov-gold text-lg text-center mb-8">
-                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
-                    </p>
 
                     {/* Decorative Line */}
                     <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mb-8" />
@@ -183,10 +223,15 @@ const LoginPage = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gov-gold/10 to-transparent opacity-50 pointer-events-none" />
 
                 {/* Stars */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 opacity-50">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '0s' }} />
-                    <div className="w-2 h-2 rounded-full bg-gov-gold animate-pulse" style={{ animationDelay: '0.5s' }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+                    <p className="text-gov-gold/60 text-sm font-medium mb-2">
+                        {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
+                    </p>
+                    <div className="flex gap-4 opacity-50">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '0s' }} />
+                        <div className="w-2 h-2 rounded-full bg-gov-gold animate-pulse" style={{ animationDelay: '0.5s' }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '1s' }} />
+                    </div>
                 </div>
             </div>
 
@@ -203,13 +248,13 @@ const LoginPage = () => {
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-8">
+                    <div className="lg:hidden text-center mb-6">
                         <Image
-                            src="/assets/logo/Asset-14@3x.png"
-                            alt="Emblem"
-                            width={80}
-                            height={80}
-                            className="mx-auto mb-4"
+                            src="/assets/logo/Asset-15@2x.png"
+                            alt="Logo"
+                            width={112}
+                            height={112}
+                            className="mx-auto mb-3 max-w-[112px] max-h-[112px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -251,7 +296,16 @@ const LoginPage = () => {
                                 <button
                                     key={key}
                                     type="button"
-                                    onClick={() => setLoginMethod(key as typeof loginMethod)}
+                                    onClick={() => {
+                                        setLoginMethod(key as typeof loginMethod);
+                                        setError(null);
+                                        if (key !== 'phone') {
+                                            setPhoneFieldError(null);
+                                        }
+                                        if (key !== 'national') {
+                                            setNationalIdFieldError(null);
+                                        }
+                                    }}
                                     className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
                                         ? 'bg-white dark:bg-gov-button text-gov-forest dark:text-white shadow-sm border border-gray-200/50 dark:border-white/10'
                                         : 'text-gray-500 dark:text-white/60 hover:text-gov-forest dark:hover:text-white hover:bg-white/50'
@@ -266,50 +320,90 @@ const LoginPage = () => {
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Dynamic Input Field */}
                             <div>
-                                <label className="block text-sm font-medium text-gov-charcoal dark:text-white/70 mb-2">
+                                <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                     {loginMethod === 'email' && (language === 'ar' ? 'البريد الإلكتروني' : 'Email Address')}
                                     {loginMethod === 'phone' && (language === 'ar' ? 'رقم الهاتف' : 'Phone Number')}
                                     {loginMethod === 'national' && (language === 'ar' ? 'الرقم الوطني' : 'National ID')}
                                 </label>
-                                <div className="relative group">
-                                    <input
-                                        type={loginMethod === 'email' ? 'email' : 'text'}
-                                        value={formData[loginMethod === 'email' ? 'email' : loginMethod === 'phone' ? 'phone' : 'nationalId']}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (loginMethod === 'national') {
-                                                // Only allow numbers and max 11 chars
-                                                if (/^\d{0,11}$/.test(val)) {
-                                                    setFormData({ ...formData, nationalId: val });
-                                                }
-                                            } else {
-                                                setFormData({
-                                                    ...formData,
-                                                    [loginMethod === 'email' ? 'email' : loginMethod === 'phone' ? 'phone' : 'nationalId']: val
-                                                });
+                                {loginMethod === 'phone' ? (
+                                    <PhoneInput
+                                        value={formData.phone}
+                                        onChange={(val) => {
+                                            setFormData({ ...formData, phone: val });
+                                            if (phoneFieldError) {
+                                                setPhoneFieldError(null);
                                             }
                                         }}
-                                        placeholder={
-                                            loginMethod === 'email'
-                                                ? (language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email')
-                                                : loginMethod === 'phone'
-                                                    ? '09xxxxxxxx'
-                                                    : '12345678901'
-                                        }
-                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-4 focus:ring-gov-teal/5 dark:focus:ring-gov-gold/5 transition-all text-sm"
+                                        error={phoneFieldError || undefined}
+                                        isValid={!!formData.phone && !phoneFieldError && validatePhoneWithCountryCode(formData.phone).isValid}
                                         required
                                     />
-                                    <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-gov-teal">
-                                        {loginMethod === 'email' && <Mail size={18} />}
-                                        {loginMethod === 'phone' && <Phone size={18} />}
-                                        {loginMethod === 'national' && <Fingerprint size={18} />}
+                                ) : (
+                                    <div className="relative group">
+                                        <input
+                                            type={loginMethod === 'email' ? 'email' : 'text'}
+                                            value={formData[loginMethod === 'email' ? 'email' : 'nationalId']}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (loginMethod === 'national') {
+                                                    if (/^\d{0,11}$/.test(val)) {
+                                                        if (nationalIdFieldError) {
+                                                            setNationalIdFieldError(null);
+                                                        }
+                                                        setFormData({ ...formData, nationalId: val });
+                                                    }
+                                                    return;
+                                                }
+
+                                                setFormData({ ...formData, email: val });
+                                                // Real-time email validation
+                                                if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+                                                    setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                                                } else {
+                                                    setEmailFieldError(null);
+                                                }
+                                            }}
+                                            placeholder={
+                                                loginMethod === 'email'
+                                                    ? (language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email')
+                                                    : '12345678901'
+                                            }
+                                            className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                                ${(loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)
+                                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                    : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                }`}
+                                            required
+                                        />
+                                        <div className={`absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 transition-colors
+                                            ${(loginMethod === 'national' && nationalIdFieldError)
+                                                ? 'text-red-500 dark:text-gov-cherry'
+                                                : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
+                                            }`}>
+                                            {loginMethod === 'email' && <Mail size={18} />}
+                                            {loginMethod === 'national' && <Fingerprint size={18} />}
+                                        </div>
                                     </div>
+                                )}
+                                <div className="min-h-[1.25rem] mt-1">
+                                    {loginMethod === 'national' && nationalIdFieldError && (
+                                        <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                            <AlertCircle size={12} className="shrink-0" />
+                                            {nationalIdFieldError}
+                                        </p>
+                                    )}
+                                    {loginMethod === 'email' && emailFieldError && (
+                                        <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                            <AlertCircle size={12} className="shrink-0" />
+                                            {emailFieldError}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Password Input */}
                             <div>
-                                <label className="block text-sm font-medium text-gov-charcoal dark:text-white/70 mb-2">
+                                <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                     {language === 'ar' ? 'كلمة المرور' : 'Password'}
                                 </label>
                                 <div className="relative group">
@@ -318,7 +412,7 @@ const LoginPage = () => {
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gov-charcoal dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-4 focus:ring-gov-teal/5 dark:focus:ring-gov-gold/5 transition-all text-sm"
+                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all text-sm"
                                         required
                                     />
                                     <button

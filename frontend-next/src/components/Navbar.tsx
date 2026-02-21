@@ -7,7 +7,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import NotificationsDropdown from './NotificationsDropdown';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Loader2 } from 'lucide-react';
@@ -26,6 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const { toggleTheme } = useTheme();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -62,6 +63,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   };
 
   const closeMenu = () => setActiveMenu(null);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Close search when clicking outside
   useEffect(() => {
@@ -150,24 +155,20 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gov-emeraldStatic bg-pattern-islamic shadow-lg border-b border-gov-gold/20 min-h-[4rem] transition-all duration-500 bg-[length:500px] bg-repeat bg-center bg-blend-soft-light">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gov-forest dark:bg-gov-forest bg-pattern-islamic shadow-lg border-b border-gov-gold/20 min-h-[4rem] transition-all duration-500 bg-[length:500px] bg-repeat bg-center bg-blend-soft-light">
       <div className="absolute inset-0 bg-gov-forest/80 mix-blend-multiply z-0 pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-16 md:h-20 flex items-center justify-between z-10 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-[4.5rem] md:h-[5.5rem] flex items-center justify-between z-10 relative">
 
         {/* Logo Area */}
-        <Link href="/" className={`flex items-center gap-2 md:gap-3 cursor-pointer group shrink-0 ${language === 'ar' ? '-mr-2' : '-ml-2'}`}>
+        <Link href="/" className={`flex items-center gap-2 md:gap-3 cursor-pointer group shrink-0 ${language === 'ar' ? '-mr-2' : '-ml-2'} -translate-y-1 lg:-translate-y-1.5`}>
           <Image
-            src="/assets/logo/logo-light.png"
+            src={language === 'ar' ? '/assets/logo/header-logo-ar.png' : '/assets/logo/header-logo.png'}
             alt="Ministry of Economy and Industry"
-            width={120}
-            height={120}
-            className="h-10 sm:h-14 md:h-16 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+            width={200}
+            height={200}
+            className="h-14 sm:h-16 md:h-[4.5rem] w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
           />
-          <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[10px] md:text-xs text-white/70 font-medium">{t('republic_name')}</span>
-            <span className="text-xs md:text-sm text-white font-bold">{t('ministry_name')}</span>
-          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -175,7 +176,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
           {/* Home */}
           <Link
             href="/"
-            className="px-3 py-2 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+            className={`${language === 'en' ? 'px-2 text-xs' : 'px-3 text-sm'} py-2 font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 whitespace-nowrap`}
             onMouseEnter={() => handleMenuEnter('home')}
             onMouseLeave={handleMenuLeave}
           >
@@ -193,8 +194,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               {
                 title: t('ql_about'),
                 items: [
-                  { label: t('ql_about'), href: '/about', icon: Building2, description: 'Learn about our mission and vision' },
-                  { label: t('organizational_structure'), href: '/directorates', icon: Building, description: 'View the ministry structure' }
+                  { label: t('ql_about'), href: '/about', icon: Building2, description: language === 'ar' ? 'تعرف على رسالتنا ورؤيتنا' : 'Learn about our mission and vision' },
+                  { label: t('organizational_structure'), href: '/directorates', icon: Building, description: language === 'ar' ? 'عرض الهيكل التنظيمي للوزارة' : 'View the ministry structure' }
                 ]
               }
             ]}
@@ -216,12 +217,17 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   { label: t('nav_economy_services'), href: '/services?directorate=economy', icon: TrendingUp },
                   { label: t('nav_trade_services'), href: '/services?directorate=trade', icon: Scale },
                 ]
+              },
+              {
+                title: language === 'ar' ? 'التشريعات' : 'Legislations',
+                items: [
+                  { label: language === 'ar' ? 'القوانين والمراسيم' : 'Laws & Decrees', href: '/decrees', icon: Scale, description: language === 'ar' ? 'التشريعات والقوانين الصادرة' : 'Published laws and decrees' },
+                ]
               }
             ]}
           />
 
-          {/* Departments (Mega Menu) */}
-
+          {/* Departments removed per ministry request */}
 
           {/* Media Center */}
           <MegaMenu
@@ -234,9 +240,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               {
                 title: t('nav_media'),
                 items: [
-                  { label: t('nav_news'), href: '/news', icon: Newspaper, description: 'Latest updates and press releases' },
-                  { label: t('nav_announcements'), href: '/announcements', icon: Megaphone, description: 'Official announcements and tenders' },
-                  { label: t('ql_media'), href: '/media', icon: PlayCircle, description: 'Photos and videos gallery' },
+                  { label: t('nav_news'), href: '/news', icon: Newspaper, description: language === 'ar' ? 'آخر الأخبار والبيانات الصحفية' : 'Latest updates and press releases' },
+                  { label: t('nav_announcements'), href: '/announcements', icon: Megaphone, description: language === 'ar' ? 'الإعلانات الرسمية والمناقصات' : 'Official announcements and tenders' },
+                  { label: t('ql_media'), href: '/media', icon: PlayCircle, description: language === 'ar' ? 'معرض الصور والفيديو' : 'Photos and videos gallery' },
                 ]
               }
             ]}
@@ -253,8 +259,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               {
                 title: t('nav_feedback'),
                 items: [
-                  { label: t('nav_suggestions'), href: '/suggestions', icon: Lightbulb, description: 'Share your ideas with us' },
-                  { label: t('nav_complaints'), href: '/complaints', icon: MessageSquareWarning, description: 'File a complaint or issue' },
+                  { label: t('nav_suggestions'), href: '/suggestions', icon: Lightbulb, description: language === 'ar' ? 'شاركنا أفكارك ومقترحاتك' : 'Share your ideas with us' },
+                  { label: t('nav_complaints'), href: '/complaints', icon: MessageSquareWarning, description: language === 'ar' ? 'تقديم شكوى أو ملاحظة' : 'File a complaint or issue' },
                 ]
               }
             ]}
@@ -317,7 +323,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gov-charcoal dark:text-white truncate">{suggestion.text}</p>
-                        <p className="text-[10px] text-gray-500 uppercase">{suggestion.type}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-white/50 uppercase">{suggestion.type}</p>
                       </div>
                     </Link>
                   ))}
@@ -348,11 +354,11 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             </button>
           </div>
 
-          {/* Auth / Dashboard */}
+          {/* Auth / Dashboard - Desktop */}
           {isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
               <LayoutDashboard size={16} />
               <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
@@ -360,17 +366,36 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
           ) : (
             <Link
               href="/login"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
               <User size={16} />
               <span>{language === 'ar' ? 'دخول' : 'Login'}</span>
             </Link>
           )}
 
+          {/* Auth Icon Button - Mobile Only (visible on small screens) */}
+          {isAuthenticated ? (
+            <Link
+              href="/dashboard"
+              className="sm:hidden flex items-center justify-center w-10 h-10 rounded-full bg-gov-gold text-gov-forest hover:bg-gov-gold/90 transition-colors shadow-md"
+              title={language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+            >
+              <LayoutDashboard size={20} />
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="sm:hidden flex items-center justify-center w-10 h-10 rounded-full bg-gov-gold text-gov-forest hover:bg-gov-gold/90 transition-colors shadow-md"
+              title={t('nav_login')}
+            >
+              <User size={20} />
+            </Link>
+          )}
+
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            className="lg:hidden p-2.5 text-white bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -380,56 +405,105 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="lg:hidden bg-white dark:bg-dm-surface border-t border-gov-gold/20 shadow-xl overflow-hidden"
-          >
-            <div className="p-4 space-y-1">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/5">{t('nav_home')}</Link>
+          <>
+            <motion.button
+              type="button"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden fixed inset-0 z-40 bg-black/35 dark:bg-black/55"
+              aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="lg:hidden fixed inset-x-0 top-16 md:top-20 bottom-0 z-50 bg-gradient-to-b from-white via-white to-gov-beige/40 dark:from-dm-surface dark:via-dm-surface dark:to-dm-bg border-t border-gov-gold/25 dark:border-gov-border/30 shadow-xl overflow-y-auto overscroll-contain"
+            >
+              <div className="p-4 space-y-1 pb-8">
+                {/* Login/Account Button - Prominently placed at top */}
+                {isAuthenticated ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full mb-4 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md"
+                  >
+                    <LayoutDashboard size={20} />
+                    <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full mb-2 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md"
+                  >
+                    <User size={20} />
+                    <span>{t('nav_login')}</span>
+                  </Link>
+                )}
 
-              {/* Mobile specific simple menu structure (collapsing dropdowns could be nice but simplified for now) */}
-              <div className="border-t border-gray-100 dark:border-white/5 my-2 pt-2">
-                <p className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">{t('nav_about')}</p>
-                {aboutMenu.map((item, i) => (
-                  <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{item.label}</Link>
-                ))}
+                {!isAuthenticated && (
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full mb-4 px-4 py-3 border-2 border-gov-forest/20 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors"
+                  >
+                    <User size={20} />
+                    <span>{t('sitemap_register')}</span>
+                  </Link>
+                )}
+
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/70 dark:hover:bg-white/10 border border-transparent hover:border-gov-gold/25 dark:hover:border-gov-border/40 transition-colors">{t('nav_home')}</Link>
+
+                {/* Mobile specific simple menu structure (collapsing dropdowns could be nice but simplified for now) */}
+                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
+                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_about')}</p>
+                  {aboutMenu.map((item, i) => (
+                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
+                  ))}
+                </div>
+
+                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
+                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_services_legislations')}</p>
+                  {servicesMenu.map((item, i) => (
+                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
+                  ))}
+                  <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{language === 'ar' ? 'القوانين والمراسيم' : 'Laws & Decrees'}</Link>
+                </div>
+
+
+                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
+                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_media')}</p>
+                  {mediaMenu.map((item, i) => (
+                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
+                  ))}
+                </div>
+
+                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
+                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_suggestions_complaints')}</p>
+                  {suggestionsMenu.map((item, i) => (
+                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
+                  ))}
+                </div>
+
+                {/* Additional login/dashboard link at bottom for users who scroll */}
+                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 mt-4 pt-4">
+                  {isAuthenticated ? (
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center border-2 border-gov-forest/25 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors">
+                      <LayoutDashboard size={18} />
+                      <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
+                    </Link>
+                  ) : (
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center border-2 border-gov-forest/25 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors">
+                      <User size={18} />
+                      <span>{t('nav_login')}</span>
+                    </Link>
+                  )}
+                </div>
               </div>
-
-              <div className="border-t border-gray-100 dark:border-white/5 my-2 pt-2">
-                <p className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">{t('nav_services_legislations')}</p>
-                {servicesMenu.map((item, i) => (
-                  <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{item.label}</Link>
-                ))}
-              </div>
-
-
-              <div className="border-t border-gray-100 dark:border-white/5 my-2 pt-2">
-                <p className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">{t('nav_media')}</p>
-                {mediaMenu.map((item, i) => (
-                  <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{item.label}</Link>
-                ))}
-              </div>
-
-              <div className="border-t border-gray-100 dark:border-white/5 my-2 pt-2">
-                <p className="px-4 py-2 text-xs font-bold text-gray-500 uppercase">{t('nav_suggestions_complaints')}</p>
-                {suggestionsMenu.map((item, i) => (
-                  <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white hover:text-gov-gold">{item.label}</Link>
-                ))}
-              </div>
-
-              {isAuthenticated ? (
-                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="block mt-4 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center">
-                  {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
-                </Link>
-              ) : (
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block mt-4 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center">
-                  {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
-                </Link>
-              )}
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>

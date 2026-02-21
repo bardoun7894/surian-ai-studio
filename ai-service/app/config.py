@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60  # seconds
 
+    # Google Search Grounding (fallback when RAG has no results)
+    ENABLE_GOOGLE_SEARCH_GROUNDING: bool = True
+
     # Chat settings
     MAX_CONVERSATION_HISTORY: int = 20
     MAX_INPUT_LENGTH: int = 4000

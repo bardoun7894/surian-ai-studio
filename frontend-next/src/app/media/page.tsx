@@ -21,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
+import FavoriteButton from '@/components/FavoriteButton';
 import { MediaItem } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -303,7 +304,7 @@ export default function MediaPage() {
                   <div
                     key={item.id}
                     onClick={() => {
-                      if (item.type === 'photo' && item.count) {
+                      if ((item.type === 'photo' || item.type === 'infographic') && item.count && item.count > 1) {
                         // This is an album - open album gallery
                         handleOpenAlbum(item);
                       } else if (item.type === 'photo' || item.type === 'infographic') {
@@ -407,6 +408,19 @@ export default function MediaPage() {
                       {/* Hover Actions Bar */}
                       {!isPlaying && (
                         <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-end gap-2 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                          <FavoriteButton
+                            contentType="media"
+                            contentId={item.id}
+                            variant="overlay"
+                            size={14}
+                            className="!w-8 !h-8"
+                            metadata={{
+                              title: item.title,
+                              description: '',
+                              image: item.thumbnailUrl || '',
+                              url: `/media#${item.id}`
+                            }}
+                          />
                           <button
                             onClick={(e) => handleShare(item, e)}
                             className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
@@ -442,6 +456,18 @@ export default function MediaPage() {
 
                         {viewMode === 'list' && (
                           <div className="flex items-center gap-3">
+                            <FavoriteButton
+                              contentType="media"
+                              contentId={item.id}
+                              variant="compact"
+                              size={14}
+                              metadata={{
+                                title: item.title,
+                                description: '',
+                                image: item.thumbnailUrl || '',
+                                url: `/media#${item.id}`
+                              }}
+                            />
                             {isVideo && (
                               <button
                                 onClick={(e) => handlePlayInline(item, e)}
@@ -680,8 +706,18 @@ export default function MediaPage() {
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="absolute bottom-2 left-2 right-2 text-white text-xs font-medium">
-                            {isAr ? 'صورة' : 'Photo'} {index + 1}
+                          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs font-medium">
+                            <span>{isAr ? 'صورة' : 'Photo'} {index + 1}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownload({ id: photo.id, title: photo.title, type: 'photo', thumbnailUrl: photo.url, url: photo.url, date: albumData.date } as MediaItem, e);
+                              }}
+                              className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"
+                              title={isAr ? 'تحميل' : 'Download'}
+                            >
+                              <Download size={12} />
+                            </button>
                           </div>
                         </div>
                       </div>

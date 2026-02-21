@@ -274,6 +274,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             }
             return true;
         }
+        if (step === 2) {
+            if (!formData.description.trim()) {
+                toast.error(t('suggestion_required_fields'));
+                return false;
+            }
+            return true;
+        }
         return true;
     };
 
@@ -368,8 +375,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         setTrackingResult(null);
 
         try {
-            const result = await API.suggestions.track(trackId, trackMode === 'identified' ? trackNationalId : undefined);
-            if (result) {
+            const response = await API.suggestions.track(trackId);
+            // API returns { success: true, data: {...} } - extract the actual data
+            const result = response?.data || response;
+            if (result && (result.tracking_number || result.status)) {
                 setTrackingResult(result);
                 toast.success(isAr ? 'تم العثور على المقترح' : 'Suggestion found');
             } else {
@@ -650,7 +659,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     />
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4 items-start">
                                                     <Input
                                                         label={t('suggestion_father_name')}
                                                         required={!isAnonymous}
@@ -677,7 +686,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     />
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-6 items-start">
                                                     <div className="relative">
                                                         <PhoneInput
                                                             label={t('complaint_phone')}
@@ -782,11 +791,11 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        {/* Show ready/uploading status for each file */}
+                                                        {/* Show ready/uploading status for each file immediately */}
                                                         <UploadProgress
                                                             fileName={file.name}
-                                                            progress={uploadProgress}
-                                                            status={isSubmitting ? (isUploading ? 'uploading' : 'ready') : 'ready'}
+                                                            progress={isUploading ? uploadProgress : 0}
+                                                            status={isUploading ? 'uploading' : isSubmitting ? 'uploading' : 'ready'}
                                                             fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
                                                             language={isAr ? 'ar' : 'en'}
                                                         />
@@ -853,9 +862,14 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             </div>
                         )}
 
-                        <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline">
-                            {t('suggestion_track_now')}
-                        </button>
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="px-6 py-2.5 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors">
+                                {t('suggestion_track_now')}
+                            </button>
+                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('submit'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline text-sm">
+                                {isAr ? 'تقديم مقترح جديد' : 'Submit New Suggestion'}
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -869,41 +883,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
                             </div>
 
-                            {/* T032: Track Mode Toggle - support anonymous tracking */}
-                            <div className="max-w-lg mx-auto mb-6">
-                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-4 rounded-xl border border-gov-gold/20 dark:border-gov-border/25">
-                                    <div className="flex items-center justify-center gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setTrackMode('identified'); setTrackingResult(null); setTrackError(null); }}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'identified'
-                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                                }`}
-                                        >
-                                            <Fingerprint size={16} />
-                                            {isAr ? 'متابعة مع الهوية' : 'Track with ID'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setTrackMode('anonymous'); setTrackingResult(null); setTrackError(null); setTrackNationalId(''); }}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${trackMode === 'anonymous'
-                                                ? 'bg-gov-forest dark:bg-gov-button text-white'
-                                                : 'bg-white dark:bg-white/10 text-gray-600 dark:text-white/70 border border-gray-200 dark:border-gov-border/25'
-                                                }`}
-                                        >
-                                            <UserX size={16} />
-                                            {isAr ? 'متابعة مجهولة' : 'Anonymous Track'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-center text-gray-500 dark:text-white/50 mt-2">
-                                        {trackMode === 'identified'
-                                            ? (isAr ? 'أدخل رقم التتبع والرقم الوطني' : 'Enter tracking number and national ID')
-                                            : (isAr ? 'أدخل رقم التتبع فقط لمتابعة المقترحات المجهولة' : 'Enter tracking number only for anonymous suggestions')}
-                                    </p>
-                                </div>
-                            </div>
-
                             <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</label>
@@ -911,28 +890,11 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         type="text"
                                         placeholder={t('suggestion_track_placeholder')}
                                         value={trackId}
-                                        onChange={(e) => setTrackId(e.target.value)}
-                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        onChange={(e) => setTrackId(e.target.value.toUpperCase())}
+                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none font-mono"
                                         required
                                     />
                                 </div>
-                                {trackMode === 'identified' && (
-                                    <div className="animate-fade-in">
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="\d{11}"
-                                            maxLength={11}
-                                            minLength={11}
-                                            placeholder={t('complaint_national_id_placeholder')}
-                                            value={trackNationalId}
-                                            onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, ''))}
-                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
-                                            required
-                                        />
-                                    </div>
-                                )}
                                 <button type="submit" className="w-full bg-gov-forest dark:bg-gov-button text-white py-3 rounded-xl font-bold hover:bg-gov-teal dark:hover:bg-gov-gold transition-colors flex items-center justify-center gap-2">
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>
@@ -954,7 +916,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {trackingResult.updated_at ? new Date(trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>
@@ -992,6 +954,18 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     </div>
                                                 ))}
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* Rating after receiving result - shown when suggestion is completed/responded */}
+                                    {(trackingResult.status === 'completed' || trackingResult.status === 'reviewed' || trackingResult.status === 'implemented' || trackingResult.status === 'rejected' || trackingResult.status === 'responded') && !trackingResult.rating && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                            <SuggestionRating
+                                                trackingNumber={trackingResult.tracking_number || trackingResult.id}
+                                                language={language as 'ar' | 'en'}
+                                                onClose={() => {}}
+                                                hideHelpfulQuestion={false}
+                                            />
                                         </div>
                                     )}
                                 </div>

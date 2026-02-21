@@ -46,6 +46,7 @@ class OpenAIProvider(AIProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1000,
+        use_google_search: bool = False,
     ) -> ChatResponse:
         """Send chat message to OpenAI."""
         # Build messages list

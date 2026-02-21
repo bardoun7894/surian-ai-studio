@@ -342,7 +342,7 @@
   ⎿  Done (24 tool uses · 0 tokens · 21s)                                                                                                              
   (ctrl+o to expand)                                                                                                                                   
                                                     
-● 4 Task agents finished (ctrl+o to expand)                                                                                                            
+● 4 Task agents finished (ctrl+o to ok do expand)                                                                                                            
    ├─ Scan lists 1-6 for undone cards · 9 tool uses · 55.5k tokens                                                                                     
    │  ⎿  Done                                                                                                                                          
    ├─ Scan lists 7-12 for undone cards · 6 tool uses · 22.4k tokens                                                                                    

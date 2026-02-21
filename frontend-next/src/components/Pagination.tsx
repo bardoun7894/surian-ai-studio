@@ -61,12 +61,12 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
       </p>
 
       {/* Page buttons */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-center flex-wrap gap-1.5">
         {/* First page */}
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="hidden sm:inline-flex p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة الأولى' : 'First page'}
         >
           <FirstIcon size={16} />
@@ -76,7 +76,7 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة السابقة' : 'Previous page'}
         >
           <PrevIcon size={16} />
@@ -87,15 +87,15 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
           page === '...' ? (
             <span key={`dots-${idx}`} className="px-2 text-gray-400 dark:text-white/30 select-none">...</span>
           ) : (
-            <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={`min-w-[40px] h-10 rounded-xl font-bold text-sm transition-all ${
-                currentPage === page
-                  ? 'bg-gov-teal text-white shadow-lg shadow-gov-teal/20 border border-gov-teal'
-                  : 'border border-gray-200 dark:border-gov-border/15 text-gray-600 dark:text-white/70 hover:bg-gov-teal/10 hover:border-gov-teal/30'
-              }`}
-            >
+              <button
+                key={page}
+                onClick={() => onPageChange(page)}
+                className={`min-w-[42px] h-11 rounded-xl font-bold text-sm transition-all ${
+                  currentPage === page
+                    ? 'bg-gov-teal text-white shadow-lg shadow-gov-teal/20 border border-gov-teal'
+                    : 'border border-gray-200 dark:border-gov-border/15 text-gray-600 dark:text-white/70 hover:bg-gov-teal/10 hover:border-gov-teal/30'
+                }`}
+              >
               {page}
             </button>
           )
@@ -105,7 +105,7 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === lastPage}
-          className="p-2 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة التالية' : 'Next page'}
         >
           <NextIcon size={16} />
@@ -115,7 +115,7 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
         <button
           onClick={() => onPageChange(lastPage)}
           disabled={currentPage === lastPage}
-          className="p-2 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="hidden sm:inline-flex p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة الأخيرة' : 'Last page'}
         >
           <LastIcon size={16} />

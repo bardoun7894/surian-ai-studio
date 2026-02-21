@@ -154,7 +154,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     return (
         <div className={`min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg ${expired ? 'opacity-60' : ''}`}>
             <Navbar />
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-20 md:pt-24 print:pt-0">
                 <div className="max-w-7xl mx-auto px-4 relative">
                     {/* Expired Banner */}
                     {expired && (

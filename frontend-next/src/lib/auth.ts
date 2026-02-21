@@ -34,7 +34,9 @@ export interface User {
 
 // Auth response types
 export interface LoginCredentials {
-  email: string;
+  email?: string;
+  phone?: string;
+  national_id?: string;
   password: string;
   remember?: boolean;
   use_whatsapp?: boolean;
@@ -70,6 +72,10 @@ export interface TwoFactorVerifyData {
   otp: string;
 }
 
+export interface TwoFactorResendData {
+  email: string;
+}
+
 // Auth service
 export const auth = {
   /**
@@ -96,6 +102,7 @@ export const auth = {
    * Verify 2FA code
    */
   async verify2fa(data: TwoFactorVerifyData): Promise<AuthResponse> {
+    await getCsrfCookie();
     const response = await api.post<AuthResponse & { access_token?: string }>('/auth/verify-2fa', data);
     // Store the token if returned
     const token = response.access_token || response.token;
@@ -103,6 +110,14 @@ export const auth = {
       setAuthToken(token);
     }
     return response;
+  },
+
+  /**
+   * Resend 2FA code
+   */
+  async resend2fa(data: TwoFactorResendData): Promise<{ message: string }> {
+    await getCsrfCookie();
+    return api.post<{ message: string }>('/auth/resend-2fa', data);
   },
 
   /**

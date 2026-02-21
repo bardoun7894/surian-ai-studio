@@ -28,7 +28,7 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
         const arField = obj?.[`${field}_ar`];
         const enField = obj?.[`${field}_en`];
         const ar = arField || (typeof val === 'string' ? val : '') || '';
-        const en = enField || ar;
+        const en = enField || '';
         return language === 'ar' ? ar : en;
     };
 
@@ -49,50 +49,40 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
                 <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/0 via-gov-teal/0 to-gov-forest/0 group-hover:from-gov-gold/5 group-hover:via-gov-teal/5 group-hover:to-gov-forest/5 transition-all duration-500"></div>
 
                 {/* Content - Compact Layout */}
-                <div className="p-6 flex flex-col items-center justify-center text-center relative z-10 h-full min-h-[320px]">
+                <div className="p-4 flex flex-col items-center justify-center text-center relative z-10 h-full min-h-[180px]">
 
-                    {/* Larger Eagle Logo with floating animation */}
+                    {/* Eagle Logo */}
                     <motion.div
-                        className="relative w-40 h-40 mb-6"
+                        className="relative w-20 h-20 mb-3"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ type: "spring", stiffness: 400 }}
                     >
-                        {/* Glow effect */}
                         <div className="absolute inset-0 rounded-full bg-gov-gold/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        {/* Rotating ring on hover */}
-                        <div className="absolute inset-0 rounded-full border-2 border-gov-gold/0 group-hover:border-gov-gold/30 group-hover:animate-[spin_8s_linear_infinite] transition-all duration-300"></div>
-
                         <div className="relative w-full h-full flex items-center justify-center">
-                            <div className="w-36 h-36 flex items-center justify-center rounded-full bg-gradient-to-br from-gov-gold/10 to-gov-forest/5 p-3 shadow-inner">
+                            <div className="w-18 h-18 flex items-center justify-center rounded-full bg-gradient-to-br from-gov-gold/10 to-gov-forest/5 p-0.5 shadow-inner">
                                 <Image
                                     src="/assets/logo/eagle.png"
                                     alt="Ministry Emblem"
-                                    width={128}
-                                    height={128}
-                                    className="object-contain w-full h-full drop-shadow-md"
+                                    width={72}
+                                    height={72}
+                                    className="object-contain w-full h-full drop-shadow-md scale-125"
                                 />
                             </div>
                         </div>
                     </motion.div>
 
-                    {/* Compact text content */}
-                    <div className="flex-1 flex flex-col justify-center items-center">
-                        <h3 className="text-base md:text-lg font-bold text-gov-forest dark:text-gov-gold mb-2 font-display leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors duration-300">
-                            {loc(directorate, 'name')}
-                        </h3>
-                        <p className="text-gov-stone/70 dark:text-white/60 text-xs leading-relaxed max-w-[200px] mx-auto line-clamp-2 mb-3">
-                            {loc(directorate, 'description')}
-                        </p>
-                    </div>
+                    {/* Name only */}
+                    <h3 className="text-sm md:text-base font-bold text-gov-forest dark:text-gov-gold mb-3 font-display leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors duration-300">
+                        {loc(directorate, 'name')}
+                    </h3>
 
-                    {/* Modern CTA Button */}
+                    {/* CTA Button */}
                     <motion.div
                         className="mt-auto"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gov-forest/10 dark:bg-gov-teal/20 border border-gov-forest/20 dark:border-gov-teal/30 text-gov-forest dark:text-gov-teal text-xs font-bold group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-teal transition-all duration-300">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gov-forest/10 dark:bg-gov-teal/20 border border-gov-forest/20 dark:border-gov-teal/30 text-gov-forest dark:text-gov-teal text-xs font-bold group-hover:bg-gov-forest group-hover:text-white dark:group-hover:bg-gov-teal transition-all duration-300">
                             <span>{language === 'ar' ? 'التفاصيل' : 'Details'}</span>
                             <ArrowRight size={12} className="rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                         </span>

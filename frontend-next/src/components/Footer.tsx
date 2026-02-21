@@ -65,17 +65,17 @@ const Footer: React.FC = () => {
                 style={{ width: 'auto', height: 'auto', maxHeight: '7rem' }}
               />
             </div>
-            <p className="text-gov-stone dark:text-gov-teal/80 text-sm leading-relaxed max-w-xs transition-colors">
+            <p className="text-gov-forest/70 dark:text-gov-teal/80 text-sm leading-relaxed max-w-xs transition-colors">
               {t('footer_desc')}
             </p>
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-lg mb-6 text-gov-gold relative inline-block">
+            <h4 className="font-display font-bold text-lg mb-6 text-gov-forest dark:text-gov-teal relative inline-block">
               {language === 'ar' ? 'تابعونا' : 'Follow Us'}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-forest dark:bg-gov-teal rounded-full`}></span>
             </h4>
-            <ul className="space-y-3 text-sm text-gov-stone dark:text-white/70 transition-colors">
+            <ul className="space-y-3 text-sm text-gov-forest/70 dark:text-white/70 transition-colors">
               {socialMediaLinks.map((social) => {
                 const Icon = social.icon;
                 return (
@@ -84,9 +84,9 @@ const Footer: React.FC = () => {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-gov-gold transition-colors flex items-center gap-3 py-2"
+                      className="text-gov-forest/70 dark:text-white/70 hover:text-gov-gold transition-colors flex items-center gap-3 py-2"
                     >
-                      <Icon size={18} className="text-gov-gold flex-shrink-0" />
+                      <Icon size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
                       <span>{language === 'ar' ? social.label.ar : social.label.en}</span>
                     </a>
                   </li>
@@ -96,35 +96,35 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-lg mb-6 text-gov-gold relative inline-block">
+            <h4 className="font-display font-bold text-lg mb-6 text-gov-forest dark:text-gov-teal relative inline-block">
               {t('contact_us')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-forest dark:bg-gov-teal rounded-full`}></span>
             </h4>
-            <ul className="space-y-4 text-sm text-gov-stone dark:text-white/70 transition-colors">
+            <ul className="space-y-4 text-sm text-gov-forest/70 dark:text-white/70 transition-colors">
               <li className="flex items-start gap-3">
-                <Phone size={16} className="text-gov-gold mt-1" />
+                <Phone size={16} className="text-gov-forest dark:text-gov-teal mt-1" />
                 <div>
-                  <span className="block text-xs text-gov-gold/70">{t('contact_center')}</span>
+                  <span className="block text-xs text-gov-forest/70 dark:text-gov-teal/70">{t('contact_center')}</span>
                   <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors hover:text-gov-gold dir-ltr">{phone}</a>
                 </div>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={16} className="text-gov-gold" />
-                <a href={`mailto:${email}`} className="hover:text-gov-gold transition-colors">{email}</a>
+                <Mail size={16} className="text-gov-forest dark:text-gov-teal" />
+                <a href={`mailto:${email}`} className="text-gov-forest/70 dark:text-white/70 hover:text-gov-gold transition-colors">{email}</a>
               </li>
               <li className="flex items-start gap-3">
-                <MapPin size={16} className="text-gov-gold mt-1" />
+                <MapPin size={16} className="text-gov-forest dark:text-gov-teal mt-1" />
                 <span>{address}</span>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-lg mb-6 text-gov-gold relative inline-block">
+            <h4 className="font-display font-bold text-lg mb-6 text-gov-forest dark:text-gov-teal relative inline-block">
               {t('accessibility')}
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-8 h-1 bg-gov-forest dark:bg-gov-teal rounded-full`}></span>
             </h4>
-            <p className="text-sm text-gov-stone dark:text-gov-beige/70 mb-4 transition-colors">
+            <p className="text-sm text-gov-forest/70 dark:text-gov-beige/70 mb-4 transition-colors">
               {language === 'ar'
                 ? 'تلتزم البوابة بتوفير إمكانية الوصول الرقمي لجميع فئات المجتمع (WCAG 2.1).'
                 : 'The portal is committed to providing digital accessibility for all (WCAG 2.1).'
@@ -133,21 +133,21 @@ const Footer: React.FC = () => {
             <div className="flex gap-2">
               <button
                 onClick={handleIncreaseFont}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-forest/10 text-gov-forest dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-forest hover:text-white dark:hover:bg-gov-teal dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-forest/20 dark:border-gov-teal/40"
                 title="Increase Font"
               >
                 A+
               </button>
               <button
                 onClick={handleDecreaseFont}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-forest/10 text-gov-forest dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-forest hover:text-white dark:hover:bg-gov-teal dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-forest/20 dark:border-gov-teal/40"
                 title="Decrease Font"
               >
                 A-
               </button>
               <button
                 onClick={handleToggleContrast}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-gold/10 dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-emeraldStatic transition-colors text-xs font-bold border border-gov-gold/20 dark:border-gov-teal/40 px-3"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-gov-forest/10 text-gov-forest dark:bg-gov-card/10 dark:text-gov-teal rounded hover:bg-gov-forest hover:text-white dark:hover:bg-gov-teal dark:hover:text-gov-forest transition-colors text-xs font-bold border border-gov-forest/20 dark:border-gov-teal/40 px-3"
                 title="High Contrast"
               >
                 {language === 'ar' ? 'تباين' : 'Contrast'}
@@ -163,16 +163,16 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="pt-8 border-t border-gov-forest/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gov-stone dark:text-gov-beige/50 font-light transition-colors">{t('copyright')}</p>
+          <p className="text-sm text-gov-forest/60 dark:text-gov-beige/50 font-light transition-colors">{t('copyright')}</p>
           <div className="flex items-center gap-4">
-            <Link href="/privacy-policy" className="text-xs text-gov-stone dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
+            <Link href="/privacy-policy" className="text-xs text-gov-forest/60 dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
               {t('footer_privacy')}
             </Link>
-            <span className="text-gov-gold/30">|</span>
-            <Link href="/terms" className="text-xs text-gov-stone dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
+            <span className="text-gov-forest/30 dark:text-gov-teal/30">|</span>
+            <Link href="/terms" className="text-xs text-gov-forest/60 dark:text-gov-beige/50 hover:text-gov-gold transition-colors">
               {t('footer_terms')}
             </Link>
-            <span className="text-gov-gold/30">|</span>
+            <span className="text-gov-forest/30 dark:text-gov-teal/30">|</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/logo/footer-logo.png"

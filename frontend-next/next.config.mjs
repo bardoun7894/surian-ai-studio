@@ -19,6 +19,11 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Allow useSearchParams() without Suspense boundary (pre-existing across all pages)
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+
   // Allow dev access from public IP
   allowedDevOrigins: ['91.230.110.187'],
 

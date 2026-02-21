@@ -681,20 +681,34 @@ class PublicApiController extends Controller
             $query->whereJsonContains('metadata->media_type', $request->type);
         }
 
-        $formatMedia = fn($m) => [
-            'id' => (string) $m->id,
-            'title' => $m->title_ar,
-            'title_ar' => $m->title_ar,
-            'title_en' => $m->title_en,
-            'description_ar' => $m->seo_description_ar ?? mb_substr(strip_tags($m->content_ar), 0, 200),
-            'description_en' => $m->seo_description_en ?? mb_substr(strip_tags($m->content_en ?? ''), 0, 200),
-            'type' => $m->metadata['media_type'] ?? 'photo',
-            'url' => $m->metadata['url'] ?? null,
-            'thumbnailUrl' => $m->metadata['thumbnail'] ?? '/assets/media-placeholder.jpg',
-            'date' => $m->published_at?->format('Y-m-d'),
-            'duration' => $m->metadata['duration'] ?? null,
-            'count' => $m->metadata['count'] ?? null,
-        ];
+        $formatMedia = function($m) {
+            $mediaType = $m->metadata['media_type'] ?? 'photo';
+            // For photo/infographic types, use actual attachment count if metadata count is not set
+            $count = $m->metadata['count'] ?? null;
+            if (in_array($mediaType, ['photo', 'infographic']) && !$count) {
+                $attachmentCount = $m->attachments()
+                    ->where('is_public', true)
+                    ->where('file_type', 'image')
+                    ->count();
+                if ($attachmentCount > 0) {
+                    $count = $attachmentCount;
+                }
+            }
+            return [
+                'id' => (string) $m->id,
+                'title' => $m->title_ar,
+                'title_ar' => $m->title_ar,
+                'title_en' => $m->title_en,
+                'description_ar' => $m->seo_description_ar ?? mb_substr(strip_tags($m->content_ar), 0, 200),
+                'description_en' => $m->seo_description_en ?? mb_substr(strip_tags($m->content_en ?? ''), 0, 200),
+                'type' => $mediaType,
+                'url' => $m->metadata['url'] ?? null,
+                'thumbnailUrl' => $m->metadata['thumbnail'] ?? '/assets/media-placeholder.jpg',
+                'date' => $m->published_at?->format('Y-m-d'),
+                'duration' => $m->metadata['duration'] ?? null,
+                'count' => $count ? (int) $count : null,
+            ];
+        };
 
         // Support server-side pagination
         if ($request->has('page')) {

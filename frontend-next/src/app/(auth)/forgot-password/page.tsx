@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mail, ArrowRight, ArrowLeft, ChevronRight, ChevronLeft, Shield } from 'lucide-react';
+import { Mail, ArrowRight, ArrowLeft, ChevronRight, ChevronLeft, Shield, Fingerprint, Lock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import auth from '@/lib/auth';
@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 const ForgotPasswordPage = () => {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const { isAuthenticated } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState('');
@@ -52,35 +52,86 @@ const ForgotPasswordPage = () => {
     return (
         <div className="min-h-screen flex">
             {/* Left Panel - Branding (Same as Login) */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gov-forest relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 bg-gov-forest relative overflow-hidden lg:fixed lg:inset-y-0 lg:left-0 rtl:lg:left-auto rtl:lg:right-0">
+                {/* Decorative Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0 bg-pattern-islamic bg-repeat bg-center" />
                 </div>
-                <div className="absolute top-20 -right-20 w-80 h-80 rounded-full border border-gov-gold/20" />
-                <div className="absolute bottom-20 -left-20 w-96 h-96 rounded-full border border-gov-gold/10" />
+
+                {/* Islamic Geometric Decorations */}
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                    {/* Mihrab-inspired Arch Backdrop */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] border-[2px] border-gov-gold/30 rounded-[100%_100%_0_0] transform rotate-12" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border-[1px] border-gov-gold/20 rounded-[100%_100%_0_0] transform -rotate-6" />
+
+                    {/* Corner Islamic Patterns */}
+                    <div className="absolute top-0 right-0 w-64 h-64 border-r-2 border-t-2 border-gov-gold/20 rounded-bl-[100%] opacity-50" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 border-l-2 border-b-2 border-gov-gold/15 rounded-tr-[100%] opacity-40" />
+
+                    {/* Subtle Star Patterns */}
+                    <div className="absolute top-1/4 left-10 w-4 h-4 bg-gov-gold/40 rotate-45 animate-pulse-slow" />
+                    <div className="absolute top-1/3 right-20 w-3 h-3 bg-gov-gold/30 rotate-12 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+                    <div className="absolute bottom-1/4 right-10 w-5 h-5 bg-gov-gold/20 rotate-45 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+                </div>
+
                 <div className="relative z-10 flex flex-col items-center justify-center w-full px-12">
+
+
                     <div className="relative mb-8">
                         <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-3xl scale-150" />
                         <Image
-                            src="/assets/logo/Asset-14@3x.png"
-                            alt="Syrian Arab Republic Emblem"
-                            width={160}
-                            height={160}
-                            className="relative z-10 drop-shadow-2xl"
+                            src="/assets/logo/Asset-15@2x.png"
+                            alt="Ministry of Economy and Industry"
+                            width={140}
+                            height={140}
+                            className="relative z-10 drop-shadow-2xl max-w-[140px] max-h-[140px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
-                    <h1 className="text-3xl font-display font-bold text-white text-center mb-4">
-                        {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
-                    </h1>
-                    <p className="text-gov-gold text-lg text-center mb-8">
+
+                    {/* Decorative Line */}
+                    <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mb-8" />
+
+                    {/* Features */}
+                    <div className="space-y-4 text-white/80">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gov-gold/20 flex items-center justify-center">
+                                <Shield size={16} className="text-gov-gold" />
+                            </div>
+                            <span>{language === 'ar' ? 'اتصال آمن ومشفر' : 'Secure encrypted connection'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gov-gold/20 flex items-center justify-center">
+                                <Fingerprint size={16} className="text-gov-gold" />
+                            </div>
+                            <span>{language === 'ar' ? 'تحقق من الهوية' : 'Identity verification'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gov-gold/20 flex items-center justify-center">
+                                <Lock size={16} className="text-gov-gold" />
+                            </div>
+                            <span>{language === 'ar' ? 'حماية بياناتك الشخصية' : 'Personal data protection'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Decorative Pattern & Copyright */}
+                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gov-gold/10 to-transparent opacity-50 pointer-events-none" />
+
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+                    <p className="text-gov-gold/60 text-sm font-medium mb-2 whitespace-nowrap">
                         {language === 'ar' ? 'جميع الحقوق محفوظة' : 'All Rights Reserved'}
                     </p>
+                    <div className="flex gap-4 opacity-50">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '0s' }} />
+                        <div className="w-2 h-2 rounded-full bg-gov-gold animate-pulse" style={{ animationDelay: '0.5s' }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" style={{ animationDelay: '1s' }} />
+                    </div>
                 </div>
             </div>
 
-            {/* Right Panel - Form */}
-            <div className="flex-1 bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
+            {/* Right Panel - Form (Pushed by fixed left panel on desktop) */}
+            <div className="flex-1 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
                 <div className="w-full max-w-md">
                     <Link
                         href="/login"

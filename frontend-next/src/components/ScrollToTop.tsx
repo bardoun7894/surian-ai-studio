@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ScrollToTop() {
   const [visible, setVisible] = useState(false);
-  const { direction } = useLanguage();
+  const { language } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,12 +22,15 @@ export default function ScrollToTop() {
 
   if (!visible) return null;
 
+  // ChatBot is positioned: Arabic (RTL) → left-6, English (LTR) → right-6
+  // ScrollToTop must be on the OPPOSITE side to avoid overlap:
+  //   Arabic (RTL) → right-6  |  English (LTR) → left-6
   return (
     <button
       onClick={scrollToTop}
-      aria-label="Scroll to top"
-      className={`fixed bottom-6 z-40 p-3 rounded-full bg-gov-forest dark:bg-gov-button text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${
-        direction === 'rtl' ? 'left-6' : 'right-6'
+      aria-label={language === 'ar' ? 'العودة إلى الأعلى' : 'Scroll to top'}
+      className={`fixed bottom-8 z-40 p-3 rounded-full bg-gov-forest dark:bg-gov-button text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${
+        language === 'ar' ? 'right-6 left-auto' : 'left-6 right-auto'
       }`}
     >
       <ArrowUp size={20} />

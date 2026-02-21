@@ -49,7 +49,7 @@ export default function InvestmentSection() {
     }, []);
 
     const formatNumber = (num: number) => {
-        return new Intl.NumberFormat(language === 'ar' ? 'ar-SY' : 'en-US').format(num);
+        return new Intl.NumberFormat('en-US').format(num);
     };
 
     const getStatusColor = (status: string) => {
@@ -203,7 +203,7 @@ export default function InvestmentSection() {
                 </motion.div>
 
                 {/* Stats Grid */}
-                {stats && (
+                {stats && stats.labels && (
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
@@ -213,21 +213,21 @@ export default function InvestmentSection() {
                     >
                         {[
                             {
-                                label: stats.labels.total_opportunities[language as 'ar' | 'en'],
+                                label: stats.labels?.total_opportunities?.[language as 'ar' | 'en'] ?? (language === 'ar' ? 'إجمالي الفرص' : 'Total Opportunities'),
                                 value: stats.total_opportunities,
                                 icon: Building2,
                                 color: 'text-gov-forest',
                                 bg: 'bg-gov-forest/10 dark:bg-gov-forest/20',
                             },
                             {
-                                label: stats.labels.available_count[language as 'ar' | 'en'],
+                                label: stats.labels?.available_count?.[language as 'ar' | 'en'] ?? (language === 'ar' ? 'الفرص المتاحة' : 'Available'),
                                 value: stats.available_count,
                                 icon: CheckCircle,
                                 color: 'text-gov-gold',
                                 bg: 'bg-gov-gold/10 dark:bg-gov-gold/20',
                             },
                             {
-                                label: stats.labels.total_investment_value[language as 'ar' | 'en'],
+                                label: stats.labels?.total_investment_value?.[language as 'ar' | 'en'] ?? (language === 'ar' ? 'قيمة الاستثمار' : 'Investment Value'),
                                 value: formatNumber(stats.total_investment_value),
                                 suffix: '$',
                                 icon: Wallet,
@@ -235,7 +235,7 @@ export default function InvestmentSection() {
                                 bg: 'bg-gov-teal/10 dark:bg-gov-teal/20',
                             },
                             {
-                                label: stats.labels.sectors_count[language as 'ar' | 'en'],
+                                label: stats.labels?.sectors_count?.[language as 'ar' | 'en'] ?? (language === 'ar' ? 'القطاعات' : 'Sectors'),
                                 value: stats.sectors_count,
                                 icon: TrendingUp,
                                 color: 'text-amber-600',
@@ -254,9 +254,9 @@ export default function InvestmentSection() {
                                         <stat.icon size={28} />
                                     </div>
 
-                                    <h3 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
+                                    <h3 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 tabular-nums tracking-tight">
                                         {stat.value}
-                                        {stat.suffix && <span className="text-lg opacity-70 ml-1">{stat.suffix}</span>}
+                                        {stat.suffix && <span className="text-lg opacity-70 ml-0.5 align-top">{stat.suffix}</span>}
                                     </h3>
                                     <p className="text-sm text-gray-500 dark:text-white/60 font-medium">{stat.label}</p>
                                 </div>

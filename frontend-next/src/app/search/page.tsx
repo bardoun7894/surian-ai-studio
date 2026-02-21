@@ -22,7 +22,7 @@ function SearchPageContent() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-surface transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24 overflow-hidden">
+            <main className="flex-grow pt-20 md:pt-24">
                 <SearchResultsPage initialQuery={query} />
             </main>
 

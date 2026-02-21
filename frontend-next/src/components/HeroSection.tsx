@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
-import { FileText, FileCheck, Scale, ArrowRight, ShieldCheck, Landmark, Activity, MessageSquare, Sparkles } from 'lucide-react';
+import { FileText, FileCheck, Scale, ArrowRight, ShieldCheck, Landmark, Activity, MessageSquare, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -30,6 +30,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   const { t, language, direction } = useLanguage();
   const [particles, setParticles] = useState<ParticleStyle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+
+  // Cycle through phrases for WOW animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPhraseIndex((prev) => (prev + 1) % 3);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Generate particles only on client side
   useEffect(() => {
@@ -248,7 +257,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   // Loading skeleton
   if (loading) {
     return (
-      <section className={`relative pt-4 pb-20 md:pt-2 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center transition-colors duration-700`}>
+      <section className={`relative pt-2 pb-20 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center transition-colors duration-700`}>
         {/* Backgrounds - Match exact styling of main component to prevent flash/line */}
         <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-brand/30 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
@@ -269,7 +278,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   }
 
   return (
-    <section ref={containerRef} className={`relative pt-4 pb-20 md:pt-2 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-2 pb-20 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -290,13 +299,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
         </svg>
       </div>
 
-      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] md:w-[380px] md:h-[380px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
+      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] md:w-[300px] md:h-[300px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-4 md:gap-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-0">
 
         {/* The Golden Hawk */}
-        <div ref={eagleRef} className="mb-8 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
-          <div className="relative w-56 h-56 md:w-[340px] md:h-[340px] lg:w-[420px] lg:h-[420px] xl:w-[460px] xl:h-[460px] flex items-center justify-center perspective-1000 flex-shrink-0">
+        <div ref={eagleRef} className="mb-4 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
+          <div className="relative w-44 h-44 md:w-[260px] md:h-[260px] lg:w-[320px] lg:h-[320px] xl:w-[350px] xl:h-[350px] flex items-center justify-center perspective-1000 flex-shrink-0">
             <div className="eagle-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gov-gold/20 rounded-full blur-[80px] dark:bg-gov-brand/30"></div>
             <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-border/15 shadow-[0_0_60px_rgba(185,167,121,0.2)]"></div>
             <div className="absolute inset-4 rounded-full border border-gov-teal/30 dark:border-gov-teal/20 animate-[spin_12s_linear_infinite]"></div>
@@ -331,10 +340,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
         </div>
 
-        <div ref={textContainerRef} className="space-y-2 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center md:text-start min-w-0">
+        <div ref={textContainerRef} className={`space-y-2 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center' : 'md:text-start'} min-w-0`}>
 
           {/* Titles Group */}
-          <div className="flex flex-col items-center md:items-start">
+          <div className={`flex flex-col items-center ${language === 'ar' ? 'md:items-center' : 'md:items-start'} w-full`}>
             <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-3 opacity-0">
               <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
               <span className="text-xs font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
@@ -351,7 +360,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
               </span>
             </h1>
 
-            <div className="animate-text flex items-center justify-center md:justify-start gap-3 md:gap-5 mt-1 mb-2 md:mb-3 w-full opacity-0">
+            <div className="animate-text flex items-center justify-center gap-3 md:gap-5 mt-1 mb-1 w-full opacity-0">
               <div className={`h-[1px] w-6 md:w-16 bg-gradient-to-${direction === 'rtl' ? 'l' : 'r'} from-transparent to-gov-gold`}></div>
               <span className="text-base md:text-2xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
                 {t('portal_name')}
@@ -360,82 +369,54 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
 
             {/* Strategic Messages - WOW Animation (appear last) */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 mb-6 w-full max-w-lg"
-            >
-              {[
-                {
-                  icon: ShieldCheck,
-                  text: language === 'ar' ? 'بوابة آمنة' : 'Secure Gateway',
-                  bg: 'bg-gov-forest/10 dark:bg-gov-brand/20',
-                  border: 'border-gov-forest/20 dark:border-gov-gold/30',
-                  iconColor: 'text-gov-teal'
-                },
-                {
-                  icon: FileCheck,
-                  text: language === 'ar' ? 'خدمات متكاملة' : 'Integrated Services',
-                  bg: 'bg-gov-gold/10 dark:bg-gov-gold/20',
-                  border: 'border-gov-gold/30',
-                  iconColor: 'text-gov-gold'
-                },
-                {
-                  icon: Sparkles,
-                  text: language === 'ar' ? 'مستقبل رقمي' : 'Digital Future',
-                  bg: 'bg-gov-teal/10 dark:bg-gov-teal/20',
-                  border: 'border-gov-teal/30',
-                  iconColor: 'text-gov-teal'
-                }
-              ].map((item, idx) => (
-                <motion.span
-                  key={idx}
-                  variants={{
-                    hidden: {
-                      opacity: 0,
-                      scale: 0.3,
-                      rotate: -15,
-                      y: 50
+            <div className="h-16 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
+              <AnimatePresence mode="wait">
+                {(() => {
+                  const phrases = [
+                    {
+                      id: 1,
+                      icon: ShieldCheck,
+                      text: language === 'ar' ? 'بوابة آمنة' : 'Secure Gateway',
+                      color: 'text-gov-teal dark:text-gov-teal'
                     },
-                    visible: {
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                      y: 0,
-                      transition: {
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 12,
-                        delay: 1.5 + (idx * 0.15) // Start after other animations (1.5s delay)
-                      }
+                    {
+                      id: 2,
+                      icon: FileCheck,
+                      text: language === 'ar' ? 'خدمات متكاملة' : 'Integrated Services',
+                      color: 'text-gov-gold dark:text-gov-gold'
+                    },
+                    {
+                      id: 3,
+                      icon: Globe,
+                      text: language === 'ar' ? 'مستقبل رقمي' : 'Digital Future',
+                      color: 'text-gov-teal dark:text-gov-teal'
                     }
-                  }}
-                  whileHover={{
-                    scale: 1.1,
-                    rotate: [0, -5, 5, 0],
-                    transition: { duration: 0.4 }
-                  }}
-                  className={`px-4 py-2 rounded-full ${item.bg} border ${item.border} text-sm md:text-base font-bold text-gov-forest dark:text-gov-gold flex items-center gap-2 cursor-default shadow-sm hover:shadow-lg transition-shadow`}
-                >
-                  <motion.span
-                    initial={{ rotate: 0 }}
-                    animate={{ rotate: [0, 360] }}
-                    transition={{
-                      duration: 2,
-                      delay: 2 + (idx * 0.2),
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <item.icon size={16} className={item.iconColor} />
-                  </motion.span>
-                  {item.text}
-                </motion.span>
-              ))}
-            </motion.div>
+                  ];
+
+                  const activePhrase = phrases[currentPhraseIndex];
+                  const Icon = activePhrase.icon;
+
+                  return (
+                    <motion.div
+                      key={activePhrase.id}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                      className="absolute flex items-center justify-center gap-3 w-full"
+                    >
+                      <Icon size={24} className={`${activePhrase.color} shrink-0`} />
+                      <span className={`text-base md:text-2xl font-bold ${activePhrase.color} font-display translate-y-[4px]`}>
+                        {activePhrase.text}
+                      </span>
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start pt-1 md:pt-4 w-full px-4 md:px-0">
+          <div className={`flex flex-col sm:flex-row items-center gap-3 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-1 md:pt-4 w-full px-4 md:px-0`}>
             <Link
               href="/services"
               className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 group rounded-xl"
@@ -491,7 +472,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
       </div>
 
       {/* News Ticker Integrated - Centered within hero */}
-      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 w-[92%] md:w-[90%]">
+      <div className="absolute bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 z-30 w-[92%] md:w-[90%]">
         <NewsTicker
           onNewsLoaded={onNewsLoaded}
           className="rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.16)] border border-gov-gold/25 dark:border-gov-gold/20"

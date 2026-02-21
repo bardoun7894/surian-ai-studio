@@ -60,17 +60,79 @@ function NewsPageContent() {
   });
 
   const handleAISummary = async (item: NewsItem) => {
-    setSummaryModal({ isOpen: true, title: item.title, summary: '', loading: true });
+    const MIN_SUMMARY_TEXT_LENGTH = 20;
+    const MAX_SUMMARY_INPUT_LENGTH = 4500;
+
+    const normalizeText = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const summarizeInput = (value: string) => normalizeText(value).slice(0, MAX_SUMMARY_INPUT_LENGTH);
+    const localFallbackSummary = (value: string) => {
+      const excerpt = normalizeText(value).slice(0, 280);
+      if (!excerpt) {
+        return isAr ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.';
+      }
+      return isAr
+        ? `تعذر إنشاء الملخص الذكي حالياً. هذه نبذة مختصرة من الخبر: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`
+        : `AI summary is temporarily unavailable. Showing a short article excerpt instead: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
+    };
+
+    const displayTitle = isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title);
+    setSummaryModal({ isOpen: true, title: displayTitle, summary: '', loading: true });
+
+    let textToSummarize = '';
+    let fallbackText = '';
+
     try {
-      const textToSummarize = isAr
+      // Fetch full article content for better summarization
+      try {
+        const fullArticle = await API.news.getById(String(item.id));
+        if (fullArticle) {
+          textToSummarize = isAr
+            ? ((fullArticle as any).content_ar || (fullArticle as any).summary_ar || fullArticle.summary || '')
+            : ((fullArticle as any).content_en || (fullArticle as any).summary_en || fullArticle.summary || '');
+        }
+      } catch {
+        // Fallback to list-level data
+      }
+
+      fallbackText = isAr
         ? ((item as any).summary_ar || item.summary || item.title)
         : ((item as any).summary_en || item.summary || item.title);
-      const summary = await aiService.summarize(textToSummarize, language);
+
+      // Fallback if full article fetch failed or had no content
+      if (!textToSummarize || textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH) {
+        textToSummarize = fallbackText;
+      }
+
+      // If text is still too short for summarization, show it directly
+      if (!textToSummarize || textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH) {
+        setSummaryModal(prev => ({
+          ...prev,
+          summary: textToSummarize || (isAr ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.'),
+          loading: false
+        }));
+        return;
+      }
+
+      const cleanText = summarizeInput(textToSummarize);
+      let summary = '';
+
+      try {
+        summary = await aiService.summarize(cleanText, language, 120);
+      } catch {
+        const retryText = summarizeInput(fallbackText || textToSummarize);
+        if (retryText.length >= MIN_SUMMARY_TEXT_LENGTH && retryText !== cleanText) {
+          summary = await aiService.summarize(retryText, language, 100);
+        } else {
+          throw new Error('Summarization failed after retry');
+        }
+      }
+
       setSummaryModal(prev => ({ ...prev, summary, loading: false }));
-    } catch {
+    } catch (err) {
+      console.error('AI Summary error:', err);
       setSummaryModal(prev => ({
         ...prev,
-        summary: isAr ? 'فشل في إنشاء الملخص. يرجى المحاولة مرة أخرى.' : 'Failed to generate summary.',
+        summary: localFallbackSummary(fallbackText || textToSummarize),
         loading: false
       }));
     }
@@ -119,20 +181,28 @@ function NewsPageContent() {
     fetchPaginated();
   }, [activeView, currentPage, perPage]);
 
-  // View tabs
+  // Filter grouped news to only show featured/main departments (not every individual directorate)
+  const filteredGroupedNews = useMemo(() => {
+    if (directorates.length === 0) return groupedNews;
+    const featuredIds = new Set(directorates.map(d => String(d.id)));
+    return groupedNews.filter(group => featuredIds.has(String(group.directorate.id)));
+  }, [groupedNews, directorates]);
+
+  // View tabs - use only main departments (featured directorates), not all individual directorates
   const viewTabs = useMemo(() => {
     const t = [
       { key: 'organized', label: isAr ? 'عرض منظم' : 'Organized View', icon: LayoutGrid },
       { key: 'all', label: isAr ? 'جميع الأخبار' : 'All News', icon: LayoutGrid },
       { key: 'central', label: isAr ? 'أخبار الإدارة المركزية' : 'Central Admin News', icon: Landmark },
     ];
-    directorates.forEach(d => {
-      const nameAr = (d as any).name_ar || (typeof d.name === 'object' ? (d.name as any).ar : d.name);
-      const nameEn = (d as any).name_en || (typeof d.name === 'object' ? (d.name as any).en : d.name);
-      t.push({ key: String(d.id), label: isAr ? nameAr : nameEn, icon: Building2 });
+    // Only show the main departments (featured directorates) as tabs
+    filteredGroupedNews.forEach(group => {
+      const nameAr = group.directorate.name_ar || group.directorate.name;
+      const nameEn = group.directorate.name_en || group.directorate.name;
+      t.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
     });
     return t;
-  }, [directorates, language, isAr]);
+  }, [filteredGroupedNews, language, isAr]);
 
   // Filtered flat news (for non-organized views)
   const filteredFlatNews = useMemo(() => {
@@ -319,8 +389,8 @@ function NewsPageContent() {
           </ScrollAnimation>
         )}
 
-        {/* 2. News Per Directorate (3 per directorate) */}
-        {groupedNews.map((group, gIdx) => (
+        {/* 2. News Per Department (3 per department - only main departments) */}
+        {filteredGroupedNews.map((group, gIdx) => (
           <ScrollAnimation key={group.directorate.id} delay={gIdx * 0.05}>
             <section>
               <div className="flex items-center justify-between mb-6">

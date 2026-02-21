@@ -61,11 +61,14 @@ class ChatController extends Controller
         try {
             $aiServiceUrl = config('external.ai_service.url');
 
-            $ragContext = $this->buildRagContext($validated['message'], $language);
+            $ragResult = $this->buildRagContext($validated['message'], $language);
+            $ragContext = $ragResult['context'];
+            $useGoogleSearch = $ragResult['use_google_search'];
 
             $response = Http::timeout(30)->post("{$aiServiceUrl}/api/v1/ai/chat?provider=gemini", [
                 'prompt' => $validated['message'],
                 'system_prompt' => $ragContext,
+                'use_google_search' => $useGoogleSearch,
             ]);
 
             if ($response->successful()) {
@@ -288,8 +291,9 @@ class ChatController extends Controller
     /**
      * Build RAG-enhanced context for the chatbot.
      * Combines static identity/guides with dynamically retrieved relevant content.
+     * Returns array with 'context' string and 'use_google_search' flag.
      */
-    private function buildRagContext(string $query, string $language): string
+    private function buildRagContext(string $query, string $language): array
     {
         $isAr = $language === 'ar';
         $parts = [];
@@ -317,20 +321,26 @@ class ChatController extends Controller
 
         // 5. Instructions
         if ($isAr) {
-            $parts[] = "\n\nأجب فقط بناءً على المعلومات المقدمة أعلاه. إذا لم تجد الإجابة، اقترح على المستخدم التواصل مع الوزارة مباشرة.";
+            $parts[] = "\n\nأجب فقط بناءً على المعلومات المقدمة أعلاه. إذا لم تجد الإجابة، يمكنك البحث في الإنترنت أو اقترح على المستخدم التواصل مع الوزارة مباشرة.";
         } else {
-            $parts[] = "\n\nAnswer only based on the information provided above. If you cannot find the answer, suggest the user contact the ministry directly.";
+            $parts[] = "\n\nAnswer based on the information provided above. If you cannot find the answer, you may search the internet or suggest the user contact the ministry directly.";
         }
 
-        $result = implode('', $parts);
+        $hasRetrievedContent = $contentContext || $faqContext || $dirContext;
 
         // Fallback: if RAG retrieved nothing beyond static context, use legacy full-dump
-        $hasRetrievedContent = $contentContext || $faqContext || $dirContext;
+        // AND enable Google Search grounding so Gemini can look up external info
         if (!$hasRetrievedContent) {
-            return $this->buildKnowledgeContextLegacy($language);
+            return [
+                'context' => $this->buildKnowledgeContextLegacy($language),
+                'use_google_search' => true,
+            ];
         }
 
-        return $result;
+        return [
+            'context' => implode('', $parts),
+            'use_google_search' => false,
+        ];
     }
 
     /**

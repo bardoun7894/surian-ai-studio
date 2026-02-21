@@ -40,7 +40,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
             <button
                 onClick={onClick}
                 onFocus={onMouseEnter}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 ${active ? 'bg-white/15 text-white' : ''}`}
+                className={`flex items-center gap-1.5 ${language === 'en' ? 'px-2 text-xs' : 'px-3 text-sm'} font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 whitespace-nowrap ${active ? 'bg-white/15 text-white' : ''}`}
                 aria-expanded={active}
             >
                 <span>{label}</span>
@@ -57,9 +57,8 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.97 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className={`absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gray-200/80 dark:border-gov-border/25 z-50 overflow-hidden ${
-                            language === 'ar' ? 'right-0' : 'left-0'
-                        } ${isMultiSection ? 'w-auto min-w-[420px]' : 'w-auto min-w-[220px]'}`}
+                        className={`absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gray-200/80 dark:border-gov-border/25 z-50 overflow-hidden ${language === 'ar' ? 'right-0' : 'left-0'
+                            } ${isMultiSection ? 'w-auto min-w-[420px]' : 'w-auto min-w-[220px]'}`}
                     >
                         <div className={`${isMultiSection ? 'flex divide-x rtl:divide-x-reverse divide-gray-100 dark:divide-white/5' : ''}`}>
                             {sections.map((section, idx) => (

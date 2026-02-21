@@ -68,77 +68,148 @@ export default function DownloadMenu({ isOpen, onClose, announcement }: Download
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
+          @page {
+            size: A4;
+            margin: 15mm 18mm 20mm 18mm;
+          }
           body {
-            font-family: 'Cairo', Arial, sans-serif;
-            line-height: 1.6;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            line-height: 1.7;
             color: #161616;
-            padding: 40px;
-            max-width: 800px;
-            margin: 0 auto;
+            padding: 0;
+            max-width: 100%;
+            margin: 0;
           }
-          .header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #b9a779;
-            margin-bottom: 30px;
+          /* --- Official Header --- */
+          .header-gold-line {
+            height: 3px;
+            background: #b9a779;
+            margin-bottom: 16px;
           }
-          .logo-area {
-            font-size: 14px;
+          .header-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+          }
+          .header-logo {
+            width: 70px;
+            height: auto;
+            object-fit: contain;
+          }
+          .header-text {
+            flex: 1;
+          }
+          .header-republic {
+            font-size: 11px;
             color: #666;
-            margin-bottom: 10px;
+            margin: 0;
+            line-height: 1.4;
           }
-          h1 {
-            color: #002623;
-            font-size: 24px;
+          .header-ministry {
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 10px;
+            color: #094239;
+            margin: 2px 0;
+            line-height: 1.3;
+          }
+          .header-doctype {
+            font-size: 12px;
+            color: #b9a779;
+            font-weight: 600;
+            margin: 2px 0 0;
+          }
+          .header-separator {
+            height: 2px;
+            background: linear-gradient(to ${isRTL ? 'left' : 'right'}, #094239, #b9a779);
+            margin: 12px 0 24px;
+          }
+          /* --- Content --- */
+          h1 {
+            color: #094239;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+          }
+          .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e5e0;
           }
           .date {
             color: #b9a779;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 600;
           }
           .content {
-            font-size: 16px;
-            line-height: 1.8;
-            color: #3d3a3b;
+            font-size: 14px;
+            line-height: 1.85;
+            color: #2d2d2d;
             white-space: pre-wrap;
           }
-          .expiry {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f5f5f0;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-          }
+          /* --- Footer --- */
           .footer {
             margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #edebe0;
+            padding-top: 16px;
+            border-top: 0.75px solid #d0d0d0;
+          }
+          .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #888;
+          }
+          .footer-url {
+            font-weight: 600;
+            color: #094239;
+            direction: ltr;
+          }
+          .footer-copyright {
             text-align: center;
-            font-size: 12px;
-            color: #666;
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 6px;
           }
           @media print {
-            body { padding: 20px; }
+            body { padding: 0; }
             .no-print { display: none; }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="logo-area">
-            ${isRTL ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}
+        <!-- Official Header -->
+        <div class="header-gold-line"></div>
+        <div class="header-row">
+          <img src="${window.location.origin}/assets/logo/logo-light.png" alt="Logo" class="header-logo" />
+          <div class="header-text">
+            <p class="header-republic">${isRTL ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}</p>
+            <p class="header-ministry">${isRTL ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}</p>
+            <p class="header-doctype">${isRTL ? 'إعلان رسمي' : 'Official Announcement'}</p>
           </div>
-          <h1>${title}</h1>
-          ${date ? `<div class="date">${date}</div>` : ''}
+        </div>
+        <div class="header-separator"></div>
+
+        <!-- Content -->
+        <h1>${title}</h1>
+        <div class="meta-row">
+          ${date ? `<div class="date">${date}</div>` : '<div></div>'}
         </div>
         <div class="content">${description}</div>
+
+        <!-- Footer -->
         <div class="footer">
-          <p>${isRTL ? 'تم إنشاء هذا المستند من موقع الوزارة الإلكتروني' : 'This document was generated from the Ministry website'}</p>
-          <p>${window.location.origin}/announcements/${announcement.id}</p>
+          <div class="footer-row">
+            <span>${isRTL ? 'تم إنشاء هذا المستند من البوابة الإلكترونية لوزارة الاقتصاد والصناعة' : 'Generated from the Ministry of Economy and Industry E-Portal'}</span>
+            <span class="footer-url">www.moe.gov.sy</span>
+          </div>
+          <p class="footer-copyright">${isRTL ? '© 2026 وزارة الاقتصاد والصناعة - جميع الحقوق محفوظة' : '© 2026 Ministry of Economy and Industry - All Rights Reserved'}</p>
         </div>
+
         <script>
           window.onload = function() {
             setTimeout(function() {

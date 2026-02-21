@@ -45,17 +45,18 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     const validateFormat = useCallback((nationalId: string): { valid: boolean; error: string } => {
+        const isAr = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
         if (!nationalId || nationalId.trim() === '') {
-            return { valid: false, error: 'الرقم الوطني مطلوب' };
+            return { valid: false, error: isAr ? 'الرقم الوطني مطلوب' : 'National ID is required' };
         }
         if (!/^\d+$/.test(nationalId)) {
-            return { valid: false, error: 'الرقم الوطني يجب أن يحتوي على أرقام فقط بدون أحرف أو رموز' };
+            return { valid: false, error: isAr ? 'الرقم الوطني يجب أن يحتوي على أرقام فقط' : 'National ID must contain numbers only' };
         }
         if (nationalId.length < 11) {
-            return { valid: false, error: `الرقم الوطني يجب أن يتكون من 11 رقماً. أدخلت ${nationalId.length} أرقام فقط` };
+            return { valid: false, error: isAr ? `أدخلت ${nationalId.length} من 11 رقماً` : `${nationalId.length}/11 digits entered` };
         }
         if (nationalId.length > 11) {
-            return { valid: false, error: `الرقم الوطني يجب أن يتكون من 11 رقماً. أدخلت ${nationalId.length} أرقام` };
+            return { valid: false, error: isAr ? 'الرقم الوطني يجب أن يتكون من 11 رقماً' : 'National ID must be exactly 11 digits' };
         }
         return { valid: true, error: '' };
     }, []);

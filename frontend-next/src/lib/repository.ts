@@ -94,7 +94,7 @@ export interface IFaqRepository {
 }
 
 export interface ISearchRepository {
-  search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults>;
+  search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string, lang?: string): Promise<SearchResults>;
 }
 
 // --- Mock Implementations (Uses constants.ts) ---
@@ -209,7 +209,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve('GOV-' + Math.floor(Math.random() * 100000)), 1500);
     });
   }
-  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
+  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
     return new Promise(resolve => {
       setTimeout(() => resolve({
         id: ticketId,
@@ -463,16 +463,79 @@ class MockUserRepository implements IUserRepository {
 
 // --- API Implementations (Real Backend) ---
 class ApiDirectorateRepository implements IDirectorateRepository {
+  private toNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return undefined;
+  }
+
+  private normalizeSubDirectorates(raw: any): Directorate['subDirectorates'] {
+    const subDirectorates = raw?.subDirectorates ?? raw?.sub_directorates;
+    if (!Array.isArray(subDirectorates)) return [];
+
+    return subDirectorates.map((sub: any) => ({
+      id: String(sub?.id ?? ''),
+      name: sub?.name ?? {
+        ar: sub?.name_ar ?? '',
+        en: sub?.name_en ?? sub?.name_ar ?? '',
+      },
+      url: sub?.url ?? '',
+      isExternal: Boolean(sub?.isExternal ?? sub?.is_external),
+    }));
+  }
+
+  private normalizeDirectorate(raw: any): Directorate {
+    const normalizedSubDirectorates = this.normalizeSubDirectorates(raw);
+
+    const normalizedServicesCount = this.toNumber(
+      raw?.servicesCount ?? raw?.services_count
+    );
+
+    const normalizedNewsCount = this.toNumber(
+      raw?.newsCount ?? raw?.news_count
+    );
+
+    return {
+      ...raw,
+      id: String(raw?.id ?? ''),
+      name: raw?.name ?? {
+        ar: raw?.name_ar ?? '',
+        en: raw?.name_en ?? raw?.name_ar ?? '',
+      },
+      description: raw?.description ?? {
+        ar: raw?.description_ar ?? '',
+        en: raw?.description_en ?? raw?.description_ar ?? '',
+      },
+      featured: Boolean(raw?.featured ?? raw?.is_featured),
+      subDirectorates: normalizedSubDirectorates,
+      servicesCount: normalizedServicesCount ?? (Array.isArray(raw?.services) ? raw.services.length : 0),
+      newsCount: normalizedNewsCount,
+      logo: raw?.logo ?? raw?.image,
+      address_ar: raw?.address_ar ?? raw?.contact?.address ?? raw?.address,
+      address_en: raw?.address_en ?? raw?.contact?.address ?? raw?.address,
+      email: raw?.email ?? raw?.contact?.email,
+      phone: raw?.phone ?? raw?.contact?.phone,
+      website: raw?.website ?? raw?.contact?.website,
+      working_hours_ar: raw?.working_hours_ar ?? raw?.contact?.working_hours_ar,
+      working_hours_en: raw?.working_hours_en ?? raw?.contact?.working_hours_en,
+    };
+  }
+
   async getAll(): Promise<Directorate[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates`);
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+    const directorates = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+    return directorates.map((item: any) => this.normalizeDirectorate(item));
   }
   async getById(id: string): Promise<Directorate | null> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/${id}`);
     if (!res.ok) return null;
-    return res.json();
+    const data = await res.json();
+    return this.normalizeDirectorate(data);
   }
   async getServicesByDirectorate(id: string): Promise<Service[]> {
     const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/services`);
@@ -489,7 +552,8 @@ class ApiDirectorateRepository implements IDirectorateRepository {
     const res = await fetch(`${API_BASE_URL}/public/directorates/featured`);
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+    const directorates = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+    return directorates.map((item: any) => this.normalizeDirectorate(item));
   }
 }
 
@@ -597,8 +661,12 @@ class ApiComplaintRepository implements IComplaintRepository {
     // Guest token
     if ((data as any).guest_token) formData.append('guest_token', (data as any).guest_token);
 
-    // File attachment
-    if (data.file) {
+    // File attachments (single or multiple)
+    if (data.files && Array.isArray(data.files)) {
+      data.files.forEach((file: File) => {
+        formData.append('attachments[]', file);
+      });
+    } else if (data.file) {
       formData.append('attachments[]', data.file);
     }
 
@@ -664,18 +732,32 @@ class ApiComplaintRepository implements IComplaintRepository {
       xhr.send(formData);
     });
   }
-  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
-    const body: Record<string, string> = {};
-    if (nationalId) body.national_id = nationalId;
+  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({}),
     });
-    if (res.status === 403) {
-      throw new Error('national_id_mismatch');
+
+    if (res.status === 404) return null;
+
+    if (!res.ok) {
+      let backendMessage = '';
+      try {
+        const payload = await res.json();
+        if (typeof payload?.message === 'string') {
+          backendMessage = payload.message;
+        } else if (payload?.errors && typeof payload.errors === 'object') {
+          const errorLines = Object.values(payload.errors as Record<string, string[]>).flat();
+          backendMessage = errorLines.join('\n');
+        }
+      } catch {
+        // Ignore parse errors and fallback to generic HTTP status.
+      }
+
+      throw new Error(backendMessage || `HTTP ${res.status}`);
     }
-    if (!res.ok) return null;
+
     return res.json();
   }
   async myComplaints(): Promise<Ticket[]> {
@@ -688,9 +770,29 @@ class ApiComplaintRepository implements IComplaintRepository {
     return res.json();
   }
   async delete(id: string): Promise<boolean> {
+    // Fetch CSRF cookie before DELETE (required by Laravel Sanctum)
+    await getCsrfCookie();
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+
+    // Include XSRF token from cookie
+    const xsrfToken = getXsrfToken();
+    if (xsrfToken) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+
+    // Include auth token if user is logged in
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE_URL}/complaints/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+      headers,
+      credentials: 'include',
     });
     return res.ok;
   }
@@ -1407,7 +1509,7 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async getRatingsStats(trackingNumber?: string): Promise<any> {
-    const url = trackingNumber 
+    const url = trackingNumber
       ? `${API_BASE_URL}/suggestions/ratings/stats?tracking_number=${trackingNumber}`
       : `${API_BASE_URL}/suggestions/ratings/stats`;
     const res = await fetch(url);
@@ -1929,13 +2031,13 @@ class ApiFaqRepository implements IFaqRepository {
 
 // --- Search Repository ---
 class MockSearchRepository implements ISearchRepository {
-  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
+  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string, lang?: string): Promise<SearchResults> {
     return new Promise(resolve => setTimeout(() => resolve({ news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 }), 500));
   }
 }
 
 class ApiSearchRepository implements ISearchRepository {
-  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string): Promise<SearchResults> {
+  async search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string, lang?: string): Promise<SearchResults> {
     const empty: SearchResults = { news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 };
     try {
       const params = new URLSearchParams({ q: query });
@@ -1943,6 +2045,7 @@ class ApiSearchRepository implements ISearchRepository {
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
       if (entity) params.append('entity', entity);
+      if (lang) params.append('lang', lang);
       const res = await fetch(`${API_BASE_URL}/public/search?${params.toString()}`);
       if (!res.ok) return empty;
       const json = await res.json();
@@ -2076,10 +2179,11 @@ class MockAiRepository implements IAiRepository {
 
 class ApiAiRepository implements IAiRepository {
   async summarize(content: string, language: string = 'ar'): Promise<{ summary: string }> {
-    const res = await fetch(`${API_BASE_URL}/ai/summarize`, {
+    // Use Next.js rewrite proxy to AI service (not the Laravel API)
+    const res = await fetch(`/ai/summarize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ content, language }),
+      body: JSON.stringify({ text: content, language }),
     });
     if (!res.ok) throw new Error('Failed to summarize');
     return res.json();
@@ -2100,15 +2204,14 @@ export const API = {
   reports: USE_MOCK_DATA ? new MockReportsRepository() : new ApiReportsRepository(),
   announcements: USE_MOCK_DATA ? new MockAnnouncementsRepository() : new ApiAnnouncementsRepository(),
   suggestions: USE_MOCK_DATA ? new MockSuggestionRepository() : new ApiSuggestionRepository(),
-  media: USE_MOCK_DATA ? new MockMediaRepository() : new ApiMediaRepository(),
+  media: new MockMediaRepository(),
   services: USE_MOCK_DATA ? new MockServicesRepository() : new ApiServicesRepository(),
   investments: USE_MOCK_DATA ? new MockInvestmentRepository() : new ApiInvestmentRepository(),
   promotionalSections: USE_MOCK_DATA ? new MockPromotionalSectionsRepository() : new ApiPromotionalSectionsRepository(),
   newsletter: USE_MOCK_DATA ? new MockNewsletterRepository() : new ApiNewsletterRepository(),
   faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),
   search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
-  // Force Mock for AI until backend endpoint is ready
-  ai: new MockAiRepository(),
+  ai: USE_MOCK_DATA ? new MockAiRepository() : new ApiAiRepository(),
   quickLinks: {
     async getBySection(section: string = 'homepage'): Promise<any[]> {
       try {

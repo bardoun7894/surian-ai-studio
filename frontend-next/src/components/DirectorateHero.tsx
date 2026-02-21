@@ -64,6 +64,14 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
     return language === 'en' && en ? en : ar;
   };
 
+  const servicesCount = typeof directorate.servicesCount === 'number'
+    ? directorate.servicesCount
+    : Number((directorate as any).services_count) || 0;
+
+  const subDirectoratesCount = Array.isArray(directorate.subDirectorates)
+    ? directorate.subDirectorates.length
+    : Number((directorate as any).subDirectoratesCount ?? (directorate as any).sub_directorates_count) || 0;
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -261,14 +269,16 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start pt-1 md:pt-4 w-full px-4 md:px-0">
-            <Link
-              href={`/directorates/${directorate.id}/sub-directorates`}
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 group rounded-xl"
-            >
-              <Building2 size={18} />
-              <span>{language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}</span>
-              <ArrowRight className={`transition-transform duration-300 ${language === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} size={16} />
-            </Link>
+            {hasSubDirectorates && (
+              <Link
+                href={`/directorates/${directorate.id}/sub-directorates`}
+                className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 group rounded-xl"
+              >
+                <Building2 size={18} />
+                <span>{language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}</span>
+                <ArrowRight className={`transition-transform duration-300 ${language === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} size={16} />
+              </Link>
+            )}
 
             <Link
               href="#services"
@@ -286,7 +296,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
                 <Building2 size={14} className="md:w-[18px] md:h-[18px]" />
               </div>
               <div className="text-base md:text-xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-0.5">
-                {directorate.subDirectorates?.length || 0}
+                {subDirectoratesCount}
               </div>
               <div className="text-[9px] md:text-[11px] text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">
                 {language === 'ar' ? 'مديريات' : 'Sub-Directorates'}
@@ -298,7 +308,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
                 <FileCheck size={14} className="md:w-[18px] md:h-[18px]" />
               </div>
               <div className="text-base md:text-xl font-display font-bold text-gov-forest dark:text-white tabular-nums mb-0.5">
-                {directorate.servicesCount || 0}
+                {servicesCount}
               </div>
               <div className="text-[9px] md:text-[11px] text-gov-stone dark:text-gov-beige/60 uppercase tracking-widest">
                 {language === 'ar' ? 'خدمة' : 'Services'}

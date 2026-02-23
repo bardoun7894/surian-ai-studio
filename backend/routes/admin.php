@@ -201,6 +201,7 @@ Route::middleware(['web', 'admin.ip'])->prefix('admin')->name('admin.')->group(f
     // Suggestions Management
     Route::prefix('suggestions')->name('suggestions.')->group(function () {
         Route::get('/', [SuggestionController::class, 'index'])->name('index');
+        Route::get('/kanban', [SuggestionController::class, 'kanban'])->name('kanban');
         Route::get('/{suggestion}', [SuggestionController::class, 'show'])->name('show');
         Route::put('/{suggestion}/status', [SuggestionController::class, 'updateStatus'])->name('updateStatus');
     });

@@ -48,7 +48,7 @@ export default function FAQPage() {
             <main className="flex-grow pt-20 md:pt-24">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                             {language === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
                         </h1>
                         <p className="text-gray-300 text-lg">

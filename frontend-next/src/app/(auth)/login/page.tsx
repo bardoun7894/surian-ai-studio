@@ -94,7 +94,8 @@ const LoginPage = () => {
                     return;
                 }
 
-                credentials.phone = formatPhoneForLogin(phoneValidation.normalized);
+                // Send phone in the same international format used during registration
+                credentials.phone = phoneValidation.normalized;
             } else {
                 const nationalId = formData.nationalId.trim();
                 if (!/^\d{11}$/.test(nationalId)) {

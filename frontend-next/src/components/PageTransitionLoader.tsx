@@ -64,15 +64,11 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     }
   }, [isLoading, routeKey]);
 
+  // Stop loading immediately when route changes
   useEffect(() => {
     if (!isLoading) return;
-
-    // If route has changed from when loading started, stop loading
     if (loadingStartRouteRef.current && routeKey !== loadingStartRouteRef.current) {
-      const timeout = setTimeout(() => {
-        stopLoading();
-      }, 300);
-      return () => clearTimeout(timeout);
+      stopLoading();
     }
   }, [routeKey, isLoading, stopLoading]);
 
@@ -81,20 +77,8 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     if (!isLoading) return;
     const safetyTimeout = setTimeout(() => {
       stopLoading();
-    }, 8000);
+    }, 4000);
     return () => clearTimeout(safetyTimeout);
-  }, [isLoading, stopLoading]);
-
-  // Stop loading if the document becomes idle (page has loaded in background)
-  useEffect(() => {
-    if (!isLoading) return;
-    const handleLoad = () => {
-      // Small delay to let React render the new page
-      setTimeout(() => stopLoading(), 200);
-    };
-    // Listen for route change completion via popstate and load events
-    window.addEventListener('load', handleLoad);
-    return () => window.removeEventListener('load', handleLoad);
   }, [isLoading, stopLoading]);
 
   return (
@@ -123,7 +107,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
               className="relative flex flex-col items-center gap-8"
             >
               {/* Eagle Logo with Animated Ring */}
-              <div className="relative w-48 h-48 flex items-center justify-center">
+              <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
                 {/* Dark mode glow effect */}
                 <div className="absolute inset-0 rounded-full bg-gov-gold/10 dark:bg-gov-gold/20 blur-3xl animate-pulse" />
 
@@ -162,7 +146,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                     alt="Loading"
                     width={100}
                     height={100}
-                    className="drop-shadow-2xl dark:drop-shadow-[0_0_20px_rgba(185,167,121,0.5)]"
+                    className="drop-shadow-2xl dark:drop-shadow-[0_0_20px_rgba(185,167,121,0.5)] w-16 h-16 md:w-[100px] md:h-[100px]"
                     style={{ width: 'auto', height: 'auto' }}
                     priority
                   />
@@ -170,16 +154,16 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
               </div>
 
               {/* Loading Text */}
-              <div className="text-center space-y-3 px-6 py-4">
+              <div className="text-center space-y-2 md:space-y-3 px-4 md:px-6 py-3 md:py-4">
                 <motion.h3
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="text-xl md:text-2xl font-bold text-gov-forest dark:text-dm-text"
+                  className="text-lg md:text-xl lg:text-2xl font-bold text-gov-forest dark:text-dm-text"
                 >
                   {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
                 </motion.h3>
 
-                <p className="text-sm text-gov-forest/75 dark:text-dm-text-secondary font-medium tracking-[0.01em]">
+                <p className="text-xs md:text-sm text-gov-forest/75 dark:text-dm-text-secondary font-medium tracking-[0.01em]">
                   {language === 'ar'
                     ? 'وزارة الاقتصاد والصناعة'
                     : 'Ministry of Economy and Industry'
@@ -188,7 +172,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
               </div>
 
               {/* Progress Bar */}
-              <div className="w-64 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden dark:shadow-[0_0_10px_rgba(185,167,121,0.2)]">
+              <div className="w-48 md:w-64 h-1 md:h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden dark:shadow-[0_0_10px_rgba(185,167,121,0.2)]">
                 <motion.div
                   className="h-full bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold dark:from-gov-brand dark:via-gov-teal dark:to-gov-gold rounded-full shadow-[0_0_10px_rgba(185,167,121,0.3)] dark:shadow-[0_0_15px_rgba(185,167,121,0.6)]"
                   initial={{ width: 0 }}
@@ -198,7 +182,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
               </div>
 
               {/* Loading Indicators */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
@@ -211,17 +195,17 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                       repeat: Infinity,
                       delay: i * 0.2,
                     }}
-                    className="w-3 h-3 rounded-full bg-gov-gold dark:shadow-[0_0_10px_rgba(185,167,121,0.6)]"
+                    className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gov-gold dark:shadow-[0_0_10px_rgba(185,167,121,0.6)]"
                   />
                 ))}
               </div>
             </motion.div>
 
             {/* Corner Decorations */}
-            <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-gov-gold/30 dark:border-gov-gold/20" />
-            <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-gov-gold/30 dark:border-gov-gold/20" />
-            <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-gov-gold/30 dark:border-gov-gold/20" />
-            <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-gov-gold/30 dark:border-gov-gold/20" />
+            <div className="absolute top-4 md:top-8 left-4 md:left-8 w-12 md:w-16 h-12 md:h-16 border-l-2 border-t-2 border-gov-gold/30 dark:border-gov-gold/20" />
+            <div className="absolute top-4 md:top-8 right-4 md:right-8 w-12 md:w-16 h-12 md:h-16 border-r-2 border-t-2 border-gov-gold/30 dark:border-gov-gold/20" />
+            <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 w-12 md:w-16 h-12 md:h-16 border-l-2 border-b-2 border-gov-gold/30 dark:border-gov-gold/20" />
+            <div className="absolute bottom-4 md:bottom-8 right-4 md:right-8 w-12 md:w-16 h-12 md:h-16 border-r-2 border-b-2 border-gov-gold/30 dark:border-gov-gold/20" />
           </motion.div>
         )}
       </AnimatePresence>

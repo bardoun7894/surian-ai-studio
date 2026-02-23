@@ -26,13 +26,14 @@ interface ParticleStyle {
 const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDirectorates }) => {
   const { t, language, direction } = useLanguage();
   const [particles, setParticles] = useState<ParticleStyle[]>([]);
-  
+  const [imageError, setImageError] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
-  const logoContentRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const bgPatternRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const glassContainerRef = useRef<HTMLDivElement>(null);
 
   // Generate particles only on client side
   useEffect(() => {
@@ -144,44 +145,27 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
         );
       }
 
+      // 8. Continuous Floating Animation for Glass Container
+      if (glassContainerRef.current) {
+        gsap.to(glassContainerRef.current, {
+          y: -15,
+          rotationX: 2,
+          rotationY: -2,
+          duration: 3,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut"
+        });
+      }
+
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
-  // Mouse tracking for logo
-  useEffect(() => {
-    if (typeof window === 'undefined' || !logoRef.current || !logoContentRef.current) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-
-      const x = (clientX / innerWidth - 0.5) * 2;
-      const y = (clientY / innerHeight - 0.5) * 2;
-
-      gsap.to(logoContentRef.current, {
-        rotationY: x * 10,
-        rotationX: -y * 10,
-        duration: 1,
-        ease: "power2.out"
-      });
-
-      gsap.to(logoRef.current?.querySelector('.logo-glow'), {
-        x: -x * 20,
-        y: -y * 20,
-        duration: 1.5,
-        ease: "power2.out"
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
     <section ref={containerRef} className="relative pt-8 pb-16 md:pt-4 md:pb-10 overflow-hidden bg-gov-beige dark:bg-dm-bg min-h-[calc(80svh-3.5rem)] md:min-h-[calc(80svh-4rem)] h-auto flex items-center justify-center transition-colors duration-700">
-      
+
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-gov-beige/90 to-gov-beige dark:from-gov-brand/30 dark:via-gov-forest/95 dark:to-gov-forest pointer-events-none transition-colors duration-700"></div>
@@ -199,41 +183,49 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
 
       <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] md:w-[350px] md:h-[350px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-4 md:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
 
         {/* Directorate Logo/Icon */}
-        <div ref={logoRef} className="mb-8 md:mb-0 relative z-20 flex justify-center items-center md:w-5/12 md:order-1">
-          <div className="relative w-64 h-64 md:w-[380px] md:h-[380px] lg:w-[450px] lg:h-[450px] flex items-center justify-center perspective-1000">
-            <div className="logo-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gov-gold/20 rounded-full blur-[80px] dark:bg-gov-brand/30"></div>
-            <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-border/15 shadow-[0_0_60px_rgba(185,167,121,0.2)]"></div>
-            <div className="absolute inset-4 rounded-full border border-gov-teal/30 dark:border-gov-teal/20 animate-[spin_12s_linear_infinite]"></div>
-            <div className="absolute inset-8 rounded-full bg-white dark:bg-gradient-to-br dark:from-gov-brand dark:to-gov-forest border border-gov-gold/30 shadow-[0_30px_80px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden transform-style-3d">
-              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
-              
+        <div ref={logoRef} className="mb-8 md:mb-0 relative z-20 flex justify-center items-center md:w-5/12 md:order-1 pt-8 md:pt-0">
+          <div className="relative w-56 h-56 md:w-72 md:h-72 lg:w-80 lg:h-80 flex items-center justify-center group">
+            {/* Soft angled backdrop */}
+            <div className="absolute inset-0 bg-gov-gold/15 dark:bg-gov-brand/30 rounded-[2.5rem] rotate-3 md:rotate-6 group-hover:rotate-12 transition-transform duration-700 ease-out"></div>
+
+            {/* Main frosted glass container */}
+            <div ref={glassContainerRef} className="absolute inset-0 bg-white/60 dark:bg-dm-surface/90 border border-gov-gold/30 dark:border-gov-gold/15 backdrop-blur-md rounded-[2.5rem] shadow-2xl flex items-center justify-center overflow-hidden transition-all duration-500">
+
+              {/* Optional slight gradient overlay for depth */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/10 dark:to-transparent pointer-events-none"></div>
+
               {/* Directorate Logo */}
-              <div ref={logoContentRef} className="relative w-full h-full flex items-center justify-center p-8">
-                {directorate.logo ? (
+              <div className="relative w-[95%] h-[95%] flex items-center justify-center">
+                {directorate.logo && !imageError ? (
                   <Image
                     id="directorate-logo"
                     src={directorate.logo}
                     alt={loc(directorate, 'name')}
                     fill
                     priority
-                    className="absolute inset-0 w-full h-full object-contain p-6"
+                    className="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:scale-105 transition-transform duration-500"
+                    onError={() => setImageError(true)}
                   />
                 ) : (
                   <Image
                     id="directorate-logo"
                     src="/assets/logo/eagle.png"
                     alt={language === 'ar' ? 'شعار الوزارة' : 'Ministry Emblem'}
-                    width={160}
-                    height={160}
+                    width={320}
+                    height={320}
                     priority
-                    className="object-contain drop-shadow-lg"
+                    className="object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500 opacity-90"
                   />
                 )}
               </div>
             </div>
+
+            {/* Elegant corner brackets */}
+            <div className="absolute -top-6 -right-6 w-16 h-16 border-t-[3px] border-r-[3px] border-gov-gold/50 rounded-tr-2xl opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 group-hover:translate-y-2 transition-all duration-500"></div>
+            <div className="absolute -bottom-6 -left-6 w-16 h-16 border-b-[3px] border-l-[3px] border-gov-gold/50 rounded-bl-2xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 group-hover:-translate-y-2 transition-all duration-500"></div>
           </div>
         </div>
 
@@ -276,7 +268,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
               >
                 <Building2 size={18} />
                 <span>{language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}</span>
-                <ArrowRight className={`transition-transform duration-300 ${language === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} size={16} />
+                <ArrowRight className={`transition-transform duration-300 ${language === 'ar' ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} size={16} />
               </Link>
             )}
 

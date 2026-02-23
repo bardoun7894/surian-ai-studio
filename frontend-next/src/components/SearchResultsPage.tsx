@@ -136,6 +136,33 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
 
     const emptyResults: SearchResults = { news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 };
 
+    // Basic fuzzy match: checks if all characters of the query appear in order in the target,
+    // or if the target contains any word from the query, tolerating minor differences
+    const fuzzyMatch = (target: string, query: string): boolean => {
+        const t = target.toLowerCase();
+        const q = query.toLowerCase();
+        // Exact substring match
+        if (t.includes(q)) return true;
+        // Word-level matching: if any query word (3+ chars) appears in target
+        const queryWords = q.split(/\s+/).filter(w => w.length >= 3);
+        if (queryWords.length > 0 && queryWords.some(w => t.includes(w))) return true;
+        // Subsequence match: all chars of query appear in order in target
+        let ti = 0;
+        for (let qi = 0; qi < q.length && ti < t.length; ti++) {
+            if (t[qi] === undefined) break;
+            if (t[ti] === q[qi]) qi++;
+            if (qi === q.length) return true;
+        }
+        // Simple edit-distance-like: check if removing one char from query matches
+        if (q.length >= 4) {
+            for (let i = 0; i < q.length; i++) {
+                const reduced = q.slice(0, i) + q.slice(i + 1);
+                if (t.includes(reduced)) return true;
+            }
+        }
+        return false;
+    };
+
     const performSearch = useCallback(async () => {
         if (!query.trim()) {
             setResults(emptyResults);
@@ -160,11 +187,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                 const q = query.toLowerCase();
                 const matchedFaqs = allFaqs
                     .filter(faq => {
-                        const questionAr = (faq.question_ar || '').toLowerCase();
-                        const questionEn = (faq.question_en || '').toLowerCase();
-                        const answerAr = (faq.answer_ar || '').toLowerCase();
-                        const answerEn = (faq.answer_en || '').toLowerCase();
-                        return questionAr.includes(q) || questionEn.includes(q) || answerAr.includes(q) || answerEn.includes(q);
+                        const questionAr = faq.question_ar || '';
+                        const questionEn = faq.question_en || '';
+                        const answerAr = faq.answer_ar || '';
+                        const answerEn = faq.answer_en || '';
+                        return fuzzyMatch(questionAr, q) || fuzzyMatch(questionEn, q) || fuzzyMatch(answerAr, q) || fuzzyMatch(answerEn, q);
                     })
                     .map(faq => ({
                         id: String(faq.id),

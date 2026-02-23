@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect, useRef } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -22,15 +22,6 @@ function LinkClickHandler({ children }: { children: ReactNode }) {
   const [externalUrl, setExternalUrl] = useState<string | null>(null);
   const { startLoading } = useLoading();
   const router = useRouter();
-  const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (pushTimeoutRef.current) {
-        clearTimeout(pushTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Handle link clicks
   useEffect(() => {
@@ -69,15 +60,7 @@ function LinkClickHandler({ children }: { children: ReactNode }) {
 
         e.preventDefault();
         startLoading();
-
-        if (pushTimeoutRef.current) {
-          clearTimeout(pushTimeoutRef.current);
-        }
-
-        // Small delay so the transition loader is visible before route push.
-        pushTimeoutRef.current = setTimeout(() => {
-          router.push(href);
-        }, 80);
+        router.push(href);
       } catch {
         // Ignore malformed URLs.
       }

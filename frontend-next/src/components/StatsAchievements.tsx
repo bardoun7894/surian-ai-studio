@@ -62,7 +62,7 @@ const StatsAchievements: React.FC = () => {
       value: statsValues.stat_total_services,
       suffix: '+',
       labelKey: 'stat_total_services',
-      icon: <Building2 className="text-white" size={28} strokeWidth={2} />,
+      icon: <Building2 className="text-white w-5 h-5 md:w-7 md:h-7" size={28} strokeWidth={2} />,
       iconBg: 'bg-gov-gold/90',
       delay: 0
     },
@@ -71,7 +71,7 @@ const StatsAchievements: React.FC = () => {
       value: statsValues.stat_transactions,
       suffix: '+',
       labelKey: 'stat_transactions',
-      icon: <FileCheck className="text-white" size={28} strokeWidth={2} />,
+      icon: <FileCheck className="text-white w-5 h-5 md:w-7 md:h-7" size={28} strokeWidth={2} />,
       iconBg: 'bg-gov-forest/80 border border-white/10',
       delay: 0.1
     },
@@ -80,7 +80,7 @@ const StatsAchievements: React.FC = () => {
       value: statsValues.stat_complaints_resolved,
       suffix: '+',
       labelKey: 'stat_complaints_resolved',
-      icon: <CheckCircle2 className="text-white" size={28} strokeWidth={2} />,
+      icon: <CheckCircle2 className="text-white w-5 h-5 md:w-7 md:h-7" size={28} strokeWidth={2} />,
       iconBg: 'bg-gov-gold/90',
       delay: 0.2
     },
@@ -89,7 +89,7 @@ const StatsAchievements: React.FC = () => {
       value: statsValues.stat_satisfaction,
       suffix: '%',
       labelKey: 'stat_satisfaction',
-      icon: <ThumbsUp className="text-white" size={28} strokeWidth={2} />,
+      icon: <ThumbsUp className="text-white w-5 h-5 md:w-7 md:h-7" size={28} strokeWidth={2} />,
       iconBg: 'bg-gov-forest/80 border border-white/10',
       delay: 0.3
     }
@@ -150,7 +150,7 @@ const StatsAchievements: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-gov-forest dark:bg-gov-brand/30 relative overflow-hidden" ref={containerRef}>
+    <section className="py-12 md:py-24 bg-gov-forest dark:bg-gov-brand/30 relative overflow-hidden" ref={containerRef}>
       {/* Background Pattern and Effects */}
       <div className="absolute inset-0 opacity-[0.03]"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}>
@@ -163,32 +163,32 @@ const StatsAchievements: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Only header if needed, but keeping it minimal to focus on cards as per image */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-4 md:mb-6">
             {t('stats_achievements_title')}
           </h2>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {stats.map((stat) => (
             <div
               key={stat.id}
-              className="stat-card flex flex-col p-8 rounded-[2rem] bg-gov-forest/40 backdrop-blur-md border border-white/5 hover:border-gov-gold/30 transition-all duration-300 group"
+              className="stat-card flex flex-col p-4 md:p-8 rounded-2xl md:rounded-[2rem] bg-gov-forest/40 backdrop-blur-md border border-white/5 hover:border-gov-gold/30 transition-all duration-300 group"
             >
               {/* Icon */}
-              <div className={`w-14 h-14 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-8 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl ${stat.iconBg} flex items-center justify-center mb-4 md:mb-8 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                 {stat.icon}
               </div>
 
               {/* Value */}
-              <div className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight tabular-nums">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3 tracking-tight tabular-nums">
                 {formatNumber(animatedValues[stat.id] || 0)}
-                <span className="text-gov-gold ml-0.5 align-top text-3xl">{stat.suffix}</span>
+                <span className="text-gov-gold ml-0.5 align-top text-xl md:text-3xl">{stat.suffix}</span>
               </div>
 
               {/* Label */}
-              <p className="text-gov-beige/60 font-medium text-lg leading-relaxed">
+              <p className="text-gov-beige/60 font-medium text-xs md:text-lg leading-relaxed">
                 {t(stat.labelKey)}
               </p>
             </div>

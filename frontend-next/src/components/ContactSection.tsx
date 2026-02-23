@@ -282,7 +282,7 @@ const ContactSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
+            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
           >
             {isAr ? 'نحن هنا لخدمتك' : 'We Are Here to Serve You'}
           </motion.h2>

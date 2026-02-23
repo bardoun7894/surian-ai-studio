@@ -137,7 +137,7 @@ const HomeSuggestionsSection = () => {
 
                         <motion.h2
                             variants={itemVariants}
-                            className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
+                            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
                         >
                             {isAr ? 'شاركنا أفكارك لتطوير المستقبل' : 'Share Your Ideas for Future Development'}
                         </motion.h2>
@@ -165,12 +165,12 @@ const HomeSuggestionsSection = () => {
                                 className="group relative"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/20 to-gov-teal/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-gov-gold/10 dark:border-white/10 text-center hover:border-gov-gold/30 transition-colors">
+                                <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-gov-gold/10 dark:border-white/10 text-center hover:border-gov-gold/30 transition-colors h-full flex flex-col">
                                     <div className="w-14 h-14 rounded-xl bg-gov-gold/10 dark:bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                         <feature.icon size={28} className="text-gov-gold" />
                                     </div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-2">{feature.title}</h3>
-                                    <p className="text-sm text-gov-charcoal/60 dark:text-white/60">{feature.desc}</p>
+                                    <p className="text-sm text-gov-charcoal/60 dark:text-white/60 flex-grow">{feature.desc}</p>
                                 </div>
                             </motion.div>
                         ))}

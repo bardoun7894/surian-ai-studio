@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
+use App\Models\Directorate;
 use Illuminate\Http\Request;
 
 class ComplaintController extends Controller
@@ -29,8 +30,9 @@ class ComplaintController extends Controller
     {
         $complaints = Complaint::with(['directorate', 'user'])->latest()->get();
         $grouped = $complaints->groupBy('status');
-        
-        return view('admin.complaints.kanban', compact('grouped'));
+        $directorates = Directorate::where('is_active', true)->orderBy('name_ar')->get();
+
+        return view('admin.complaints.kanban', compact('grouped', 'directorates'));
     }
     
     public function show(Complaint $complaint)

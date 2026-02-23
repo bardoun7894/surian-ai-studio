@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'لوحة متابعة الشكاوى - وزارة الاقتصاد')
+@section('title', 'لوحة متابعة المقترحات - وزارة الاقتصاد')
 
 @section('content')
 <div class="flex flex-col h-full overflow-hidden">
@@ -10,12 +10,12 @@
             <div class="flex items-center gap-2 text-primary mb-1">
                 <span class="text-xs font-bold tracking-[0.2em] uppercase">سير العمل</span>
             </div>
-            <h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">لوحة متابعة الشكاوى</h2>
+            <h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">لوحة متابعة المقترحات</h2>
         </div>
         <!-- Filters -->
         <div class="flex flex-wrap items-center gap-3 p-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl w-fit border border-slate-200 dark:border-slate-800">
             <!-- View Toggle -->
-            <a href="{{ route('admin.complaints.index') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 transition-all">
+            <a href="{{ route('admin.suggestions.index') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 transition-all">
                 <span class="material-symbols-outlined text-lg">list</span>
                 عرض القائمة
             </a>
@@ -31,14 +31,23 @@
                 </select>
             </div>
 
-            <!-- Priority Filter -->
+            <!-- AI Category Filter -->
             <div class="relative">
-                <select id="filter-priority" class="appearance-none flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-900 dark:text-white cursor-pointer pr-8">
-                    <option value="">كل الأولويات</option>
-                    <option value="urgent">عاجلة</option>
-                    <option value="high">مرتفعة</option>
-                    <option value="medium">متوسطة</option>
-                    <option value="low">عادية</option>
+                <select id="filter-category" class="appearance-none flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-900 dark:text-white cursor-pointer pr-8">
+                    <option value="">كل التصنيفات</option>
+                    @php
+                        $categories = $suggestions ?? collect();
+                        $uniqueCategories = collect();
+                        foreach($grouped as $statusGroup) {
+                            foreach($statusGroup as $s) {
+                                if($s->ai_category) $uniqueCategories->push($s->ai_category);
+                            }
+                        }
+                        $uniqueCategories = $uniqueCategories->unique()->sort();
+                    @endphp
+                    @foreach($uniqueCategories as $cat)
+                        <option value="{{ $cat }}">{{ $cat }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -64,11 +73,10 @@
     <div class="flex flex-1 gap-6 p-4 overflow-x-auto min-h-0 items-start custom-scrollbar">
         @php
             $columns = [
-                'new' => ['title' => 'واردة حديثاً', 'color' => 'blue-500', 'bg' => 'bg-blue-500', 'ring' => 'ring-blue-500/30'],
-                'pending' => ['title' => 'قيد الانتظار', 'color' => 'orange-400', 'bg' => 'bg-orange-400', 'ring' => 'ring-orange-400/30'],
-                'processing' => ['title' => 'قيد المعالجة', 'color' => 'primary', 'bg' => 'bg-primary', 'ring' => 'ring-primary/30'],
-                'resolved' => ['title' => 'تم الحل', 'color' => 'green-500', 'bg' => 'bg-green-500', 'ring' => 'ring-green-500/30'],
-                'rejected' => ['title' => 'مغلقة', 'color' => 'slate-400', 'bg' => 'bg-slate-400', 'ring' => 'ring-slate-400/30'],
+                'pending' => ['title' => 'بانتظار المراجعة', 'color' => 'orange-400', 'bg' => 'bg-orange-400', 'ring' => 'ring-orange-400/30'],
+                'reviewed' => ['title' => 'تمت المراجعة', 'color' => 'blue-500', 'bg' => 'bg-blue-500', 'ring' => 'ring-blue-500/30'],
+                'approved' => ['title' => 'مقبول', 'color' => 'green-500', 'bg' => 'bg-green-500', 'ring' => 'ring-green-500/30'],
+                'rejected' => ['title' => 'مرفوض', 'color' => 'slate-400', 'bg' => 'bg-slate-400', 'ring' => 'ring-slate-400/30'],
             ];
         @endphp
 
@@ -90,38 +98,36 @@
                 <!-- Droppable Cards Container -->
                 <div class="kanban-dropzone flex flex-col gap-3 overflow-y-auto pl-2 pb-2 custom-scrollbar min-h-[120px] rounded-xl transition-all duration-200"
                      data-status="{{ $status }}">
-                    @forelse($grouped[$status] ?? [] as $complaint)
-                        <a href="{{ route('admin.complaints.show', $complaint) }}"
+                    @forelse($grouped[$status] ?? [] as $suggestion)
+                        <a href="{{ route('admin.suggestions.show', $suggestion) }}"
                            class="kanban-card bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group border border-slate-200 dark:border-slate-700 select-none block"
                              draggable="true"
-                             data-id="{{ $complaint->id }}"
+                             data-id="{{ $suggestion->id }}"
                              data-status="{{ $status }}"
-                             data-directorate="{{ $complaint->directorate_id }}"
-                             data-priority="{{ $complaint->priority }}">
+                             data-directorate="{{ $suggestion->directorate_id }}"
+                             data-category="{{ $suggestion->ai_category }}">
                             <div class="flex justify-between items-start mb-3">
-                                <span class="text-[11px] font-black text-primary bg-primary/10 px-2 py-1 rounded">#{{ $complaint->tracking_number ?? $complaint->id }}</span>
-                                @if($complaint->priority === 'high' || $complaint->priority === 'urgent')
-                                    <span class="bg-yellow-100 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-yellow-200 flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[12px]">warning</span>
-                                        {{ $complaint->priority === 'urgent' ? 'عاجلة' : 'مرتفعة' }}
+                                <span class="text-[11px] font-black text-primary bg-primary/10 px-2 py-1 rounded">#{{ $suggestion->tracking_number }}</span>
+                                @if($suggestion->ai_category)
+                                    <span class="bg-purple-50 text-purple-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[12px]">psychology</span>
+                                        {{ $suggestion->ai_category }}
                                     </span>
-                                @else
-                                    <span class="bg-slate-100 dark:bg-slate-700 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">عادية</span>
                                 @endif
                             </div>
-                            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition-colors">{{ $complaint->citizen_name ?? 'مجهول' }}</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{{ $complaint->description }}</p>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition-colors">{{ $suggestion->name ?? 'مجهول' }}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{{ $suggestion->description }}</p>
                             <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
                                 <div class="flex items-center gap-2">
                                     <span class="material-symbols-outlined text-xs text-slate-400">corporate_fare</span>
-                                    <span class="text-[11px] font-semibold text-slate-500">{{ $complaint->directorate->name_ar ?? 'العامة' }}</span>
+                                    <span class="text-[11px] font-semibold text-slate-500">{{ $suggestion->directorate->name_ar ?? 'العامة' }}</span>
                                 </div>
-                                <span class="text-[11px] text-slate-400 font-medium italic">{{ $complaint->created_at->locale('ar')->diffForHumans() }}</span>
+                                <span class="text-[11px] text-slate-400 font-medium italic">{{ $suggestion->created_at->locale('ar')->diffForHumans() }}</span>
                             </div>
                         </a>
                     @empty
                         <div class="kanban-empty p-4 text-center text-xs text-slate-400 italic border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                            لا يوجد شكاوى
+                            لا يوجد مقترحات
                         </div>
                     @endforelse
                 </div>
@@ -168,20 +174,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Filters ---
     const filterDirectorate = document.getElementById('filter-directorate');
-    const filterPriority = document.getElementById('filter-priority');
+    const filterCategory = document.getElementById('filter-category');
     const filterReset = document.getElementById('filter-reset');
 
     function applyFilters() {
         var dirVal = filterDirectorate.value;
-        var prioVal = filterPriority.value;
-        var hasFilter = dirVal || prioVal;
+        var catVal = filterCategory.value;
+        var hasFilter = dirVal || catVal;
 
         filterReset.classList.toggle('hidden', !hasFilter);
 
         document.querySelectorAll('.kanban-card').forEach(function(card) {
             var show = true;
             if (dirVal && card.dataset.directorate !== dirVal) show = false;
-            if (prioVal && card.dataset.priority !== prioVal) show = false;
+            if (catVal && card.dataset.category !== catVal) show = false;
             card.classList.toggle('filter-hidden', !show);
         });
 
@@ -189,10 +195,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     filterDirectorate.addEventListener('change', applyFilters);
-    filterPriority.addEventListener('change', applyFilters);
+    filterCategory.addEventListener('change', applyFilters);
     filterReset.addEventListener('click', function() {
         filterDirectorate.value = '';
-        filterPriority.value = '';
+        filterCategory.value = '';
         applyFilters();
     });
 
@@ -234,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (count === 0 && !empty) {
                 var div = document.createElement('div');
                 div.className = 'kanban-empty p-4 text-center text-xs text-slate-400 italic border border-dashed border-slate-200 dark:border-slate-700 rounded-xl';
-                div.textContent = 'لا يوجد شكاوى';
+                div.textContent = 'لا يوجد مقترحات';
                 zone.appendChild(div);
             } else if (count > 0 && empty) {
                 empty.remove();
@@ -296,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var newStatus = zone.dataset.status;
             var oldStatus = draggedCard.dataset.status;
-            var complaintId = draggedCard.dataset.id;
+            var suggestionId = draggedCard.dataset.id;
 
             var afterCard = getClosestCard(zone, e.clientY);
             if (afterCard) {
@@ -317,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCounts();
 
             if (newStatus !== oldStatus) {
-                updateComplaintStatus(complaintId, newStatus, draggedCard, oldStatus, sourceZone);
+                updateSuggestionStatus(suggestionId, newStatus, draggedCard, oldStatus, sourceZone);
             }
         });
     });
@@ -340,8 +346,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- API Call ---
-    function updateComplaintStatus(complaintId, newStatus, card, oldStatus, oldZone) {
-        fetch('/admin/dashboard/complaints/' + complaintId + '/status', {
+    function updateSuggestionStatus(suggestionId, newStatus, card, oldStatus, oldZone) {
+        fetch('/admin/dashboard/suggestions/' + suggestionId + '/status', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

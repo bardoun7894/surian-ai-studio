@@ -14,9 +14,15 @@ class Faq extends Model
         'suggested_by_ai',
         'is_published',
         'category',
+        'directorate_id',
         'order',
         'is_active',
     ];
+
+    public function directorate()
+    {
+        return $this->belongsTo(Directorate::class);
+    }
 
     protected $casts = [
         'suggested_by_ai' => 'boolean',

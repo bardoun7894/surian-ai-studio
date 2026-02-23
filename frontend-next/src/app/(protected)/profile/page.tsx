@@ -58,6 +58,13 @@ export default function ProfilePage() {
     const [emailError, setEmailError] = useState<string | null>(null);
     const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
 
+    // Phone edit state
+    const [phoneEditMode, setPhoneEditMode] = useState(false);
+    const [newPhone, setNewPhone] = useState('');
+    const [phoneLoading, setPhoneLoading] = useState(false);
+    const [phoneError, setPhoneError] = useState<string | null>(null);
+    const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
+
     const [formData, setFormData] = useState({
         first_name: '',
         father_name: '',
@@ -70,6 +77,22 @@ export default function ProfilePage() {
         password: '',
         password_confirmation: ''
     });
+
+    const getFavoriteTitle = (fav: Favorite) => {
+        const meta = fav.metadata;
+        if (!meta) return language === 'ar' ? 'عنصر مفضل' : 'Favorite Item';
+        if (language === 'ar' && meta.title_ar) return meta.title_ar;
+        if (language === 'en' && meta.title_en) return meta.title_en;
+        return meta.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item');
+    };
+
+    const getFavoriteDescription = (fav: Favorite) => {
+        const meta = fav.metadata;
+        if (!meta) return '';
+        if (language === 'ar' && meta.description_ar) return meta.description_ar;
+        if (language === 'en' && meta.description_en) return meta.description_en;
+        return meta.description || '';
+    };
 
     const governorates = [
         'دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس',
@@ -189,6 +212,31 @@ export default function ProfilePage() {
         setVerificationCode('');
         setEmailError(null);
         setEmailSuccess(null);
+    };
+
+    const handlePhoneUpdate = async () => {
+        if (!newPhone.trim()) return;
+        setPhoneLoading(true);
+        setPhoneError(null);
+        setPhoneSuccess(null);
+        try {
+            await API.profile.update({ phone: newPhone });
+            await refreshUser();
+            setPhoneSuccess(language === 'ar' ? 'تم تحديث رقم الهاتف بنجاح' : 'Phone number updated successfully');
+            setPhoneEditMode(false);
+            setNewPhone('');
+        } catch (err: any) {
+            setPhoneError(err?.message || (language === 'ar' ? 'فشل تحديث رقم الهاتف' : 'Failed to update phone number'));
+        } finally {
+            setPhoneLoading(false);
+        }
+    };
+
+    const handleCancelPhoneEdit = () => {
+        setPhoneEditMode(false);
+        setNewPhone('');
+        setPhoneError(null);
+        setPhoneSuccess(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -527,19 +575,65 @@ export default function ProfilePage() {
                                             </div>
                                         )}
 
-                                        <div>
-                                            <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                                {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
-                                            </label>
-                                            <div className="relative group">
-                                                <input
-                                                    type="tel"
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
-                                                />
-                                                <Phone className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                        {/* Phone Number Section */}
+                                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-100 dark:border-gov-border/15">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-sm font-bold text-gov-charcoal dark:text-gov-teal flex items-center gap-2">
+                                                    <Phone size={16} />
+                                                    {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
+                                                </label>
+                                                {!phoneEditMode && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setPhoneEditMode(true); setNewPhone(formData.phone); }}
+                                                        className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1"
+                                                    >
+                                                        <Pencil size={12} />
+                                                        {language === 'ar' ? 'تعديل' : 'Edit'}
+                                                    </button>
+                                                )}
                                             </div>
+
+                                            {phoneError && (
+                                                <p className="text-sm text-red-500 mb-2">{phoneError}</p>
+                                            )}
+                                            {phoneSuccess && (
+                                                <p className="text-sm text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+                                                    <CheckCircle size={14} /> {phoneSuccess}
+                                                </p>
+                                            )}
+
+                                            {!phoneEditMode ? (
+                                                <p className="text-gov-charcoal dark:text-white font-medium" dir="ltr">
+                                                    {formData.phone || (language === 'ar' ? 'غير محدد' : 'Not set')}
+                                                </p>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <PhoneInput
+                                                        value={newPhone}
+                                                        onChange={(e) => setNewPhone(e.target.value)}
+                                                        placeholder={language === 'ar' ? 'أدخل رقم الهاتف الجديد' : 'Enter new phone number'}
+                                                    />
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handlePhoneUpdate}
+                                                            disabled={phoneLoading || !newPhone.trim()}
+                                                            className="px-5 py-2.5 bg-gov-teal text-white font-bold rounded-xl hover:bg-gov-emerald transition-all flex items-center gap-2 disabled:opacity-50 text-sm"
+                                                        >
+                                                            {phoneLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                                                            {phoneLoading ? (language === 'ar' ? 'جارٍ الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ' : 'Save')}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelPhoneEdit}
+                                                            className="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-all text-sm"
+                                                        >
+                                                            {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div>
@@ -757,7 +851,7 @@ export default function ProfilePage() {
                                                 <div className="h-40 overflow-hidden">
                                                     <img
                                                         src={fav.metadata.image}
-                                                        alt={fav.metadata.title || 'Favorite item'}
+                                                        alt={getFavoriteTitle(fav)}
                                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     />
                                                 </div>
@@ -794,12 +888,12 @@ export default function ProfilePage() {
                                                 </div>
 
                                                 <h4 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
-                                                    {fav.metadata?.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item')}
+                                                    {getFavoriteTitle(fav)}
                                                 </h4>
 
-                                                {fav.metadata?.description && (
+                                                {getFavoriteDescription(fav) && (
                                                     <p className="text-sm text-gray-500 dark:text-white/60 line-clamp-2 mb-4">
-                                                        {fav.metadata.description}
+                                                        {getFavoriteDescription(fav)}
                                                     </p>
                                                 )}
 

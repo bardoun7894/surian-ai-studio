@@ -68,7 +68,7 @@ services:
 
   # Database (PostgreSQL)
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:0.8.0-pg15
     environment:
       - POSTGRES_DB=surian_db
       - POSTGRES_USER=surian_user

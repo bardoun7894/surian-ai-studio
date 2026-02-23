@@ -53,7 +53,11 @@ const FALLBACK_FAQS: FAQ[] = [
   }
 ];
 
-const FAQSection: React.FC = () => {
+interface FAQSectionProps {
+  directorateId?: string;
+}
+
+const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
   const { language, t } = useLanguage();
   const isAr = language === 'ar';
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -61,12 +65,15 @@ const FAQSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-
+  // Reset open index when search query changes so results refresh properly
+  useEffect(() => {
+    setOpenIndex(null);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        const data = await API.faqs.getAll();
+        const data = await API.faqs.getAll(directorateId);
         setFaqs(data.length > 0 ? data : FALLBACK_FAQS);
       } catch {
         setFaqs(FALLBACK_FAQS);
@@ -75,7 +82,7 @@ const FAQSection: React.FC = () => {
       }
     };
     fetchFaqs();
-  }, []);
+  }, [directorateId]);
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -193,7 +200,7 @@ const FAQSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4"
+            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4"
           >
             {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
           </motion.h2>
@@ -233,15 +240,18 @@ const FAQSection: React.FC = () => {
 
         {/* FAQ List */}
         <motion.div
+          key={searchQuery.trim() === '' ? 'all' : `search-${searchQuery}`}
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
           className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth"
+          data-faq-list
+          role="list"
         >
           <AnimatePresence mode="popLayout">
             {filteredFaqs.map((faq, index) => (
               <motion.div
+                data-faq-item
                 key={faq.id}
                 variants={itemVariants}
                 layout
@@ -252,8 +262,33 @@ const FAQSection: React.FC = () => {
               >
                 <motion.button
                   onClick={() => toggleFaq(index)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleFaq(index);
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      const nextBtn = (e.currentTarget.closest('[data-faq-item]')?.nextElementSibling as HTMLElement)?.querySelector('button');
+                      nextBtn?.focus();
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      const prevBtn = (e.currentTarget.closest('[data-faq-item]')?.previousElementSibling as HTMLElement)?.querySelector('button');
+                      prevBtn?.focus();
+                    } else if (e.key === 'Home') {
+                      e.preventDefault();
+                      const firstBtn = (e.currentTarget.closest('[data-faq-list]') as HTMLElement)?.querySelector('[data-faq-item]:first-child button') as HTMLElement;
+                      firstBtn?.focus();
+                    } else if (e.key === 'End') {
+                      e.preventDefault();
+                      const lastBtn = (e.currentTarget.closest('[data-faq-list]') as HTMLElement)?.querySelector('[data-faq-item]:last-child button') as HTMLElement;
+                      lastBtn?.focus();
+                    }
+                  }}
                   whileHover={{ x: isAr ? -4 : 4 }}
-                  className="w-full flex items-center justify-between p-6 text-right"
+                  className="w-full flex items-center justify-between p-6 text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-gold focus-visible:ring-offset-2 rounded-t-2xl"
+                  aria-expanded={openIndex === index}
+                  aria-controls={`faq-panel-${faq.id}`}
+                  id={`faq-header-${faq.id}`}
                 >
                   <div className="flex items-center gap-4 flex-1">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${openIndex === index ? 'bg-gov-gold text-gov-forest' : 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold'}`}>
@@ -280,6 +315,9 @@ const FAQSection: React.FC = () => {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
+                      id={`faq-panel-${faq.id}`}
+                      role="region"
+                      aria-labelledby={`faq-header-${faq.id}`}
                     >
                       <div className="px-6 pb-6 pt-2">
                         <div className="border-t border-gov-gold/10 dark:border-gov-border/15 pt-4">

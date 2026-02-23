@@ -49,18 +49,18 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded, className = '' })
 
   if (loading) {
     return (
-      <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-10 flex items-center ${className}`}>
+      <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-8 md:h-10 flex items-center ${className}`}>
         {/* Label */}
-        <div className="flex-shrink-0 bg-gov-gold px-4 h-full z-20 flex items-center font-bold shadow-lg">
-          <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2 h-2 bg-gov-cherry rounded-full animate-pulse"></span>
-          <span className="text-sm font-display text-gov-forest">{t('news_breaking')}</span>
+        <div className="flex-shrink-0 bg-gov-gold px-3 md:px-4 h-full z-20 flex items-center font-bold shadow-lg">
+          <span className="ml-1.5 md:ml-2 rtl:mr-1.5 md:rtl:mr-2 rtl:ml-0 w-1.5 md:w-2 h-1.5 md:h-2 bg-gov-cherry rounded-full animate-pulse"></span>
+          <span className="text-xs md:text-sm font-display text-gov-forest">{t('news_breaking')}</span>
         </div>
         {/* Skeleton content */}
-        <div className="flex-1 overflow-hidden h-full px-4">
-          <div className="flex items-center h-full gap-4">
-            <SkeletonText lines={1} className="w-64" />
-            <SkeletonText lines={1} className="w-48" />
-            <SkeletonText lines={1} className="w-56" />
+        <div className="flex-1 overflow-hidden h-full px-3 md:px-4">
+          <div className="flex items-center h-full gap-3 md:gap-4">
+            <SkeletonText lines={1} className="w-48 md:w-64" />
+            <SkeletonText lines={1} className="w-32 md:w-48" />
+            <SkeletonText lines={1} className="w-40 md:w-56" />
           </div>
         </div>
       </div>
@@ -77,27 +77,27 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ onNewsLoaded, className = '' })
   const animationDuration = Math.max(30, items.length * 6.0);
 
   return (
-    <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md text-gov-forest dark:text-white border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-10 flex items-center ${className}`}>
+    <div className={`bg-gov-beige/90 dark:bg-gov-charcoal/90 backdrop-blur-md text-gov-forest dark:text-white border-t border-gov-gold/30 dark:border-gov-gold/20 relative overflow-hidden h-8 md:h-10 flex items-center ${className}`}>
       {/* Label */}
-      <div className="flex-shrink-0 bg-gov-gold px-4 h-full z-20 flex items-center font-bold shadow-lg">
-        <span className="ml-2 rtl:mr-2 rtl:ml-0 w-2 h-2 bg-gov-cherry rounded-full animate-pulse"></span>
-        <span className="text-sm font-display text-gov-forest">{t('news_breaking')}</span>
+      <div className="flex-shrink-0 bg-gov-gold px-3 md:px-4 h-full z-20 flex items-center font-bold shadow-lg">
+        <span className="ml-1.5 md:ml-2 rtl:mr-1.5 md:rtl:mr-2 rtl:ml-0 w-1.5 md:w-2 h-1.5 md:h-2 bg-gov-cherry rounded-full animate-pulse"></span>
+        <span className="text-xs md:text-sm font-display text-gov-forest">{t('news_breaking')}</span>
       </div>
 
       {/* Scrolling content - Force LTR layout for consistency with absolute positioning/negative margins if any */}
       <div className="flex-1 overflow-hidden h-full" dir="ltr">
         <div
-          className={`${language === 'ar' ? 'animate-ticker-rtl' : 'animate-ticker-ltr'} h-full w-max min-w-full flex items-center whitespace-nowrap gap-12 px-4 will-change-transform`}
+          className={`${language === 'ar' ? 'animate-ticker-rtl' : 'animate-ticker-ltr'} h-full w-max min-w-full flex items-center whitespace-nowrap gap-8 md:gap-12 px-3 md:px-4 will-change-transform`}
           style={{ animationDuration: `${animationDuration}s` }}
         >
           {items.map((news, idx) => (
             <span
               key={idx}
               dir={language === 'ar' ? 'rtl' : 'ltr'}
-              className="shrink-0 flex items-center gap-4 text-base text-gov-forest dark:text-white"
+              className="shrink-0 flex items-center gap-3 md:gap-4 text-xs md:text-base text-gov-forest dark:text-white"
             >
               <span className="font-medium">{getTitle(news)}</span>
-              <span className="text-gov-gold text-sm">●</span>
+              <span className="text-gov-gold text-[10px] md:text-sm">●</span>
             </span>
           ))}
         </div>

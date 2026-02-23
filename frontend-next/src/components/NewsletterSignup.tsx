@@ -51,10 +51,10 @@ export default function NewsletterSignup({ className = '' }: NewsletterSignupPro
 
     return (
         <div className={`${className}`}>
-            <h3 className="text-lg font-bold text-gov-forest dark:text-gov-teal mb-3">
+            <h3 className="text-base md:text-lg font-bold text-gov-forest dark:text-gov-teal mb-2 md:mb-3">
                 {t('newsletter_title')}
             </h3>
-            <p className="text-sm text-gov-forest/70 dark:text-white/70 mb-4">
+            <p className="text-xs md:text-sm text-gov-forest/70 dark:text-white/70 mb-3 md:mb-4">
                 {t('newsletter_description')}
             </p>
 
@@ -64,29 +64,29 @@ export default function NewsletterSignup({ className = '' }: NewsletterSignupPro
                     <span>{t('newsletter_subscribed_message')}</span>
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
                     <div className="relative">
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder={t('newsletter_placeholder')}
-                            className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-forest dark:text-white placeholder:text-gov-forest/45 dark:placeholder:text-white/40 focus:outline-none focus:border-gov-gold transition-colors"
+                            className="w-full py-2.5 px-3 md:py-3 md:px-4 pr-10 md:pr-12 rtl:pr-3 md:rtl:pr-4 rtl:pl-10 md:rtl:pl-12 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-xs md:text-sm text-gov-forest dark:text-white placeholder:text-gov-forest/45 dark:placeholder:text-white/40 focus:outline-none focus:border-gov-gold transition-colors"
                             disabled={loading}
                         />
-                        <Mail className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gov-forest/45 dark:text-white/40" size={18} />
+                        <Mail className="absolute right-3 md:right-4 rtl:right-auto rtl:left-3 md:rtl:left-4 top-1/2 -translate-y-1/2 text-gov-forest/45 dark:text-white/40 w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading || !email}
-                        className="w-full py-3 bg-gov-gold text-gov-forest font-bold rounded-lg hover:bg-gov-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-2.5 md:py-3 bg-gov-gold text-gov-forest font-bold rounded-lg hover:bg-gov-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs md:text-sm"
                     >
                         {loading ? (
-                            <Loader2 size={18} className="animate-spin" />
+                            <Loader2 className="animate-spin w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
                         ) : (
                             <>
-                                <Mail size={18} />
+                                <Mail className="w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
                                 {t('newsletter_subscribe_btn')}
                             </>
                         )}

@@ -78,7 +78,7 @@
                         </td>
                         <td class="p-4">
                             <span class="text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded">
-                                {{ $complaint->directorate->name ?? 'العامة' }}
+                                {{ $complaint->directorate->name_ar ?? 'العامة' }}
                             </span>
                         </td>
                         <td class="p-4">

@@ -100,6 +100,12 @@ class PublicApiController extends Controller
                     'name' => $sub->name_ar,
                     'name_ar' => $sub->name_ar,
                     'name_en' => $sub->name_en ?? $sub->name_ar,
+                    'description_ar' => $sub->description_ar ?? '',
+                    'description_en' => $sub->description_en ?? '',
+                    'phone' => $sub->phone ?? '',
+                    'email' => $sub->email ?? '',
+                    'address_ar' => $sub->address_ar ?? '',
+                    'address_en' => $sub->address_en ?? '',
                     'url' => $sub->url,
                     'isExternal' => (bool) $sub->is_external,
                 ];
@@ -507,9 +513,9 @@ class PublicApiController extends Controller
             'expires_at' => $a->expires_at?->format('Y-m-d'),
             'is_expired' => $a->isExpired(),
             'type' => $a->priority >= 9 ? 'urgent' : ($a->priority >= 5 ? 'important' : 'general'),
-            'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
+            'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 100),
         ];
 
         // Support server-side pagination
@@ -771,10 +777,21 @@ class PublicApiController extends Controller
      */
     public function faqs(): JsonResponse
     {
-        $faqs = Cache::remember('public.faqs', 600, function () {
-            return Faq::where('is_active', true)
-                ->where('is_published', true)
-                ->orderBy('order')
+        $directorateId = request()->query('directorate_id');
+        $cacheKey = $directorateId ? "public.faqs.dir.{$directorateId}" : 'public.faqs';
+
+        $faqs = Cache::remember($cacheKey, 600, function () use ($directorateId) {
+            $query = Faq::where('is_active', true)
+                ->where('is_published', true);
+
+            if ($directorateId) {
+                $query->where(function ($q) use ($directorateId) {
+                    $q->where('directorate_id', $directorateId)
+                      ->orWhereNull('directorate_id');
+                });
+            }
+
+            return $query->orderBy('order')
                 ->get()
                 ->map(fn($f) => [
                 'id' => (string) $f->id,
@@ -785,6 +802,7 @@ class PublicApiController extends Controller
                 'answer_ar' => $f->answer_ar,
                 'answer_en' => $f->answer_en,
                 'category' => $f->category ?? 'general',
+                'directorate_id' => $f->directorate_id,
             ]);
         });
 
@@ -1071,12 +1089,12 @@ class PublicApiController extends Controller
             'date' => $a->published_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'category' => $a->metadata['category_label'] ?? 'إعلان',
             'category_en' => $a->metadata['category_label_en'] ?? 'Announcement',
-            'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
-            'summary' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'summary_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 200),
-            'summary_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 200),
+            'description' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'description_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'description_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 100),
+            'summary' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'summary_ar' => $a->seo_description_ar ?? mb_substr(strip_tags($a->content_ar), 0, 100),
+            'summary_en' => $a->seo_description_en ?? mb_substr(strip_tags($a->content_en ?? ''), 0, 100),
             'imageUrl' => $this->normalizeImageUrl($a->metadata['image'] ?? null),
             'isUrgent' => $a->priority >= 8,
             'directorate_id' => $a->directorate_id,

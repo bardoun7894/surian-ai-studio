@@ -183,7 +183,7 @@ const GovernmentPartners: React.FC = () => {
                             {t('partners_title')}
                         </span>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
                         {t('partners_title')}
                     </h2>
                     <p className="text-gov-stone/60 dark:text-white/70 max-w-2xl mx-auto text-lg leading-relaxed">

@@ -439,10 +439,10 @@ function NewsPageContent() {
             </div>
 
             {visibleCount < allNews.length && (
-              <div className="mt-8 flex justify-center">
+              <div className="mt-10 mb-6 flex justify-center">
                 <button
                   onClick={() => { setActiveView('all'); setCurrentPage(1); }}
-                  className="px-8 py-3 bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/15 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                  className="px-10 py-3.5 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
                 >
                   {isAr ? 'عرض جميع الأخبار' : 'View All News'}
                 </button>
@@ -498,7 +498,7 @@ function NewsPageContent() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-20 md:pt-24">
+      <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
         {/* Hero Header */}
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">

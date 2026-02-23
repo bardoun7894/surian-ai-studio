@@ -66,6 +66,18 @@
                     {{ $suggestion->description }}
                 </div>
 
+                @if($suggestion->ai_summary)
+                    <div class="mt-6">
+                        <h3 class="flex items-center gap-2 text-sm font-bold text-purple-600 mb-2">
+                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                            ملخص الذكاء الاصطناعي
+                        </h3>
+                        <div class="bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 p-4 rounded-lg text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                            {{ $suggestion->ai_summary }}
+                        </div>
+                    </div>
+                @endif
+
                 @if($suggestion->response)
                     <div class="mt-6">
                         <h3 class="flex items-center gap-2 text-sm font-bold text-primary mb-2">
@@ -78,6 +90,27 @@
                     </div>
                 @endif
             </div>
+
+            <!-- Attachments -->
+            @if($suggestion->attachments->count() > 0)
+                <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4">المرفقات ({{ $suggestion->attachments->count() }})</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($suggestion->attachments as $attachment)
+                            <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group">
+                                <div class="h-10 w-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:text-primary transition-colors">
+                                    <span class="material-symbols-outlined">description</span>
+                                </div>
+                                <div class="flex flex-col overflow-hidden">
+                                    <span class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ $attachment->file_name ?? 'مرفق #' . $loop->iteration }}</span>
+                                    <span class="text-xs text-slate-500">{{ $attachment->created_at->format('Y-m-d') }}</span>
+                                </div>
+                                <span class="material-symbols-outlined text-slate-400 mr-auto">download</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <!-- Update Status Form -->
             <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
@@ -160,6 +193,12 @@
                                 <span class="font-medium font-mono text-slate-700 dark:text-slate-200" dir="ltr">{{ $suggestion->phone }}</span>
                             </div>
                         @endif
+                        @if($suggestion->directorate)
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">المديرية المعنية</span>
+                                <span class="font-medium text-slate-700 dark:text-slate-200">{{ $suggestion->directorate->name }}</span>
+                            </div>
+                        @endif
                         <div class="flex justify-between">
                             <span class="text-slate-500">تاريخ التقديم</span>
                             <span class="font-medium text-slate-700 dark:text-slate-200">{{ $suggestion->created_at->format('Y/m/d') }}</span>
@@ -167,6 +206,79 @@
                     </div>
                 </div>
             </div>
+
+            <!-- AI Classification -->
+            @if($suggestion->ai_category)
+                <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-purple-600">psychology</span>
+                        تصنيف الذكاء الاصطناعي
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-500">التصنيف المقترح</span>
+                            <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded">{{ $suggestion->ai_category }}</span>
+                        </div>
+                        @if($suggestion->ai_priority)
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-500">الأهمية المقدرة</span>
+                                <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded">{{ $suggestion->ai_priority }}</span>
+                            </div>
+                        @endif
+                        @if($suggestion->ai_confidence)
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-500">درجة الثقة</span>
+                                <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded">{{ number_format($suggestion->ai_confidence * 100) }}%</span>
+                            </div>
+                        @endif
+                        @if($suggestion->ai_keywords && count($suggestion->ai_keywords) > 0)
+                            <div>
+                                <span class="text-xs text-slate-500 block mb-2">الكلمات المفتاحية</span>
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($suggestion->ai_keywords as $keyword)
+                                        <span class="text-[10px] font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{{ $keyword }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                        <p class="text-[10px] text-slate-400 italic mt-2">
+                            تم تحليل هذه البيانات تلقائياً بواسطة خوارزميات الوزارة للذكاء الاصطناعي.
+                        </p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Rating Card -->
+            @if($rating)
+                <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-amber-500">star</span>
+                        تقييم المواطن
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-1">
+                            @for($i = 1; $i <= 5; $i++)
+                                <span class="material-symbols-outlined text-[20px] {{ $i <= $rating->rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600' }}">star</span>
+                            @endfor
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 mr-2">{{ $rating->rating }}/5</span>
+                        </div>
+                        @if($rating->feedback_type)
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-500">نوع التقييم</span>
+                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">{{ $rating->feedback_type }}</span>
+                            </div>
+                        @endif
+                        @if($rating->comment)
+                            <div>
+                                <span class="text-xs text-slate-500 block mb-1">التعليق</span>
+                                <p class="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">{{ $rating->comment }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

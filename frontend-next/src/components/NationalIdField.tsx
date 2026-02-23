@@ -77,7 +77,7 @@ export default function NationalIdField({
                 if (result?.verified && onVerified) {
                     onVerified(result.citizen_data || null);
                 } else if (!result?.verified && onError) {
-                    onError(result?.message || 'فشل التحقق');
+                    onError(result?.message || (language === 'ar' ? 'فشل التحقق' : 'Verification failed'));
                 }
             });
         }
@@ -187,6 +187,7 @@ export default function NationalIdField({
                     disabled={disabled || verificationStatus === 'verifying'}
                     placeholder={language === 'ar' ? 'أدخل الرقم الوطني المؤلف من 11 رقماً' : 'Enter 11-digit National ID'}
                     className={`w-full py-3 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-transparent outline-none text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+                    maxLength={11}
                     required={required}
                 />
 

@@ -97,6 +97,10 @@
             <a class="{{ request()->routeIs('admin.suggestions.*') ? 'active-nav-item flex items-center gap-3 rounded-lg bg-gov-emerald/10 px-3 py-2.5 text-gov-emerald' : 'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-gov-emerald transition-colors' }}" href="{{ route('admin.suggestions.index') }}">
                 <span class="material-symbols-outlined">lightbulb</span>
                 <span class="text-sm font-medium">المقترحات</span>
+                @php $pendingSuggestions = \App\Models\Suggestion::where('status', 'pending')->count(); @endphp
+                @if($pendingSuggestions > 0)
+                    <span class="mr-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-600">{{ $pendingSuggestions }}</span>
+                @endif
             </a>
 
             <a class="{{ request()->routeIs('admin.directorates.*') ? 'active-nav-item flex items-center gap-3 rounded-lg bg-gov-emerald/10 px-3 py-2.5 text-gov-emerald' : 'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-gov-emerald transition-colors' }}" href="{{ route('admin.directorates.index') }}">

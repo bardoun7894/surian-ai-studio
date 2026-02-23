@@ -103,7 +103,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                     >
                         <span className="text-lg leading-none">{currentCountry?.flag}</span>
                         <span className="text-sm font-bold text-gov-charcoal dark:text-white" dir="ltr">
-                            {localizeNumbers(selectedCode, language)}
+                            {selectedCode}
                         </span>
                         <ChevronDown size={14} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </div>
@@ -122,7 +122,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                                         {language === 'ar' ? country.countryAr : country.country}
                                     </span>
                                     <span className="text-sm font-bold text-gray-500 dark:text-gray-400" dir="ltr">
-                                        {localizeNumbers(country.code, language)}
+                                        {country.code}
                                     </span>
                                 </div>
                             ))}

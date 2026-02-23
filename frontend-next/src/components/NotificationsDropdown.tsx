@@ -145,12 +145,12 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-colors"
         aria-label={language === 'ar' ? 'الإشعارات' : 'Notifications'}
       >
-        <Bell size={18} />
+        <Bell size={16} className="md:w-[18px] md:h-[18px]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+          <span className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -192,9 +192,8 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
                 return (
                   <div
                     key={notification.id}
-                    className={`p-4 border-b border-gray-50 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${
-                      !notification.is_read ? 'bg-gov-gold/5 dark:bg-gov-emerald/10' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-50 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${!notification.is_read ? 'bg-gov-gold/5 dark:bg-gov-emerald/10' : ''
+                      }`}
                   >
                     <div className="flex gap-3">
                       <div className="mt-1">{getIcon(notification.type)}</div>

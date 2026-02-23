@@ -55,9 +55,6 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
         if (nationalId.length < 11) {
             return { valid: false, error: isAr ? `أدخلت ${nationalId.length} من 11 رقماً` : `${nationalId.length}/11 digits entered` };
         }
-        if (nationalId.length > 11) {
-            return { valid: false, error: isAr ? 'الرقم الوطني يجب أن يتكون من 11 رقماً' : 'National ID must be exactly 11 digits' };
-        }
         return { valid: true, error: '' };
     }, []);
 
@@ -73,8 +70,9 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
             return null;
         }
 
+        const isAr = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
         setVerificationStatus('verifying');
-        setVerificationMessage('جارٍ التحقق من الرقم الوطني في السجل المدني...');
+        setVerificationMessage(isAr ? 'جارٍ التحقق من الرقم الوطني في السجل المدني...' : 'Verifying National ID with the civil registry...');
 
         try {
             const result = await API.nationalId.verify({
@@ -86,24 +84,24 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
 
             if (result.verified) {
                 setVerificationStatus('verified');
-                setVerificationMessage(result.message || 'تم التحقق بنجاح');
+                setVerificationMessage(result.message || (isAr ? 'تم التحقق بنجاح' : 'Verification successful'));
                 setCitizenData(result.citizen_data || null);
                 setMismatchedFields([]);
             } else if (result.mismatched_fields?.length > 0) {
                 setVerificationStatus('mismatch');
-                setVerificationMessage(result.message || 'البيانات غير مطابقة للسجل المدني');
+                setVerificationMessage(result.message || (isAr ? 'البيانات غير مطابقة للسجل المدني' : 'Data does not match civil registry records'));
                 setMismatchedFields(result.mismatched_fields);
                 setCitizenData(null);
             } else {
                 setVerificationStatus('error');
-                setVerificationMessage(result.message || 'الرقم الوطني غير مسجل في السجل المدني');
+                setVerificationMessage(result.message || (isAr ? 'الرقم الوطني غير مسجل في السجل المدني' : 'National ID is not registered in the civil registry'));
                 setCitizenData(null);
             }
 
             return result;
         } catch (err) {
             setVerificationStatus('error');
-            setVerificationMessage('حدث خطأ أثناء الاتصال بخدمة السجل المدني. يرجى المحاولة مرة أخرى.');
+            setVerificationMessage(isAr ? 'حدث خطأ أثناء الاتصال بخدمة السجل المدني. يرجى المحاولة مرة أخرى.' : 'An error occurred while connecting to the civil registry service. Please try again.');
             return null;
         }
     }, [validateFormat]);

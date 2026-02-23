@@ -324,6 +324,9 @@ class SuggestionController extends Controller
             }
         }
 
+        // Check if this suggestion has already been rated
+        $existingRating = \App\Models\SuggestionRating::where('tracking_number', $suggestion->tracking_number)->first();
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -334,6 +337,7 @@ class SuggestionController extends Controller
                 'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
                 'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
                 'is_anonymous' => (bool) $suggestion->is_anonymous,
+                'rating' => $existingRating?->rating,
             ]
         ]);
     }

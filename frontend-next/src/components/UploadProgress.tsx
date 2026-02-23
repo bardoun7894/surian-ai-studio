@@ -75,7 +75,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
             {status === 'ready' && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gov-teal/40"></span>
-                <span className="text-gov-teal font-bold">{isAr ? 'جاهز للرفع' : 'Ready to upload'}</span>
+                <span className="text-gov-teal font-bold">{isAr ? 'تم الإرفاق' : 'Attached'}</span>
               </>
             )}
             {status === 'uploading' && (
@@ -93,19 +93,19 @@ const UploadProgress: React.FC<UploadProgressProps> = ({
           </div>
         </div>
 
-        {/* Cancel Button */}
-        {status === 'uploading' && onCancel && (
+        {/* Cancel / Remove Button */}
+        {(status === 'uploading' || status === 'completed' || status === 'ready') && onCancel && (
           <button
             onClick={onCancel}
             className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gov-cherry transition-colors"
-            title={isAr ? 'إلغاء' : 'Cancel'}
+            title={isAr ? (status === 'uploading' ? 'إلغاء' : 'حذف') : (status === 'uploading' ? 'Cancel' : 'Remove')}
           >
             <X size={16} />
           </button>
         )}
 
-        {/* Completed Check */}
-        {status === 'completed' && (
+        {/* Completed Check (only when no cancel handler) */}
+        {status === 'completed' && !onCancel && (
           <CheckCircle size={18} className="text-gov-emerald shrink-0" />
         )}
       </div>

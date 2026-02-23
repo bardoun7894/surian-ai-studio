@@ -167,7 +167,7 @@ const translations: Record<string, Record<Language, string>> = {
   'complaint_track_identified_desc': { ar: 'أدخل رقم التذكرة والرقم الوطني للتحقق', en: 'Enter ticket number and national ID to verify' },
   'complaint_track_anonymous_desc': { ar: 'أدخل رقم التذكرة فقط لمتابعة الشكوى المجهولة', en: 'Enter only the ticket number to track your anonymous complaint' },
   'complaint_ticket_label': { ar: 'رقم التذكرة', en: 'Ticket Number' },
-  'complaint_ticket_placeholder': { ar: 'مثال: GOV-12345', en: 'Example: GOV-12345' },
+  'complaint_ticket_placeholder': { ar: 'مثال: CMP-20260222-XXXXX', en: 'Example: CMP-20260222-XXXXX' },
   'complaint_national_id_verify': { ar: 'الرقم الوطني (للتحقق)', en: 'National ID (for verification)' },
   'complaint_national_id_placeholder': { ar: 'الرقم الوطني', en: 'National ID' },
   'complaint_search': { ar: 'استعلام', en: 'Search' },

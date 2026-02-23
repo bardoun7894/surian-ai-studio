@@ -72,7 +72,7 @@ const RequestedServices: React.FC<{ onNavigate: (view: any) => void }> = ({ onNa
 
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
                         {t('requested_services_title')}
                     </h2>
                     <p className="text-gray-500 dark:text-white/70 max-w-2xl mx-auto text-lg">

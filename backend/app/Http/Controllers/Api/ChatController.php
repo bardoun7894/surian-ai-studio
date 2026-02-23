@@ -344,12 +344,12 @@ class ChatController extends Controller
     }
 
     /**
-     * Static context: ministry identity, contact info, and process guides.
+     * Static context: ministry identity, contact info, website structure, services, and process guides.
      * Cached for 1 hour since this rarely changes.
      */
     private function getStaticContext(string $language): string
     {
-        $cacheKey = "chatbot_static_context:{$language}";
+        $cacheKey = "chatbot_static_context_v2:{$language}";
 
         return Cache::remember($cacheKey, 3600, function () use ($language) {
             $isAr = $language === 'ar';
@@ -357,32 +357,120 @@ class ChatController extends Controller
 
             // Identity
             if ($isAr) {
-                $parts[] = "أنت المساعد الذكي لوزارة الاقتصاد والصناعة في سوريا. ساعد المواطنين والشركات في الوصول إلى المعلومات والخدمات. كن مهذباً ودقيقاً.";
+                $parts[] = "أنت المساعد الذكي لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية. ساعد المواطنين والشركات في الوصول إلى المعلومات والخدمات. كن مهذباً ودقيقاً ومختصراً. الاسم الرسمي: وزارة الاقتصاد والصناعة.";
             } else {
-                $parts[] = "You are the AI assistant for Syria's Ministry of Economy and Industry. Help citizens and businesses access information and services. Be polite and accurate.";
+                $parts[] = "You are the AI assistant for the Ministry of Economy and Industry of the Syrian Arab Republic. Help citizens and businesses access information and services. Be polite, accurate, and concise. Official name: Ministry of Economy and Industry.";
             }
 
-            // Contact info
+            // Contact info from settings
             try {
                 $contactPhone = SystemSetting::get('contact_phone');
                 $contactEmail = SystemSetting::get('contact_email');
-                if ($contactPhone || $contactEmail) {
-                    $info = $isAr ? "\n\nمعلومات التواصل:" : "\n\nContact Information:";
-                    if ($contactPhone) $info .= ($isAr ? " هاتف: " : " Phone: ") . $contactPhone;
-                    if ($contactEmail) $info .= ($isAr ? " | بريد: " : " | Email: ") . $contactEmail;
-                    $parts[] = $info;
+                $contactAddress = SystemSetting::get($isAr ? 'contact_address_ar' : 'contact_address_en');
+                $workingHours = SystemSetting::get($isAr ? 'contact_working_hours_ar' : 'contact_working_hours_en');
+                $hotline = '19999';
+
+                $info = $isAr ? "\n\nمعلومات التواصل:" : "\n\nContact Information:";
+                $info .= ($isAr ? "\n- الخط الساخن الموحد: " : "\n- Unified Hotline: ") . $hotline;
+                if ($contactPhone) $info .= ($isAr ? "\n- هاتف: " : "\n- Phone: ") . $contactPhone;
+                if ($contactEmail) $info .= ($isAr ? "\n- بريد إلكتروني: " : "\n- Email: ") . $contactEmail;
+                if ($contactAddress) $info .= ($isAr ? "\n- المقر: " : "\n- HQ: ") . $contactAddress;
+                if ($workingHours) $info .= ($isAr ? "\n- ساعات العمل: " : "\n- Working hours: ") . $workingHours;
+                $parts[] = $info;
+            } catch (\Exception $e) {
+                // Fallback
+                $parts[] = $isAr
+                    ? "\n\nمعلومات التواصل:\n- الخط الساخن: 19999\n- البريد: info@moe.gov.sy\n- المقر: دمشق - الجمارك مقابل الأمن الجنائي\n- ساعات العمل: الأحد - الخميس 8:00 - 15:30"
+                    : "\n\nContact: Hotline 19999, Email info@moe.gov.sy, HQ Damascus, Sun-Thu 8:00-15:30";
+            }
+
+            // Website structure & navigation guide
+            if ($isAr) {
+                $parts[] = "\n\nهيكل الموقع والصفحات المتاحة:";
+                $parts[] = "\n- الصفحة الرئيسية (/) - أخبار، إعلانات، خدمات، شكاوى، مقترحات، خريطة تفاعلية";
+                $parts[] = "\n- الأخبار (/news) - آخر أخبار الوزارة والإدارات";
+                $parts[] = "\n- الإعلانات (/announcements) - إعلانات رسمية ومناقصات";
+                $parts[] = "\n- الخدمات (/services) - دليل الخدمات الحكومية (إلكترونية وورقية)";
+                $parts[] = "\n- الشكاوى (/complaints) - تقديم شكوى ومتابعتها برقم التتبع";
+                $parts[] = "\n- المقترحات (/suggestions) - تقديم مقترح ومتابعته";
+                $parts[] = "\n- الهيكل التنظيمي (/directorates) - 3 إدارات عامة + مديريات تابعة";
+                $parts[] = "\n- المركز الإعلامي (/media) - ألبومات صور وفيديوهات";
+                $parts[] = "\n- القوانين والمراسيم (/decrees) - تشريعات وقوانين";
+                $parts[] = "\n- الأسئلة الشائعة (/faq) - إجابات على الاستفسارات الشائعة";
+                $parts[] = "\n- الاستثمار (/investment) - فرص استثمارية في مختلف القطاعات";
+                $parts[] = "\n- تواصل معنا (/contact) - نموذج مراسلة ومعلومات اتصال";
+                $parts[] = "\n- تسجيل الدخول (/login) - دخول بالبريد الإلكتروني أو رقم الهاتف";
+                $parts[] = "\n- إنشاء حساب (/register) - تسجيل حساب جديد بالرقم الوطني";
+                $parts[] = "\n- الملف الشخصي (/profile) - إدارة البيانات الشخصية والمفضلة والشكاوى";
+            } else {
+                $parts[] = "\n\nWebsite structure:";
+                $parts[] = "\n- Home (/) - News, announcements, services, complaints, suggestions, interactive map";
+                $parts[] = "\n- News (/news) - Latest ministry and directorate news";
+                $parts[] = "\n- Announcements (/announcements) - Official announcements and tenders";
+                $parts[] = "\n- Services (/services) - Government services guide (digital & manual)";
+                $parts[] = "\n- Complaints (/complaints) - Submit and track complaints";
+                $parts[] = "\n- Suggestions (/suggestions) - Submit and track suggestions";
+                $parts[] = "\n- Org Structure (/directorates) - 3 general administrations + sub-directorates";
+                $parts[] = "\n- Media Center (/media) - Photo albums and videos";
+                $parts[] = "\n- Laws & Decrees (/decrees) - Legislation and laws";
+                $parts[] = "\n- FAQ (/faq) - Frequently asked questions";
+                $parts[] = "\n- Investment (/investment) - Investment opportunities";
+                $parts[] = "\n- Contact (/contact) - Contact form and information";
+                $parts[] = "\n- Login (/login) - Sign in with email or phone";
+                $parts[] = "\n- Register (/register) - Create account with national ID";
+                $parts[] = "\n- Profile (/profile) - Manage personal data, favorites, complaints";
+            }
+
+            // Directorates overview
+            try {
+                $directorates = Directorate::where('is_active', true)->get();
+                if ($directorates->isNotEmpty()) {
+                    $parts[] = $isAr ? "\n\nالإدارات والمديريات:" : "\n\nDirectorates:";
+                    foreach ($directorates as $dir) {
+                        $name = $isAr ? $dir->name_ar : ($dir->name_en ?: $dir->name_ar);
+                        $desc = $isAr ? ($dir->description_ar ?? '') : ($dir->description_en ?? $dir->description_ar ?? '');
+                        $desc = Str::limit(strip_tags($desc), 150);
+                        $line = "\n- {$name}";
+                        if ($dir->phone) $line .= ($isAr ? " | هاتف: " : " | Phone: ") . $dir->phone;
+                        if ($dir->email) $line .= ($isAr ? " | بريد: " : " | Email: ") . $dir->email;
+                        if ($desc) $line .= " | " . $desc;
+                        $parts[] = $line;
+                    }
                 }
             } catch (\Exception $e) {
                 // Skip
             }
 
-            // Process guides (compact)
+            // Services overview
+            try {
+                $services = \App\Models\Service::where('is_active', true)->limit(30)->get();
+                if ($services->isNotEmpty()) {
+                    $parts[] = $isAr ? "\n\nالخدمات المتاحة:" : "\n\nAvailable Services:";
+                    foreach ($services as $svc) {
+                        $title = $isAr ? ($svc->title_ar ?? $svc->title_en) : ($svc->title_en ?? $svc->title_ar);
+                        $type = $svc->is_digital ? ($isAr ? 'إلكترونية' : 'Digital') : ($isAr ? 'ورقية' : 'Manual');
+                        $parts[] = "\n- {$title} ({$type})";
+                    }
+                }
+            } catch (\Exception $e) {
+                // Skip
+            }
+
+            // Process guides
             if ($isAr) {
-                $parts[] = "\n\nتقديم شكوى: صفحة الشكاوى ← الموافقة على الشروط ← البيانات الشخصية (أو مجهول) ← اختيار الإدارة ← كتابة التفاصيل ← إرفاق مستندات ← حفظ رقم التتبع.";
+                $parts[] = "\n\nتقديم شكوى: صفحة الشكاوى ← الموافقة على الشروط ← البيانات الشخصية (أو مجهول) ← اختيار الإدارة ← كتابة التفاصيل ← إرفاق مستندات (حتى 5 ملفات) ← حفظ رقم التتبع.";
                 $parts[] = "\nتقديم مقترح: صفحة المقترحات ← الموافقة على الشروط ← البيانات الشخصية (أو مجهول) ← اختيار الإدارة ← كتابة التفاصيل ← حفظ رقم التتبع.";
+                $parts[] = "\nمتابعة شكوى/مقترح: أدخل رقم التتبع والرقم الوطني في صفحة المتابعة.";
+                $parts[] = "\nإنشاء حساب: يتطلب الرقم الوطني (11 رقم) + البريد الإلكتروني + رقم الهاتف + تاريخ الميلاد (العمر 13 سنة فأكثر).";
+                $parts[] = "\nتسجيل الدخول: بالبريد الإلكتروني أو رقم الهاتف + كلمة المرور. يدعم التحقق بخطوتين.";
+                $parts[] = "\nالمفضلة: يمكن للمستخدم حفظ الأخبار والخدمات في المفضلة من خلال أيقونة القلب.";
             } else {
-                $parts[] = "\n\nSubmit complaint: Complaints page → Accept terms → Personal info (or anonymous) → Select directorate → Describe complaint → Attach documents → Save tracking number.";
-                $parts[] = "\nSubmit suggestion: Suggestions page → Accept terms → Personal info (or anonymous) → Select directorate → Describe suggestion → Save tracking number.";
+                $parts[] = "\n\nSubmit complaint: Complaints → Accept terms → Personal info (or anonymous) → Select directorate → Describe → Attach up to 5 files → Save tracking number.";
+                $parts[] = "\nSubmit suggestion: Suggestions → Accept terms → Personal info (or anonymous) → Select directorate → Describe → Save tracking number.";
+                $parts[] = "\nTrack complaint/suggestion: Enter tracking number and national ID on the tracking page.";
+                $parts[] = "\nCreate account: Requires national ID (11 digits) + email + phone + date of birth (age 13+).";
+                $parts[] = "\nLogin: Email or phone + password. Supports two-factor authentication.";
+                $parts[] = "\nFavorites: Users can save news and services to favorites via the heart icon.";
             }
 
             return implode('', $parts);
@@ -560,25 +648,22 @@ class ChatController extends Controller
     /**
      * Legacy: full-dump knowledge context. Used as fallback when RAG retrieval
      * returns nothing (e.g., pgvector unavailable, no embeddings yet).
+     * Enhanced with comprehensive website training data.
      */
     private function buildKnowledgeContextLegacy(string $language): string
     {
-        $cacheKey = "chatbot_knowledge_context_legacy:{$language}";
+        $cacheKey = "chatbot_knowledge_context_legacy_v2:{$language}";
 
         return Cache::remember($cacheKey, 1800, function () use ($language) {
+            // Reuse the enhanced static context as base (already includes identity,
+            // contact info, website structure, directorates, services, process guides)
+            $parts = [$this->getStaticContext($language)];
+
             $isAr = $language === 'ar';
-            $parts = [];
 
-            // Base identity
-            if ($isAr) {
-                $parts[] = "أنت المساعد الذكي لوزارة الاقتصاد والصناعة في سوريا. دورك هو مساعدة المواطنين والشركات في الوصول إلى المعلومات والخدمات الحكومية. كن مهذباً واحترافياً وقدم إجابات دقيقة بناءً على سياق الوزارة. الاسم الرسمي هو 'وزارة الاقتصاد والصناعة'.";
-            } else {
-                $parts[] = "You are the AI assistant for the Ministry of Economy and Industry in Syria. Your role is to help citizens and businesses access government information and services. Be polite, professional, and provide accurate answers based on the ministry context. The official name is 'Ministry of Economy and Industry'.";
-            }
-
-            // FAQs
+            // Add ALL FAQs for comprehensive knowledge
             try {
-                $faqs = Faq::where('is_active', true)->where('is_published', true)->limit(20)->get();
+                $faqs = Faq::where('is_active', true)->where('is_published', true)->limit(30)->get();
                 if ($faqs->isNotEmpty()) {
                     $faqSection = $isAr ? "\n\nالأسئلة الشائعة:" : "\n\nFrequently Asked Questions:";
                     foreach ($faqs as $faq) {
@@ -591,59 +676,48 @@ class ChatController extends Controller
                     $parts[] = $faqSection;
                 }
             } catch (\Exception $e) {
-                // Silently skip if FAQs table doesn't exist
+                // Silently skip
             }
 
-            // Directorates
+            // Recent news titles for awareness
             try {
-                $directorates = Directorate::where('is_active', true)->get();
-                if ($directorates->isNotEmpty()) {
-                    $dirSection = $isAr ? "\n\nإدارات الوزارة:" : "\n\nMinistry Directorates:";
-                    foreach ($directorates as $dir) {
-                        $name = $isAr ? $dir->name_ar : ($dir->name_en ?: $dir->name_ar);
-                        $dirSection .= "\n- {$name}";
-                        if ($dir->phone) $dirSection .= ($isAr ? " | هاتف: " : " | Phone: ") . $dir->phone;
-                        if ($dir->email) $dirSection .= ($isAr ? " | بريد: " : " | Email: ") . $dir->email;
-                        if ($isAr && $dir->address_ar) $dirSection .= " | العنوان: " . $dir->address_ar;
-                        if (!$isAr && ($dir->address_en ?: $dir->address_ar)) $dirSection .= " | Address: " . ($dir->address_en ?: $dir->address_ar);
+                $recentNews = \App\Models\Content::where('status', 'published')
+                    ->where('category', 'news')
+                    ->orderByDesc('published_at')
+                    ->limit(10)
+                    ->get();
+                if ($recentNews->isNotEmpty()) {
+                    $newsSection = $isAr ? "\n\nآخر الأخبار:" : "\n\nLatest News:";
+                    foreach ($recentNews as $news) {
+                        $title = $isAr ? ($news->title_ar ?? $news->title_en) : ($news->title_en ?? $news->title_ar);
+                        if ($title) $newsSection .= "\n- {$title}";
                     }
-                    $parts[] = $dirSection;
+                    $parts[] = $newsSection;
                 }
             } catch (\Exception $e) {
                 // Silently skip
             }
 
-            // Settings: rules and contact info
+            // Complaint/suggestion rules from settings
             try {
                 $complaintRules = SystemSetting::get($isAr ? 'complaint_rules_ar' : 'complaint_rules_en');
                 $suggestionRules = SystemSetting::get($isAr ? 'suggestion_rules_ar' : 'suggestion_rules_en');
-                $contactPhone = SystemSetting::get('contact_phone');
-                $contactEmail = SystemSetting::get('contact_email');
 
-                $infoSection = '';
                 if ($complaintRules) {
-                    $infoSection .= ($isAr ? "\n\nقواعد تقديم الشكاوى:\n" : "\n\nComplaint Submission Rules:\n") . $complaintRules;
+                    $parts[] = ($isAr ? "\n\nقواعد تقديم الشكاوى:\n" : "\n\nComplaint Rules:\n") . Str::limit($complaintRules, 500);
                 }
                 if ($suggestionRules) {
-                    $infoSection .= ($isAr ? "\n\nقواعد تقديم المقترحات:\n" : "\n\nSuggestion Submission Rules:\n") . $suggestionRules;
+                    $parts[] = ($isAr ? "\n\nقواعد تقديم المقترحات:\n" : "\n\nSuggestion Rules:\n") . Str::limit($suggestionRules, 500);
                 }
-                if ($contactPhone || $contactEmail) {
-                    $infoSection .= $isAr ? "\n\nمعلومات التواصل:" : "\n\nContact Information:";
-                    if ($contactPhone) $infoSection .= ($isAr ? "\nهاتف: " : "\nPhone: ") . $contactPhone;
-                    if ($contactEmail) $infoSection .= ($isAr ? "\nبريد إلكتروني: " : "\nEmail: ") . $contactEmail;
-                }
-                if ($infoSection) $parts[] = $infoSection;
             } catch (\Exception $e) {
                 // Silently skip
             }
 
-            // Process guides
+            // Final instruction
             if ($isAr) {
-                $parts[] = "\n\nكيفية تقديم شكوى:\n1. انتقل إلى صفحة الشكاوى\n2. وافق على الشروط والضوابط\n3. أدخل بياناتك الشخصية أو اختر التقديم بشكل مجهول\n4. اختر الإدارة المعنية واكتب تفاصيل الشكوى\n5. أرفق المستندات الداعمة إن وجدت\n6. احتفظ برقم التتبع لمتابعة حالة الشكوى";
-                $parts[] = "\nكيفية تقديم مقترح:\n1. انتقل إلى صفحة المقترحات\n2. وافق على الشروط والضوابط\n3. أدخل بياناتك الشخصية أو اختر التقديم بشكل مجهول\n4. اختر الإدارة المعنية واكتب تفاصيل المقترح\n5. احتفظ برقم التتبع لمتابعة حالة المقترح";
+                $parts[] = "\n\nأجب بناءً على المعلومات أعلاه. إذا لم تجد الإجابة، يمكنك البحث في الإنترنت أو اقترح على المستخدم التواصل مع الوزارة عبر الخط الساخن 19999 أو البريد info@moe.gov.sy.";
             } else {
-                $parts[] = "\n\nHow to submit a complaint:\n1. Go to the complaints page\n2. Agree to the terms and conditions\n3. Enter your personal information or choose to submit anonymously\n4. Select the relevant directorate and describe your complaint\n5. Attach supporting documents if available\n6. Keep the tracking number to follow up on your complaint status";
-                $parts[] = "\nHow to submit a suggestion:\n1. Go to the suggestions page\n2. Agree to the terms and conditions\n3. Enter your personal information or choose to submit anonymously\n4. Select the relevant directorate and describe your suggestion\n5. Keep the tracking number to follow up on your suggestion status";
+                $parts[] = "\n\nAnswer based on the above. If unsure, search the internet or suggest contacting the ministry via hotline 19999 or email info@moe.gov.sy.";
             }
 
             return implode('', $parts);

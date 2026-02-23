@@ -90,6 +90,8 @@ function isDynamicSegment(segment: string): boolean {
   if (/^[A-Z]{2,5}-\d+$/i.test(segment)) return true;
   // MongoDB ObjectId-like (24 hex chars)
   if (/^[0-9a-f]{24}$/i.test(segment)) return true;
+  // Short alphanumeric IDs (e.g. d1, sub1, srv1)
+  if (/^[a-z]+\d+$/i.test(segment)) return true;
   return false;
 }
 
@@ -121,18 +123,34 @@ export default function Breadcrumbs() {
       // Known named route
       label = isAr ? routeLabels[segment].ar : routeLabels[segment].en;
     } else if (isDynamicSegment(segment)) {
-      // Dynamic segment (ID, UUID, tracking number) - find contextual label
-      // by walking backwards through ancestor segments to find the nearest
-      // named route with a dynamic label (handles /directorates/123/456)
-      let contextLabel: { ar: string; en: string } | undefined;
-      for (let i = index - 1; i >= 0; i--) {
-        contextLabel = dynamicSegmentLabels[segments[i]];
-        if (contextLabel) break;
-      }
-      if (contextLabel) {
-        label = isAr ? contextLabel.ar : contextLabel.en;
+      // Dynamic segment - check if this is a nested sub-detail
+      // e.g. /directorates/3/5 → first ID = "Directorate Details", second ID = "Sub-Directorate Details"
+      const parentSegment = index > 0 ? segments[index - 1] : '';
+      const grandParentSegment = index > 1 ? segments[index - 1] : '';
+
+      // If the previous segment is also dynamic, this is a sub-detail (e.g. /directorates/3/5)
+      if (index > 1 && isDynamicSegment(segments[index - 1])) {
+        // Find the nearest named ancestor for sub-context
+        let ancestorRoute = '';
+        for (let i = index - 2; i >= 0; i--) {
+          if (!isDynamicSegment(segments[i])) { ancestorRoute = segments[i]; break; }
+        }
+        if (ancestorRoute === 'directorates') {
+          label = isAr ? 'تفاصيل المديرية' : 'Sub-Directorate Details';
+        } else {
+          label = isAr ? 'التفاصيل' : 'Details';
+        }
       } else {
-        label = isAr ? 'التفاصيل' : 'Details';
+        let contextLabel: { ar: string; en: string } | undefined;
+        for (let i = index - 1; i >= 0; i--) {
+          contextLabel = dynamicSegmentLabels[segments[i]];
+          if (contextLabel) break;
+        }
+        if (contextLabel) {
+          label = isAr ? contextLabel.ar : contextLabel.en;
+        } else {
+          label = isAr ? 'التفاصيل' : 'Details';
+        }
       }
     } else {
       // Unknown segment (e.g., slugs) - capitalize and clean up for display
@@ -145,26 +163,26 @@ export default function Breadcrumbs() {
   });
 
   return (
-    <nav aria-label="Breadcrumb" className="pt-[72px] md:pt-[88px] pb-2 px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10">
-      <ol className="flex items-center flex-wrap gap-1 text-sm max-w-7xl mx-auto">
+    <nav aria-label="Breadcrumb" className="pt-[80px] md:pt-[96px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10">
+      <ol className="flex items-center flex-wrap gap-2 text-[13px] max-w-7xl mx-auto py-3">
         <li>
           <Link
             href="/"
             className="inline-flex items-center gap-1 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
           >
-            <Home size={14} />
-            <span>{isAr ? 'الرئيسية' : 'Home'}</span>
+            <Home size={15} />
+            <span className="font-semibold">{isAr ? 'الرئيسية' : 'Home'}</span>
           </Link>
         </li>
         {crumbs.map((crumb) => (
           <li key={crumb.path} className="inline-flex items-center gap-1">
-            <Separator size={14} className="text-gray-400 dark:text-white/40" />
+            <Separator size={14} className="text-gray-400/60 dark:text-white/30 mx-0.5" />
             {crumb.isLast ? (
-              <span className="text-gray-600 dark:text-white/60 font-medium">{crumb.label}</span>
+              <span className="text-gov-stone dark:text-white/60 font-medium">{crumb.label}</span>
             ) : (
               <Link
                 href={crumb.path}
-                className="text-gov-forest dark:text-gov-gold hover:underline transition-colors"
+                className="text-gov-forest dark:text-gov-gold font-semibold hover:underline transition-colors"
               >
                 {crumb.label}
               </Link>

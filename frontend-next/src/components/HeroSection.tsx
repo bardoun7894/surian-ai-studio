@@ -278,7 +278,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   }
 
   return (
-    <section ref={containerRef} className={`relative pt-2 pb-20 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-2 pb-16 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -340,7 +340,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
         </div>
 
-        <div ref={textContainerRef} className={`space-y-2 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center' : 'md:text-start'} min-w-0`}>
+        <div ref={textContainerRef} className={`space-y-1 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center md:-me-6 lg:-me-10' : 'md:text-start'} min-w-0`}>
 
           {/* Titles Group */}
           <div className={`flex flex-col items-center ${language === 'ar' ? 'md:items-center' : 'md:items-start'} w-full`}>
@@ -351,7 +351,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
               </span>
             </div>
 
-            <h1 className="animate-text text-2xl md:text-4xl lg:text-5xl font-bold font-display text-gov-forest dark:text-gov-gold mb-3 leading-tight drop-shadow-sm opacity-0">
+            <h1 className="animate-text text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold font-display text-gov-forest dark:text-gov-gold mb-2 md:mb-3 leading-tight drop-shadow-sm opacity-0">
               {t('ministry_name')} <span className="text-gov-teal dark:text-gov-gold relative inline-block">
 
                 <svg className="absolute w-full h-2 -bottom-1 left-0 text-gov-gold/30" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -362,14 +362,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
 
             <div className="animate-text flex items-center justify-center gap-3 md:gap-5 mt-1 mb-1 w-full opacity-0">
               <div className={`h-[1px] w-6 md:w-16 bg-gradient-to-${direction === 'rtl' ? 'l' : 'r'} from-transparent to-gov-gold`}></div>
-              <span className="text-base md:text-2xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
+              <span className="text-sm sm:text-base md:text-2xl text-gov-sand dark:text-gov-gold font-display font-bold whitespace-nowrap drop-shadow-sm">
                 {t('portal_name')}
               </span>
               <div className={`h-[1px] w-6 md:w-16 bg-gradient-to-${direction === 'rtl' ? 'r' : 'l'} from-transparent to-gov-gold`}></div>
             </div>
 
             {/* Strategic Messages - WOW Animation (appear last) */}
-            <div className="h-16 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
+            <div className="h-10 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
               <AnimatePresence mode="wait">
                 {(() => {
                   const phrases = [
@@ -406,7 +406,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
                       className="absolute flex items-center justify-center gap-3 w-full"
                     >
                       <Icon size={24} className={`${activePhrase.color} shrink-0`} />
-                      <span className={`text-base md:text-2xl font-bold ${activePhrase.color} font-display translate-y-[4px]`}>
+                      <span className={`text-sm sm:text-base md:text-2xl font-bold ${activePhrase.color} font-display translate-y-[4px]`}>
                         {activePhrase.text}
                       </span>
                     </motion.div>
@@ -416,30 +416,56 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
           </div>
 
-          <div className={`flex flex-col sm:flex-row items-center gap-3 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-1 md:pt-4 w-full px-4 md:px-0`}>
+          <div className={`flex flex-col sm:flex-row items-center gap-4 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-2 md:pt-6 w-full px-4 md:px-0`}>
+            {/* Our Services Button */}
             <Link
               href="/services"
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-teal dark:bg-gov-brand text-white font-bold text-base hover:bg-gov-emerald transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 group rounded-xl"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
             >
-              <Landmark size={18} />
-              <span>{language === 'ar' ? 'خدماتنا' : 'Our Services'}</span>
-              <ArrowRight className={`transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1`} size={16} />
+              {/* Animated Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              {/* Shimmer Effect */}
+              <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
+              {/* Glass Border */}
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+
+              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'خدماتنا' : 'Our Services'}</span>
+
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+                <Landmark size={18} />
+              </div>
             </Link>
 
+            {/* Our News Button */}
             <Link
               href="/news"
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-gold/10 text-gov-forest dark:text-gov-gold border border-gov-gold/30 font-bold text-base hover:bg-gov-gold/20 transition-all flex items-center justify-center gap-2 rounded-xl backdrop-blur-sm"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
             >
-              <FileText size={18} />
-              <span>{language === 'ar' ? 'أخبارنا' : 'Our News'}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+
+              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'أخبارنا' : 'Our News'}</span>
+
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+                <FileText size={18} />
+              </div>
             </Link>
 
+            {/* Complaints & Suggestions Button */}
             <Link
               href="/complaints"
-              className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-gold/10 text-gov-forest dark:text-gov-gold border border-gov-gold/30 font-bold text-base hover:bg-gov-gold/20 transition-all flex items-center justify-center gap-2 rounded-xl backdrop-blur-sm"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
             >
-              <MessageSquare size={18} />
-              <span>{language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+
+              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}</span>
+
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+                <MessageSquare size={18} />
+              </div>
             </Link>
           </div>
 

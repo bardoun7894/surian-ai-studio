@@ -90,7 +90,7 @@ const SubDirectorateDetail = () => {
     return (
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20 transition-colors duration-500">
             {/* Header */}
-            <div className="bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
+            <div className="bg-gov-forest dark:bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <Image
@@ -103,16 +103,16 @@ const SubDirectorateDetail = () => {
 
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                        <Link href={`/directorates/${parentDirectorate.id}`} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm">
-                            <ChevronLeft size={24} className={isAr ? "" : "rotate-180"} />
-                        </Link>
+                        <button onClick={() => router.back()} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm">
+                            <ChevronLeft size={24} className={isAr ? "rotate-180" : ""} />
+                        </button>
 
                         <div>
                             <div className="text-gov-gold text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                                 <Building2 size={16} />
                                 {parentName}
                             </div>
-                            <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">{name}</h1>
+                            <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{name}</h1>
                         </div>
                     </div>
                 </div>
@@ -143,7 +143,7 @@ const SubDirectorateDetail = () => {
                     <div className="space-y-6">
                         {/* Contact Card */}
                         {(() => {
-                            // Resolve contact: parent directorate -> ministry settings -> translation fallback
+                            // Resolve contact: sub-directorate -> parent directorate -> ministry settings -> translation fallback
                             const loc = (obj: any, field: string): string => {
                                 const val = obj?.[field];
                                 if (val && typeof val === 'object' && ('ar' in val || 'en' in val)) {
@@ -154,16 +154,19 @@ const SubDirectorateDetail = () => {
                                 return language === 'en' && en ? en : ar;
                             };
 
-                            const contactAddress = loc(parentDirectorate, 'address')
+                            const contactAddress = loc(subDirectorate, 'address')
+                                || loc(parentDirectorate, 'address')
                                 || (parentDirectorate as any)?.contact?.address
                                 || (language === 'ar'
                                     ? (ministryContact.contact_address_ar || t('directorate_address'))
                                     : (ministryContact.contact_address_en || t('directorate_address')));
-                            const contactPhone = parentDirectorate?.phone
+                            const contactPhone = subDirectorate?.phone
+                                || parentDirectorate?.phone
                                 || (parentDirectorate as any)?.contact?.phone
                                 || ministryContact.contact_phone
                                 || t('directorate_phone');
-                            const contactEmail = parentDirectorate?.email
+                            const contactEmail = subDirectorate?.email
+                                || parentDirectorate?.email
                                 || (parentDirectorate as any)?.contact?.email
                                 || ministryContact.contact_email
                                 || t('directorate_email');

@@ -119,7 +119,9 @@ export default function ServicesPage() {
   }, []);
 
   // Fetch paginated services when page, filters, or perPage change
+  // Wait until URL params have been read (initializedRef) before fetching
   useEffect(() => {
+    if (!initializedRef.current) return;
     const fetchServices = async () => {
       setLoading(true);
       try {
@@ -184,11 +186,11 @@ export default function ServicesPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-16 sm:pt-20 md:pt-24">
+      <main className="flex-grow">
         {/* Header */}
         <div className="bg-gov-forest text-white py-7 sm:py-12 md:py-16 px-4 animate-fade-in-up">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold mb-2 sm:mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-4 leading-tight">
               {language === 'ar' ? 'دليل الخدمات الحكومية' : 'Government Services Guide'}
             </h1>
             <p className="text-gray-200 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed">

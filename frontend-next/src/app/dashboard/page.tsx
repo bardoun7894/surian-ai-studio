@@ -273,17 +273,25 @@ export default function UserDashboard() {
 
   const handleUpdateProfile = async () => {
     // Validate password fields if user wants to change password
-    if (profileData.password) {
+    if (profileData.password || profileData.current_password || profileData.password_confirmation) {
       if (!profileData.current_password) {
-        alert(language === 'ar' ? 'يرجى إدخال كلمة المرور الحالية' : 'Please enter your current password');
+        toast.error(language === 'ar' ? 'يرجى إدخال كلمة المرور الحالية' : 'Please enter your current password');
         return;
       }
-      if (profileData.password !== profileData.password_confirmation) {
-        alert(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
+      if (!profileData.password) {
+        toast.error(language === 'ar' ? 'يرجى إدخال كلمة المرور الجديدة' : 'Please enter a new password');
         return;
       }
       if (profileData.password.length < 8) {
-        alert(language === 'ar' ? 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل' : 'New password must be at least 8 characters');
+        toast.error(language === 'ar' ? 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل' : 'New password must be at least 8 characters');
+        return;
+      }
+      if (profileData.password !== profileData.password_confirmation) {
+        toast.error(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
+        return;
+      }
+      if (profileData.password === profileData.current_password) {
+        toast.error(language === 'ar' ? 'كلمة المرور الجديدة يجب أن تختلف عن الحالية' : 'New password must be different from current password');
         return;
       }
     }
@@ -307,13 +315,22 @@ export default function UserDashboard() {
 
       const updatedUser = await API.users.updateProfile(data);
       if (updatedUser) {
-        alert(language === 'ar' ? 'تم تحديث الملف الشخصي بنجاح' : 'Profile updated successfully');
+        toast.success(language === 'ar' ? 'تم تحديث الملف الشخصي بنجاح' : 'Profile updated successfully');
         if (profileData.password) setProfileData({ ...profileData, current_password: '', password: '', password_confirmation: '' });
       }
     } catch (e: any) {
       console.error(e);
-      const msg = e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
-      alert(msg);
+      // Handle specific password errors from the API
+      const errorData = e?.response?.data || e?.data;
+      if (errorData?.errors?.current_password) {
+        toast.error(language === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect');
+      } else if (errorData?.errors?.password) {
+        const pwErrors = Array.isArray(errorData.errors.password) ? errorData.errors.password.join(', ') : errorData.errors.password;
+        toast.error(pwErrors);
+      } else {
+        const msg = e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
+        toast.error(msg);
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -373,6 +390,23 @@ export default function UserDashboard() {
     } catch (e) {
       console.error('Error removing favorite:', e);
     }
+  };
+
+  const getFavoriteTitle = (fav: Favorite) => {
+    const meta = fav.metadata;
+    if (!meta) return language === 'ar' ? 'عنصر مفضل' : 'Favorite Item';
+    // Prefer localized title fields if available
+    if (language === 'ar' && meta.title_ar) return meta.title_ar;
+    if (language === 'en' && meta.title_en) return meta.title_en;
+    return meta.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item');
+  };
+
+  const getFavoriteDescription = (fav: Favorite) => {
+    const meta = fav.metadata;
+    if (!meta) return '';
+    if (language === 'ar' && meta.description_ar) return meta.description_ar;
+    if (language === 'en' && meta.description_en) return meta.description_en;
+    return meta.description || '';
   };
 
   const getFavoriteTypeLabel = (type: string) => {
@@ -751,7 +785,7 @@ export default function UserDashboard() {
                               <div className="h-32 overflow-hidden">
                                 <img
                                   src={fav.metadata.image}
-                                  alt={fav.metadata.title || ''}
+                                  alt={getFavoriteTitle(fav)}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                               </div>
@@ -761,7 +795,7 @@ export default function UserDashboard() {
                                 {getFavoriteTypeLabel(fav.content_type)}
                               </span>
                               <h4 className="font-bold text-gov-charcoal dark:text-white mt-2 line-clamp-1 group-hover:text-gov-teal transition-colors">
-                                {fav.metadata?.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item')}
+                                {getFavoriteTitle(fav)}
                               </h4>
                               <Link
                                 href={getFavoriteUrl(fav)}
@@ -952,7 +986,7 @@ export default function UserDashboard() {
                             <div className="h-44 overflow-hidden relative">
                               <img
                                 src={fav.metadata.image}
-                                alt={fav.metadata.title || ''}
+                                alt={getFavoriteTitle(fav)}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
@@ -976,13 +1010,13 @@ export default function UserDashboard() {
 
                             {/* Title */}
                             <h4 className="font-bold text-lg text-gov-charcoal dark:text-white mb-2 line-clamp-2 group-hover:text-gov-teal transition-colors">
-                              {fav.metadata?.title || (language === 'ar' ? 'عنصر مفضل' : 'Favorite Item')}
+                              {getFavoriteTitle(fav)}
                             </h4>
 
                             {/* Description */}
-                            {fav.metadata?.description && (
+                            {getFavoriteDescription(fav) && (
                               <p className="text-sm text-gray-500 dark:text-white/60 line-clamp-2 mb-4">
-                                {fav.metadata.description}
+                                {getFavoriteDescription(fav)}
                               </p>
                             )}
 
@@ -1235,6 +1269,18 @@ export default function UserDashboard() {
                                     : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                               }`}
                           />
+                          {profileData.password && profileData.password.length > 0 && profileData.password.length < 8 && (
+                            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              {language === 'ar' ? `${8 - profileData.password.length} أحرف متبقية على الأقل` : `At least ${8 - profileData.password.length} more characters needed`}
+                            </p>
+                          )}
+                          {profileData.password && profileData.password.length >= 8 && (
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 flex items-center gap-1">
+                              <CheckCircle size={12} />
+                              {language === 'ar' ? 'كلمة المرور قوية بما يكفي' : 'Password length is sufficient'}
+                            </p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
@@ -1253,6 +1299,18 @@ export default function UserDashboard() {
                                     : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                               }`}
                           />
+                          {profileData.password_confirmation && profileData.password_confirmation !== profileData.password && (
+                            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              {language === 'ar' ? 'كلمة المرور غير متطابقة' : 'Passwords do not match'}
+                            </p>
+                          )}
+                          {profileData.password_confirmation && profileData.password_confirmation === profileData.password && profileData.password.length >= 8 && (
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 flex items-center gap-1">
+                              <CheckCircle size={12} />
+                              {language === 'ar' ? 'كلمة المرور متطابقة' : 'Passwords match'}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

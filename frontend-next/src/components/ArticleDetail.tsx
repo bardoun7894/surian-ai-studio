@@ -48,7 +48,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     imageUrl,
     images,
     content,
-    language = 'ar',
+    language,
     backLink,
     relatedItems,
     isFavorite,

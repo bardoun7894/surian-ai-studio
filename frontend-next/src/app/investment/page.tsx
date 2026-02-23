@@ -82,7 +82,7 @@ export default function InvestmentPage() {
                         <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20 mx-auto mb-8">
                             <TrendingUp size={50} />
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6">
                             {language === 'ar' ? 'بوابة الاستثمار' : 'Investment Portal'}
                         </h1>
                         <p className="text-white/80 text-xl max-w-3xl mx-auto leading-relaxed">

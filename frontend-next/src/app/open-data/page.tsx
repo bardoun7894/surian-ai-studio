@@ -58,7 +58,7 @@ export default function OpenDataPage() {
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <Database size={32} className="text-gov-gold" />
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                             {language === 'ar' ? 'البيانات المفتوحة' : 'Open Data'}
                         </h1>
                         <p className="text-gray-300 text-lg max-w-2xl mx-auto">

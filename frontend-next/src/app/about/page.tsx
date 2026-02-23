@@ -67,14 +67,14 @@ export default function AboutPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow">
                 {/* Hero Section */}
-                <div className="relative py-24 bg-gov-forest dark:bg-gov-forest/80 text-white overflow-hidden">
+                <div className="relative pt-28 pb-20 md:pt-32 md:pb-24 bg-gov-forest dark:bg-gov-forest/80 text-white overflow-hidden">
                     <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-5"></div>
                     <div className="absolute inset-0 bg-gradient-to-b from-gov-forest/80 to-gov-forest dark:from-gov-forest/60 dark:to-gov-forest/80"></div>
 
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-                        <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 animate-fade-in-up">
+                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-6 animate-fade-in-up">
                             {language === 'ar' ? 'عن الوزارة' : 'About The Ministry'}
                         </h1>
                         <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed animate-fade-in-up delay-100">

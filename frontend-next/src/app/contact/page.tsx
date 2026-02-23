@@ -76,7 +76,7 @@ export default function ContactPage() {
                 {/* Header */}
                 <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                             {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
                         </h1>
                         <p className="text-gray-300 text-lg max-w-2xl mx-auto">

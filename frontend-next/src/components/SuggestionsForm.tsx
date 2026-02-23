@@ -31,6 +31,7 @@ import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
 import { getLocalizedName, copyToClipboard } from '@/lib/utils';
 import { focusPulse } from '@/lib/animations';
+import { validatePhoneWithCountryCode } from '@/lib/phone';
 import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { useAuth } from '@/contexts/AuthContext';
@@ -107,6 +108,52 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     // Copy state
     const [copied, setCopied] = useState(false);
 
+    // Rating state - track if user already rated
+    const [hasRated, setHasRated] = useState(false);
+
+    // File upload visual progress
+    const [fileUploadStatus, setFileUploadStatus] = useState<'ready' | 'uploading' | 'completed'>('ready');
+    const [fileUploadProgress, setFileUploadProgress] = useState(0);
+
+    // Validation State
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    // File upload constants
+    const MAX_ATTACHMENT_COUNT = 5;
+    const MAX_ATTACHMENT_SIZE_MB = 5;
+    const MAX_ATTACHMENT_SIZE_BYTES = MAX_ATTACHMENT_SIZE_MB * 1024 * 1024;
+    const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']);
+
+    const validateField = (name: string, value: string) => {
+        let error = '';
+        if (name === 'nationalId' && value && !/^\d{11}$/.test(value)) {
+            error = isAr ? 'الرقم الوطني يجب أن يتكون من 11 رقماً' : 'National ID must be 11 digits';
+        } else if (name === 'phone' && value) {
+            const phoneResult = validatePhoneWithCountryCode(value);
+            if (!phoneResult.isValid) {
+                error = isAr ? 'رقم الهاتف غير صالح' : 'Invalid phone number';
+            }
+        } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            error = isAr ? 'البريد الإلكتروني غير صالح' : 'Invalid email address';
+        } else if (name === 'firstName' && !isAnonymous && !value.trim()) {
+            error = isAr ? 'الاسم الأول مطلوب' : 'First name is required';
+        } else if (name === 'lastName' && !isAnonymous && !value.trim()) {
+            error = isAr ? 'اسم العائلة مطلوب' : 'Last name is required';
+        } else if (name === 'fatherName' && !isAnonymous && !value.trim()) {
+            error = isAr ? 'اسم الأب مطلوب' : 'Father name is required';
+        } else if (name === 'description' && !value.trim()) {
+            error = isAr ? 'الوصف مطلوب' : 'Description is required';
+        }
+        setErrors(prev => ({ ...prev, [name]: error }));
+        return error;
+    };
+
+    const handleBlur = (name: string, value: string) => {
+        setTouched(prev => ({ ...prev, [name]: true }));
+        validateField(name, value);
+    };
+
     // Pre-fill form data for authenticated users
     useEffect(() => {
         if (isAuthenticated && user && !isAnonymous) {
@@ -149,6 +196,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                 if (settings[key]) setDynamicRules(settings[key]);
             })
             .catch(() => { });
+
+        API.directorates.getAll()
+            .then(data => setDirectoratesList(data))
+            .catch(err => console.error('Failed to load directorates:', err));
     }, [language]);
 
     useEffect(() => {
@@ -158,18 +209,84 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     }, [activeTab]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const newFiles = Array.from(e.target.files);
-            const allFiles = [...formData.files, ...newFiles].slice(0, 5);
-            setFormData(prev => ({ ...prev, files: allFiles }));
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const incomingFiles = Array.from(e.target.files);
+        const remainingSlots = Math.max(0, MAX_ATTACHMENT_COUNT - formData.files.length);
+
+        if (remainingSlots === 0) {
+            toast.error(isAr ? `الحد الأقصى للمرفقات هو ${MAX_ATTACHMENT_COUNT} ملفات` : `Maximum ${MAX_ATTACHMENT_COUNT} attachments allowed`);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
         }
+
+        const acceptedFiles: File[] = [];
+        const existingNames = new Set(formData.files.map(f => f.name.toLowerCase()));
+
+        incomingFiles.forEach((file) => {
+            // Check duplicate
+            if (existingNames.has(file.name.toLowerCase())) {
+                toast.error(isAr ? `الملف "${file.name}" مرفق مسبقاً` : `File "${file.name}" is already attached`);
+                return;
+            }
+
+            // Check file type
+            const fileExtension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() || '' : '';
+            if (!ALLOWED_ATTACHMENT_EXTENSIONS.has(fileExtension)) {
+                toast.error(isAr
+                    ? `صيغة الملف "${file.name}" غير مدعومة. الصيغ المسموحة: PDF, DOC, DOCX, JPG, PNG`
+                    : `File "${file.name}" has unsupported type. Allowed: PDF, DOC, DOCX, JPG, PNG`);
+                return;
+            }
+
+            // Check file size
+            if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+                toast.error(isAr
+                    ? `الملف "${file.name}" يتجاوز الحد المسموح ${MAX_ATTACHMENT_SIZE_MB} MB`
+                    : `File "${file.name}" exceeds ${MAX_ATTACHMENT_SIZE_MB} MB limit`);
+                return;
+            }
+
+            acceptedFiles.push(file);
+            existingNames.add(file.name.toLowerCase());
+        });
+
+        const filesToAdd = acceptedFiles.slice(0, remainingSlots);
+        if (acceptedFiles.length > remainingSlots) {
+            toast.error(isAr
+                ? `تم تجاوز الحد الأقصى. يمكنك إرفاق ${MAX_ATTACHMENT_COUNT} ملفات فقط`
+                : `Attachment limit reached. You can upload up to ${MAX_ATTACHMENT_COUNT} files`);
+        }
+
+        if (filesToAdd.length > 0) {
+            setFormData(prev => ({ ...prev, files: [...prev.files, ...filesToAdd] }));
+            // Show upload animation immediately on file selection
+            setFileUploadStatus('uploading');
+            setFileUploadProgress(0);
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                setFileUploadProgress(Math.min(progress, 100));
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setFileUploadStatus('completed');
+                }
+            }, 150);
+        }
+
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const removeFile = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            files: prev.files.filter((_, i) => i !== index)
-        }));
+        setFormData(prev => {
+            const newFiles = prev.files.filter((_, i) => i !== index);
+            if (newFiles.length === 0) {
+                setFileUploadStatus('ready');
+                setFileUploadProgress(0);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+            return { ...prev, files: newFiles };
+        });
     };
 
     const copyTrackingNumber = async () => {
@@ -404,6 +521,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         'processing': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
         'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'reviewed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'approved': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'implemented': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'rejected': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'responded': { ar: 'تم الرد عليها', en: 'Responded', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
@@ -460,7 +578,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         {step === 0 ? t('suggestion_step_terms') || 'الشروط' : step === 1 ? t('suggestion_step_identity') || 'الهوية' : t('suggestion_step_details') || 'التفاصيل'}
                                     </span>
                                     {step < 2 && (
-                                        <div className={`absolute left-[60%] rtl:left-auto rtl:right-[60%] top-4 w-full h-[2px] -z-0 ${formStep > step ? 'bg-gov-forest dark:bg-gov-teal' : 'bg-gray-100 dark:bg-white/10'}`} />
+                                        <div className={`absolute left-[60%] rtl:left-auto rtl:right-[60%] top-4 h-[2px] -z-0 ${formStep > step ? 'bg-gov-forest dark:bg-gov-teal' : 'bg-gray-100 dark:bg-white/10'}`} style={{ width: 'calc(100% - 20%)' }} />
                                     )}
                                 </div>
                             ))}
@@ -561,7 +679,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             }`}
                         >
                             <span>{t('suggestion_start_new')}</span>
-                            <ChevronLeft size={20} className="rtl:rotate-180" />
+                            {isAr ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
                         </button>
 
                     </div>
@@ -576,7 +694,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             onClick={() => prevStep()}
                             className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
                         >
-                            <ChevronRight size={16} className="rtl:rotate-180" />
+                            {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             <span>{formStep === 2
                                 ? (isAr ? 'العودة إلى الهوية' : 'Back to Identity')
                                 : t('suggestion_back_terms')
@@ -648,6 +766,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         required={!isAnonymous}
                                                         value={formData.firstName}
                                                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                        onBlur={() => handleBlur('firstName', formData.firstName)}
+                                                        error={touched.firstName ? errors.firstName : undefined}
+                                                        isValid={touched.firstName && !errors.firstName && !!formData.firstName.trim()}
                                                         icon={User}
                                                     />
                                                     <Input
@@ -655,6 +776,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         required={!isAnonymous}
                                                         value={formData.lastName}
                                                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                        onBlur={() => handleBlur('lastName', formData.lastName)}
+                                                        error={touched.lastName ? errors.lastName : undefined}
+                                                        isValid={touched.lastName && !errors.lastName && !!formData.lastName.trim()}
                                                         icon={User}
                                                     />
                                                 </div>
@@ -665,6 +789,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         required={!isAnonymous}
                                                         value={formData.fatherName}
                                                         onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                                        onBlur={() => handleBlur('fatherName', formData.fatherName)}
+                                                        error={touched.fatherName ? errors.fatherName : undefined}
+                                                        isValid={touched.fatherName && !errors.fatherName && !!formData.fatherName.trim()}
                                                         icon={User}
                                                     />
                                                     <NationalIdField
@@ -694,7 +821,11 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                             value={formData.phone}
                                                             onChange={(val) => {
                                                                 setFormData({ ...formData, phone: val });
+                                                                if (touched.phone) validateField('phone', val);
                                                             }}
+                                                            onBlur={() => handleBlur('phone', formData.phone)}
+                                                            error={touched.phone ? errors.phone : undefined}
+                                                            isValid={touched.phone && !errors.phone && !!formData.phone}
                                                         />
                                                     </div>
                                                     <Input
@@ -703,6 +834,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         required={!isAnonymous}
                                                         value={formData.email}
                                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                        onBlur={() => handleBlur('email', formData.email)}
+                                                        error={touched.email ? errors.email : undefined}
+                                                        isValid={touched.email && !errors.email && !!formData.email.trim()}
                                                         icon={Mail}
                                                         dir="ltr"
                                                     />
@@ -717,7 +851,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
                                     >
                                         <span>{t('ui_next') || 'التالي'}</span>
-                                        <ChevronLeft size={20} className="rtl:rotate-180" />
+                                        {isAr ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
                                     </button>
                                 </div>
                             )}
@@ -744,13 +878,25 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             {t('suggestion_description')} <span className="text-gov-gold">*</span>
                                         </label>
                                         <textarea
-                                            required
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            onBlur={() => handleBlur('description', formData.description)}
                                             rows={6}
-                                            className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold transition-all outline-none resize-none"
+                                            className={`w-full p-4 rounded-xl bg-white dark:bg-white/10 border text-gov-charcoal dark:text-white focus:ring-2 transition-all outline-none resize-none ${
+                                                touched.description && errors.description
+                                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 focus:ring-red-500/20'
+                                                    : touched.description && !errors.description && formData.description.trim()
+                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 focus:ring-green-500/20'
+                                                        : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold focus:ring-gov-teal/20'
+                                            }`}
                                             placeholder={t('suggestion_description_placeholder')}
                                         />
+                                        {touched.description && errors.description && (
+                                            <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 mt-1 animate-fade-in">
+                                                <AlertCircle size={12} className="shrink-0" />
+                                                {errors.description}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* File Upload */}
@@ -774,33 +920,33 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             </div>
                                         </div>
 
-                                        {/* File List with ready/uploading status */}
+                                        {/* File List */}
                                         {formData.files.length > 0 && (
                                             <div className="mt-4 space-y-2">
                                                 {formData.files.map((file, idx) => (
-                                                    <div key={`${file.name}-${idx}`} className="relative">
-                                                        <div className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
-                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                                <File size={18} className="text-gov-forest dark:text-gov-teal flex-shrink-0" />
-                                                                <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{file.name}</span>
-                                                                <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                                                            </div>
-                                                            {!isSubmitting && (
-                                                                <button type="button" onClick={() => removeFile(idx)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
-                                                                    <X size={16} />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                        {/* Show ready/uploading status for each file immediately */}
+                                                    <div key={`${file.name}-${idx}`}>
                                                         <UploadProgress
                                                             fileName={file.name}
-                                                            progress={isUploading ? uploadProgress : 0}
-                                                            status={isUploading ? 'uploading' : isSubmitting ? 'uploading' : 'ready'}
+                                                            progress={isUploading || isSubmitting ? uploadProgress : fileUploadStatus === 'uploading' ? fileUploadProgress : 100}
+                                                            status={isUploading || isSubmitting ? 'uploading' : fileUploadStatus === 'uploading' ? 'uploading' : 'ready'}
                                                             fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
                                                             language={isAr ? 'ar' : 'en'}
+                                                            onCancel={!isSubmitting ? () => removeFile(idx) : undefined}
                                                         />
                                                     </div>
                                                 ))}
+
+                                                {/* Add more files button */}
+                                                {formData.files.length < MAX_ATTACHMENT_COUNT && !isSubmitting && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="w-full py-2.5 rounded-xl border-2 border-dashed border-gov-gold/30 text-gov-forest dark:text-gov-teal text-sm font-bold hover:bg-gov-beige/30 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <Upload size={16} />
+                                                        <span>{isAr ? `إضافة مرفقات أخرى (${formData.files.length}/${MAX_ATTACHMENT_COUNT})` : `Add more files (${formData.files.length}/${MAX_ATTACHMENT_COUNT})`}</span>
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
 
@@ -911,21 +1057,70 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </span>
                                     </div>
                                     <div className="space-y-4">
+                                        {/* Submission date */}
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-1 text-gray-400"><Calendar size={18} /></div>
+                                            <div>
+                                                <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'تاريخ التقديم' : 'Submission Date'}</span>
+                                                <span className="text-sm font-medium text-gov-charcoal dark:text-white">
+                                                    {(trackingResult.created_at) ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Last update */}
                                         <div className="flex items-start gap-3">
                                             <div className="mt-1 text-gray-400"><AlertCircle size={18} /></div>
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US') : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>
-                                        {trackingResult.description && (
-                                            <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-3 rounded-lg">
-                                                <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+
+                                        {/* Directorate */}
+                                        {(trackingResult.directorate_name || trackingResult.directorate) && (
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 text-gray-400"><Building2 size={18} /></div>
                                                 <div>
+                                                    <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'الجهة' : 'Directorate'}</span>
+                                                    <span className="text-sm font-medium text-gov-charcoal dark:text-white">
+                                                        {trackingResult.directorate_name || (typeof trackingResult.directorate === 'object' ? (isAr ? trackingResult.directorate.name_ar : trackingResult.directorate.name_en) : trackingResult.directorate)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Full description */}
+                                        {trackingResult.description && (
+                                            <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/10 p-4 rounded-lg">
+                                                <div className="mt-1 text-gray-400"><FileText size={18} /></div>
+                                                <div className="flex-1">
                                                     <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_description')}</span>
-                                                    <span className="text-sm text-gray-700 dark:text-white/70 line-clamp-2">{trackingResult.description}</span>
+                                                    <p className="text-sm text-gray-700 dark:text-white/70 whitespace-pre-wrap">{trackingResult.description}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Submitter name if available */}
+                                        {trackingResult.full_name && (
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 text-gray-400"><User size={18} /></div>
+                                                <div>
+                                                    <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'مقدم المقترح' : 'Submitted By'}</span>
+                                                    <span className="text-sm font-medium text-gov-charcoal dark:text-white">{trackingResult.full_name}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Category if available */}
+                                        {trackingResult.category && (
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 text-gray-400"><Lightbulb size={18} /></div>
+                                                <div>
+                                                    <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'التصنيف' : 'Category'}</span>
+                                                    <span className="text-sm font-medium text-gov-charcoal dark:text-white">{trackingResult.category}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -958,14 +1153,22 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     )}
 
                                     {/* Rating after receiving result - shown when suggestion is completed/responded */}
-                                    {(trackingResult.status === 'completed' || trackingResult.status === 'reviewed' || trackingResult.status === 'implemented' || trackingResult.status === 'rejected' || trackingResult.status === 'responded') && !trackingResult.rating && (
+                                    {(trackingResult.status === 'completed' || trackingResult.status === 'reviewed' || trackingResult.status === 'approved' || trackingResult.status === 'implemented' || trackingResult.status === 'rejected' || trackingResult.status === 'responded') && !trackingResult.rating && !hasRated && (
                                         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
                                             <SuggestionRating
                                                 trackingNumber={trackingResult.tracking_number || trackingResult.id}
                                                 language={language as 'ar' | 'en'}
-                                                onClose={() => {}}
+                                                onClose={() => setHasRated(true)}
                                                 hideHelpfulQuestion={false}
                                             />
+                                        </div>
+                                    )}
+                                    {(hasRated || trackingResult.rating) && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 text-center">
+                                            <p className="text-sm text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
+                                                <CheckCircle size={16} />
+                                                {isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!'}
+                                            </p>
                                         </div>
                                     )}
                                 </div>

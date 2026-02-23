@@ -33,16 +33,16 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
   const buttonText = isArabic ? section.button_text_ar : section.button_text_en;
   const Icon = iconMap[section.icon] || Play;
 
-    // Video type card - Use VideoCard component when video_url is present
-    if (section.type === 'video') {
-      const badge = isArabic
-        ? (section.metadata?.badge_ar || 'فيديو حصري')
-        : (section.metadata?.badge_en || 'Exclusive Video');
+  // Video type card - Use VideoCard component when video_url is present
+  if (section.type === 'video') {
+    const badge = isArabic
+      ? (section.metadata?.badge_ar || 'فيديو حصري')
+      : (section.metadata?.badge_en || 'Exclusive Video');
 
-      // If video_url is present, use actual video player
-      if (section.video_url) {
-        return (
-          <div className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden">
+    // If video_url is present, use actual video player
+    if (section.video_url) {
+      return (
+        <div className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden">
           <VideoCard
             videoUrl={section.video_url}
             posterUrl={section.image || undefined}
@@ -313,9 +313,9 @@ const HeroGrid: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-gov-forest via-gov-forest/60 to-transparent opacity-95"></div>
           </div>
 
-          <div className="absolute inset-0 p-5 md:p-8 flex flex-col justify-end z-10">
+          <div className="absolute inset-0 p-4 md:p-8 flex flex-col justify-end z-10">
             <div className="mb-auto flex w-full justify-between items-start">
-              <span className="px-3 py-1 rounded-full bg-gov-red text-white text-xs font-bold shadow-lg animate-pulse">
+              <span className="px-2 py-1 md:px-3 rounded-full bg-gov-red text-white text-[10px] md:text-xs font-bold shadow-lg animate-pulse">
                 {t('hero_live_badge')}
               </span>
               <div className="flex gap-2">
@@ -347,21 +347,21 @@ const HeroGrid: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-gov-beige/80 text-xs">
+              <div className="flex items-center gap-1 md:gap-2 text-gov-beige/80 text-[10px] md:text-xs">
                 <span className="font-semibold text-gov-gold">{getLocalizedField(heroArticle, 'category', locale as 'ar' | 'en')}</span>
                 <span className="w-1 h-1 rounded-full bg-gov-gold/30"></span>
                 <span>{heroArticle.date}</span>
               </div>
 
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-white leading-tight line-clamp-3">
+              <h2 className="text-lg md:text-2xl lg:text-3xl font-display font-bold text-white leading-tight line-clamp-3">
                 {getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en')}
               </h2>
 
-              <p className="text-sm text-gov-beige/80 leading-relaxed line-clamp-2 hidden md:block">
+              <p className="text-xs md:text-sm text-gov-beige/80 leading-relaxed line-clamp-2 hidden md:block">
                 {getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en')}
               </p>
 
-              <Link href={`/news/${heroArticle.id}`} className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gov-gold text-gov-forest text-sm font-bold hover:bg-white transition-all group/btn shadow-md">
+              <Link href={`/news/${heroArticle.id}`} className="inline-flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 rounded-full bg-gov-gold text-gov-forest text-[11px] md:text-sm font-bold hover:bg-white transition-all group/btn shadow-md">
                 {t('hero_read_more')}
                 <ArrowLeft size={14} className="transition-transform group-hover/btn:-translate-x-1" />
               </Link>
@@ -375,10 +375,10 @@ const HeroGrid: React.FC = () => {
             <Link
               key={article.id}
               href={`/news/${article.id}`}
-              className="group flex gap-3 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+              className="group flex gap-2 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-2 md:p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
               {article.imageUrl && (
-                <div className="relative w-24 h-20 md:w-28 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="relative w-20 h-16 md:w-28 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
                     src={article.imageUrl}
                     alt={getLocalizedField(article, 'title', locale as 'ar' | 'en') || ''}

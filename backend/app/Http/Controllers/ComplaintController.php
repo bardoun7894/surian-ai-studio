@@ -337,7 +337,7 @@ class ComplaintController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|string|in:received,in_progress,completed']);
+        $request->validate(['status' => 'required|string|in:received,in_progress,completed,resolved,closed,rejected']);
         $complaint = Complaint::findOrFail($id);
         $this->authorize('changeStatus', $complaint);
 

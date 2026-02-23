@@ -186,7 +186,7 @@ export const auth = {
    */
   async forgotPassword(email: string): Promise<void> {
     await getCsrfCookie();
-    await api.post('/auth/password/forgot', { email });
+    await api.post('/auth/forgot-password', { email });
   },
 
   /**
@@ -199,7 +199,7 @@ export const auth = {
     password_confirmation: string;
   }): Promise<void> {
     await getCsrfCookie();
-    await api.post('/auth/password/reset', data);
+    await api.post('/auth/reset-password', data);
   },
 
   /**

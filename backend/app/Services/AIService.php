@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Complaint;
 use App\Models\Directorate;
+use App\Models\Suggestion;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -131,6 +132,89 @@ class AIService
         Log::info("Fallback Classification for Complaint #{$complaint->tracking_number}: {$category} / {$priority}");
 
         // Return structured data (ComplaintService will handle updates)
+        return [
+            'category' => $category,
+            'priority' => $priority,
+            'summary' => $summary,
+            'keywords' => [],
+            'confidence' => 0.5,
+        ];
+    }
+
+    /**
+     * Classify a suggestion using the AI service (reuses complaint analysis endpoint)
+     */
+    public function classifySuggestion(Suggestion $suggestion): array
+    {
+        try {
+            $response = Http::timeout($this->timeout)
+                ->post("{$this->aiServiceUrl}/api/v1/ai/analyze-complaint", [
+                    'complaint_text' => $suggestion->description,
+                    'attachments' => [],
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                $directorateId = $data['directorate_id'] ?? null;
+                if (!$directorateId && isset($data['directorate'])) {
+                    $directorate = Directorate::where('name_ar', 'like', "%{$data['directorate']}%")
+                        ->orWhere('name_en', 'like', "%{$data['directorate']}%")
+                        ->first();
+                    $directorateId = $directorate?->id;
+                }
+
+                return [
+                    'category' => $data['directorate'] ?? 'general',
+                    'priority' => $data['priority'] ?? 'medium',
+                    'summary' => $data['summary'] ?? mb_substr($suggestion->description, 0, 200),
+                    'keywords' => $data['keywords'] ?? [],
+                    'confidence' => $data['confidence'] ?? 0.0,
+                    'suggested_directorate_id' => $directorateId,
+                ];
+            }
+
+            Log::warning("AI Service returned non-successful response for suggestion #{$suggestion->tracking_number}", [
+                'status' => $response->status(),
+            ]);
+
+            return $this->fallbackClassificationForSuggestion($suggestion);
+
+        } catch (\Exception $e) {
+            Log::error("AI Service error for suggestion #{$suggestion->tracking_number}: {$e->getMessage()}");
+            return $this->fallbackClassificationForSuggestion($suggestion);
+        }
+    }
+
+    /**
+     * Fallback classification for suggestions when AI service is unavailable
+     */
+    protected function fallbackClassificationForSuggestion(Suggestion $suggestion): array
+    {
+        $description = mb_strtolower($suggestion->description);
+        $category = 'general';
+        $priority = 'medium';
+        $summary = mb_substr($suggestion->description, 0, 200);
+
+        $categories = [
+            'تجارة' => ['تجارة', 'استيراد', 'تصدير', 'رخصة تجارية', 'سجل تجاري', 'trade', 'import', 'export'],
+            'صناعة' => ['مصنع', 'صناعة', 'إنتاج', 'ورشة', 'factory', 'industry', 'manufacturing'],
+            'حماية المستهلك' => ['غش', 'احتيال', 'سعر', 'جودة', 'مستهلك', 'consumer', 'fraud', 'quality'],
+            'استثمار' => ['استثمار', 'مشروع', 'تمويل', 'investment', 'project'],
+            'تطوير' => ['تحسين', 'تطوير', 'اقتراح', 'تحديث', 'improve', 'develop', 'enhance'],
+        ];
+
+        foreach ($categories as $cat => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($description, $keyword)) {
+                    $category = $cat;
+                    break 2;
+                }
+            }
+        }
+
+        Log::info("Fallback Classification for Suggestion #{$suggestion->tracking_number}: {$category} / {$priority}");
+
         return [
             'category' => $category,
             'priority' => $priority,

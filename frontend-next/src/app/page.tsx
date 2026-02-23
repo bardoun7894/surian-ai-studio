@@ -185,9 +185,7 @@ export default function HomePage() {
         </section>
 
         <section id="directorates">
-          <ScrollAnimation delay={0.1}>
             <FeaturedDirectorates />
-          </ScrollAnimation>
         </section>
 
         <section id="services">

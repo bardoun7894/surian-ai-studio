@@ -11,7 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['"Qomra"', '"Cairo"', '"Noto Sans Arabic"', 'Arial', 'sans-serif'],
-        display: ['"Qomra"', '"Cairo"', '"Noto Kufi Arabic"', 'Arial', 'sans-serif'],
+        display: ['"Qomra"', '"Cairo"', '"Noto Sans Arabic"', 'Arial', 'sans-serif'],
         poppins: ['"Poppins"', 'sans-serif'],
       },
       colors: {
@@ -41,13 +41,13 @@ const config: Config = {
           light: '#f0fdfa'
         },
         dm: {
-          bg: 'var(--dm-background)',
-          surface: 'var(--dm-surface)',
-          card: 'var(--dm-card)',
-          text: 'var(--dm-text)',
-          'text-secondary': 'var(--dm-text-secondary)',
-          border: 'var(--dm-border)',
-          input: 'var(--dm-input-bg)',
+          bg: '#1a1a1a',
+          surface: '#2a2a2a',
+          card: 'rgba(179, 163, 211, 0.1)',
+          text: '#ffffff',
+          'text-secondary': 'rgba(255, 255, 255, 0.7)',
+          border: 'rgba(185, 167, 121, 0.15)',
+          input: 'rgba(255, 255, 255, 0.05)',
         }
       },
       boxShadow: {

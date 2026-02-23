@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
-import { Directorate, Service, SubDirectorate } from '@/types';
+import { Directorate } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
     Building2,
     ArrowRight,
-    Search,
     ShieldAlert,
     Scale,
     HeartPulse,
@@ -22,16 +21,11 @@ import {
     Factory,
     Landmark,
     LayoutGrid,
-    ChevronLeft,
-    Phone,
-    Mail,
-    MapPin,
-    ExternalLink,
-    X
+    ChevronLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface DirectoratesListProps {
     variant?: 'full' | 'compact';
@@ -44,9 +38,6 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [directorates, setDirectorates] = useState<Directorate[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // Modal state for Sub-Directorates
-    const [selectedSub, setSelectedSub] = useState<SubDirectorate | null>(null);
 
     // Fetch Data
     useEffect(() => {
@@ -65,10 +56,18 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     }, []);
 
     // Helper functions
-    const getLocalized = (field: any) => {
+    const getLocalized = (field: any, obj?: any) => {
         if (!field) return '';
-        if (typeof field === 'string') return field;
-        return language === 'ar' ? field.ar : field.en;
+        if (typeof field === 'object' && ('ar' in field || 'en' in field)) {
+            return language === 'ar' ? (field.ar || field.en || '') : (field.en || field.ar || '');
+        }
+        // If obj is provided, check for _ar/_en suffixed fields
+        if (obj && typeof field === 'string') {
+            const arVal = obj.name_ar || field;
+            const enVal = obj.name_en || '';
+            return language === 'en' && enVal ? enVal : arVal;
+        }
+        return typeof field === 'string' ? field : '';
     };
 
     const getIcon = (iconName: string, isCompact: boolean) => {
@@ -131,7 +130,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold text-gov-charcoal dark:text-white leading-tight group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors">
-                                        {getLocalized(dir.name)}
+                                        {getLocalized(dir.name, dir)}
                                     </h3>
                                 </div>
                             </div>
@@ -162,7 +161,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                     <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm shadow-xl border border-white/20">
                         <Landmark size={48} className="text-gov-gold" />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold mb-4 drop-shadow-md">
+                    <h1 className="text-3xl md:text-4xl font-display font-bold mb-4 drop-shadow-md">
                         {language === 'ar' ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy & Industry'}
                     </h1>
                     <p className="text-lg text-white/80 max-w-2xl mx-auto font-medium">
@@ -176,31 +175,31 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
             {/* Administrations & Sub-Directorates Hierarchical View */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
                 <div className="flex flex-col gap-8">
-                    {directorates.map((admin, index) => (
+                    {directorates.slice(0, 3).map((admin, index) => (
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                             key={admin.id}
-                            className="bg-white dark:bg-gov-card rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border overflow-hidden"
+                            className="bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden"
                         >
                             {/* Administration Header */}
-                            <div className="p-8 bg-gradient-to-r from-gov-beige/50 to-transparent dark:from-white/5 border-b border-gray-100 dark:border-gov-border flex flex-col md:flex-row items-center md:items-start gap-6 relative">
+                            <div className="p-8 bg-gradient-to-r from-gov-beige/50 to-transparent dark:from-white/5 border-b border-gray-100 dark:border-gov-border/15 flex flex-col md:flex-row items-center md:items-start gap-6 relative">
                                 <div className="absolute top-0 bottom-0 right-0 w-2 bg-gov-gold"></div>
                                 <div className="w-20 h-20 rounded-2xl bg-gov-forest dark:bg-white/10 flex items-center justify-center text-gov-gold shadow-lg shrink-0">
                                     {getIcon(admin.icon, false)}
                                 </div>
                                 <div className="text-center md:text-start flex-1">
                                     <h2 className="text-2xl md:text-3xl font-bold text-gov-charcoal dark:text-white mb-3">
-                                        {getLocalized(admin.name)}
+                                        {getLocalized(admin.name, admin)}
                                     </h2>
                                     <p className="text-gov-stone dark:text-white/70 leading-relaxed max-w-3xl">
-                                        {getLocalized(admin.description)}
+                                        {language === 'en' && admin.description_en ? admin.description_en : (admin.description || getLocalized(admin.description))}
                                     </p>
                                 </div>
                                 <Link href={`/directorates/${admin.id}`} className="shrink-0 mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-gov-teal/10 hover:bg-gov-teal text-gov-teal hover:text-white dark:bg-gov-gold/10 dark:hover:bg-gov-gold dark:text-gov-gold dark:hover:text-gov-forest rounded-xl font-bold transition-all">
-                                    {language === 'ar' ? 'صفحة الإدارة' : 'Admin Page'}
-                                    <ArrowRight size={18} className={language === 'ar' ? '' : 'rotate-180'} />
+                                    {language === 'ar' ? 'صفحة الإدارة' : 'Department Page'}
+                                    <ArrowRight size={18} className={language === 'ar' ? 'rotate-180' : ''} />
                                 </Link>
                             </div>
 
@@ -216,17 +215,19 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {admin.subDirectorates.map(sub => (
-                                            <div
+                                            <Link
                                                 key={sub.id}
-                                                onClick={() => setSelectedSub(sub)}
-                                                className="group cursor-pointer p-5 bg-gray-50 dark:bg-white/5 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all flex items-start gap-4"
+                                                href={sub.isExternal ? (sub.url || '#') : `/directorates/${admin.id}/${sub.id}`}
+                                                target={sub.isExternal ? '_blank' : undefined}
+                                                rel={sub.isExternal ? 'noopener noreferrer' : undefined}
+                                                className="group p-5 bg-gray-50 dark:bg-white/5 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10 rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all flex items-start gap-4"
                                             >
                                                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-black/20 flex items-center justify-center text-gov-teal dark:text-gov-gold shadow-sm shrink-0">
                                                     <Building2 size={20} />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-gov-charcoal dark:text-white group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors text-base line-clamp-2">
-                                                        {getLocalized(sub.name)}
+                                                        {getLocalized(sub.name, sub)}
                                                     </h4>
                                                     {sub.isExternal && (
                                                         <span className="inline-block mt-2 text-xs font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
@@ -234,7 +235,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                                         </span>
                                                     )}
                                                 </div>
-                                            </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 )}
@@ -244,128 +245,6 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                 </div>
             </div>
 
-            {/* Sub-Directorate Details Modal */}
-            <AnimatePresence>
-                {selectedSub && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedSub(null)}
-                            className="absolute inset-0 bg-gov-charcoal/60 backdrop-blur-sm"
-                        ></motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-2xl bg-white dark:bg-gov-card rounded-3xl shadow-2xl overflow-hidden"
-                        >
-                            {/* Modal Header */}
-                            <div className="px-6 py-5 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gov-beige/30 dark:bg-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gov-forest dark:bg-white/10 flex items-center justify-center text-gov-gold">
-                                        <Building2 size={20} />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gov-charcoal dark:text-white">
-                                        {getLocalized(selectedSub.name)}
-                                    </h3>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedSub(null)}
-                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors"
-                                >
-                                    <X size={24} />
-                                </button>
-                            </div>
-
-                            {/* Modal Body */}
-                            <div className="p-6">
-                                {(selectedSub.description || selectedSub.description_ar || selectedSub.description_en) && (
-                                    <div className="mb-6">
-                                        <h4 className="text-sm font-bold text-gov-sand uppercase tracking-wider mb-2">
-                                            {language === 'ar' ? 'عن المديرية' : 'About Directorate'}
-                                        </h4>
-                                        <p className="text-gov-stone dark:text-white/80 leading-relaxed bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10">
-                                            {selectedSub.description_ar && language === 'ar'
-                                                ? selectedSub.description_ar
-                                                : selectedSub.description_en && language === 'en'
-                                                    ? selectedSub.description_en
-                                                    : getLocalized(selectedSub.description)}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                    {selectedSub.phone && (
-                                        <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/10">
-                                            <Phone size={20} className="text-blue-500 mt-0.5" />
-                                            <div>
-                                                <p className="text-xs font-bold text-blue-500 mb-1">{language === 'ar' ? 'رقم الهاتف' : 'Phone'}</p>
-                                                <p className="text-gov-charcoal dark:text-white font-medium dir-ltr text-start">{selectedSub.phone}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {selectedSub.email && (
-                                        <div className="flex items-start gap-3 p-4 rounded-xl bg-green-50/50 dark:bg-green-500/5 border border-green-100 dark:border-green-500/10">
-                                            <Mail size={20} className="text-green-500 mt-0.5" />
-                                            <div>
-                                                <p className="text-xs font-bold text-green-500 mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p>
-                                                <a href={`mailto:${selectedSub.email}`} className="text-gov-charcoal dark:text-white font-medium hover:underline hover:text-green-600 transition-colors">{selectedSub.email}</a>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {((language === 'ar' && selectedSub.address_ar) || (language === 'en' && selectedSub.address_en) || selectedSub.address) && (
-                                        <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50/50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 md:col-span-2">
-                                            <MapPin size={20} className="text-orange-500 mt-0.5" />
-                                            <div>
-                                                <p className="text-xs font-bold text-orange-500 mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</p>
-                                                <p className="text-gov-charcoal dark:text-white font-medium">
-                                                    {language === 'ar' && selectedSub.address_ar
-                                                        ? selectedSub.address_ar
-                                                        : language === 'en' && selectedSub.address_en
-                                                            ? selectedSub.address_en
-                                                            : getLocalized(selectedSub.address)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
-                                    <button
-                                        onClick={() => setSelectedSub(null)}
-                                        className="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-white/20 text-gov-stone dark:text-white/80 font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                    >
-                                        {language === 'ar' ? 'إغلاق' : 'Close'}
-                                    </button>
-                                    {selectedSub.url && (
-                                        <a
-                                            href={selectedSub.isExternal ? selectedSub.url : `/directorates/${selectedSub.url.split('/').pop()}`}
-                                            target={selectedSub.isExternal ? "_blank" : "_self"}
-                                            className="px-6 py-2.5 rounded-xl bg-gov-teal dark:bg-gov-gold text-white dark:text-gov-forest font-bold hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                                        >
-                                            {selectedSub.isExternal ? (
-                                                <>
-                                                    {language === 'ar' ? 'زيارة الموقع' : 'Visit Site'}
-                                                    <ExternalLink size={18} />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {language === 'ar' ? 'عرض الحدمات' : 'View Services'}
-                                                    <ArrowRight size={18} className={language === 'ar' ? '' : 'rotate-180'} />
-                                                </>
-                                            )}
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };

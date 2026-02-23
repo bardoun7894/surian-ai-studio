@@ -7,6 +7,43 @@ import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Helper to render message text with clickable links for routes and URLs
+const renderMessageText = (text: string, onNavigate?: () => void): React.ReactNode => {
+    // Match URLs (http/https) and internal routes (/path)
+    const linkPattern = /(https?:\/\/[^\s,،)]+)|((?<!\w)\/[a-zA-Z][a-zA-Z0-9\-\/]*)/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkPattern.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+        const url = match[1];
+        const route = match[2];
+        if (url) {
+            parts.push(
+                <a key={match.index} href={url} target="_blank" rel="noopener noreferrer"
+                    onClick={onNavigate}
+                    className="text-gov-gold underline hover:text-gov-gold/80 font-medium">{url}</a>
+            );
+        } else if (route) {
+            parts.push(
+                <a key={match.index} href={route}
+                    onClick={onNavigate}
+                    className="text-gov-gold underline hover:text-gov-gold/80 font-medium">{route}</a>
+            );
+        }
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : text;
+};
+
 // Helper to get XSRF token from cookies
 const getXsrfToken = (): string | null => {
     if (typeof document === 'undefined') return null;
@@ -296,7 +333,7 @@ const ChatBot: React.FC = () => {
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
             {/* For Arabic: positioned on the LEFT side (left-6) */}
-            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row-reverse' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
+            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
                 {/* Hint bubble sits inward from screen edge */}
                 <AnimatePresence>
                     {!isOpen && showWelcome && (
@@ -403,7 +440,7 @@ const ChatBot: React.FC = () => {
                                 ? 'bg-gov-stone text-white rounded-tl-none shadow-md'
                                 : 'bg-white dark:bg-gov-forest/80 text-gov-charcoal dark:text-white border border-gov-gold/20 rounded-tr-none shadow-sm'
                                 }`}>
-                                {msg.text}
+                                {msg.sender === 'bot' ? renderMessageText(msg.text, () => setIsOpen(false)) : msg.text}
                             </div>
                         </div>
                     ))}

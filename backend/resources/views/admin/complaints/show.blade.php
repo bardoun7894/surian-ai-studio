@@ -277,7 +277,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-500">المديرية المعنية</span>
-                            <span class="font-medium text-slate-700 dark:text-slate-200">{{ $complaint->directorate->name ?? 'غير محدد' }}</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-200">{{ $complaint->directorate->name_ar ?? 'غير محدد' }}</span>
                         </div>
                     </div>
                 </div>
@@ -290,7 +290,7 @@
                         <span class="material-symbols-outlined text-[18px] text-purple-600">psychology</span>
                         تصنيف الذكاء الاصطناعي
                     </h3>
-                    
+
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-slate-500">التصنيف المقترح</span>
@@ -303,6 +303,36 @@
                         <p class="text-[10px] text-slate-400 italic mt-2">
                             تم تحليل هذه البيانات تلقائياً بواسطة خوارزميات الوزارة للذكاء الاصطناعي.
                         </p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Citizen Rating -->
+            @if($complaint->rating)
+                <div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-amber-500">star</span>
+                        تقييم المواطن
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-1">
+                            @for($i = 1; $i <= 5; $i++)
+                                <span class="material-symbols-outlined text-[20px] {{ $i <= $complaint->rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600' }}">star</span>
+                            @endfor
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 mr-2">{{ $complaint->rating }}/5</span>
+                        </div>
+                        @if($complaint->rating_comment)
+                            <div>
+                                <span class="text-xs text-slate-500 block mb-1">التعليق</span>
+                                <p class="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">{{ $complaint->rating_comment }}</p>
+                            </div>
+                        @endif
+                        @if($complaint->rated_at)
+                            <p class="text-[10px] text-slate-400 italic">
+                                تم التقييم: {{ $complaint->rated_at->format('Y/m/d H:i') }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             @endif

@@ -52,9 +52,9 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
   const to = Math.min(currentPage * perPage, total);
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 ${className}`}>
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 mt-8 md:mt-14 mb-4 md:mb-8 pt-4 md:pt-6 border-t border-gray-200/60 dark:border-gov-border/10 ${className}`}>
       {/* Results info */}
-      <p className="text-sm text-gray-500 dark:text-white/50 font-bold">
+      <p className="text-xs md:text-sm text-gray-500 dark:text-white/50 font-bold">
         {language === 'ar'
           ? `عرض ${from} - ${to} من ${total} نتيجة`
           : `Showing ${from} - ${to} of ${total} results`}
@@ -76,26 +76,25 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="p-1.5 md:p-2.5 rounded-lg md:rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة السابقة' : 'Previous page'}
         >
-          <PrevIcon size={16} />
+          <PrevIcon size={16} className="w-4 h-4 md:w-4 md:h-4" />
         </button>
 
         {/* Page numbers */}
         {getPageNumbers().map((page, idx) =>
           page === '...' ? (
-            <span key={`dots-${idx}`} className="px-2 text-gray-400 dark:text-white/30 select-none">...</span>
+            <span key={`dots-${idx}`} className="px-1 md:px-2 text-gray-400 dark:text-white/30 select-none text-xs md:text-sm">...</span>
           ) : (
-              <button
-                key={page}
-                onClick={() => onPageChange(page)}
-                className={`min-w-[42px] h-11 rounded-xl font-bold text-sm transition-all ${
-                  currentPage === page
-                    ? 'bg-gov-teal text-white shadow-lg shadow-gov-teal/20 border border-gov-teal'
-                    : 'border border-gray-200 dark:border-gov-border/15 text-gray-600 dark:text-white/70 hover:bg-gov-teal/10 hover:border-gov-teal/30'
+            <button
+              key={page}
+              onClick={() => onPageChange(page)}
+              className={`min-w-[32px] md:min-w-[42px] h-8 md:h-11 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all ${currentPage === page
+                  ? 'bg-gov-teal text-white shadow-md md:shadow-lg shadow-gov-teal/20 border border-gov-teal'
+                  : 'border border-gray-200 dark:border-gov-border/15 text-gray-600 dark:text-white/70 hover:bg-gov-teal/10 hover:border-gov-teal/30'
                 }`}
-              >
+            >
               {page}
             </button>
           )
@@ -105,10 +104,10 @@ export default function Pagination({ currentPage, lastPage, total, perPage, onPa
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === lastPage}
-          className="p-2.5 rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
+          className="p-1.5 md:p-2.5 rounded-lg md:rounded-xl border border-gray-200 dark:border-gov-border/15 text-gray-500 dark:text-white/60 hover:bg-gov-teal hover:text-white hover:border-gov-teal disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-500 disabled:hover:border-gray-200 transition-all"
           title={language === 'ar' ? 'الصفحة التالية' : 'Next page'}
         >
-          <NextIcon size={16} />
+          <NextIcon size={16} className="w-4 h-4 md:w-4 md:h-4" />
         </button>
 
         {/* Last page */}

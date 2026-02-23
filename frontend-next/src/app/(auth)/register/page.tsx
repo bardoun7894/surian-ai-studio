@@ -350,9 +350,9 @@ const RegisterPage = () => {
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Ministry of Economy and Industry"
-                            width={140}
-                            height={140}
-                            className="relative z-10 drop-shadow-2xl max-w-[140px] max-h-[140px]"
+                            width={100}
+                            height={100}
+                            className="relative z-10 drop-shadow-2xl max-w-[100px] max-h-[100px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -415,9 +415,9 @@ const RegisterPage = () => {
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Logo"
-                            width={112}
-                            height={112}
-                            className="mx-auto mb-3 max-w-[112px] max-h-[112px]"
+                            width={72}
+                            height={72}
+                            className="mx-auto mb-3 max-w-[72px] max-h-[72px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -503,9 +503,25 @@ const RegisterPage = () => {
                                                 type="date"
                                                 value={formData.birthDate}
                                                 onChange={(e) => {
-                                                    setFormData({ ...formData, birthDate: e.target.value });
-                                                    if (fieldErrors.birthDate) {
+                                                    const val = e.target.value;
+                                                    setFormData({ ...formData, birthDate: val });
+                                                    if (val) {
+                                                        const err = validateBirthDate(val);
+                                                        if (err) {
+                                                            setFieldErrors(prev => ({ ...prev, birthDate: err }));
+                                                        } else {
+                                                            setFieldErrors(prev => { const next = { ...prev }; delete next.birthDate; return next; });
+                                                        }
+                                                    } else if (fieldErrors.birthDate) {
                                                         setFieldErrors(prev => { const next = { ...prev }; delete next.birthDate; return next; });
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    if (formData.birthDate) {
+                                                        const err = validateBirthDate(formData.birthDate);
+                                                        if (err) {
+                                                            setFieldErrors(prev => ({ ...prev, birthDate: err }));
+                                                        }
                                                     }
                                                 }}
                                                 min={minBirthDate}
@@ -720,29 +736,6 @@ const RegisterPage = () => {
                                             />
                                         </div>
                                     </div>
-
-                                    {/* WhatsApp Support Toggle */}
-                                    <label className="flex items-center gap-3 cursor-pointer group select-none p-3 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 hover:border-gov-emerald transition-all">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.useWhatsApp}
-                                                onChange={(e) => setFormData({ ...formData, useWhatsApp: e.target.checked })}
-                                                className="w-5 h-5 rounded-lg border-gray-300 dark:border-white/20 text-gov-emerald focus:ring-gov-emerald cursor-pointer opacity-0 absolute inset-0 z-10"
-                                            />
-                                            <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.useWhatsApp ? 'bg-gov-emerald border-gov-emerald' : 'bg-transparent border-gray-300 dark:border-white/20'}`}>
-                                                {formData.useWhatsApp && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-gov-forest dark:text-white/90 group-hover:text-gov-emerald transition-colors">
-                                                {t('reg_whatsapp_enable')}
-                                            </span>
-                                            <span className="text-[10px] text-gray-500 dark:text-white/50">
-                                                {t('reg_whatsapp_desc')}
-                                            </span>
-                                        </div>
-                                    </label>
 
                                     <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/20 flex gap-3">
                                         <Shield className="shrink-0 text-blue-600 dark:text-blue-400" size={20} />

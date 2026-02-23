@@ -299,7 +299,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     </div>
                                 </div>
                                 <div className="flex-1 text-center md:text-right">
-                                    <h1 className="text-4xl md:text-6xl font-display font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gov-gold">
+                                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gov-gold">
                                         {language === 'ar' ? categoryMeta.title_ar : categoryMeta.title_en}
                                     </h1>
                                     <p className="text-white/80 text-xl max-w-3xl leading-relaxed font-light">
@@ -393,8 +393,25 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                             {language === 'ar' ? 'العودة لدليل الخدمات' : 'Back to Services Guide'}
                         </Link>
 
-                        <div className="flex flex-col md:flex-row items-start gap-8 relative">
-                            <div className="absolute top-0 ltr:right-0 rtl:left-0 z-10">
+                        <div className="flex flex-col md:flex-row items-start gap-8">
+                            <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
+                                {(() => {
+                                    const DirectorateIcon = directorate ? (iconMap[directorate.icon] || Building) : Building;
+                                    return <DirectorateIcon size={40} />;
+                                })()}
+                            </div>
+                            <div className="flex-1">
+                                <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold mb-4 inline-block">
+                                    {directorate ? getLocalizedField(directorate, 'name', language as 'ar' | 'en') : ''}
+                                </span>
+                                <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                                    {getLocalizedField(service, 'title', language as 'ar' | 'en')}
+                                </h1>
+                                <p className="text-white/80 text-lg max-w-3xl leading-relaxed">
+                                    {getLocalizedField(service, 'content', language as 'ar' | 'en') || getLocalizedField(service, 'description', language as 'ar' | 'en')}
+                                </p>
+                            </div>
+                            <div className="flex flex-col items-center gap-3 text-center shrink-0">
                                 <FavoriteButton
                                     contentType="service"
                                     contentId={String(service.id)}
@@ -406,25 +423,6 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                         url: `/services/${service.id}`
                                     }}
                                 />
-                            </div>
-                            <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
-                                {(() => {
-                                    const DirectorateIcon = directorate ? (iconMap[directorate.icon] || Building) : Building;
-                                    return <DirectorateIcon size={40} />;
-                                })()}
-                            </div>
-                            <div className="flex-1">
-                                <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold mb-4 inline-block">
-                                    {directorate ? getLocalizedField(directorate, 'name', language as 'ar' | 'en') : ''}
-                                </span>
-                                <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">
-                                    {getLocalizedField(service, 'title', language as 'ar' | 'en')}
-                                </h1>
-                                <p className="text-white/80 text-lg max-w-3xl leading-relaxed">
-                                    {getLocalizedField(service, 'content', language as 'ar' | 'en') || getLocalizedField(service, 'description', language as 'ar' | 'en')}
-                                </p>
-                            </div>
-                            <div className="flex flex-col items-center gap-2 text-center">
                                 {service.isDigital ? (
                                     <div className="px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-2xl text-green-400 font-bold flex items-center gap-2">
                                         <Monitor size={20} />

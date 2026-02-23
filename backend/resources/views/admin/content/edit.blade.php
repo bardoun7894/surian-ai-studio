@@ -158,22 +158,25 @@
                         @endphp
                         @if(!empty($existingImages))
                             <div id="existingImagesSection">
-                                <label class="block text-xs font-bold text-slate-500 mb-1.5">الصور الحالية ({{ count($existingImages) }} صورة)</label>
-                                <div class="grid grid-cols-3 gap-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5">الصور الحالية (<span id="existingImageCount">{{ count($existingImages) }}</span> صورة)</label>
+                                <div id="existingImagesGrid" class="grid grid-cols-3 gap-2">
                                     @foreach($existingImages as $idx => $img)
                                         @php
                                             $imgUrl = str_starts_with($img, '/storage/') || str_starts_with($img, 'http')
                                                 ? $img
                                                 : '/storage/' . $img;
                                         @endphp
-                                        <div class="relative group">
+                                        <div class="relative group existing-image-item" data-image="{{ $img }}">
                                             <img src="{{ $imgUrl }}" alt="Image {{ $idx + 1 }}" class="w-full h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
                                             @if($idx === 0)
-                                                <span class="absolute top-1 right-1 bg-primary text-white text-[9px] px-1.5 py-0.5 rounded">★ بارزة</span>
+                                                <span class="featured-badge absolute top-1 right-1 bg-primary text-white text-[9px] px-1.5 py-0.5 rounded">★ بارزة</span>
                                             @endif
+                                            <button type="button" class="remove-existing-img absolute top-1 left-1 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] leading-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm hover:bg-red-600" title="حذف الصورة">×</button>
                                         </div>
                                     @endforeach
                                 </div>
+                                <!-- Hidden inputs to track removed images -->
+                                <div id="removedImagesInputs"></div>
                             </div>
                         @endif
 
@@ -707,6 +710,52 @@
             imageInput.files = selectedFiles.files;
             updatePreviews();
         });
+
+        // Remove existing images
+        const existingGrid = document.getElementById('existingImagesGrid');
+        const removedInputsContainer = document.getElementById('removedImagesInputs');
+        const existingCountEl = document.getElementById('existingImageCount');
+
+        if (existingGrid) {
+            existingGrid.addEventListener('click', function(e) {
+                const btn = e.target.closest('.remove-existing-img');
+                if (!btn) return;
+                e.preventDefault();
+                const item = btn.closest('.existing-image-item');
+                const imagePath = item.dataset.image;
+
+                // Add hidden input to mark this image for removal
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'remove_images[]';
+                input.value = imagePath;
+                removedInputsContainer.appendChild(input);
+
+                // Remove from DOM
+                item.remove();
+
+                // Update count and featured badge
+                const remaining = existingGrid.querySelectorAll('.existing-image-item');
+                existingCountEl.textContent = remaining.length;
+
+                if (remaining.length === 0) {
+                    document.getElementById('existingImagesSection').classList.add('hidden');
+                } else {
+                    // Update featured badge on first remaining image
+                    remaining.forEach((el, i) => {
+                        const badge = el.querySelector('.featured-badge');
+                        if (i === 0 && !badge) {
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'featured-badge absolute top-1 right-1 bg-primary text-white text-[9px] px-1.5 py-0.5 rounded';
+                            newBadge.textContent = '★ بارزة';
+                            el.appendChild(newBadge);
+                        } else if (i > 0 && badge) {
+                            badge.remove();
+                        }
+                    });
+                }
+            });
+        }
 
         // Remove single image
         previewGrid.addEventListener('click', function(e) {

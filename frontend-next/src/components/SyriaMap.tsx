@@ -113,8 +113,8 @@ function SyriaMap() {
           </h2>
           <p className="text-gov-stone dark:text-white/70 max-w-xl mx-auto text-base">
             {isArabic
-              ? 'استعرض المحافظات السورية الأربع عشرة على الخريطة التفاعلية'
-              : 'Explore the fourteen Syrian governorates on the interactive map'}
+              ? 'استكشف مواقع مديرياتنا في كافة أنحاء القطر'
+              : 'Explore our directorate locations across the country'}
           </p>
           <div className="mt-4 mx-auto w-20 h-1 rounded-full bg-gov-gold" />
         </div>

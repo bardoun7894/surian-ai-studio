@@ -111,7 +111,11 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             } else {
                 const metadata = {
                     title: language === 'ar' ? (news.title_ar || news.title) : (news.title_en || news.title),
+                    title_ar: news.title_ar || news.title,
+                    title_en: news.title_en || news.title,
                     description: language === 'ar' ? (news.summary_ar || news.summary) : (news.summary_en || news.summary),
+                    description_ar: news.summary_ar || news.summary,
+                    description_en: news.summary_en || news.summary,
                     image: news.imageUrl,
                     url: `/news/${articleId}`
                 };

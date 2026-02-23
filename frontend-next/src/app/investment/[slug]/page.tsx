@@ -566,7 +566,7 @@ export default function InvestmentCategoryPage() {
                                 <Icon size={50} />
                             </div>
                             <div className={`text-center ${language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
-                                <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+                                <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                                     {language === 'ar' ? categoryMeta.title_ar : categoryMeta.title_en}
                                 </h1>
                                 <p className="text-white/80 text-lg max-w-2xl">

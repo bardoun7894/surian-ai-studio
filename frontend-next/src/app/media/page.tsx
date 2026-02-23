@@ -14,7 +14,8 @@ import {
   List,
   X,
   Pause,
-  Maximize2
+  Maximize2,
+  ChevronLeft
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,6 +47,8 @@ export default function MediaPage() {
   const [expandedAlbum, setExpandedAlbum] = useState<MediaItem | null>(null);
   const [albumData, setAlbumData] = useState<AlbumData | null>(null);
   const [loadingAlbum, setLoadingAlbum] = useState(false);
+  // Track source album when viewing a full-size image from an album
+  const [sourceAlbum, setSourceAlbum] = useState<{ item: MediaItem; data: AlbumData } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -239,7 +242,7 @@ export default function MediaPage() {
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4">
             <div className="max-w-7xl mx-auto">
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-display font-bold mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
                 {isAr ? 'المركز الإعلامي' : 'Media Center'}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
@@ -598,19 +601,50 @@ export default function MediaPage() {
         {expandedImage && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={() => setExpandedImage(null)}
+            onClick={() => {
+              if (sourceAlbum) {
+                // Return to album
+                setExpandedImage(null);
+                setExpandedAlbum(sourceAlbum.item);
+                setAlbumData(sourceAlbum.data);
+                setSourceAlbum(null);
+              } else {
+                setExpandedImage(null);
+              }
+            }}
           >
             <div
               className="relative max-w-5xl max-h-[90vh] w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                onClick={() => setExpandedImage(null)}
-                className="absolute -top-12 right-0 rtl:right-auto rtl:left-0 z-10 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                aria-label={isAr ? 'إغلاق' : 'Close'}
-              >
-                <X size={20} />
-              </button>
+              <div className="absolute -top-12 left-0 right-0 rtl:left-0 rtl:right-0 z-10 flex items-center justify-between">
+                {sourceAlbum ? (
+                  <button
+                    onClick={() => {
+                      setExpandedImage(null);
+                      setExpandedAlbum(sourceAlbum.item);
+                      setAlbumData(sourceAlbum.data);
+                      setSourceAlbum(null);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/40 text-white rounded-full text-sm font-bold transition-colors backdrop-blur-sm"
+                  >
+                    <ChevronLeft size={16} className={isAr ? 'rotate-180' : ''} />
+                    {isAr ? 'العودة للألبوم' : 'Back to Album'}
+                  </button>
+                ) : (
+                  <div />
+                )}
+                <button
+                  onClick={() => {
+                    setExpandedImage(null);
+                    setSourceAlbum(null);
+                  }}
+                  className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
+                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
               <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden bg-black">
                 <Image
@@ -687,7 +721,10 @@ export default function MediaPage() {
                         key={photo.id}
                         className="group relative aspect-square rounded-lg overflow-hidden bg-black cursor-pointer hover:scale-105 transition-transform duration-300"
                         onClick={() => {
-                          handleCloseAlbum();
+                          // Save album context so we can return to it
+                          setSourceAlbum({ item: expandedAlbum!, data: albumData! });
+                          setExpandedAlbum(null);
+                          setAlbumData(null);
                           setExpandedImage({
                             id: photo.id,
                             title: photo.title,

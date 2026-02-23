@@ -90,7 +90,7 @@ export interface ISuggestionRepository {
 }
 
 export interface IFaqRepository {
-  getAll(): Promise<FAQ[]>;
+  getAll(directorateId?: string): Promise<FAQ[]>;
 }
 
 export interface ISearchRepository {
@@ -762,12 +762,16 @@ class ApiComplaintRepository implements IComplaintRepository {
   }
   async myComplaints(): Promise<Ticket[]> {
     const res = await fetch(`${API_BASE_URL}/users/me/complaints`, {
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        'Accept': 'application/json',
       }
     });
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    // Backend may return array directly or wrapped in { data: [...] }
+    return Array.isArray(data) ? data : (data.data || []);
   }
   async delete(id: string): Promise<boolean> {
     // Fetch CSRF cookie before DELETE (required by Laravel Sanctum)
@@ -1495,7 +1499,7 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/suggestions/rating`, {
+    const res = await fetch(`${API_BASE_URL}/public/suggestions/rating`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1510,8 +1514,8 @@ class ApiSuggestionRepository implements ISuggestionRepository {
 
   async getRatingsStats(trackingNumber?: string): Promise<any> {
     const url = trackingNumber
-      ? `${API_BASE_URL}/suggestions/ratings/stats?tracking_number=${trackingNumber}`
-      : `${API_BASE_URL}/suggestions/ratings/stats`;
+      ? `${API_BASE_URL}/public/suggestions/ratings/stats?tracking_number=${trackingNumber}`
+      : `${API_BASE_URL}/public/suggestions/ratings/stats`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error('Failed to fetch ratings stats');
@@ -2008,7 +2012,7 @@ class ApiNewsletterRepository implements INewsletterRepository {
 
 // --- FAQ Repository ---
 class MockFaqRepository implements IFaqRepository {
-  async getAll(): Promise<FAQ[]> {
+  async getAll(directorateId?: string): Promise<FAQ[]> {
     return new Promise(resolve => setTimeout(() => resolve([
       { id: '1', question_ar: 'كيف يمكنني الحصول على ترخيص منشأة صناعية؟', answer_ar: 'يمكنك التقدم بطلب ترخيص منشأة صناعية عبر قسم الإدارة العامة للصناعة في البوابة.', question_en: 'How can I obtain an industrial facility license?', answer_en: 'You can apply for an industrial facility license through the General Administration for Industry section.' },
       { id: '2', question_ar: 'هل يمكنني تقديم شكوى حماية مستهلك إلكترونياً؟', answer_ar: 'نعم، يمكنك تقديم شكاوى الغش التجاري والمخالفات السعرية عبر قسم الإدارة العامة للتجارة الداخلية وحماية المستهلك.', question_en: 'Can I file a consumer protection complaint electronically?', answer_en: 'Yes, you can file commercial fraud and price violation complaints through the General Administration for Internal Trade and Consumer Protection.' },
@@ -2017,9 +2021,12 @@ class MockFaqRepository implements IFaqRepository {
 }
 
 class ApiFaqRepository implements IFaqRepository {
-  async getAll(): Promise<FAQ[]> {
+  async getAll(directorateId?: string): Promise<FAQ[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/faqs`);
+      const params = new URLSearchParams();
+      if (directorateId) params.append('directorate_id', directorateId);
+      const url = `${API_BASE_URL}/public/faqs${params.toString() ? '?' + params.toString() : ''}`;
+      const res = await fetch(url);
       if (!res.ok) return [];
       const json = await res.json();
       return json.data || json;
@@ -2179,13 +2186,21 @@ class MockAiRepository implements IAiRepository {
 
 class ApiAiRepository implements IAiRepository {
   async summarize(content: string, language: string = 'ar'): Promise<{ summary: string }> {
+    const text = (content || '').trim();
+    if (!text) {
+      throw new Error(language === 'ar' ? 'لا يوجد محتوى للتلخيص' : 'No content to summarize');
+    }
+
     // Use Next.js rewrite proxy to AI service (not the Laravel API)
     const res = await fetch(`/ai/summarize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ text: content, language }),
+      body: JSON.stringify({ text, language, max_length: 500 }),
     });
-    if (!res.ok) throw new Error('Failed to summarize');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || (language === 'ar' ? 'فشل في إنشاء الملخص' : 'Failed to generate summary'));
+    }
     return res.json();
   }
 }

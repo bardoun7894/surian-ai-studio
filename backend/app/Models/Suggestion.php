@@ -35,6 +35,13 @@ class Suggestion extends Model
         'response',
         'reviewed_by',
         'reviewed_at',
+        // AI analysis fields
+        'ai_summary',
+        'ai_category',
+        'ai_priority',
+        'ai_keywords',
+        'ai_confidence',
+        'ai_suggested_directorate_id',
     ];
 
     protected $casts = [
@@ -44,6 +51,8 @@ class Suggestion extends Model
         'reviewed_at' => 'datetime',
         'dob' => 'date',
         'is_anonymous' => 'boolean',
+        'ai_keywords' => 'array',
+        'ai_confidence' => 'float',
     ];
 
     protected static function boot()
@@ -75,6 +84,14 @@ class Suggestion extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the directorate for the suggestion
+     */
+    public function directorate(): BelongsTo
+    {
+        return $this->belongsTo(Directorate::class);
     }
 
     /**

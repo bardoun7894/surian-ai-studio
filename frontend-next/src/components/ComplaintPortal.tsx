@@ -38,8 +38,9 @@ import PrintHeader from './PrintHeader';
 import PrintFooter from './PrintFooter';
 import { Ticket } from '@/types';
 import { focusPulse } from '@/lib/animations';
+import { validatePhoneWithCountryCode } from '@/lib/phone';
 import ImportedSatisfactionRating from './SatisfactionRating'; // Import Rating Component
-import UploadProgress from './UploadProgress';
+import UploadProgress, { MultiUploadProgress } from './UploadProgress';
 import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { useAuth } from '@/contexts/AuthContext';
@@ -112,7 +113,7 @@ const SubmissionExperienceRating: React.FC = () => {
                         className={`transition-colors ${star <= (hoverRating || rating)
                             ? 'text-yellow-400 fill-yellow-400'
                             : 'text-gray-300 dark:text-white/70'
-                        }`}
+                            }`}
                     />
                 </button>
             ))}
@@ -258,12 +259,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         if (name === 'nationalId' && !/^\d{11}$/.test(value)) {
             error = t('complaint_national_id_invalid');
         } else if (name === 'phone') {
-            // Basic validation for international numbers (min 7 digits, max 15)
-            // If it starts with +, it's likely from PhoneInput
-            if (value.startsWith('+') && value.length < 10) {
-                error = t('complaint_phone_invalid');
-            } else if (!value.startsWith('+') && !/^(09\d{8})$/.test(value)) {
-                // Fallback for legacy/local format if somehow not using PhoneInput or stripping code
+            const phoneResult = validatePhoneWithCountryCode(value);
+            if (!phoneResult.isValid) {
                 error = t('complaint_phone_invalid');
             }
         } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
@@ -436,8 +433,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setSelectedFiles(prev => [...prev, ...filesToAdd]);
-            setUploadStatus('ready');
+            // Show upload animation immediately on file selection
+            setUploadStatus('uploading');
             setUploadProgress(0);
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                setUploadProgress(Math.min(progress, 100));
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setUploadStatus('ready');
+                }
+            }, 150);
         }
 
         const rejectionItems: RejectedAttachment[] = [
@@ -491,9 +498,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                     : `Attachment limit reached. You can upload up to ${MAX_ATTACHMENT_COUNT} files`
             );
         }
-
-        setUploadStatus('ready');
-        setUploadProgress(0);
 
         // Reset the input so the same file can be selected again
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -554,14 +558,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const removeFile = (index?: number) => {
         if (index !== undefined) {
-            setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+            setSelectedFiles(prev => {
+                const newFiles = prev.filter((_, i) => i !== index);
+                if (newFiles.length === 0) {
+                    setUploadProgress(0);
+                    setUploadStatus('ready');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+                return newFiles;
+            });
         } else {
             setSelectedFiles([]);
-        }
-        setUploadProgress(0);
-        setUploadStatus('ready');
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            setUploadProgress(0);
+            setUploadStatus('ready');
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -636,7 +646,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             console.error("Submission failed", e);
             setUploadStatus('error');
             setUploadProgress(0);
-            const errorMessage = e?.message || t('complaint_try_again');
+            const rawMessage = e?.message || '';
+            // Translate common Arabic-only backend messages when language is English
+            const translatedMessage = !isAr ? translateBackendError(rawMessage) : rawMessage;
+            const errorMessage = translatedMessage || t('complaint_try_again');
             setSubmitError(errorMessage);
             toast.error(t('complaint_submit_fail'), {
                 description: errorMessage,
@@ -743,7 +756,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         'processing': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
         'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'resolved': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-        'rejected': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+        'rejected': { ar: 'مرفوضة', en: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+        'closed': { ar: 'مغلقة', en: 'Closed', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' },
         'responded': { ar: 'تم الرد عليها', en: 'Responded', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
     };
 
@@ -780,6 +794,23 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         };
         const fallback = normalized.replace(/_/g, ' ');
         return isAr ? labels[normalized]?.ar || fallback : labels[normalized]?.en || fallback;
+    };
+
+    const translateBackendError = (msg: string): string => {
+        const translations: Record<string, string> = {
+            'تم تجاوز الحد المسموح': 'Rate limit exceeded. Please try again later.',
+            'تم تجاوز الحد الأقصى': 'Maximum limit exceeded.',
+            'الحد الأقصى للمرفقات': 'Maximum attachments limit reached.',
+            'حجم الملف يتجاوز الحد المسموح': 'File size exceeds the allowed limit.',
+            'صيغة ملف غير مدعومة': 'Unsupported file type.',
+            'الرقم الوطني مطلوب': 'National ID is required.',
+            'الوصف مطلوب': 'Description is required.',
+            'الوصف يجب ان يكون على الأقل 10 أحرف': 'Description must be at least 10 characters.',
+        };
+        for (const [ar, en] of Object.entries(translations)) {
+            if (msg.includes(ar)) return en;
+        }
+        return msg;
     };
 
     const maskEmail = (value?: string) => {
@@ -874,32 +905,32 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
                             ) : (
                                 <>
-                                <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
-                                    {t('complaint_review_desc')}
-                                </p>
-                                <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
-                                    <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
-                                        {t('complaint_condition_intro')}
+                                    <p className="text-gov-charcoal dark:text-white/70 text-sm mb-6 leading-relaxed">
+                                        {t('complaint_review_desc')}
                                     </p>
-                                    <ul className="space-y-3">
-                                        <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_1')}</p>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_2')}</p>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_3')}</p>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
-                                            <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_4')}</p>
-                                        </li>
-                                    </ul>
-                                </div>
+                                    <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-lg p-4 mb-4">
+                                        <p className="text-gov-forest dark:text-gov-teal font-bold text-sm mb-3">
+                                            {t('complaint_condition_intro')}
+                                        </p>
+                                        <ul className="space-y-3">
+                                            <li className="flex items-start gap-2">
+                                                <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                                <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_1')}</p>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                                <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_2')}</p>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                                <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_3')}</p>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                                <p className="text-gov-charcoal dark:text-white text-sm">{t('complaint_condition_4')}</p>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -1263,40 +1294,37 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 {selectedFiles.length > 0 && (
                                     <div className="mt-4 space-y-2">
                                         {selectedFiles.map((file, index) => (
-                                            <div key={`${file.name}-${index}`} className="relative">
-                                                <div className="flex items-center justify-between bg-white dark:bg-gov-card/10 p-3 rounded-lg border border-gov-gold/20">
-                                                    <div className="flex items-center gap-3">
-                                                        <FileText size={20} className="text-gov-forest dark:text-gov-teal" />
-                                                        <span className="text-sm font-bold text-gov-charcoal dark:text-white truncate max-w-[200px]">{file.name}</span>
-                                                        <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                                                    </div>
-                                                    {!isSubmitting && (
-                                                        <button type="button" onClick={() => removeFile(index)} className="text-gov-cherry hover:bg-gov-cherry/10 p-1 rounded">
-                                                            <X size={16} />
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                {/* Only show upload progress during submission */}
-                                                {isSubmitting && (
-                                                    <UploadProgress
-                                                        fileName={file.name}
-                                                        progress={uploadStatus === 'completed' ? 100 : uploadProgress}
-                                                        status={uploadStatus === 'completed' ? 'completed' : uploadStatus === 'error' ? 'error' : 'uploading'}
-                                                        fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
-                                                        language={isAr ? 'ar' : 'en'}
-                                                    />
-                                                )}
+                                            <div key={`${file.name}-${index}`}>
+                                                <UploadProgress
+                                                    fileName={file.name}
+                                                    progress={uploadStatus === 'uploading' || isSubmitting ? uploadProgress : 100}
+                                                    status={uploadStatus === 'uploading' || isSubmitting ? 'uploading' : uploadStatus === 'error' ? 'error' : 'ready'}
+                                                    fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                                                    language={isAr ? 'ar' : 'en'}
+                                                    onCancel={!isSubmitting ? () => removeFile(index) : undefined}
+                                                />
                                             </div>
                                         ))}
 
+                                        {/* Add more files button */}
+                                        {selectedFiles.length < MAX_ATTACHMENT_COUNT && !isSubmitting && (
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="w-full py-2.5 rounded-xl border-2 border-dashed border-gov-gold/30 text-gov-forest dark:text-gov-teal text-sm font-bold hover:bg-gov-beige/30 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Upload size={16} />
+                                                <span>{isAr ? `إضافة مرفقات أخرى (${selectedFiles.length}/${MAX_ATTACHMENT_COUNT})` : `Add more files (${selectedFiles.length}/${MAX_ATTACHMENT_COUNT})`}</span>
+                                            </button>
+                                        )}
+
                                         {/* Show overall upload progress during submission */}
                                         {isSubmitting && (
-                                            <UploadProgress
-                                                fileName={isAr ? `${selectedFiles.length} ملف` : `${selectedFiles.length} file(s)`}
+                                            <MultiUploadProgress
+                                                files={selectedFiles}
                                                 progress={uploadProgress}
-                                                status={uploadStatus}
-                                                fileSize={`${(selectedFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2)} MB`}
+                                                isUploading={isSubmitting}
+                                                isSubmitting={isSubmitting}
                                                 language={isAr ? 'ar' : 'en'}
                                             />
                                         )}
@@ -1343,24 +1371,36 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         <Input
                                             label={t('complaint_first_name')}
                                             required
+                                            name="firstName"
                                             value={formData.firstName}
                                             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                            onBlur={handleBlur}
+                                            error={touched.firstName && !formData.firstName.trim() ? (isAr ? 'الاسم الأول مطلوب' : 'First name is required') : undefined}
+                                            isValid={touched.firstName && !!formData.firstName.trim()}
                                             icon={User}
                                             disabled={shouldLockPersonalInfo}
                                         />
                                         <Input
                                             label={t('complaint_father_name')}
                                             required
+                                            name="fatherName"
                                             value={formData.fatherName}
                                             onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                            onBlur={handleBlur}
+                                            error={touched.fatherName && !formData.fatherName.trim() ? (isAr ? 'اسم الأب مطلوب' : 'Father name is required') : undefined}
+                                            isValid={touched.fatherName && !!formData.fatherName.trim()}
                                             icon={User}
                                             disabled={shouldLockPersonalInfo}
                                         />
                                         <Input
                                             label={t('complaint_last_name')}
                                             required
+                                            name="lastName"
                                             value={formData.lastName}
                                             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                            onBlur={handleBlur}
+                                            error={touched.lastName && !formData.lastName.trim() ? (isAr ? 'اسم العائلة مطلوب' : 'Last name is required') : undefined}
+                                            isValid={touched.lastName && !!formData.lastName.trim()}
                                             icon={User}
                                             disabled={shouldLockPersonalInfo}
                                         />
@@ -1701,17 +1741,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     </div>
                                                 </div>
                                             )}
-                                            {(trackingResult.priority || trackingResult.ai_priority) && (
-                                                <div className="rounded-xl border border-gray-100 dark:border-gov-border/20 bg-gray-50/70 dark:bg-white/5 p-3">
-                                                    <div className="flex items-start gap-2">
-                                                        <AlertCircle size={16} className="text-gray-400 mt-0.5" />
-                                                        <div>
-                                                            <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_priority')}</span>
-                                                            <span className="text-sm font-medium text-gov-charcoal dark:text-white">{getPriorityLabel(trackingResult.priority || trackingResult.ai_priority)}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            {/* Priority hidden from end users — only visible in admin panel */}
                                         </div>
 
                                         {trackingResult.ai_category && (
@@ -1800,8 +1830,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             printTargetId="complaint-print-target"
                                         />
 
-                                        {/* FR-22: Delete button only for authenticated users with "received/new" status */}
-                                        {isAuthenticated && (trackingResult.status === 'new' || trackingResult.status === 'received') && (
+                                        {/* FR-22: Delete button for "received/new" status */}
+                                        {(trackingResult.status === 'new' || trackingResult.status === 'received') && (
                                             <button
                                                 onClick={handleDeleteComplaint}
                                                 disabled={isDeleting}

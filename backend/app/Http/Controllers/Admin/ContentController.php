@@ -172,6 +172,15 @@ class ContentController extends Controller
         // Prepare metadata - Start with existing
         $metadata = $content->metadata ?? [];
 
+        // Handle removal of existing images
+        if ($request->has('remove_images')) {
+            $removeImages = $request->input('remove_images', []);
+            $currentImages = $metadata['images'] ?? [];
+            $currentImages = array_values(array_filter($currentImages, fn($img) => !in_array($img, $removeImages)));
+            $metadata['images'] = $currentImages;
+            $metadata['image'] = $currentImages[0] ?? null;
+        }
+
         if ($request->hasFile('images')) {
             $imagePaths = [];
             foreach ($request->file('images') as $image) {

@@ -6,16 +6,24 @@ use App\Models\Suggestion;
 use App\Models\SuggestionAttachment;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class SuggestionService
 {
+    protected AIService $aiService;
+
+    public function __construct(AIService $aiService)
+    {
+        $this->aiService = $aiService;
+    }
+
     /**
      * Store a new suggestion with file attachments
      */
     public function store(array $data, array $files = []): Suggestion
     {
-        return DB::transaction(function () use ($data, $files) {
+        $suggestion = DB::transaction(function () use ($data, $files) {
             // Create the suggestion
             $suggestion = Suggestion::create([
                 'name' => $data['name'] ?? 'مجهول الهوية',
@@ -37,6 +45,56 @@ class SuggestionService
 
             return $suggestion->load('attachments');
         });
+
+        // AI Classification (outside transaction — non-critical)
+        $this->classifyWithAI($suggestion);
+
+        return $suggestion;
+    }
+
+    /**
+     * Classify suggestion using AI service
+     */
+    protected function classifyWithAI(Suggestion $suggestion): void
+    {
+        try {
+            $analysis = $this->aiService->classifySuggestion($suggestion);
+
+            $updateData = [];
+
+            if (isset($analysis['summary'])) {
+                $updateData['ai_summary'] = $analysis['summary'];
+            }
+            if (isset($analysis['category'])) {
+                $updateData['ai_category'] = $analysis['category'];
+            }
+            if (isset($analysis['priority'])) {
+                $updateData['ai_priority'] = $analysis['priority'];
+            }
+            if (isset($analysis['keywords'])) {
+                $updateData['ai_keywords'] = is_array($analysis['keywords'])
+                    ? $analysis['keywords']
+                    : explode(',', $analysis['keywords']);
+            }
+            if (isset($analysis['confidence'])) {
+                $updateData['ai_confidence'] = (float) $analysis['confidence'];
+            }
+            if (isset($analysis['suggested_directorate_id'])) {
+                $updateData['ai_suggested_directorate_id'] = $analysis['suggested_directorate_id'];
+            }
+
+            if (!empty($updateData)) {
+                $suggestion->update($updateData);
+            }
+
+            Log::info("Suggestion #{$suggestion->tracking_number} classified by AI", [
+                'category' => $analysis['category'] ?? 'unknown',
+                'priority' => $analysis['priority'] ?? 'medium',
+                'confidence' => $analysis['confidence'] ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("AI classification failed for suggestion #{$suggestion->tracking_number}: {$e->getMessage()}");
+        }
     }
 
     /**

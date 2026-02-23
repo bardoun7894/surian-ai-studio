@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon } from 'lucide-react';
+import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Link from 'next/link';
@@ -68,7 +68,64 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasDragged, setHasDragged] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollButtons = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const el = scrollContainerRef.current;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const threshold = 10;
+    const absScroll = Math.abs(scrollLeft);
+    const maxScroll = scrollWidth - clientWidth;
+
+    if (language === 'ar') {
+      setCanScrollLeft(absScroll > threshold);
+      setCanScrollRight(absScroll < maxScroll - threshold);
+    } else {
+      setCanScrollLeft(scrollLeft > threshold);
+      setCanScrollRight(scrollLeft < maxScroll - threshold);
+    }
+  }, [language]);
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollContainerRef.current) return;
+    const cardElement = scrollContainerRef.current.querySelector('a') as HTMLElement | null;
+    let cardWidth = 200;
+    if (cardElement && cardElement.parentElement) {
+      cardWidth = cardElement.parentElement.clientWidth;
+    }
+    const amount = cardWidth + 20;
+
+    if (language === 'ar') {
+      const scrollAmount = dir === 'left' ? amount : -amount;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    } else {
+      const scrollAmount = dir === 'left' ? -amount : amount;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+
+    setTimeout(() => updateScrollButtons(), 400);
+  };
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setTimeout(updateScrollButtons, 100);
+    el.addEventListener('scroll', updateScrollButtons);
+    window.addEventListener('resize', updateScrollButtons);
+    return () => {
+      el.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, [links, updateScrollButtons]);
 
   useEffect(() => {
     API.quickLinks.getBySection(section)
@@ -78,6 +135,43 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
       .catch(() => { /* Fallback already set */ })
       .finally(() => setLoading(false));
   }, [section]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+
+    if (Math.abs(walk) > 10) {
+      setHasDragged(true);
+    }
+
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!scrollContainerRef.current) return;
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      scrollContainerRef.current.scrollLeft += e.deltaY;
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -105,7 +199,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
   };
 
   return (
-    <section ref={ref} id="quick-links" className="py-24 relative overflow-hidden bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
+    <section ref={ref} id="quick-links" className="py-12 md:py-24 relative overflow-hidden bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -124,7 +218,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-16"
+          className="text-center mb-8 md:mb-16"
         >
           {/* Decorative Line */}
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -162,24 +256,58 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl font-display font-bold text-gov-forest dark:text-gov-gold"
+            className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold"
           >
             {isAr ? 'روابط سريعة' : 'Quick Links'}
           </motion.h2>
         </motion.div>
 
+        {/* Scroll Arrows */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.5 }}
+          className="flex items-center justify-end gap-2 md:gap-3 mb-4 md:mb-6 max-w-[95%] mx-auto"
+        >
+          <button
+            onClick={() => scroll('left')}
+            disabled={!canScrollLeft}
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm bg-white dark:bg-dm-surface"
+          >
+            {language === 'ar' ? <ChevronRight size={16} className="md:w-5 md:h-5" /> : <ChevronLeft size={16} className="md:w-5 md:h-5" />}
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            disabled={!canScrollRight}
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm bg-white dark:bg-dm-surface"
+          >
+            {language === 'ar' ? <ChevronLeft size={16} className="md:w-5 md:h-5" /> : <ChevronRight size={16} className="md:w-5 md:h-5" />}
+          </button>
+        </motion.div>
+
         {/* Links Grid */}
         <motion.div
+          ref={scrollContainerRef}
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex flex-wrap justify-center gap-8 md:gap-12"
+          className={`flex flex-nowrap overflow-x-auto gap-3 md:gap-5 py-4 md:py-8 px-4 sm:px-8 -mx-4 sm:-mx-8 snap-x snap-mandatory ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onWheel={handleWheel}
         >
+          <style dangerouslySetInnerHTML={{
+            __html: `
+            .flex::-webkit-scrollbar { display: none; }
+          `}} />
           {loading ? (
             <div className="flex justify-center gap-8 w-full">
               {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
+                <div key={i} className="flex flex-col items-center gap-2 min-h-[88px] justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
                   <div className="w-20 h-4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
                 </div>
               ))}
@@ -200,21 +328,32 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
               <motion.div
                 key={link.id}
                 variants={itemVariants}
-                className="group relative"
+                className="group relative flex-shrink-0 snap-center min-w-max h-full"
               >
                 <Link
                   href={href}
-                  className="flex flex-col items-center gap-3"
+                  onClick={(e) => {
+                    if (hasDragged) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="flex relative px-4 py-3 md:px-6 md:py-4 min-h-[72px] md:min-h-[96px] bg-white/70 dark:bg-dm-surface backdrop-blur-xl rounded-[1rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-lg group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.15)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 items-stretch font-sans"
                 >
-                  {/* Icon Container - Now the main element */}
-                  <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ease-out z-10`}>
-                    <Icon size={32} className="text-white group-hover:scale-110 transition-transform duration-300" />
+                  {/* Subtle Background Glow on Hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-[1rem] md:rounded-[1.5rem]`} />
+
+                  {/* Icon Container */}
+                  <div className={`relative w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 transition-all duration-300 ease-out z-10 flex-shrink-0 my-auto`}>
+                    <Icon size={20} className="text-white group-hover:animate-pulse transition-transform duration-300 md:w-6 md:h-6" />
                   </div>
 
                   {/* Label */}
-                  <span className="text-sm font-bold text-gov-charcoal dark:text-white/90 text-center leading-tight max-w-[100px] group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
+                  <span className="text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-nowrap leading-tight transition-colors z-10 flex items-center pr-2">
                     {label}
                   </span>
+
+                  {/* Animated Border Bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gov-forest via-gov-gold to-gov-teal transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
                 </Link>
               </motion.div>
             );

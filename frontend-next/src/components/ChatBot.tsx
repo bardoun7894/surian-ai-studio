@@ -69,6 +69,7 @@ const ChatBot: React.FC = () => {
     const [requestingHandoff, setRequestingHandoff] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { language } = useLanguage();
 
     // Initialize session ID and load history from API
@@ -256,6 +257,10 @@ const ChatBot: React.FC = () => {
         setInput('');
         setAttachment(null);
         setIsLoading(true);
+        // Reset textarea height after clearing
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
 
         try {
             let responseText: string;
@@ -477,7 +482,7 @@ const ChatBot: React.FC = () => {
 
                 {/* Input Area */}
                 <form onSubmit={handleSend} className="p-4 bg-white dark:bg-dm-surface border-t border-gov-gold/10 dark:border-dm-border shrink-0 safe-area-bottom">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end gap-2">
                         <input
                             type="file"
                             accept="image/*,application/pdf"
@@ -493,12 +498,27 @@ const ChatBot: React.FC = () => {
                         >
                             <Paperclip size={18} />
                         </button>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={(e) => {
+                                setInput(e.target.value);
+                                // Auto-resize textarea
+                                e.target.style.height = 'auto';
+                                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (input.trim() || attachment) {
+                                        handleSend(e);
+                                    }
+                                }
+                                // Shift+Enter inserts a newline (default textarea behavior)
+                            }}
                             placeholder={language === 'ar' ? 'اكتب استفسارك هنا...' : 'Type your question here...'}
-                            className="flex-1 bg-gov-beige/20 dark:bg-gov-card/10 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50"
+                            rows={1}
+                            className="flex-1 bg-gov-beige/20 dark:bg-gov-card/10 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50 resize-none overflow-y-auto max-h-[120px]"
                         />
                         <button
                             type="submit"

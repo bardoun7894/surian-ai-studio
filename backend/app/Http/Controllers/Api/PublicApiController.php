@@ -573,10 +573,18 @@ class PublicApiController extends Controller
     {
         $query = Content::where('category', 'decree')
             ->where('status', 'published')
+            ->with(['directorate', 'attachments' => function ($q) {
+                $q->where('is_public', true)->orderBy('display_order');
+            }])
             ->orderBy('published_at', 'desc');
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->whereJsonContains('metadata->decree_type', $request->type);
+        }
+
+        // M7.13: Filter by directorate
+        if ($request->has('directorate_id') && $request->directorate_id) {
+            $query->where('directorate_id', $request->directorate_id);
         }
 
         if ($request->has('q')) {
@@ -612,6 +620,18 @@ class PublicApiController extends Controller
             'description_en' => $d->seo_description_en ?? mb_substr(strip_tags($d->content_en ?? ''), 0, 200),
             'content_ar' => $d->content_ar,
             'content_en' => $d->content_en,
+            'directorate_id' => $d->directorate_id,
+            'directorate_name' => $d->directorate?->name_ar,
+            'directorate_name_en' => $d->directorate?->name_en,
+            'attachments' => $d->attachments->map(fn($a) => [
+                'id' => $a->id,
+                'file_name' => $a->file_name,
+                'file_path' => $a->file_path,
+                'file_type' => $a->file_type,
+                'mime_type' => $a->mime_type,
+                'file_size' => $a->file_size,
+                'download_url' => url("/api/v1/public/decrees/{$d->id}/attachments/{$a->id}/download"),
+            ])->toArray(),
         ]);
 
         return response()->json($decrees);
@@ -1105,6 +1125,24 @@ class PublicApiController extends Controller
 
     private function formatServiceModel(Service $s): array
     {
+        // Normalize requirements: always return an array
+        $requirements = $s->requirements;
+        if (is_string($requirements)) {
+            // Try JSON decode first (in case it's a JSON string)
+            $decoded = json_decode($requirements, true);
+            if (is_array($decoded)) {
+                $requirements = $decoded;
+            } else {
+                // Split plain text by newlines
+                $requirements = array_values(array_filter(
+                    array_map('trim', preg_split('/\r?\n/', $requirements)),
+                    fn($r) => strlen($r) > 0
+                ));
+            }
+        } elseif (!is_array($requirements)) {
+            $requirements = [];
+        }
+
         return [
             'id' => (string) $s->id,
             'title' => $s->name_ar,
@@ -1122,7 +1160,7 @@ class PublicApiController extends Controller
             'url' => $s->url,
             'fees' => $s->fees,
             'estimated_time' => $s->estimated_time,
-            'requirements' => $s->requirements,
+            'requirements' => $requirements,
         ];
     }
 

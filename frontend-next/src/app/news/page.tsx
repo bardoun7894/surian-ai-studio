@@ -1,40 +1,61 @@
-'use client';
+"use client";
 
-import React, { Suspense, useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Calendar, ChevronLeft, Loader2, Sparkles, X, Clock, Search, Landmark, Building2, LayoutGrid, ArrowLeft, Star } from 'lucide-react';
-import { API } from '@/lib/repository';
-import { NewsItem, Directorate, PaginatedResponse } from '@/types';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import FavoriteButton from '@/components/FavoriteButton';
-import Pagination from '@/components/Pagination';
-import Image from 'next/image';
-import Link from 'next/link';
-import { aiService } from '@/lib/aiService';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { formatRelativeTime } from '@/lib/utils';
-import { SkeletonGrid } from '@/components/SkeletonLoader';
-import ContentFilter from '@/components/ContentFilter';
-import ScrollAnimation from '@/components/ui/ScrollAnimation';
+import React, { Suspense, useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Calendar,
+  ChevronLeft,
+  Loader2,
+  Sparkles,
+  X,
+  Clock,
+  Search,
+  Landmark,
+  Building2,
+  LayoutGrid,
+  ArrowLeft,
+  Star,
+} from "lucide-react";
+import { API } from "@/lib/repository";
+import { NewsItem, Directorate, PaginatedResponse } from "@/types";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import FavoriteButton from "@/components/FavoriteButton";
+import Pagination from "@/components/Pagination";
+import Image from "next/image";
+import Link from "next/link";
+import { aiService } from "@/lib/aiService";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { formatRelativeTime } from "@/lib/utils";
+import { SkeletonGrid } from "@/components/SkeletonLoader";
+import ContentFilter from "@/components/ContentFilter";
+import ScrollAnimation from "@/components/ui/ScrollAnimation";
 
 export default function NewsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gov-beige dark:bg-dm-bg" />}>
+    <Suspense
+      fallback={<div className="min-h-screen bg-gov-beige dark:bg-dm-bg" />}
+    >
       <NewsPageContent />
     </Suspense>
   );
 }
 
 interface DirectorateNewsGroup {
-  directorate: { id: string; name: string; name_ar?: string; name_en?: string; icon: string };
+  directorate: {
+    id: string;
+    name: string;
+    name_ar?: string;
+    name_en?: string;
+    icon: string;
+  };
   news: NewsItem[];
 }
 
 function NewsPageContent() {
   const { language } = useLanguage();
   const searchParams = useSearchParams();
-  const isAr = language === 'ar';
+  const isAr = language === "ar";
 
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
   const [groupedNews, setGroupedNews] = useState<DirectorateNewsGroup[]>([]);
@@ -42,10 +63,12 @@ function NewsPageContent() {
   const [loading, setLoading] = useState(true);
 
   // Filter state
-  const [activeView, setActiveView] = useState<string>(() => searchParams.get('directorate') || 'organized');
+  const [activeView, setActiveView] = useState<string>(
+    () => searchParams.get("directorate") || "organized",
+  );
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(12);
 
   // Pagination state for flat views
@@ -55,31 +78,53 @@ function NewsPageContent() {
   const [perPage] = useState(12);
 
   // AI summary modal
-  const [summaryModal, setSummaryModal] = useState<{ isOpen: boolean; title: string; summary: string; loading: boolean }>({
-    isOpen: false, title: '', summary: '', loading: false
+  const [summaryModal, setSummaryModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    summary: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    title: "",
+    summary: "",
+    loading: false,
   });
 
   const handleAISummary = async (item: NewsItem) => {
     const MIN_SUMMARY_TEXT_LENGTH = 20;
     const MAX_SUMMARY_INPUT_LENGTH = 4500;
 
-    const normalizeText = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    const summarizeInput = (value: string) => normalizeText(value).slice(0, MAX_SUMMARY_INPUT_LENGTH);
+    const normalizeText = (value: string) =>
+      value
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const summarizeInput = (value: string) =>
+      normalizeText(value).slice(0, MAX_SUMMARY_INPUT_LENGTH);
     const localFallbackSummary = (value: string) => {
       const excerpt = normalizeText(value).slice(0, 280);
       if (!excerpt) {
-        return isAr ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.';
+        return isAr
+          ? "لا يوجد محتوى كافٍ لإنشاء ملخص."
+          : "Not enough content to generate a summary.";
       }
       return isAr
-        ? `تعذر إنشاء الملخص الذكي حالياً. هذه نبذة مختصرة من الخبر: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`
-        : `AI summary is temporarily unavailable. Showing a short article excerpt instead: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
+        ? `تعذر إنشاء الملخص الذكي حالياً. هذه نبذة مختصرة من الخبر: ${excerpt}${excerpt.length >= 280 ? "..." : ""}`
+        : `AI summary is temporarily unavailable. Showing a short article excerpt instead: ${excerpt}${excerpt.length >= 280 ? "..." : ""}`;
     };
 
-    const displayTitle = isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title);
-    setSummaryModal({ isOpen: true, title: displayTitle, summary: '', loading: true });
+    const displayTitle = isAr
+      ? (item as any).title_ar || item.title
+      : (item as any).title_en || item.title;
+    setSummaryModal({
+      isOpen: true,
+      title: displayTitle,
+      summary: "",
+      loading: true,
+    });
 
-    let textToSummarize = '';
-    let fallbackText = '';
+    let textToSummarize = "";
+    let fallbackText = "";
 
     try {
       // Fetch full article content for better summarization
@@ -87,53 +132,72 @@ function NewsPageContent() {
         const fullArticle = await API.news.getById(String(item.id));
         if (fullArticle) {
           textToSummarize = isAr
-            ? ((fullArticle as any).content_ar || (fullArticle as any).summary_ar || fullArticle.summary || '')
-            : ((fullArticle as any).content_en || (fullArticle as any).summary_en || fullArticle.summary || '');
+            ? (fullArticle as any).content_ar ||
+              (fullArticle as any).summary_ar ||
+              fullArticle.summary ||
+              ""
+            : (fullArticle as any).content_en ||
+              (fullArticle as any).summary_en ||
+              fullArticle.summary ||
+              "";
         }
       } catch {
         // Fallback to list-level data
       }
 
       fallbackText = isAr
-        ? ((item as any).summary_ar || item.summary || item.title)
-        : ((item as any).summary_en || item.summary || item.title);
+        ? (item as any).summary_ar || item.summary || item.title
+        : (item as any).summary_en || item.summary || item.title;
 
       // Fallback if full article fetch failed or had no content
-      if (!textToSummarize || textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH) {
+      if (
+        !textToSummarize ||
+        textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH
+      ) {
         textToSummarize = fallbackText;
       }
 
       // If text is still too short for summarization, show it directly
-      if (!textToSummarize || textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH) {
-        setSummaryModal(prev => ({
+      if (
+        !textToSummarize ||
+        textToSummarize.length < MIN_SUMMARY_TEXT_LENGTH
+      ) {
+        setSummaryModal((prev) => ({
           ...prev,
-          summary: textToSummarize || (isAr ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.'),
-          loading: false
+          summary:
+            textToSummarize ||
+            (isAr
+              ? "لا يوجد محتوى كافٍ لإنشاء ملخص."
+              : "Not enough content to generate a summary."),
+          loading: false,
         }));
         return;
       }
 
       const cleanText = summarizeInput(textToSummarize);
-      let summary = '';
+      let summary = "";
 
       try {
         summary = await aiService.summarize(cleanText, language, 120);
       } catch {
         const retryText = summarizeInput(fallbackText || textToSummarize);
-        if (retryText.length >= MIN_SUMMARY_TEXT_LENGTH && retryText !== cleanText) {
+        if (
+          retryText.length >= MIN_SUMMARY_TEXT_LENGTH &&
+          retryText !== cleanText
+        ) {
           summary = await aiService.summarize(retryText, language, 100);
         } else {
-          throw new Error('Summarization failed after retry');
+          throw new Error("Summarization failed after retry");
         }
       }
 
-      setSummaryModal(prev => ({ ...prev, summary, loading: false }));
+      setSummaryModal((prev) => ({ ...prev, summary, loading: false }));
     } catch (err) {
-      console.error('AI Summary error:', err);
-      setSummaryModal(prev => ({
+      console.error("AI Summary error:", err);
+      setSummaryModal((prev) => ({
         ...prev,
         summary: localFallbackSummary(fallbackText || textToSummarize),
-        loading: false
+        loading: false,
       }));
     }
   };
@@ -144,7 +208,7 @@ function NewsPageContent() {
         const [newsData, dirsData, grouped] = await Promise.all([
           API.news.getOfficialNews(),
           API.directorates.getFeatured(),
-          API.news.getGroupedByDirectorate()
+          API.news.getGroupedByDirectorate(),
         ]);
         // allNews from getOfficialNews is used for organized view (featured hero, "All News" section)
         setAllNews(newsData);
@@ -161,13 +225,20 @@ function NewsPageContent() {
 
   // Paginated fetch for flat views (non-organized)
   useEffect(() => {
-    if (activeView === 'organized') return;
+    if (activeView === "organized") return;
 
     const fetchPaginated = async () => {
       setLoading(true);
       try {
-        const directorateId = (activeView !== 'all' && activeView !== 'central') ? activeView : undefined;
-        const response = await API.news.getPaginated(currentPage, perPage, directorateId);
+        const directorateId =
+          activeView !== "all" && activeView !== "central"
+            ? activeView
+            : undefined;
+        const response = await API.news.getPaginated(
+          currentPage,
+          perPage,
+          directorateId,
+        );
         setAllNews(response.data);
         setCurrentPage(response.current_page);
         setLastPage(response.last_page);
@@ -184,22 +255,40 @@ function NewsPageContent() {
   // Filter grouped news to only show featured/main departments (not every individual directorate)
   const filteredGroupedNews = useMemo(() => {
     if (directorates.length === 0) return groupedNews;
-    const featuredIds = new Set(directorates.map(d => String(d.id)));
-    return groupedNews.filter(group => featuredIds.has(String(group.directorate.id)));
+    const featuredIds = new Set(directorates.map((d) => String(d.id)));
+    return groupedNews.filter((group) =>
+      featuredIds.has(String(group.directorate.id)),
+    );
   }, [groupedNews, directorates]);
 
   // View tabs - use only main departments (featured directorates), not all individual directorates
   const viewTabs = useMemo(() => {
     const t = [
-      { key: 'organized', label: isAr ? 'عرض منظم' : 'Organized View', icon: LayoutGrid },
-      { key: 'all', label: isAr ? 'جميع الأخبار' : 'All News', icon: LayoutGrid },
-      { key: 'central', label: isAr ? 'أخبار الإدارة المركزية' : 'Central Admin News', icon: Landmark },
+      {
+        key: "organized",
+        label: isAr ? "عرض منظم" : "Organized View",
+        icon: LayoutGrid,
+      },
+      {
+        key: "all",
+        label: isAr ? "جميع الأخبار" : "All News",
+        icon: LayoutGrid,
+      },
+      {
+        key: "central",
+        label: isAr ? "أخبار الإدارة المركزية" : "Central Admin News",
+        icon: Landmark,
+      },
     ];
     // Only show the main departments (featured directorates) as tabs
-    filteredGroupedNews.forEach(group => {
+    filteredGroupedNews.forEach((group) => {
       const nameAr = group.directorate.name_ar || group.directorate.name;
       const nameEn = group.directorate.name_en || group.directorate.name;
-      t.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
+      t.push({
+        key: String(group.directorate.id),
+        label: isAr ? nameAr : nameEn,
+        icon: Building2,
+      });
     });
     return t;
   }, [filteredGroupedNews, language, isAr]);
@@ -209,31 +298,39 @@ function NewsPageContent() {
     let result = [...allNews];
 
     // View filter
-    if (activeView !== 'organized' && activeView !== 'all') {
-      if (activeView === 'central') {
-        result = result.filter(item => !(item as any).directorate_id && !(item as any).directorate_name);
+    if (activeView !== "organized" && activeView !== "all") {
+      if (activeView === "central") {
+        result = result.filter(
+          (item) =>
+            !(item as any).directorate_id && !(item as any).directorate_name,
+        );
       } else {
-        result = result.filter(item => String((item as any).directorate_id) === activeView);
+        result = result.filter(
+          (item) => String((item as any).directorate_id) === activeView,
+        );
       }
     }
 
     // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(item =>
-        (item.title || '').toLowerCase().includes(q) ||
-        ((item as any).title_ar || '').toLowerCase().includes(q) ||
-        ((item as any).title_en || '').toLowerCase().includes(q) ||
-        (item.summary || '').toLowerCase().includes(q)
+      result = result.filter(
+        (item) =>
+          (item.title || "").toLowerCase().includes(q) ||
+          ((item as any).title_ar || "").toLowerCase().includes(q) ||
+          ((item as any).title_en || "").toLowerCase().includes(q) ||
+          (item.summary || "").toLowerCase().includes(q),
       );
     }
 
     // Month/Year filter
     if (selectedMonth !== null || selectedYear !== null) {
-      result = result.filter(item => {
+      result = result.filter((item) => {
         const d = new Date(item.date);
-        if (selectedYear !== null && d.getFullYear() !== selectedYear) return false;
-        if (selectedMonth !== null && d.getMonth() !== selectedMonth) return false;
+        if (selectedYear !== null && d.getFullYear() !== selectedYear)
+          return false;
+        if (selectedMonth !== null && d.getMonth() !== selectedMonth)
+          return false;
         return true;
       });
     }
@@ -243,16 +340,26 @@ function NewsPageContent() {
 
   // Featured / hero news (most recent or marked urgent)
   const featuredNews = useMemo(() => {
-    const sorted = [...allNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const urgent = sorted.find(n => n.isUrgent);
+    const sorted = [...allNews].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+    const urgent = sorted.find((n) => n.isUrgent);
     if (urgent) return urgent;
     return sorted[0] || null;
   }, [allNews]);
 
   // News card component
-  const NewsCard = ({ item, index = 0, compact = false }: { item: NewsItem; index?: number; compact?: boolean }) => (
+  const NewsCard = ({
+    item,
+    index = 0,
+    compact = false,
+  }: {
+    item: NewsItem;
+    index?: number;
+    compact?: boolean;
+  }) => (
     <div className="bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
-      <div className={`${compact ? 'h-36' : 'h-48'} w-full relative`}>
+      <div className={`${compact ? "h-36" : "h-48"} w-full relative`}>
         <Link href={`/news/${item.id}`} className="block h-full w-full">
           {item.imageUrl ? (
             <Image
@@ -264,7 +371,10 @@ function NewsPageContent() {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gov-forest/10 to-gov-teal/10 dark:from-gov-gold/5 dark:to-gov-forest/10 flex items-center justify-center">
-              <Landmark size={40} className="text-gov-teal/30 dark:text-gov-gold/30" />
+              <Landmark
+                size={40}
+                className="text-gov-teal/30 dark:text-gov-gold/30"
+              />
             </div>
           )}
         </Link>
@@ -275,10 +385,14 @@ function NewsPageContent() {
             variant="overlay"
             size={16}
             metadata={{
-              title: isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title),
+              title: isAr
+                ? (item as any).title_ar || item.title
+                : (item as any).title_en || item.title,
               title_ar: (item as any).title_ar || item.title,
               title_en: (item as any).title_en || item.title,
-              description: isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary),
+              description: isAr
+                ? (item as any).summary_ar || item.summary
+                : (item as any).summary_en || item.summary,
               description_ar: (item as any).summary_ar || item.summary,
               description_en: (item as any).summary_en || item.summary,
               image: item.imageUrl,
@@ -289,7 +403,10 @@ function NewsPageContent() {
         {(item as any).directorate_name && (
           <div className="absolute bottom-3 right-3 z-10">
             <span className="px-2.5 py-1 bg-black/60 text-white text-[10px] font-bold rounded-lg backdrop-blur-sm">
-              {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
+              {isAr
+                ? (item as any).directorate_name
+                : (item as any).directorate_name_en ||
+                  (item as any).directorate_name}
             </span>
           </div>
         )}
@@ -298,30 +415,47 @@ function NewsPageContent() {
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-white/70 mb-2">
           <div className="flex items-center gap-2">
             <Calendar size={14} className="text-gov-gold" />
-            {formatRelativeTime(item.date, language as 'ar' | 'en')}
+            {formatRelativeTime(item.date, language as "ar" | "en")}
           </div>
           <button
-            onClick={(e) => { e.preventDefault(); handleAISummary(item); }}
+            onClick={(e) => {
+              e.preventDefault();
+              handleAISummary(item);
+            }}
             className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold hover:bg-gov-gold hover:text-white transition-colors"
-            title={isAr ? 'ملخص ذكي' : 'AI Summary'}
+            title={isAr ? "ملخص ذكي" : "AI Summary"}
           >
             <Sparkles size={12} />
-            <span className="text-[10px] font-bold">{isAr ? 'ملخص AI' : 'AI'}</span>
+            <span className="text-[10px] font-bold">
+              {isAr ? "ملخص AI" : "AI"}
+            </span>
           </button>
         </div>
         <Link href={`/news/${item.id}`}>
-          <h3 className={`font-bold text-gov-charcoal dark:text-gov-gold mb-2 leading-snug group-hover:text-gov-teal dark:group-hover:text-white transition-colors ${compact ? 'line-clamp-2 text-sm' : 'line-clamp-2'}`}>
-            {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+          <h3
+            className={`font-bold text-gov-charcoal dark:text-gov-gold mb-2 leading-snug group-hover:text-gov-teal dark:group-hover:text-white transition-colors ${compact ? "line-clamp-2 text-sm" : "line-clamp-2"}`}
+          >
+            {isAr
+              ? (item as any).title_ar || item.title
+              : (item as any).title_en || item.title}
           </h3>
         </Link>
         {!compact && (
           <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2 mb-3 flex-1">
-            {isAr ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary)}
+            {isAr
+              ? (item as any).summary_ar || item.summary
+              : (item as any).summary_en || item.summary}
           </p>
         )}
-        <Link href={`/news/${item.id}`} className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto">
-          {isAr ? 'اقرأ التفاصيل' : 'Read More'}
-          <ChevronLeft size={14} className={language === 'ar' ? '' : 'rotate-180'} />
+        <Link
+          href={`/news/${item.id}`}
+          className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto"
+        >
+          {isAr ? "اقرأ التفاصيل" : "Read More"}
+          <ChevronLeft
+            size={14}
+            className={language === "ar" ? "" : "rotate-180"}
+          />
         </Link>
       </div>
     </div>
@@ -344,7 +478,7 @@ function NewsPageContent() {
                   <Star size={20} className="text-gov-gold" />
                 </div>
                 <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                  {isAr ? 'الخبر الرئيسي' : 'Featured News'}
+                  {isAr ? "الخبر الرئيسي" : "Featured News"}
                 </h2>
               </div>
 
@@ -366,24 +500,36 @@ function NewsPageContent() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                     {featuredNews.isUrgent && (
                       <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
-                        {isAr ? 'عاجل' : 'Breaking'}
+                        {isAr ? "عاجل" : "Breaking"}
                       </span>
                     )}
                     {(featuredNews as any).directorate_name && (
                       <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
-                        {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
+                        {isAr
+                          ? (featuredNews as any).directorate_name
+                          : (featuredNews as any).directorate_name_en ||
+                            (featuredNews as any).directorate_name}
                       </span>
                     )}
                     <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
-                      {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
+                      {isAr
+                        ? (featuredNews as any).title_ar || featuredNews.title
+                        : (featuredNews as any).title_en || featuredNews.title}
                     </h3>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
-                      {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
+                      {isAr
+                        ? (featuredNews as any).summary_ar ||
+                          featuredNews.summary
+                        : (featuredNews as any).summary_en ||
+                          featuredNews.summary}
                     </p>
                     <div className="flex items-center gap-4 text-white/60 text-sm">
                       <span className="flex items-center gap-1">
                         <Calendar size={14} />
-                        {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
+                        {formatRelativeTime(
+                          featuredNews.date,
+                          language as "ar" | "en",
+                        )}
                       </span>
                     </div>
                   </div>
@@ -400,18 +546,26 @@ function NewsPageContent() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
-                    <Building2 size={20} className="text-gov-forest dark:text-gov-gold" />
+                    <Building2
+                      size={20}
+                      className="text-gov-forest dark:text-gov-gold"
+                    />
                   </div>
                   <h2 className="text-xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                    {isAr ? (group.directorate.name_ar || group.directorate.name) : (group.directorate.name_en || group.directorate.name)}
+                    {isAr
+                      ? group.directorate.name_ar || group.directorate.name
+                      : group.directorate.name_en || group.directorate.name}
                   </h2>
                 </div>
                 <button
-                  onClick={() => { setActiveView(group.directorate.id); setVisibleCount(12); }}
-                  className="text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1"
+                  onClick={() => {
+                    setActiveView(group.directorate.id);
+                    setVisibleCount(12);
+                  }}
+                  className="text-xs sm:text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center justify-center gap-1 min-w-[90px] sm:min-w-[110px] py-1.5 px-3 rounded-lg border border-gov-teal/20 dark:border-gov-gold/20 hover:bg-gov-teal/5 dark:hover:bg-gov-gold/5 transition-colors whitespace-nowrap"
                 >
-                  {isAr ? 'عرض الكل' : 'View All'}
-                  <ArrowLeft size={14} className={isAr ? '' : 'rotate-180'} />
+                  {isAr ? "عرض الكل" : "View All"}
+                  <ArrowLeft size={14} className={isAr ? "" : "rotate-180"} />
                 </button>
               </div>
 
@@ -429,26 +583,36 @@ function NewsPageContent() {
           <section>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-teal/20 flex items-center justify-center">
-                <LayoutGrid size={20} className="text-gov-teal dark:text-gov-teal" />
+                <LayoutGrid
+                  size={20}
+                  className="text-gov-teal dark:text-gov-teal"
+                />
               </div>
               <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                {isAr ? 'جميع الأخبار' : 'All News'}
+                {isAr ? "جميع الأخبار" : "All News"}
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {allNews.slice(0, visibleCount).map((item, idx) => (
-                <NewsCard key={`all-${item.id}-${idx}`} item={item} index={idx} />
+                <NewsCard
+                  key={`all-${item.id}-${idx}`}
+                  item={item}
+                  index={idx}
+                />
               ))}
             </div>
 
             {visibleCount < allNews.length && (
               <div className="mt-10 mb-6 flex justify-center">
                 <button
-                  onClick={() => { setActiveView('all'); setCurrentPage(1); }}
-                  className="px-10 py-3.5 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
+                  onClick={() => {
+                    setActiveView("all");
+                    setCurrentPage(1);
+                  }}
+                  className="px-6 sm:px-10 py-2.5 sm:py-3.5 min-w-[160px] sm:min-w-[200px] bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest text-sm sm:text-base font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
                 >
-                  {isAr ? 'عرض جميع الأخبار' : 'View All News'}
+                  {isAr ? "عرض جميع الأخبار" : "View All News"}
                 </button>
               </div>
             )}
@@ -467,12 +631,17 @@ function NewsPageContent() {
     if (filteredFlatNews.length === 0) {
       return (
         <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
-          <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
+          <Search
+            size={40}
+            className="mx-auto text-gray-300 dark:text-white/50 mb-4"
+          />
           <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
-            {isAr ? 'لا توجد نتائج' : 'No Results'}
+            {isAr ? "لا توجد نتائج" : "No Results"}
           </h3>
           <p className="text-gray-500 dark:text-white/70 text-sm">
-            {isAr ? 'لم يتم العثور على أخبار مطابقة.' : 'No news found matching your criteria.'}
+            {isAr
+              ? "لم يتم العثور على أخبار مطابقة."
+              : "No news found matching your criteria."}
           </p>
         </div>
       );
@@ -492,7 +661,10 @@ function NewsPageContent() {
           lastPage={lastPage}
           total={totalItems}
           perPage={perPage}
-          onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         />
       </>
     );
@@ -507,10 +679,12 @@ function NewsPageContent() {
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
-              {isAr ? 'المحتوى الإعلامي' : 'Media Content'}
+              {isAr ? "المحتوى الإعلامي" : "Media Content"}
             </h1>
             <p className="text-white/70 mb-6">
-              {isAr ? 'تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة.' : 'Browse all news, decisions, and press reports.'}
+              {isAr
+                ? "تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة."
+                : "Browse all news, decisions, and press reports."}
             </p>
           </div>
         </div>
@@ -520,59 +694,95 @@ function NewsPageContent() {
           <ContentFilter
             tabs={viewTabs}
             activeTab={activeView}
-            onTabChange={(k) => { setActiveView(k); setVisibleCount(12); setCurrentPage(1); }}
-            showDateFilter={activeView !== 'organized'}
+            onTabChange={(k) => {
+              setActiveView(k);
+              setVisibleCount(12);
+              setCurrentPage(1);
+            }}
+            showDateFilter={activeView !== "organized"}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
-            onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setVisibleCount(12); }}
-            onSearch={activeView !== 'organized' ? (q) => setSearchQuery(q) : undefined}
+            onDateChange={(m, y) => {
+              setSelectedMonth(m);
+              setSelectedYear(y);
+              setVisibleCount(12);
+            }}
+            onSearch={
+              activeView !== "organized" ? (q) => setSearchQuery(q) : undefined
+            }
             searchValue={searchQuery}
-            totalCount={activeView === 'organized' ? allNews.length : totalItems}
-            countLabel={isAr ? 'خبر' : 'articles'}
+            totalCount={
+              activeView === "organized" ? allNews.length : totalItems
+            }
+            countLabel={isAr ? "خبر" : "articles"}
             className="mb-8"
           />
 
           {/* Content */}
-          {activeView === 'organized' ? renderOrganizedView() : renderFlatView()}
+          {activeView === "organized"
+            ? renderOrganizedView()
+            : renderFlatView()}
 
           {/* FAQ Section */}
-          {activeView !== 'organized' && (
-            <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
-              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
-                {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
+          {activeView !== "organized" && (
+            <div className="mt-8 sm:mt-16 bg-white dark:bg-dm-surface rounded-2xl p-4 sm:p-8 border border-gray-100 dark:border-gov-border/15">
+              <h2 className="text-lg sm:text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 sm:mb-6">
+                {isAr ? "الأسئلة الشائعة" : "Frequently Asked Questions"}
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'كيف أبقى على اطلاع بآخر الأخبار؟' : 'How do I stay updated with latest news?'}
-                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  <summary className="flex items-center justify-between cursor-pointer p-3 sm:p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl text-sm sm:text-base font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr
+                      ? "كيف أبقى على اطلاع بآخر الأخبار؟"
+                      : "How do I stay updated with latest news?"}
+                    <Calendar
+                      size={16}
+                      className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2"
+                    />
                   </summary>
-                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة.' : 'You can follow the latest news through this page or subscribe to the ministry newsletter.'}
+                  <p className="p-3 sm:p-4 text-xs sm:text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr
+                      ? "يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة."
+                      : "You can follow the latest news through this page or subscribe to the ministry newsletter."}
                   </p>
                 </details>
                 <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'هل يمكنني تصفية الأخبار حسب المديرية؟' : 'Can I filter news by directorate?'}
-                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  <summary className="flex items-center justify-between cursor-pointer p-3 sm:p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl text-sm sm:text-base font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr
+                      ? "هل يمكنني تصفية الأخبار حسب المديرية؟"
+                      : "Can I filter news by directorate?"}
+                    <Calendar
+                      size={16}
+                      className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2"
+                    />
                   </summary>
-                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية.' : 'Yes, use the filter buttons above to filter news by directorate or time period.'}
+                  <p className="p-3 sm:p-4 text-xs sm:text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr
+                      ? "نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية."
+                      : "Yes, use the filter buttons above to filter news by directorate or time period."}
                   </p>
                 </details>
                 <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'ما هو الملخص الذكي؟' : 'What is AI Summary?'}
-                    <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
+                  <summary className="flex items-center justify-between cursor-pointer p-3 sm:p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl text-sm sm:text-base font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                    {isAr ? "ما هو الملخص الذكي؟" : "What is AI Summary?"}
+                    <Calendar
+                      size={16}
+                      className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2"
+                    />
                   </summary>
-                  <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد.' : 'An AI-powered service that summarizes long news content into a concise and useful format.'}
+                  <p className="p-3 sm:p-4 text-xs sm:text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+                    {isAr
+                      ? "خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد."
+                      : "An AI-powered service that summarizes long news content into a concise and useful format."}
                   </p>
                 </details>
               </div>
               <div className="mt-4 text-center">
-                <Link href="/faq" className="text-gov-teal dark:text-gov-gold font-bold text-sm hover:underline">
-                  {isAr ? 'عرض جميع الأسئلة الشائعة ←' : '→ View all FAQs'}
+                <Link
+                  href="/faq"
+                  className="text-gov-teal dark:text-gov-gold font-bold text-xs sm:text-sm hover:underline"
+                >
+                  {isAr ? "عرض جميع الأسئلة الشائعة ←" : "→ View all FAQs"}
                 </Link>
               </div>
             </div>
@@ -589,24 +799,37 @@ function NewsPageContent() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
               <div className="flex items-center gap-2 text-gov-gold">
                 <Sparkles size={20} />
-                <h3 className="font-bold">{isAr ? 'ملخص ذكي' : 'AI Summary'}</h3>
+                <h3 className="font-bold">
+                  {isAr ? "ملخص ذكي" : "AI Summary"}
+                </h3>
               </div>
               <button
-                onClick={() => setSummaryModal({ isOpen: false, title: '', summary: '', loading: false })}
+                onClick={() =>
+                  setSummaryModal({
+                    isOpen: false,
+                    title: "",
+                    summary: "",
+                    loading: false,
+                  })
+                }
                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
             <div className="p-6">
-              <h4 className="font-bold text-gov-charcoal dark:text-white mb-4 line-clamp-2">{summaryModal.title}</h4>
+              <h4 className="font-bold text-gov-charcoal dark:text-white mb-4 line-clamp-2">
+                {summaryModal.title}
+              </h4>
               {summaryModal.loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="animate-spin text-gov-gold" size={32} />
                 </div>
               ) : (
                 <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl p-4">
-                  <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">{summaryModal.summary}</p>
+                  <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">
+                    {summaryModal.summary}
+                  </p>
                 </div>
               )}
             </div>

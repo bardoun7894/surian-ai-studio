@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\AuditLog;
 use App\Mail\TwoFactorCode;
+use App\Mail\PasswordResetMail;
 use App\Services\AuditService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -114,7 +115,13 @@ class AuthController extends Controller
 
         // Send OTP via email
         Log::info("OTP for user {$user->email}: {$otp}");
-        Mail::to($user->email)->send(new TwoFactorCode($otp));
+        try {
+            Mail::to($user->email)->send(new TwoFactorCode($otp));
+            Log::info("2FA OTP email sent successfully to {$user->email}");
+        } catch (\Exception $e) {
+            Log::error("Failed to send 2FA OTP email to {$user->email}: " . $e->getMessage());
+            // OTP is saved in DB, user can request resend
+        }
 
         $this->auditService->log($user, 'otp_sent', 'user', $user->id);
 
@@ -208,7 +215,12 @@ class AuthController extends Controller
         $user->save();
 
         Log::info("OTP resent for user {$user->email}: {$otp}");
-        Mail::to($user->email)->send(new TwoFactorCode($otp));
+        try {
+            Mail::to($user->email)->send(new TwoFactorCode($otp));
+            Log::info("2FA OTP resend email sent successfully to {$user->email}");
+        } catch (\Exception $e) {
+            Log::error("Failed to resend 2FA OTP email to {$user->email}: " . $e->getMessage());
+        }
 
         $this->auditService->log($user, 'otp_resent', 'user', $user->id);
 
@@ -285,9 +297,18 @@ class AuthController extends Controller
         $user->password_reset_expires_at = Carbon::now()->addHour();
         $user->save();
 
-        // Log the reset link (in production, send via email)
+        // Build reset URL and send email
         $resetUrl = config('app.frontend_url', 'http://localhost:3000') . "/reset-password?token={$token}&email=" . urlencode($user->email);
         Log::info("Password reset link for {$user->email}: {$resetUrl}");
+
+        // Send password reset email
+        try {
+            Mail::to($user->email)->send(new PasswordResetMail($resetUrl));
+            Log::info("Password reset email sent to {$user->email}");
+        } catch (\Exception $e) {
+            Log::error("Failed to send password reset email to {$user->email}: " . $e->getMessage());
+            // Still return success to not reveal email existence
+        }
 
         $this->auditService->log($user, 'password_reset_requested', 'user', $user->id);
 

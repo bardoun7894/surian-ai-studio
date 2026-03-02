@@ -434,7 +434,11 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     variant="default"
                                     metadata={{
                                         title: getLocalizedField(service, 'title', language as 'ar' | 'en'),
+                                        title_ar: getLocalizedField(service, 'title', 'ar'),
+                                        title_en: getLocalizedField(service, 'title', 'en'),
                                         description: getLocalizedField(service, 'description', language as 'ar' | 'en'),
+                                        description_ar: getLocalizedField(service, 'description', 'ar'),
+                                        description_en: getLocalizedField(service, 'description', 'en'),
                                         url: `/services/${service.id}`
                                     }}
                                 />

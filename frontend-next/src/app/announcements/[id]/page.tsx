@@ -206,7 +206,11 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                                 className="p-2.5"
                                 metadata={{
                                     title: localizedTitle,
+                                    title_ar: announcement.title_ar || announcement.title || '',
+                                    title_en: announcement.title_en || announcement.title || '',
                                     description: localizedContent,
+                                    description_ar: announcement.content_ar || announcement.content || announcement.description_ar || announcement.description || '',
+                                    description_en: announcement.content_en || announcement.content || announcement.description_en || announcement.description || '',
                                     url: `/announcements/${params.id}`
                                 }}
                             />

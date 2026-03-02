@@ -11,6 +11,7 @@ class FavoriteController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Enriches favorites with bilingual titles from actual content models.
      */
     public function index(Request $request)
     {
@@ -21,9 +22,63 @@ class FavoriteController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Enrich favorites with bilingual data from actual content
+        $enriched = $favorites->map(function ($fav) {
+            $metadata = $fav->metadata ?? [];
+
+            // Skip if already has bilingual data
+            if (!empty($metadata['title_ar']) && !empty($metadata['title_en'])) {
+                return $fav;
+            }
+
+            try {
+                $type = $fav->content_type;
+                $id = $fav->content_id;
+
+                // Content-based types (news, announcement, decree, media)
+                if (in_array($type, ['news', 'announcement', 'decree', 'decrees', 'media'])) {
+                    $content = \App\Models\Content::find($id);
+                    if ($content) {
+                        $metadata['title_ar'] = $content->title_ar ?? $metadata['title'] ?? '';
+                        $metadata['title_en'] = $content->title_en ?? $metadata['title'] ?? '';
+                        $metadata['description_ar'] = $content->content_ar ?? $metadata['description'] ?? '';
+                        $metadata['description_en'] = $content->content_en ?? $metadata['description'] ?? '';
+                    }
+                }
+
+                // Service type
+                if (in_array($type, ['service', 'services'])) {
+                    $service = \App\Models\Service::find($id);
+                    if ($service) {
+                        $metadata['title_ar'] = $service->name_ar ?? $metadata['title'] ?? '';
+                        $metadata['title_en'] = $service->name_en ?? $metadata['title'] ?? '';
+                        $metadata['description_ar'] = $service->description_ar ?? $metadata['description'] ?? '';
+                        $metadata['description_en'] = $service->description_en ?? $metadata['description'] ?? '';
+                    }
+                }
+
+                // Law type
+                if ($type === 'law') {
+                    $content = \App\Models\Content::find($id);
+                    if ($content) {
+                        $metadata['title_ar'] = $content->title_ar ?? $metadata['title'] ?? '';
+                        $metadata['title_en'] = $content->title_en ?? $metadata['title'] ?? '';
+                        $metadata['description_ar'] = $content->content_ar ?? $metadata['description'] ?? '';
+                        $metadata['description_en'] = $content->content_en ?? $metadata['description'] ?? '';
+                    }
+                }
+
+                $fav->metadata = $metadata;
+            } catch (\Exception $e) {
+                Log::debug('Failed to enrich favorite', ['id' => $fav->id, 'error' => $e->getMessage()]);
+            }
+
+            return $fav;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $favorites
+            'data' => $enriched
         ]);
     }
 

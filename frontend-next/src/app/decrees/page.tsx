@@ -432,7 +432,11 @@ export default function DecreesPage() {
                         variant="default"
                         metadata={{
                           title: getLocalizedField(decree, 'title', lang),
+                          title_ar: getLocalizedField(decree, 'title', 'ar'),
+                          title_en: getLocalizedField(decree, 'title', 'en'),
                           description: getLocalizedField(decree, 'description', lang),
+                          description_ar: getLocalizedField(decree, 'description', 'ar'),
+                          description_en: getLocalizedField(decree, 'description', 'en'),
                           url: `/decrees`
                         }}
                       />

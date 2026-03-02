@@ -338,7 +338,11 @@ const HeroGrid: React.FC = () => {
                   className="!p-2 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
                   metadata={{
                     title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
+                    title_ar: getLocalizedField(heroArticle, 'title', 'ar') || '',
+                    title_en: getLocalizedField(heroArticle, 'title', 'en') || '',
                     description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
+                    description_ar: getLocalizedField(heroArticle, 'excerpt', 'ar') || '',
+                    description_en: getLocalizedField(heroArticle, 'excerpt', 'en') || '',
                     image: heroArticle.imageUrl || '',
                     url: `/news/${heroArticle.id}`
                   }}

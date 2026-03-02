@@ -419,6 +419,8 @@ export default function MediaPage() {
                             className="!w-8 !h-8"
                             metadata={{
                               title: item.title,
+                              title_ar: (item as any).title_ar || item.title,
+                              title_en: (item as any).title_en || item.title,
                               description: '',
                               image: item.thumbnailUrl || '',
                               url: `/media#${item.id}`
@@ -466,6 +468,8 @@ export default function MediaPage() {
                               size={14}
                               metadata={{
                                 title: item.title,
+                                title_ar: (item as any).title_ar || item.title,
+                                title_en: (item as any).title_en || item.title,
                                 description: '',
                                 image: item.thumbnailUrl || '',
                                 url: `/media#${item.id}`

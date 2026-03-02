@@ -26,7 +26,7 @@ import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
 
     // Handle both sync and async params (Next.js 14.x compatibility)
     const resolvedParams = params instanceof Promise ? use(params) : params;
@@ -94,7 +94,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
     const handleToggleFavorite = async () => {
         if (!isAuthenticated) {
-            toast.error(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites');
+            toast.error(t('auth_login_required') || (language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites'));
             return;
         }
 
@@ -226,16 +226,16 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 <Navbar />
                 <main className="flex-grow flex flex-col items-center justify-center p-12 text-center">
                     <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-4">
-                        {language === 'ar' ? 'عفواً، الخبر غير موجود' : 'Article Not Found'}
+                        {t('news_not_found')}
                     </h1>
                     <p className="text-gray-500 mb-8 max-w-md">
-                        {language === 'ar' ? 'قد يكون هذا الخبر قد تم نقله أو حذفه.' : 'This article might have been moved or deleted.'}
+                        {t('news_not_found_desc')}
                     </p>
                     <a
                         href="/news"
                         className="px-6 py-3 bg-gov-teal text-white rounded-lg hover:bg-gov-teal/90 transition-colors"
                     >
-                        {language === 'ar' ? 'العودة لمركز الأخبار' : 'Back to News Center'}
+                        {t('news_back_to_center')}
                     </a>
                 </main>
                 <Footer />

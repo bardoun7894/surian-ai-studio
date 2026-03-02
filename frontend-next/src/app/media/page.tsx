@@ -273,7 +273,7 @@ export default function MediaPage() {
       if (!ytId) return null;
       return (
         <iframe
-          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
           title={item.title}
           allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -295,6 +295,7 @@ export default function MediaPage() {
           poster={item.thumbnailUrl}
           controls
           autoPlay
+          muted
           playsInline
           className="absolute inset-0 w-full h-full object-contain bg-black z-10"
           onLoadStart={() => setLoadingMedia(prev => ({ ...prev, [item.id]: true }))}
@@ -664,7 +665,7 @@ export default function MediaPage() {
               <div className="aspect-video w-full">
                 {isYouTubeUrl(expandedVideo.url) ? (
                   <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
                     title={expandedVideo.title}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -675,9 +676,18 @@ export default function MediaPage() {
                     src={expandedVideo.url}
                     poster={expandedVideo.thumbnailUrl}
                     controls
-                    autoPlay
                     playsInline
                     className="w-full h-full object-contain bg-black"
+                    ref={(el) => {
+                      if (el) {
+                        el.volume = 1;
+                        el.muted = false;
+                        el.play().catch(() => {
+                          el.muted = true;
+                          el.play().catch(() => {});
+                        });
+                      }
+                    }}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       const videoEl = e.currentTarget;

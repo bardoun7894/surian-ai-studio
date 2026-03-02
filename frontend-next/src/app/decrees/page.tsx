@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, Scale, Loader2, Sparkles, X, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FileText, Download, Calendar, Scale, Loader2, Sparkles, X, ChevronDown, Building2, Eye, ExternalLink } from 'lucide-react';
 import { API } from '@/lib/repository';
-import { Decree } from '@/types';
+import { Decree, Directorate } from '@/types';
 import { getLocalizedField } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
@@ -33,23 +33,30 @@ export default function DecreesPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [filterDirectorate, setFilterDirectorate] = useState<string>('all');
   const [decrees, setDecrees] = useState<Decree[]>([]);
+  const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [showDirDropdown, setShowDirDropdown] = useState(false);
   const [summaryModal, setSummaryModal] = useState<{ isOpen: boolean; title: string; summary: string; loading: boolean }>({
     isOpen: false,
     title: '',
     summary: '',
     loading: false
   });
+  // M7.12: Detail modal state
+  const [detailModal, setDetailModal] = useState<{ isOpen: boolean; decree: Decree | null }>({
+    isOpen: false,
+    decree: null,
+  });
 
   const getTypeLabel = (type: string) => {
     const labels = typeLabels[type];
     if (labels) return isAr ? labels.ar : labels.en;
-    // Fallback: check for type_en on the decree object
     return type;
   };
 
@@ -70,11 +77,43 @@ export default function DecreesPage() {
     }
   };
 
+  // M7.11: Download handler
+  const handleDownload = (decree: Decree) => {
+    if (decree.attachments && decree.attachments.length > 0) {
+      // Download first attachment (usually the PDF)
+      const attachment = decree.attachments[0];
+      window.open(attachment.download_url, '_blank');
+    } else {
+      // Fallback: if no attachments, show a message or open content in new window
+      // For now, open the detail modal so user can see the full text
+      setDetailModal({ isOpen: true, decree });
+    }
+  };
+
+  // M7.12: Open detail modal
+  const handleViewDetails = (decree: Decree) => {
+    setDetailModal({ isOpen: true, decree });
+  };
+
+  // Fetch directorates on mount
+  useEffect(() => {
+    const fetchDirectorates = async () => {
+      try {
+        const dirs = await API.directorates.getFeatured();
+        setDirectorates(dirs);
+      } catch (e) {
+        console.error("Failed to fetch directorates", e);
+      }
+    };
+    fetchDirectorates();
+  }, []);
+
   useEffect(() => {
     const fetchDecrees = async () => {
       setLoading(true);
       try {
-        const data = await API.decrees.search(searchTerm, filterType);
+        const dirId = filterDirectorate !== 'all' ? filterDirectorate : undefined;
+        const data = await API.decrees.search(searchTerm, filterType, dirId);
         setDecrees(data);
       } catch (e) {
         console.error("Failed to fetch decrees", e);
@@ -88,9 +127,9 @@ export default function DecreesPage() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterType]);
+  }, [searchTerm, filterType, filterDirectorate]);
 
-  // Filter type buttons - Arabic values are sent to API, display is localized
+  // Filter type buttons
   const filterTypes = [
     { value: 'all', ar: 'الكل', en: 'All' },
     { value: 'مرسوم تشريعي', ar: 'مرسوم تشريعي', en: 'Legislative Decree' },
@@ -106,6 +145,23 @@ export default function DecreesPage() {
     return matchesMonth && matchesYear;
   });
 
+  // Get directorate name helper
+  const getDirectorateName = (dirId: string) => {
+    const dir = directorates.find(d => String(d.id) === String(dirId));
+    if (!dir) return '';
+    const name = dir.name;
+    if (typeof name === 'object' && name !== null) {
+      return isAr ? (name as any).ar : (name as any).en;
+    }
+    return String(name);
+  };
+
+  // Get selected directorate display name
+  const selectedDirName = useMemo(() => {
+    if (filterDirectorate === 'all') return isAr ? 'جميع الجهات' : 'All Departments';
+    return getDirectorateName(filterDirectorate) || (isAr ? 'جهة غير معروفة' : 'Unknown');
+  }, [filterDirectorate, directorates, isAr]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
@@ -117,7 +173,7 @@ export default function DecreesPage() {
           <div className="text-center mb-6">
             <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center justify-center gap-2">
               <Scale size={26} className="text-gov-gold" />
-              {isAr ? 'الجريدة الرسمية والتشريعات' : 'Official Gazette & Legislation'}
+              {isAr ? 'القوانين والتشريعات' : 'Laws & Legislation'}
             </h2>
             <p className="text-sm text-gray-500 dark:text-white/70 max-w-2xl mx-auto">
               {isAr
@@ -142,10 +198,51 @@ export default function DecreesPage() {
 
               <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-1"></div>
 
+              {/* M7.13: Department Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setShowDirDropdown(!showDirDropdown); setShowMonthDropdown(false); setShowYearDropdown(false); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${filterDirectorate !== 'all'
+                    ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
+                    }`}
+                >
+                  <Building2 size={12} />
+                  {filterDirectorate !== 'all' ? selectedDirName : (isAr ? 'الجهة' : 'Department')}
+                  <ChevronDown size={12} />
+                </button>
+                {showDirDropdown && (
+                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-64 z-50 max-h-72 overflow-y-auto">
+                    <button
+                      onClick={() => { setFilterDirectorate('all'); setShowDirDropdown(false); }}
+                      className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${filterDirectorate === 'all' ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gray-500'}`}
+                    >
+                      {isAr ? 'جميع الجهات' : 'All Departments'}
+                    </button>
+                    {directorates.map(dir => {
+                      const dirName = typeof dir.name === 'object' && dir.name !== null
+                        ? (isAr ? (dir.name as any).ar : (dir.name as any).en)
+                        : String(dir.name);
+                      return (
+                        <button
+                          key={dir.id}
+                          onClick={() => { setFilterDirectorate(String(dir.id)); setShowDirDropdown(false); }}
+                          className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${String(filterDirectorate) === String(dir.id) ? 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold font-bold' : 'text-gov-charcoal dark:text-white'}`}
+                        >
+                          {dirName}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-1"></div>
+
               {/* Month Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); }}
+                  onClick={() => { setShowMonthDropdown(!showMonthDropdown); setShowYearDropdown(false); setShowDirDropdown(false); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedMonth !== null
                     ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
@@ -180,7 +277,7 @@ export default function DecreesPage() {
               {/* Year Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); }}
+                  onClick={() => { setShowYearDropdown(!showYearDropdown); setShowMonthDropdown(false); setShowDirDropdown(false); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${selectedYear !== null
                     ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/10'
@@ -211,9 +308,9 @@ export default function DecreesPage() {
               </div>
 
               {/* Clear filters */}
-              {(selectedMonth !== null || selectedYear !== null) && (
+              {(selectedMonth !== null || selectedYear !== null || filterDirectorate !== 'all') && (
                 <button
-                  onClick={() => { setSelectedMonth(null); setSelectedYear(null); }}
+                  onClick={() => { setSelectedMonth(null); setSelectedYear(null); setFilterDirectorate('all'); }}
                   className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
                 >
                   <X size={12} />
@@ -241,7 +338,11 @@ export default function DecreesPage() {
               </div>
             ) : (
               filteredDecrees.map((decree) => (
-                <div key={decree.id} className="bg-white dark:bg-dm-surface px-4 py-3 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-md transition-all duration-300 group">
+                <div
+                  key={decree.id}
+                  className="bg-white dark:bg-dm-surface px-4 py-3 rounded-xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 hover:shadow-md transition-all duration-300 group cursor-pointer"
+                  onClick={() => handleViewDetails(decree)}
+                >
                   <div className="flex flex-col md:flex-row gap-3 items-start">
 
                     {/* Icon Box */}
@@ -263,6 +364,13 @@ export default function DecreesPage() {
                         <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-2 py-1 rounded">
                           {isAr ? `عام ${decree.year}` : `Year ${decree.year}`}
                         </span>
+                        {/* Show directorate badge if available */}
+                        {decree.directorate_name && (
+                          <span className="text-xs font-bold text-gov-teal dark:text-gov-teal bg-gov-teal/10 dark:bg-gov-teal/20 px-2 py-1 rounded flex items-center gap-1">
+                            <Building2 size={10} />
+                            {isAr ? decree.directorate_name : (decree.directorate_name_en || decree.directorate_name)}
+                          </span>
+                        )}
                       </div>
 
                       <h3 className="text-sm font-display font-bold text-gov-forest dark:text-gov-gold mb-0.5 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors leading-snug">
@@ -277,10 +385,22 @@ export default function DecreesPage() {
                           <Calendar size={14} />
                           <span>{isAr ? `تاريخ الصدور: ${decree.date}` : `Issued: ${decree.date}`}</span>
                         </div>
+                        {decree.attachments && decree.attachments.length > 0 && (
+                          <span className="text-gov-emerald dark:text-gov-emerald font-bold">
+                            {isAr ? `${decree.attachments.length} مرفق` : `${decree.attachments.length} attachment(s)`}
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="self-center md:self-start flex items-center gap-1.5 shrink-0">
+                    <div className="self-center md:self-start flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleViewDetails(decree)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gov-forest/10 text-gov-forest dark:bg-gov-gold/10 dark:text-gov-gold font-bold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all text-xs"
+                      >
+                        <Eye size={14} />
+                        {isAr ? 'التفاصيل' : 'Details'}
+                      </button>
                       <button
                         onClick={() => handleAISummary(decree)}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-xs"
@@ -288,7 +408,20 @@ export default function DecreesPage() {
                         <Sparkles size={14} />
                         {isAr ? 'ملخص' : 'Summary'}
                       </button>
-                      <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold font-bold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest transition-all text-xs">
+                      <button
+                        onClick={() => handleDownload(decree)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs ${
+                          decree.attachments && decree.attachments.length > 0
+                            ? 'bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest'
+                            : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/30 cursor-not-allowed'
+                        }`}
+                        disabled={!decree.attachments || decree.attachments.length === 0}
+                        title={
+                          decree.attachments && decree.attachments.length > 0
+                            ? (isAr ? 'تحميل الملف' : 'Download file')
+                            : (isAr ? 'لا يوجد ملف للتحميل' : 'No file available')
+                        }
+                      >
                         <Download size={14} />
                         PDF
                       </button>
@@ -374,6 +507,152 @@ export default function DecreesPage() {
                   <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">{summaryModal.summary}</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* M7.12: Decree Detail Modal */}
+      {detailModal.isOpen && detailModal.decree && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailModal({ isOpen: false, decree: null })}>
+          <div
+            className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[85vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15 shrink-0">
+              <div className="flex items-center gap-2">
+                <Scale size={20} className="text-gov-gold" />
+                <h3 className="font-bold text-gov-forest dark:text-gov-gold">
+                  {isAr ? 'تفاصيل الوثيقة' : 'Document Details'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setDetailModal({ isOpen: false, decree: null })}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {/* Meta Badges */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                  detailModal.decree.type === 'قانون' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                  detailModal.decree.type === 'مرسوم تشريعي' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                  'bg-gray-100 text-gray-700 dark:bg-dm-surface dark:text-white/70'
+                }`}>
+                  {getTypeLabel(detailModal.decree.type)}
+                </span>
+                <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-3 py-1.5 rounded-lg">
+                  {isAr ? `رقم ${detailModal.decree.number}` : `No. ${detailModal.decree.number}`}
+                </span>
+                <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-3 py-1.5 rounded-lg">
+                  {isAr ? `عام ${detailModal.decree.year}` : `Year ${detailModal.decree.year}`}
+                </span>
+                <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                  <Calendar size={12} />
+                  {detailModal.decree.date}
+                </span>
+              </div>
+
+              {/* Directorate */}
+              {detailModal.decree.directorate_name && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-gov-teal dark:text-gov-teal">
+                  <Building2 size={16} />
+                  <span className="font-bold">
+                    {isAr ? detailModal.decree.directorate_name : (detailModal.decree.directorate_name_en || detailModal.decree.directorate_name)}
+                  </span>
+                </div>
+              )}
+
+              {/* Title */}
+              <h2 className="text-lg font-display font-bold text-gov-forest dark:text-gov-gold mb-4 leading-relaxed">
+                {getLocalizedField(detailModal.decree, 'title', lang)}
+              </h2>
+
+              {/* Description */}
+              <div className="bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl p-4 mb-4">
+                <p className="text-sm text-gray-700 dark:text-white/70 leading-relaxed">
+                  {getLocalizedField(detailModal.decree, 'description', lang)}
+                </p>
+              </div>
+
+              {/* Full Content */}
+              {(detailModal.decree.content_ar || detailModal.decree.content_en) && (
+                <div className="mb-4">
+                  <h4 className="font-bold text-gov-charcoal dark:text-white mb-2 text-sm">
+                    {isAr ? 'النص الكامل' : 'Full Text'}
+                  </h4>
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-white/80 leading-relaxed border border-gray-100 dark:border-gov-border/15 rounded-xl p-4 bg-white dark:bg-dm-bg/50"
+                    dangerouslySetInnerHTML={{
+                      __html: (isAr ? detailModal.decree.content_ar : (detailModal.decree.content_en || detailModal.decree.content_ar)) || ''
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Attachments */}
+              {detailModal.decree.attachments && detailModal.decree.attachments.length > 0 && (
+                <div className="mb-2">
+                  <h4 className="font-bold text-gov-charcoal dark:text-white mb-2 text-sm">
+                    {isAr ? 'المرفقات' : 'Attachments'}
+                  </h4>
+                  <div className="space-y-2">
+                    {detailModal.decree.attachments.map((att) => (
+                      <a
+                        key={att.id}
+                        href={att.download_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors group/att"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center">
+                          <FileText size={18} className="text-gov-forest dark:text-gov-gold" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gov-charcoal dark:text-white truncate">{att.file_name}</p>
+                          <p className="text-xs text-gray-400">
+                            {att.file_size ? `${(att.file_size / 1024).toFixed(0)} KB` : att.file_type}
+                          </p>
+                        </div>
+                        <Download size={16} className="text-gov-forest dark:text-gov-gold opacity-50 group-hover/att:opacity-100 transition-opacity" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-gov-border/15 shrink-0">
+              <button
+                onClick={() => handleAISummary(detailModal.decree!)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-sm"
+              >
+                <Sparkles size={16} />
+                {isAr ? 'ملخص ذكي' : 'AI Summary'}
+              </button>
+              <div className="flex items-center gap-2">
+                {detailModal.decree.attachments && detailModal.decree.attachments.length > 0 && (
+                  <button
+                    onClick={() => handleDownload(detailModal.decree!)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest font-bold hover:opacity-90 transition-all text-sm"
+                  >
+                    <Download size={16} />
+                    {isAr ? 'تحميل PDF' : 'Download PDF'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setDetailModal({ isOpen: false, decree: null })}
+                  className="px-4 py-2 rounded-lg text-gray-500 dark:text-white/70 font-bold hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-sm"
+                >
+                  {isAr ? 'إغلاق' : 'Close'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

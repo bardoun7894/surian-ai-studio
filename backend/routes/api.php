@@ -78,6 +78,9 @@ Route::prefix('v1')->group(function () {
         // Decrees
         Route::get('decrees', [\App\Http\Controllers\Api\PublicApiController::class, 'decrees']);
 
+        // Public decree attachment download
+        Route::get('decrees/{contentId}/attachments/{attachmentId}/download', [\App\Http\Controllers\Api\ContentAttachmentController::class, 'download']);
+
         // Services
         Route::get('services', [\App\Http\Controllers\Api\PublicApiController::class, 'services']);
         Route::get('services/{id}', [\App\Http\Controllers\Api\PublicApiController::class, 'service']);

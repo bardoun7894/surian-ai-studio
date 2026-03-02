@@ -52,6 +52,10 @@ const config: Config = {
       },
       boxShadow: {
         gov: '5px 5px 10px #b9a779',
+        gold: '5px 5px 10px #b9a779',
+        'gold-sm': '3px 3px 6px rgba(185, 167, 121, 0.4)',
+        'gold-lg': '8px 8px 20px rgba(185, 167, 121, 0.3)',
+        'gold-hover': '5px 5px 15px rgba(185, 167, 121, 0.5)',
       },
       backgroundImage: {
         'pattern-islamic': "url('/assets/header-bg.png')",

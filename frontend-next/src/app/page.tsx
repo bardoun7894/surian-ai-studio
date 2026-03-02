@@ -6,7 +6,7 @@ import HeroSection from '@/components/HeroSection';
 import FeaturedDirectorates from '@/components/FeaturedDirectorates';
 import HeroGrid from '@/components/HeroGrid';
 import Footer from '@/components/Footer';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { API } from '@/lib/repository';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';

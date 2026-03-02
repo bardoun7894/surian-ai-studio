@@ -110,7 +110,7 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-dm-surface rounded-2xl p-4 md:p-6 shadow-lg border border-gov-gold/20"
+      className="bg-white dark:bg-dm-surface rounded-2xl p-4 md:p-6 shadow-gov border border-gov-gold/20"
     >
       <div className="text-center mb-4 md:mb-6">
         <h3 className="text-lg md:text-xl font-bold text-gov-forest dark:text-gov-gold mb-1 md:mb-2">

@@ -90,7 +90,7 @@ function DirectoratesMap() {
   ).length;
 
   return (
-    <div className="w-full bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
+    <div className="w-full bg-white dark:bg-dm-surface rounded-3xl shadow-gov border border-gray-100 dark:border-gov-border/15 overflow-hidden">
       <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
         <div>
           <h3 className="text-xl font-bold text-gov-forest dark:text-gov-gold flex items-center gap-2">

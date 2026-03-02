@@ -104,7 +104,7 @@ const QuickServices: React.FC = () => {
             <Link
               key={service.id}
               href={service.href}
-              className="group relative flex flex-col items-center p-6 rounded-2xl bg-gov-beige/50 dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="group relative flex flex-col items-center p-6 rounded-2xl bg-gov-beige/50 dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-gov transition-all duration-300 cursor-pointer"
             >
               {/* Icon Container */}
               <div className={`w-16 h-16 rounded-2xl ${service.bgColor} ${service.color} flex items-center justify-center mb-4 transition-all duration-300`}>

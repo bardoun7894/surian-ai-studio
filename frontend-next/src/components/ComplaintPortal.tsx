@@ -433,18 +433,24 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setSelectedFiles(prev => [...prev, ...filesToAdd]);
-            // Show upload animation immediately on file selection
+            // M11.8: Realistic file-reading progress with ease-out curve
             setUploadStatus('uploading');
             setUploadProgress(0);
-            let progress = 0;
+            const totalBytes = filesToAdd.reduce((sum: number, f: File) => sum + f.size, 0);
+            const estimatedMs = Math.max(400, Math.min(2000, totalBytes / 50000));
+            const steps = 20;
+            const stepMs = estimatedMs / steps;
+            let currentStep = 0;
             const interval = setInterval(() => {
-                progress += 20;
-                setUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
+                currentStep++;
+                const linear = currentStep / steps;
+                const eased = 1 - Math.pow(1 - linear, 3);
+                setUploadProgress(Math.round(eased * 100));
+                if (currentStep >= steps) {
                     clearInterval(interval);
                     setUploadStatus('ready');
                 }
-            }, 150);
+            }, stepMs);
         }
 
         const rejectionItems: RejectedAttachment[] = [

@@ -169,7 +169,7 @@ const NewsSection: React.FC = () => {
               {allNews.map((item) => (
                 <article
                   key={item.id}
-                  className="news-card group flex-shrink-0 w-[70vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  className="news-card group flex-shrink-0 w-[70vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-gold-sm hover:shadow-gov hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
                   {item.imageUrl && (
                     <div className="h-32 md:h-40 overflow-hidden relative">

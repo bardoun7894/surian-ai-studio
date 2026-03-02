@@ -54,7 +54,7 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
     }
 
     return (
-        <div className="bg-white dark:bg-gov-card/10 border border-gov-gold/30 rounded-xl p-4 md:p-6 shadow-sm mt-4 md:mt-6 animate-fade-in">
+        <div className="bg-white dark:bg-gov-card/10 border border-gov-gold/30 rounded-xl p-4 md:p-6 shadow-gold-sm mt-4 md:mt-6 animate-fade-in">
             <h3 className="text-base md:text-lg font-bold text-gov-charcoal dark:text-white mb-2 md:mb-4 text-center">
                 {t('rating_title')}
             </h3>

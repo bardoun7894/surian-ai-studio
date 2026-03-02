@@ -2228,6 +2228,92 @@ export const API = {
   faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),
   search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
   ai: USE_MOCK_DATA ? new MockAiRepository() : new ApiAiRepository(),
+  governmentPartners: {
+    async getAll(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/government-partners`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || [];
+      } catch { return []; }
+    },
+    async adminList(params?: { search?: string; is_active?: string }): Promise<{ data: any[]; total: number }> {
+      try {
+        const qs = new URLSearchParams();
+        if (params?.search) qs.set('search', params.search);
+        if (params?.is_active !== undefined) qs.set('is_active', params.is_active);
+        const res = await fetch(`${API_BASE_URL}/admin/government-partners?${qs.toString()}`, {
+          headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` },
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Failed to fetch partners');
+        const data = await res.json();
+        return { data: data.data || [], total: data.total || 0 };
+      } catch { return { data: [], total: 0 }; }
+    },
+    async create(formData: FormData): Promise<any> {
+      await getCsrfCookie();
+      const xsrf = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+      const token = localStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners`, {
+        method: 'POST', headers, credentials: 'include', body: formData,
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Failed to create partner'); }
+      return res.json();
+    },
+    async update(id: number, formData: FormData): Promise<any> {
+      await getCsrfCookie();
+      const xsrf = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+      const token = localStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}`, {
+        method: 'POST', headers, credentials: 'include', body: formData,
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Failed to update partner'); }
+      return res.json();
+    },
+    async delete(id: number): Promise<boolean> {
+      await getCsrfCookie();
+      const xsrf = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+      const token = localStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}`, {
+        method: 'DELETE', headers, credentials: 'include',
+      });
+      return res.ok;
+    },
+    async toggleActive(id: number): Promise<boolean> {
+      await getCsrfCookie();
+      const xsrf = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+      if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+      const token = localStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}/toggle-active`, {
+        method: 'PATCH', headers, credentials: 'include',
+      });
+      return res.ok;
+    },
+    async reorder(order: { id: number; sort_order: number }[]): Promise<boolean> {
+      await getCsrfCookie();
+      const xsrf = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+      if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+      const token = localStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/reorder`, {
+        method: 'POST', headers, credentials: 'include', body: JSON.stringify({ order }),
+      });
+      return res.ok;
+    },
+  },
   quickLinks: {
     async getBySection(section: string = 'homepage'): Promise<any[]> {
       try {

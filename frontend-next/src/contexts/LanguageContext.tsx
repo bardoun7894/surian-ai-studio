@@ -74,10 +74,10 @@ const translations: Record<string, Record<Language, string>> = {
   'news_subtitle': { ar: 'آخر الأخبار والمراسيم والقرارات الحكومية', en: 'Latest news, decrees, and government decisions' },
   'news_breaking': { ar: 'آخر المستجدات', en: 'Latest Updates' },
   // External Link Modal
-  'external_link_warning_title': { ar: 'تنبيه مغادرة الموقع', en: 'Leaving Website Warning' },
-  'external_link_warning_desc': { ar: 'أنت على وشك مغادرة موقع وزارة الاقتصاد والصناعة. الوزارة ليست مسؤولة عن محتوى الروابط الخارجية.', en: 'You are about to leave Ministry of Economy and Industry website. The Ministry is not responsible for the content of external links.' },
-  'external_link_stay': { ar: 'البقاء في الموقع', en: 'Stay Here' },
-  'external_link_continue': { ar: 'متابعة', en: 'Continue' },
+  'external_link_warning_title': { ar: 'أنت تغادر موقعنا', en: 'You Are Leaving Our Website' },
+  'external_link_warning_desc': { ar: 'أنت على وشك الانتقال إلى موقع خارجي لا يتبع لوزارة الاقتصاد والصناعة. قد تختلف سياسات الخصوصية والأمان في الموقع الخارجي عن سياساتنا.', en: 'You are about to visit an external website not managed by the Ministry of Economy and Industry. The privacy and security policies of the external site may differ from ours.' },
+  'external_link_stay': { ar: 'العودة للموقع', en: 'Go Back' },
+  'external_link_continue': { ar: 'المتابعة للموقع الخارجي', en: 'Continue to External Site' },
   'read_more': { ar: 'اقرأ المزيد', en: 'Read More' },
   'view_archive': { ar: 'عرض الأرشيف', en: 'View Archive' },
 

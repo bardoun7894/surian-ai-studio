@@ -86,7 +86,7 @@ const RequestedServices: React.FC<{ onNavigate: (view: any) => void }> = ({ onNa
                         <div
                             key={service.id}
                             onClick={() => onNavigate('SERVICES_GUIDE')}
-                            className="group cursor-pointer flex flex-col items-center justify-center p-8 rounded-[2rem] bg-gray-50 dark:bg-dm-surface border border-transparent hover:border-gray-200 dark:hover:border-gov-gold/20 hover:shadow-xl transition-all duration-500"
+                            className="group cursor-pointer flex flex-col items-center justify-center p-8 rounded-[2rem] bg-gray-50 dark:bg-dm-surface border border-transparent hover:border-gray-200 dark:hover:border-gov-gold/20 hover:shadow-gov transition-all duration-500"
                         >
                             {/* Icon Container */}
                             <div className={`w-20 h-20 rounded-[1.5rem] ${service.bgColor} ${service.color} flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 shadow-sm border border-transparent group-hover:border-current/10`}>

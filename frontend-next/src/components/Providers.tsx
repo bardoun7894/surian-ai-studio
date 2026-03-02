@@ -8,7 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { LoadingProvider, useLoading } from '@/contexts/LoadingContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
-import UserSatisfactionIndicator from '@/components/UserSatisfactionIndicator';
+const UserSatisfactionIndicator = dynamic(() => import('@/components/UserSatisfactionIndicator'), { ssr: false });
 import dynamic from 'next/dynamic';
 const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false });
 import { Toaster } from 'sonner';

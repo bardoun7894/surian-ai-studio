@@ -6,7 +6,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import DirectoratesMap from '@/components/DirectoratesMap';
+import dynamic from 'next/dynamic';
+const DirectoratesMap = dynamic(() => import('@/components/DirectoratesMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-[400px] bg-gray-100 dark:bg-dm-surface rounded-3xl animate-pulse" />,
+});
 
 interface ContactInfo {
     contact_phone?: string;

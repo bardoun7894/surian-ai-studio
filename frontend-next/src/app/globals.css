@@ -899,6 +899,75 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   .print\:border-none {
     border: none !important;
   }
+
+  /* --- M11.7: Fix images covering text in print --- */
+
+  /* Featured / hero images in articles - constrain height and prevent overflow */
+  article .relative[class*='h-['],
+  article .relative[class*='md:h-['],
+  article div[class*='aspect-video'] {
+    height: auto !important;
+    max-height: 250pt !important;
+    overflow: hidden !important;
+    position: relative !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* All images inside articles - flow naturally, never overlap text */
+  article img,
+  article picture,
+  article [data-nimg] {
+    position: relative !important;
+    float: none !important;
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 250pt !important;
+    object-fit: contain !important;
+    margin: 8pt auto !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Next.js Image fill wrappers - collapse to flow layout */
+  article .relative > img[style*='position'],
+  article .relative > span > img {
+    position: relative !important;
+    inset: auto !important;
+  }
+
+  /* Gradient overlays - remove in print so they don't cover content */
+  article [class*='bg-gradient-to-t'],
+  article [class*='bg-gradient-to-b'],
+  article .absolute.inset-0[class*='bg-'] {
+    display: none !important;
+  }
+
+  /* Image gallery in print - smaller thumbnails that don't overflow */
+  article .grid img {
+    max-height: 120pt !important;
+    width: auto !important;
+  }
+
+  /* Ensure prose content flows after images */
+  .prose,
+  .prose p,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose ul,
+  .prose ol {
+    position: relative !important;
+    z-index: 1 !important;
+    overflow: visible !important;
+  }
+
+  /* Related items section - smaller images in print */
+  [class*='grid-cols'] img {
+    max-height: 100pt !important;
+    height: auto !important;
+  }
 }
 
 body.high-contrast {

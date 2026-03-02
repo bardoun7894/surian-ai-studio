@@ -25,22 +25,55 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://moe.gov.sy'),
   title: {
     default: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
     template: "%s | وزارة الاقتصاد والصناعة",
   },
-  description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
-  keywords: ["وزارة الاقتصاد", "الصناعة", "التجارة الداخلية", "سوريا", "خدمات حكومية", "تراخيص صناعية"],
+  description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية - خدمات حكومية، أخبار، مراسيم، تراخيص صناعية",
+  keywords: ["وزارة الاقتصاد", "الصناعة", "التجارة الداخلية", "سوريا", "خدمات حكومية", "تراخيص صناعية", "مراسيم", "أخبار الوزارة", "Ministry of Economy", "Syria"],
   authors: [{ name: "Ministry of Economy and Industry" }],
+  creator: "Ministry of Economy and Industry - Syrian Arab Republic",
+  publisher: "Ministry of Economy and Industry",
   icons: {
     icon: "/assets/logo/11.png",
     apple: "/assets/logo/11.png",
   },
   openGraph: {
-    title: "وزارة الاقتصاد والصناعة",
-    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة",
+    title: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
+    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+    url: '/',
+    siteName: "وزارة الاقتصاد والصناعة",
     locale: "ar_SY",
     type: "website",
+    images: [
+      {
+        url: '/assets/logo/11.png',
+        width: 512,
+        height: 512,
+        alt: 'وزارة الاقتصاد والصناعة',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
+    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة",
+    images: ['/assets/logo/11.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: '/',
   },
 };
 

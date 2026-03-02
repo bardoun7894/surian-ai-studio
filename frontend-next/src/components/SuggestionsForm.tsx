@@ -260,18 +260,24 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setFormData(prev => ({ ...prev, files: [...prev.files, ...filesToAdd] }));
-            // Show upload animation immediately on file selection
+            // M11.8: Realistic file-reading progress with ease-out curve
             setFileUploadStatus('uploading');
             setFileUploadProgress(0);
-            let progress = 0;
+            const totalBytes = filesToAdd.reduce((sum: number, f: File) => sum + f.size, 0);
+            const estimatedMs = Math.max(400, Math.min(2000, totalBytes / 50000));
+            const steps = 20;
+            const stepMs = estimatedMs / steps;
+            let currentStep = 0;
             const interval = setInterval(() => {
-                progress += 20;
-                setFileUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
+                currentStep++;
+                const linear = currentStep / steps;
+                const eased = 1 - Math.pow(1 - linear, 3);
+                setFileUploadProgress(Math.round(eased * 100));
+                if (currentStep >= steps) {
                     clearInterval(interval);
                     setFileUploadStatus('completed');
                 }
-            }, 150);
+            }, stepMs);
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';

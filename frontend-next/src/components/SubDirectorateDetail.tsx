@@ -123,7 +123,7 @@ const SubDirectorateDetail = () => {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* About Card */}
-                        <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 shadow-sm border border-gov-gold/10">
+                        <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 shadow-gold-sm border border-gov-gold/10">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xl font-bold text-gov-forest dark:text-white flex items-center gap-3">
                                     <FileText className="text-gov-teal dark:text-gov-gold" />

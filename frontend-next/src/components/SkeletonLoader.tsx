@@ -18,7 +18,7 @@ export function SkeletonText({ lines = 3, className = '' }: { lines?: number; cl
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/10 ${className}`}>
+    <div className={`bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-gold-sm border border-gray-100 dark:border-white/10 ${className}`}>
       <div className="h-48 bg-gray-200 dark:bg-white/5 animate-pulse" />
       <div className="p-5 space-y-4">
         <div className="h-5 bg-gray-200 dark:bg-white/5 rounded-lg animate-pulse w-3/4" />

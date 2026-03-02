@@ -96,6 +96,9 @@ Route::prefix('v1')->group(function () {
         Route::get('search', [\App\Http\Controllers\Api\PublicApiController::class, 'search']);
 
         // T070: Search Autocomplete
+        // Government Partners (Public)
+        Route::get('government-partners', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'index']);
+
         Route::get('search/autocomplete', [\App\Http\Controllers\Api\SearchAutocompleteController::class, 'autocomplete'])->middleware('throttle:30,1');
 
         // FR-36: Semantic Search with Filters
@@ -340,6 +343,17 @@ Route::prefix('v1')->group(function () {
                 Route::delete('subscribers/{id}', [\App\Http\Controllers\Api\NewsletterController::class, 'destroy']);
                 Route::get('export', [\App\Http\Controllers\Api\NewsletterController::class, 'export']);
                 Route::post('send', [\App\Http\Controllers\Api\NewsletterController::class, 'send']);
+            });
+
+            // Government Partners Management (Admin) - M11.9
+            Route::middleware('role:content.view,content.*,admin.*')->prefix('government-partners')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'adminIndex']);
+                Route::get('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'show']);
+                Route::post('/', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'store']);
+                Route::post('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'update']);
+                Route::delete('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'destroy']);
+                Route::patch('{id}/toggle-active', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'toggleActive']);
+                Route::post('reorder', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'reorder']);
             });
 
             // Promotional Sections Management (Admin)

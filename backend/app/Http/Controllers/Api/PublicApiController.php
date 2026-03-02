@@ -1276,6 +1276,28 @@ class PublicApiController extends Controller
             'feedback_type' => 'nullable|in:positive,negative',
         ]);
 
+        // T6-FIX: Verify suggestion exists with retry for race condition
+        // When users rate immediately after submission, the suggestion may not be
+        // fully committed to DB yet. Retry up to 3 times with short delays.
+        $suggestion = null;
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $suggestion = \App\Models\Suggestion::where('tracking_number', $validated['tracking_number'])->first();
+            if ($suggestion) {
+                break;
+            }
+            if ($attempt < 2) {
+                usleep(500000); // Wait 500ms before retry
+            }
+        }
+
+        if (!$suggestion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المقترح غير موجود. يرجى المحاولة مرة أخرى بعد لحظات.',
+                'message_en' => 'Suggestion not found. Please try again in a moment.',
+            ], 404);
+        }
+
         // Check if rating already exists for this tracking number from same IP
         $existingRating = SuggestionRating::where('tracking_number', $validated['tracking_number'])
             ->where('ip_address', $request->ip())

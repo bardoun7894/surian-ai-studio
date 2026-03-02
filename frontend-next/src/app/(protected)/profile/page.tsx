@@ -22,8 +22,10 @@ import {
     ChevronDown,
     ArrowRight,
     ArrowLeft,
+    FileText,
+    ClipboardList,
 } from 'lucide-react';
-import { Ticket, Favorite } from '@/types';
+import { Ticket, Favorite, Suggestion } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { API } from '@/lib/repository';
@@ -43,9 +45,11 @@ export default function ProfilePage() {
     const [showPassword, setShowPassword] = useState(false);
 
     // Tabs & Complaints State
-    const [activeTab, setActiveTab] = useState<'profile' | 'complaints' | 'favorites'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'complaints' | 'suggestions' | 'favorites'>('profile');
     const [myComplaints, setMyComplaints] = useState<Ticket[]>([]);
     const [complaintsLoading, setComplaintsLoading] = useState(false);
+    const [mySuggestions, setMySuggestions] = useState<Suggestion[]>([]);
+    const [suggestionsLoading, setSuggestionsLoading] = useState(false);
     const [myFavorites, setMyFavorites] = useState<Favorite[]>([]);
     const [favoritesLoading, setFavoritesLoading] = useState(false);
 
@@ -135,8 +139,21 @@ export default function ProfilePage() {
             }
         };
 
+        const fetchSuggestions = async () => {
+            setSuggestionsLoading(true);
+            try {
+                const data = await API.suggestions.mySuggestions();
+                setMySuggestions(data);
+            } catch (err) {
+                console.error("Failed to fetch suggestions:", err);
+            } finally {
+                setSuggestionsLoading(false);
+            }
+        };
+
         if (isAuthenticated) {
             fetchComplaints();
+            fetchSuggestions();
         }
     }, [isAuthenticated]);
 
@@ -361,6 +378,26 @@ export default function ProfilePage() {
                         >
                             <Shield size={18} />
                             {language === 'ar' ? 'شكاويّ' : 'My Complaints'}
+                            {myComplaints.length > 0 && (
+                                <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {myComplaints.length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('suggestions')}
+                            className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'suggestions'
+                                ? 'bg-gov-teal text-white shadow-lg'
+                                : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-gov-border/15'
+                                }`}
+                        >
+                            <ClipboardList size={18} />
+                            {language === 'ar' ? 'مقترحاتي' : 'My Suggestions'}
+                            {mySuggestions.length > 0 && (
+                                <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {mySuggestions.length}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setActiveTab('favorites')}
@@ -828,12 +865,15 @@ export default function ProfilePage() {
                         </div>
                     )}
 
-                    {/* Complaints Tab */}
+                    {/* Complaints Tab - T-M2-09 */}
                     {activeTab === 'complaints' && (
                         <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-border/15 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-gov-border/15 flex items-center gap-2">
                                 <Shield size={20} className="text-gov-teal" />
-                                {language === 'ar' ? 'شكاويّ' : 'My Complaints'}
+                                {language === 'ar' ? 'آخر الشكاوى' : 'Last Complaints'}
+                                {myComplaints.length > 0 && (
+                                    <span className="text-sm font-normal text-gray-400 dark:text-white/50">({myComplaints.length})</span>
+                                )}
                             </h3>
 
                             {complaintsLoading ? (
@@ -842,41 +882,67 @@ export default function ProfilePage() {
                                 </div>
                             ) : myComplaints.length > 0 ? (
                                 <div className="space-y-4">
-                                    {myComplaints.map((complaint) => (
-                                        <div key={complaint.id} className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 flex flex-col md:flex-row justify-between gap-4 transition-all hover:shadow-md">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="font-bold text-gov-charcoal dark:text-white">
-                                                        {complaint.tracking_number || complaint.id}
-                                                    </span>
-                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${complaint.status === 'resolved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                        complaint.status === 'validated' || complaint.status === 'processing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                            complaint.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                        }`}>
-                                                        {complaint.status}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2">
-                                                    {complaint.description || complaint.title || (language === 'ar' ? 'لا يوجد تفاصيل' : 'No details available')}
-                                                </p>
-                                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-white/50">
-                                                    <span>{complaint.created_at || complaint.lastUpdate || ''}</span>
-                                                    {complaint.directorate && (
-                                                        <span>• {complaint.directorate}</span>
-                                                    )}
+                                    {myComplaints.map((complaint) => {
+                                        const statusMap: Record<string, { ar: string; en: string; color: string }> = {
+                                            'new': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+                                            'received': { ar: 'واردة', en: 'Received', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+                                            'in_progress': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+                                            'pending': { ar: 'قيد المعالجة', en: 'In Progress', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+                                            'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+                                            'resolved': { ar: 'منتهية', en: 'Resolved', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+                                            'closed': { ar: 'منتهية', en: 'Closed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+                                            'rejected': { ar: 'مرفوضة', en: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+                                        };
+                                        const statusInfo = statusMap[complaint.status] || statusMap['new'];
+                                        const dirName = typeof complaint.directorate === 'object' && complaint.directorate
+                                            ? (language === 'ar' ? (complaint.directorate.name_ar || complaint.directorate.name) : (complaint.directorate.name_en || complaint.directorate.name))
+                                            : (typeof complaint.directorate === 'string' ? complaint.directorate : null);
+                                        const formattedDate = complaint.created_at
+                                            ? new Date(complaint.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                            : '';
+                                        return (
+                                            <div
+                                                key={complaint.id}
+                                                onClick={() => router.push(`/complaints?track=${complaint.tracking_number || complaint.id}`)}
+                                                className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md hover:border-gov-teal/30 group"
+                                            >
+                                                <div className="flex flex-col sm:flex-row justify-between gap-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                            <span className="font-mono font-bold text-gov-charcoal dark:text-white text-sm">
+                                                                {complaint.tracking_number || complaint.id}
+                                                            </span>
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusInfo.color}`}>
+                                                                {language === 'ar' ? statusInfo.ar : statusInfo.en}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2 mb-2">
+                                                            {complaint.description || complaint.title || (language === 'ar' ? 'لا يوجد تفاصيل' : 'No details available')}
+                                                        </p>
+                                                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-white/50 flex-wrap">
+                                                            {formattedDate && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Calendar size={12} />
+                                                                    {formattedDate}
+                                                                </span>
+                                                            )}
+                                                            {dirName && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <MapPin size={12} />
+                                                                    {dirName}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center shrink-0">
+                                                        <span className="text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center">
-                                                <button
-                                                    onClick={() => router.push(`/complaints?track=${complaint.tracking_number || complaint.id}`)}
-                                                    className="w-full md:w-auto px-4 py-2 bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 rounded-lg text-sm font-bold text-gov-charcoal dark:text-white hover:bg-gray-50 dark:hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div className="text-center py-10 text-gray-500 dark:text-white/50">
@@ -884,9 +950,97 @@ export default function ProfilePage() {
                                     <p>{language === 'ar' ? 'لا يوجد شكاوى مسجلة' : 'No complaints found'}</p>
                                     <button
                                         onClick={() => router.push('/complaints')}
-                                        className="mt-4 px-6 py-2 bg-gov-teal/10 text-gov-teal rounded-lg font-bold hover:bg-gov-teal hover:text-white transition-all flex items-center gap-2"
+                                        className="mt-4 px-6 py-2 bg-gov-teal/10 text-gov-teal rounded-lg font-bold hover:bg-gov-teal hover:text-white transition-all flex items-center gap-2 mx-auto"
                                     >
                                         {language === 'ar' ? 'تقديم شكوى جديدة' : 'Submit New Complaint'}
+                                        {language === 'ar' ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Suggestions Tab - T-M2-09 */}
+                    {activeTab === 'suggestions' && (
+                        <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-border/15 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-6 pb-2 border-b border-gray-100 dark:border-gov-border/15 flex items-center gap-2">
+                                <ClipboardList size={20} className="text-gov-teal" />
+                                {language === 'ar' ? 'آخر المقترحات' : 'Last Suggestions'}
+                                {mySuggestions.length > 0 && (
+                                    <span className="text-sm font-normal text-gray-400 dark:text-white/50">({mySuggestions.length})</span>
+                                )}
+                            </h3>
+
+                            {suggestionsLoading ? (
+                                <div className="flex justify-center p-8">
+                                    <Loader2 className="animate-spin text-gov-teal" size={32} />
+                                </div>
+                            ) : mySuggestions.length > 0 ? (
+                                <div className="space-y-4">
+                                    {mySuggestions.map((suggestion) => {
+                                        const suggStatusMap: Record<string, { ar: string; en: string; color: string }> = {
+                                            'pending': { ar: 'قيد المراجعة', en: 'Pending', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+                                            'reviewed': { ar: 'تمت المراجعة', en: 'Reviewed', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
+                                            'approved': { ar: 'تمت الموافقة', en: 'Approved', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+                                            'rejected': { ar: 'مرفوض', en: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+                                        };
+                                        const suggInfo = suggStatusMap[suggestion.status] || suggStatusMap['pending'];
+                                        const formattedDate = suggestion.created_at
+                                            ? new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                            : '';
+                                        return (
+                                            <div
+                                                key={suggestion.id}
+                                                onClick={() => router.push(`/suggestions?track=${suggestion.tracking_number}`)}
+                                                className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md hover:border-gov-teal/30 group"
+                                            >
+                                                <div className="flex flex-col sm:flex-row justify-between gap-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                            <span className="font-mono font-bold text-gov-charcoal dark:text-white text-sm">
+                                                                {suggestion.tracking_number}
+                                                            </span>
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${suggInfo.color}`}>
+                                                                {language === 'ar' ? suggInfo.ar : suggInfo.en}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 dark:text-white/70 line-clamp-2 mb-2">
+                                                            {suggestion.description}
+                                                        </p>
+                                                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-white/50 flex-wrap">
+                                                            {formattedDate && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Calendar size={12} />
+                                                                    {formattedDate}
+                                                                </span>
+                                                            )}
+                                                            {suggestion.response && (
+                                                                <span className="flex items-center gap-1 text-gov-teal">
+                                                                    <CheckCircle size={12} />
+                                                                    {language === 'ar' ? 'تم الرد' : 'Responded'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center shrink-0">
+                                                        <span className="text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-10 text-gray-500 dark:text-white/50">
+                                    <ClipboardList size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p>{language === 'ar' ? 'لا يوجد مقترحات مسجلة' : 'No suggestions found'}</p>
+                                    <button
+                                        onClick={() => router.push('/suggestions')}
+                                        className="mt-4 px-6 py-2 bg-gov-teal/10 text-gov-teal rounded-lg font-bold hover:bg-gov-teal hover:text-white transition-all flex items-center gap-2 mx-auto"
+                                    >
+                                        {language === 'ar' ? 'تقديم مقترح جديد' : 'Submit New Suggestion'}
                                         {language === 'ar' ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
                                     </button>
                                 </div>

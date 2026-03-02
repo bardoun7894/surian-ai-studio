@@ -322,6 +322,7 @@ class SuggestionController extends Controller
     public function track(Request $request, string $trackingNumber): JsonResponse
     {
         $suggestion = Suggestion::where('tracking_number', $trackingNumber)
+            ->with('directorate')
             ->first();
 
         if (!$suggestion) {
@@ -351,11 +352,19 @@ class SuggestionController extends Controller
             'data' => [
                 'tracking_number' => $suggestion->tracking_number,
                 'status' => $suggestion->status,
+                'description' => $suggestion->description,
+                'created_at' => $suggestion->created_at->toIso8601String(),
                 'submitted_at' => $suggestion->created_at->toIso8601String(),
                 'last_updated' => $suggestion->updated_at->toIso8601String(),
                 'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
                 'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
                 'is_anonymous' => (bool) $suggestion->is_anonymous,
+                'full_name' => $suggestion->is_anonymous ? null : $suggestion->name,
+                'directorate' => $suggestion->directorate ? [
+                    'name_ar' => $suggestion->directorate->name_ar,
+                    'name_en' => $suggestion->directorate->name_en,
+                ] : null,
+                'category' => $suggestion->ai_category,
                 'rating' => $existingRating?->rating,
             ]
         ]);

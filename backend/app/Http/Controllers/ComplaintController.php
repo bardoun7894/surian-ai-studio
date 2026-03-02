@@ -379,6 +379,37 @@ class ComplaintController extends Controller
             return response()->json(['message' => 'Status unchanged', 'complaint' => $complaint]);
         }
 
+        // T-M2-10: Enforce sequential complaint status flow:
+        // واردة (new/received) → قيد المعالجة (in_progress) → منتهية (completed/resolved/closed/rejected)
+        $allowedTransitions = [
+            'new'         => ['received', 'in_progress'],
+            'received'    => ['in_progress'],
+            'in_progress' => ['completed', 'resolved', 'rejected', 'closed'],
+            'completed'   => ['closed'],   // Allow closing a completed complaint
+            'resolved'    => ['closed'],   // Allow closing a resolved complaint
+            'rejected'    => [],           // Terminal state
+            'closed'      => [],           // Terminal state
+        ];
+
+        $allowed = $allowedTransitions[$oldStatus] ?? [];
+        if (!in_array($newStatus, $allowed)) {
+            $statusLabels = [
+                'new' => 'واردة', 'received' => 'واردة',
+                'in_progress' => 'قيد المعالجة',
+                'completed' => 'منتهية', 'resolved' => 'منتهية',
+                'rejected' => 'مرفوضة', 'closed' => 'مغلقة',
+            ];
+            $fromLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+            $toLabel = $statusLabels[$newStatus] ?? $newStatus;
+            return response()->json([
+                'message' => "لا يمكن تغيير الحالة من \"{$fromLabel}\" ({$oldStatus}) إلى \"{$toLabel}\" ({$newStatus}). يرجى اتباع التسلسل الصحيح: واردة → قيد المعالجة → منتهية",
+                'error' => 'invalid_status_transition',
+                'current_status' => $oldStatus,
+                'requested_status' => $newStatus,
+                'allowed_statuses' => $allowed,
+            ], 422);
+        }
+
         $complaint->status = $newStatus;
         $complaint->save();
 
@@ -581,10 +612,10 @@ class ComplaintController extends Controller
         }
 
         // FR-22: Only allow deletion if status is 'new' or 'received'
-        $allowedStatuses = ['new', 'received'];
+        $allowedStatuses = ['new', 'pending'];
         if (!in_array($complaint->status, $allowedStatuses)) {
             return response()->json([
-                'message' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
+                'message' => 'Cannot delete complaint. Only complaints with status "new" or "pending" can be deleted.',
                 'current_status' => $complaint->status
             ], 400);
         }

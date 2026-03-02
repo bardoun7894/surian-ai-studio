@@ -771,6 +771,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     <NationalIdField
                                                         value={formData.nationalId}
                                                         onChange={(val) => setFormData(prev => ({ ...prev, nationalId: val }))}
+                                                        onBlur={() => handleBlur('nationalId', formData.nationalId)}
                                                         onVerified={(citizenData) => {
                                                             if (citizenData) {
                                                                 setFormData(prev => ({
@@ -781,6 +782,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                                 }));
                                                             }
                                                         }}
+                                                        error={touched.nationalId ? errors.nationalId : undefined}
                                                         required={!isAnonymous}
                                                         autoVerify={true}
                                                         label={t('complaint_national_id')}
@@ -1127,14 +1129,14 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </div>
                                     )}
 
-                                    {/* Rating after receiving result - shown when suggestion is completed/responded */}
-                                    {(trackingResult.status === 'completed' || trackingResult.status === 'reviewed' || trackingResult.status === 'approved' || trackingResult.status === 'implemented' || trackingResult.status === 'rejected' || trackingResult.status === 'responded') && !trackingResult.rating && !hasRated && (
+                                    {/* Rating after receiving tracking result - always available for user experience feedback */}
+                                    {!trackingResult.rating && !hasRated && (
                                         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
                                             <SuggestionRating
                                                 trackingNumber={trackingResult.tracking_number || trackingResult.id}
                                                 language={language as 'ar' | 'en'}
                                                 onClose={() => setHasRated(true)}
-                                                hideHelpfulQuestion={false}
+                                                hideHelpfulQuestion={!(trackingResult.response || (trackingResult.responses && trackingResult.responses.length > 0))}
                                             />
                                         </div>
                                     )}

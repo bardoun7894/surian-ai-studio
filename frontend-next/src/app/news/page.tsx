@@ -198,7 +198,7 @@ function NewsPageContent() {
 
   // View tabs - use only main departments (featured directorates), not all individual directorates
   const viewTabs = useMemo(() => {
-    const t = [
+    const tabs = [
       { key: 'organized', label: t('news_organized_view'), icon: LayoutGrid },
       { key: 'all', label: t('news_all'), icon: LayoutGrid },
       { key: 'central', label: t('news_central_admin'), icon: Landmark },
@@ -207,10 +207,10 @@ function NewsPageContent() {
     filteredGroupedNews.forEach(group => {
       const nameAr = group.directorate.name_ar || group.directorate.name;
       const nameEn = group.directorate.name_en || group.directorate.name;
-      t.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
+      tabs.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
     });
-    return t;
-  }, [filteredGroupedNews, language, isAr]);
+    return tabs;
+  }, [filteredGroupedNews, language, isAr, t]);
 
   // Filtered flat news (for non-organized views)
   const filteredFlatNews = useMemo(() => {

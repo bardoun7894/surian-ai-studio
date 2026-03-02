@@ -22,7 +22,9 @@ class SettingsController extends Controller
      */
     public function getPublicSettings(): JsonResponse
     {
-        $settings = SystemSetting::getPublic();
+        $settings = Cache::remember('public.settings', 900, function () {
+            return SystemSetting::getPublic();
+        });
 
         return response()->json([
             'settings' => $settings,
@@ -34,12 +36,14 @@ class SettingsController extends Controller
      */
     public function getUiSettings(): JsonResponse
     {
-        $settings = SystemSetting::where('group', 'ui')
-            ->where('is_public', true)
-            ->get()
-            ->mapWithKeys(function ($setting) {
-                return [$setting->key => $setting->getTypedValue()];
-            });
+        $settings = Cache::remember('public.ui_settings', 900, function () {
+            return SystemSetting::where('group', 'ui')
+                ->where('is_public', true)
+                ->get()
+                ->mapWithKeys(function ($setting) {
+                    return [$setting->key => $setting->getTypedValue()];
+                });
+        });
 
         return response()->json([
             'settings' => $settings,
@@ -51,12 +55,14 @@ class SettingsController extends Controller
      */
     public function getPublicSettingsByGroup(string $group): JsonResponse
     {
-        $settings = SystemSetting::where('group', $group)
-            ->where('is_public', true)
-            ->get()
-            ->mapWithKeys(function ($setting) {
-                return [$setting->key => $setting->getTypedValue()];
-            });
+        $settings = Cache::remember("public.settings.{$group}", 900, function () use ($group) {
+            return SystemSetting::where('group', $group)
+                ->where('is_public', true)
+                ->get()
+                ->mapWithKeys(function ($setting) {
+                    return [$setting->key => $setting->getTypedValue()];
+                });
+        });
 
         return response()->json([
             'settings' => $settings,
@@ -368,6 +374,10 @@ class SettingsController extends Controller
     public function clearCache(): JsonResponse
     {
         SystemSetting::clearCache();
+
+        // Also clear public API caches for settings
+        Cache::forget('public.settings');
+        Cache::forget('public.ui_settings');
 
         return response()->json([
             'message' => 'Settings cache cleared successfully',

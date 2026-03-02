@@ -8,10 +8,11 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { LoadingProvider, useLoading } from '@/contexts/LoadingContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
-const UserSatisfactionIndicator = dynamic(() => import('@/components/UserSatisfactionIndicator'), { ssr: false });
 import dynamic from 'next/dynamic';
-const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false });
 import { Toaster } from 'sonner';
+
+const UserSatisfactionIndicator = dynamic(() => import('@/components/UserSatisfactionIndicator'), { ssr: false });
+const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false });
 
 interface ProvidersProps {
   children: ReactNode;

@@ -282,32 +282,36 @@ class PublicApiController extends Controller
      */
     public function newsByDirectorate(): JsonResponse
     {
-        $directorates = Directorate::where('is_active', true)->get();
-        $result = [];
+        $result = Cache::remember('public.news_by_directorate', 600, function () {
+            $directorates = Directorate::where('is_active', true)->get();
+            $result = [];
 
-        foreach ($directorates as $directorate) {
-            $news = Content::where('category', 'news')
-                ->where('status', 'published')
-                ->where('directorate_id', $directorate->id)
-                ->orderBy('published_at', 'desc')
-                ->limit(3)
-                ->get()
-                ->map(fn($n) => $this->formatNews($n))
-                ->values();
+            foreach ($directorates as $directorate) {
+                $news = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->where('directorate_id', $directorate->id)
+                    ->orderBy('published_at', 'desc')
+                    ->limit(3)
+                    ->get()
+                    ->map(fn($n) => $this->formatNews($n))
+                    ->values();
 
-            if ($news->isNotEmpty()) {
-                $result[] = [
-                    'directorate' => [
-                        'id' => (string) $directorate->id,
-                        'name' => $directorate->name_ar,
-                        'name_ar' => $directorate->name_ar,
-                        'name_en' => $directorate->name_en,
-                        'icon' => $directorate->icon ?? 'Building2',
-                    ],
-                    'news' => $news,
-                ];
+                if ($news->isNotEmpty()) {
+                    $result[] = [
+                        'directorate' => [
+                            'id' => (string) $directorate->id,
+                            'name' => $directorate->name_ar,
+                            'name_ar' => $directorate->name_ar,
+                            'name_en' => $directorate->name_en,
+                            'icon' => $directorate->icon ?? 'Building2',
+                        ],
+                        'news' => $news,
+                    ];
+                }
             }
-        }
+
+            return $result;
+        });
 
         return response()->json($result);
     }
@@ -383,7 +387,8 @@ class PublicApiController extends Controller
      */
     public function heroArticle(): JsonResponse
     {
-        $article = Content::where('category', 'news')
+        $data = Cache::remember('public.hero_article', 300, function () {
+            $article = Content::where('category', 'news')
             ->where('status', 'published')
             ->where('featured', true)
             ->orderBy('published_at', 'desc')
@@ -397,7 +402,7 @@ class PublicApiController extends Controller
         }
 
         if (!$article) {
-            return response()->json([
+            return [
                 'id' => null,
                 'title' => 'مرحباً بكم في البوابة الإلكترونية',
                 'title_ar' => 'مرحباً بكم في البوابة الإلكترونية',
@@ -413,10 +418,10 @@ class PublicApiController extends Controller
                 'readTime' => '3 دقائق',
                 'readTime_en' => '3 minutes',
                 'imageUrl' => '/assets/hero-bg.jpg',
-            ]);
+            ];
         }
 
-        return response()->json([
+        return [
             'id' => (string) $article->id,
             'title' => $article->title_ar,
             'title_ar' => $article->title_ar,
@@ -432,7 +437,10 @@ class PublicApiController extends Controller
             'readTime' => ceil(str_word_count(strip_tags($article->content_ar ?? '')) / 200) . ' دقائق',
             'readTime_en' => ceil(str_word_count(strip_tags($article->content_en ?? '')) / 200) . ' minutes',
             'imageUrl' => $this->normalizeImageUrl($article->metadata['image'] ?? null) ?? '/assets/hero-bg.jpg',
-        ]);
+        ];
+        });
+
+        return response()->json($data);
     }
 
     /**
@@ -440,7 +448,8 @@ class PublicApiController extends Controller
      */
     public function gridArticles(): JsonResponse
     {
-        $articles = Content::where('category', 'news')
+        $articles = Cache::remember('public.grid_articles', 300, function () {
+            return Content::where('category', 'news')
             ->where('status', 'published')
             ->where('featured', false)
             ->orderBy('published_at', 'desc')
@@ -463,6 +472,7 @@ class PublicApiController extends Controller
                 'readTime_en' => '3 minutes',
                 'imageUrl' => $this->normalizeImageUrl($a->metadata['image'] ?? null) ?? '/assets/news-placeholder.jpg',
             ]);
+        });
 
         return response()->json($articles);
     }
@@ -1355,7 +1365,8 @@ class PublicApiController extends Controller
      */
     public function openData(): JsonResponse
     {
-        $datasets = Content::where('category', 'open_data')
+        $datasets = Cache::remember('public.open_data', 900, function () {
+            return Content::where('category', 'open_data')
             ->where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->get()
@@ -1371,6 +1382,7 @@ class PublicApiController extends Controller
                 'category_label' => $d->metadata['category_label'] ?? '',
                 'download_url' => $d->metadata['download_url'] ?? null,
             ]);
+        });
 
         return response()->json($datasets);
     }

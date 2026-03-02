@@ -404,77 +404,146 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
             />
             <motion.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              className="lg:hidden fixed inset-x-0 top-16 md:top-20 bottom-0 z-50 bg-white dark:bg-dm-surface border-t border-gov-gold/25 dark:border-gov-border/30 shadow-xl overflow-y-auto overscroll-contain"
+              initial={{ opacity: 0, x: language === 'ar' ? 280 : -280 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: language === 'ar' ? 280 : -280 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className={`lg:hidden fixed top-14 md:top-[4.5rem] bottom-0 z-50 w-[280px] bg-white dark:bg-dm-surface border-t border-gov-gold/25 dark:border-gov-border/30 shadow-2xl overflow-y-auto overscroll-contain ${language === 'ar' ? 'right-0' : 'left-0'}`}
             >
-              <div className="p-4 space-y-1 pb-8">
-                {/* Login/Account Button - Prominently placed at top */}
-                {isAuthenticated ? (
+              <div className="flex flex-col h-full">
+                {/* Auth buttons at top */}
+                <div className="p-4 pb-2">
+                  {isAuthenticated ? (
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
+                    >
+                      <LayoutDashboard size={18} />
+                      <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
+                    </Link>
+                  ) : (
+                    <div className="space-y-2">
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
+                      >
+                        <User size={18} />
+                        <span>{t('nav_login')}</span>
+                      </Link>
+                      <Link
+                        href="/register"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2.5 w-full px-4 py-2.5 border-2 border-gov-forest/20 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors"
+                      >
+                        <User size={18} />
+                        <span>{t('sitemap_register')}</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Navigation items */}
+                <nav className="flex-1 px-3 pb-6 space-y-0.5 overflow-y-auto">
+                  {/* Home */}
                   <Link
-                    href="/dashboard"
+                    href="/"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full mb-4 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors ${pathname === '/' ? 'bg-gov-beige/70 dark:bg-white/10 text-gov-forest dark:text-gov-gold border-s-4 border-gov-gold' : ''}`}
                   >
-                    <LayoutDashboard size={20} />
-                    <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
+                    <div className="w-8 h-8 rounded-lg bg-gov-forest/10 dark:bg-gov-gold/15 flex items-center justify-center flex-shrink-0">
+                      <Building2 size={16} className="text-gov-forest dark:text-gov-gold" />
+                    </div>
+                    <span className="text-sm">{t('nav_home')}</span>
                   </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full mb-2 px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md"
-                  >
-                    <User size={20} />
-                    <span>{t('nav_login')}</span>
-                  </Link>
-                )}
 
-                {!isAuthenticated && (
-                  <Link
-                    href="/register"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full mb-4 px-4 py-3 border-2 border-gov-forest/20 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors"
-                  >
-                    <User size={20} />
-                    <span>{t('sitemap_register')}</span>
-                  </Link>
-                )}
+                  {/* About Section */}
+                  <div className="pt-3">
+                    <p className="px-4 pb-1.5 text-[10px] font-bold text-gov-stone/50 dark:text-white/40 uppercase tracking-widest">{t('nav_about')}</p>
+                    {aboutMenu.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                            <Icon size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                          </div>
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/70 dark:hover:bg-white/10 border border-transparent hover:border-gov-gold/25 dark:hover:border-gov-border/40 transition-colors">{t('nav_home')}</Link>
+                  {/* Services Section */}
+                  <div className="pt-3">
+                    <p className="px-4 pb-1.5 text-[10px] font-bold text-gov-stone/50 dark:text-white/40 uppercase tracking-widest">{t('nav_services_legislations')}</p>
+                    {servicesMenu.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                            <Icon size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                          </div>
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                    <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <Scale size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation'}</span>
+                    </Link>
+                  </div>
 
-                {/* Mobile specific simple menu structure (collapsing dropdowns could be nice but simplified for now) */}
-                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
-                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_about')}</p>
-                  {aboutMenu.map((item, i) => (
-                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
-                  ))}
-                </div>
+                  {/* Media Section */}
+                  <div className="pt-3">
+                    <p className="px-4 pb-1.5 text-[10px] font-bold text-gov-stone/50 dark:text-white/40 uppercase tracking-widest">{t('nav_media')}</p>
+                    {mediaMenu.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                            <Icon size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                          </div>
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
-                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_services_legislations')}</p>
-                  {servicesMenu.map((item, i) => (
-                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
-                  ))}
-                  <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation'}</Link>
-                </div>
+                  {/* Suggestions & Complaints Section */}
+                  <div className="pt-3">
+                    <p className="px-4 pb-1.5 text-[10px] font-bold text-gov-stone/50 dark:text-white/40 uppercase tracking-widest">{t('nav_suggestions_complaints')}</p>
+                    {suggestionsMenu.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                            <Icon size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                          </div>
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-
-                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
-                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_media')}</p>
-                  {mediaMenu.map((item, i) => (
-                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
-                  ))}
-                </div>
-
-                <div className="border-t border-gov-gold/15 dark:border-gov-border/30 my-2 pt-2">
-                  <p className="px-4 py-2 text-xs font-bold text-gov-forest dark:text-gov-gold uppercase tracking-wide">{t('nav_suggestions_complaints')}</p>
-                  {suggestionsMenu.map((item, i) => (
-                    <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
-                  ))}
-                </div>
-
+                  {/* Help & Contact */}
+                  <div className="pt-3 border-t border-gov-gold/10 dark:border-gov-border/20 mt-3">
+                    <Link href="/faq" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <HelpCircle size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}</span>
+                    </Link>
+                    <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <Phone size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'اتصل بنا' : 'Contact Us'}</span>
+                    </Link>
+                  </div>
+                </nav>
               </div>
             </motion.div>
           </>

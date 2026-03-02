@@ -20,7 +20,7 @@ import {
     ArrowLeft,
 } from 'lucide-react';
 import { API } from '@/lib/repository';
-import { Directorate, NewsItem, FAQ } from '@/types';
+import { Directorate, NewsItem, FAQ, Service } from '@/types';
 import { Announcement } from '@/lib/repository';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -50,6 +50,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     const [news, setNews] = useState<NewsItem[]>([]);
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [contentLoading, setContentLoading] = useState(true);
+    const [servicesCount, setServicesCount] = useState(0);
 
     const loc = (obj: any, field: string): string => {
         const val = obj?.[field];
@@ -87,12 +88,14 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
         const fetchContent = async () => {
             try {
                 setContentLoading(true);
-                const [newsData, announcementsData] = await Promise.all([
+                const [newsData, announcementsData, servicesData] = await Promise.all([
                     API.directorates.getNewsByDirectorate(directorateId),
                     API.announcements.getByDirectorate(directorateId).catch(() => []),
+                    API.directorates.getServicesByDirectorate(directorateId).catch(() => []),
                 ]);
                 setNews(newsData);
                 setAnnouncements(announcementsData);
+                setServicesCount(servicesData.length);
             } catch (e) {
                 console.error('Failed to load directorate content', e);
             } finally {
@@ -109,8 +112,39 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     );
 
     if (!directorate) return (
-        <div className="p-20 text-center text-gov-charcoal dark:text-white">
-            {isAr ? 'لم يتم العثور على الجهة' : 'Directorate not found'}
+        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-gov-gold/10 dark:bg-gov-gold/20 flex items-center justify-center mb-6">
+                <Building2 className="text-gov-gold" size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
+                {isAr ? 'لم يتم العثور على الجهة' : 'Directorate Not Found'}
+            </h2>
+            <p className="text-gray-500 dark:text-white/60 mb-8 max-w-md">
+                {isAr
+                    ? 'لم نتمكن من العثور على هذه الجهة. قد يكون الرابط غير صحيح أو تم نقل الصفحة.'
+                    : 'We could not find this directorate. The link may be incorrect or the page has been moved.'
+                }
+            </p>
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => {
+                        setLoading(true);
+                        API.directorates.getById(directorateId).then(dir => {
+                            setDirectorate(dir);
+                        }).catch(() => {}).finally(() => setLoading(false));
+                    }}
+                    className="px-6 py-3 bg-gov-teal dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                    <Loader2 size={16} className={loading ? 'animate-spin' : 'hidden'} />
+                    {isAr ? 'إعادة المحاولة' : 'Try Again'}
+                </button>
+                <Link
+                    href="/directorates"
+                    className="px-6 py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+                >
+                    {isAr ? 'عرض كل الإدارات' : 'View All Directorates'}
+                </Link>
+            </div>
         </div>
     );
 
@@ -149,7 +183,10 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* 1. HERO SECTION */}
             {/* ═══════════════════════════════════════════════════ */}
             <DirectorateHero
-                directorate={{ ...directorate, servicesCount: 0 }}
+                directorate={{
+                    ...directorate,
+                    servicesCount: servicesCount || directorate.servicesCount || 0,
+                }}
                 hasSubDirectorates={subDirectoratesCount > 0}
             />
 
@@ -385,7 +422,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             <ScrollAnimation>
                 <div className="bg-white dark:bg-dm-surface">
-                    <QuickLinks section="directorate" />
+                    <QuickLinks section="directorate" directorateId={directorateId} />
                 </div>
             </ScrollAnimation>
 

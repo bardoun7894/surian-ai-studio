@@ -41,6 +41,10 @@ export interface DirectorateTeam {
 }
 
 export interface Directorate {
+  name_ar?: string;
+  name_en?: string;
+  description_ar?: string;
+  description_en?: string;
   id: string;
   name: LocalizedString | string;
   description: LocalizedString | string;

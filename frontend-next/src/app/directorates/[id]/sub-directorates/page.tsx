@@ -54,7 +54,7 @@ export default function SubDirectoratesPage() {
                             {language === 'ar' ? 'الإدارة غير موجودة' : 'Directorate Not Found'}
                         </h1>
                         <Link href="/directorates" className="text-gov-gold hover:underline">
-                            {language === 'ar' ? 'العودة إلى الإدارات' : 'Back to Directorates'}
+                            {language === 'ar' ? 'العودة إلى الهيكل التنظيمي' : 'Back to Organizational Structure'}
                         </Link>
                     </div>
                 </main>
@@ -73,23 +73,15 @@ export default function SubDirectoratesPage() {
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">
-                        {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-gray-300 text-sm mb-6">
-                            <Link href="/" className="hover:text-gov-gold transition-colors">
-                                {language === 'ar' ? 'الرئيسية' : 'Home'}
+                        {/* Navigation: Back to parent directorate */}
+                        <div className="flex items-center gap-3 mb-6">
+                            <Link
+                                href={`/directorates/${directorate.id}`}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all text-sm font-bold backdrop-blur-sm"
+                            >
+                                <ChevronLeft size={16} className={language === 'ar' ? 'rotate-180' : ''} />
+                                <span>{getLocalizedField(directorate, 'name', language)}</span>
                             </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <Link href="/directorates" className="hover:text-gov-gold transition-colors">
-                                {language === 'ar' ? 'الإدارات' : 'Directorates'}
-                            </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <Link href={`/directorates/${directorate.id}`} className="hover:text-gov-gold transition-colors">
-                                {getLocalizedField(directorate, 'name', language)}
-                            </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <span className="text-gov-gold">
-                                {language === 'ar' ? 'المديريات الفرعية' : 'Sub-Directorates'}
-                            </span>
                         </div>
 
                         <div className="flex items-center gap-4 mb-4">
@@ -156,7 +148,7 @@ export default function SubDirectoratesPage() {
                                         </a>
                                     ) : (
                                         <Link
-                                            href={`/directorates/${sub.id}`}
+                                            href={`/directorates/${directorate.id}/${sub.id}`}
                                             className="inline-flex items-center gap-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
                                         >
                                             {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}

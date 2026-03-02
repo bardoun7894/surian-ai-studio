@@ -97,7 +97,10 @@ class PublicApiController extends Controller
             ->map(function ($sub) {
                 return [
                     'id' => (string) $sub->id,
-                    'name' => $sub->name_ar,
+                    'name' => [
+                        'ar' => $sub->name_ar,
+                        'en' => $sub->name_en ?? $sub->name_ar,
+                    ],
                     'name_ar' => $sub->name_ar,
                     'name_en' => $sub->name_en ?? $sub->name_ar,
                     'description_ar' => $sub->description_ar ?? '',
@@ -140,10 +143,16 @@ class PublicApiController extends Controller
 
         return response()->json([
             'id' => (string) $directorate->id,
-            'name' => $directorate->name_ar ?? $directorate->name,
+            'name' => [
+                'ar' => $directorate->name_ar ?? $directorate->name,
+                'en' => $directorate->name_en ?? $directorate->name_ar ?? $directorate->name,
+            ],
             'name_ar' => $directorate->name_ar ?? $directorate->name,
             'name_en' => $directorate->name_en ?? $directorate->name,
-            'description' => $directorate->description_ar ?? $directorate->description ?? '',
+            'description' => [
+                'ar' => $directorate->description_ar ?? $directorate->description ?? '',
+                'en' => $directorate->description_en ?? $directorate->description ?? '',
+            ],
             'description_ar' => $directorate->description_ar ?? $directorate->description ?? '',
             'description_en' => $directorate->description_en ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
@@ -175,17 +184,26 @@ class PublicApiController extends Controller
                 ->map(function ($d) {
                 return [
                     'id' => (string) $d->id,
-                    'name' => $d->name_ar ?? $d->name,
+                    'name' => [
+                        'ar' => $d->name_ar ?? $d->name,
+                        'en' => $d->name_en ?? $d->name_ar ?? $d->name,
+                    ],
                     'name_ar' => $d->name_ar ?? $d->name,
                     'name_en' => $d->name_en ?? $d->name,
-                    'description' => $d->description_ar ?? $d->description ?? '',
+                    'description' => [
+                        'ar' => $d->description_ar ?? $d->description ?? '',
+                        'en' => $d->description_en ?? $d->description ?? '',
+                    ],
                     'description_en' => $d->description_en ?? $d->description ?? '',
                     'icon' => $d->icon ?? 'Building2',
                     'featured' => true,
                     'subDirectorates' => $d->subDirectorates->map(function ($sub) {
                         return [
                             'id' => $sub->id,
-                            'name' => $sub->name_ar,
+                            'name' => [
+                                'ar' => $sub->name_ar,
+                                'en' => $sub->name_en ?? $sub->name_ar,
+                            ],
                             'name_ar' => $sub->name_ar,
                             'name_en' => $sub->name_en ?? $sub->name_ar,
                             'url' => $sub->url,
@@ -215,7 +233,10 @@ class PublicApiController extends Controller
         $subDirectorates = $directorate->subDirectorates->map(function ($sub) {
             return [
                 'id' => $sub->id,
-                'name' => $sub->name_ar,
+                'name' => [
+                    'ar' => $sub->name_ar,
+                    'en' => $sub->name_en ?? $sub->name_ar,
+                ],
                 'name_ar' => $sub->name_ar,
                 'name_en' => $sub->name_en,
                 'url' => $sub->url,
@@ -1045,8 +1066,12 @@ class PublicApiController extends Controller
     private function normalizeImageUrl(?string $path): ?string
     {
         if (!$path) return null;
-        if (str_starts_with($path, '/storage/') || str_starts_with($path, 'http')) return $path;
-        return '/storage/' . $path;
+        // Already absolute URL or storage path
+        if (str_starts_with($path, 'http')) return $path;
+        if (str_starts_with($path, '/storage/')) return $path;
+        // Static assets (public directory) - do not prefix with /storage/
+        if (str_starts_with($path, '/assets/') || str_starts_with($path, '/images/')) return $path;
+        return '/storage/' . ltrim($path, '/');
     }
 
     private function formatNews($n): array
@@ -1364,21 +1389,36 @@ class PublicApiController extends Controller
     public function quickLinks(Request $request): JsonResponse
     {
         $section = $request->query('section', 'homepage');
+        $directorateId = $request->query('directorate_id');
 
-        $links = Cache::remember("public.quick_links.{$section}", 600, function () use ($section) {
-            return QuickLink::active()
+        $cacheKey = "public.quick_links.{$section}" . ($directorateId ? ".dir.{$directorateId}" : '.global');
+
+        $links = Cache::remember($cacheKey, 600, function () use ($section, $directorateId) {
+            $query = QuickLink::active()
                 ->section($section)
-                ->ordered()
-                ->get()
-                ->map(fn ($link) => [
-                    'id' => $link->id,
-                    'label_ar' => $link->label_ar,
-                    'label_en' => $link->label_en,
-                    'url' => $link->url,
-                    'icon' => $link->icon,
-                    'section' => $link->section,
-                ]);
-        });
+                ->ordered();
+
+            if ($directorateId) {
+                // Return directorate-specific links, falling back to generic section links
+                $dirLinks = (clone $query)->forDirectorate($directorateId)->get();
+                if ($dirLinks->isEmpty()) {
+                    $dirLinks = (clone $query)->forDirectorate(null)->get();
+                }
+                return $dirLinks;
+            } else {
+                $query->forDirectorate(null);
+            }
+
+            return $query->get();
+        })->map(fn ($link) => [
+            'id' => $link->id,
+            'label_ar' => $link->label_ar,
+            'label_en' => $link->label_en,
+            'url' => $link->url,
+            'icon' => $link->icon,
+            'section' => $link->section,
+            'directorate_id' => $link->directorate_id,
+        ]);
 
         return response()->json($links);
     }

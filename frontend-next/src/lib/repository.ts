@@ -477,10 +477,15 @@ class ApiDirectorateRepository implements IDirectorateRepository {
     if (!Array.isArray(subDirectorates)) return [];
 
     return subDirectorates.map((sub: any) => ({
+      ...sub,
       id: String(sub?.id ?? ''),
       name: sub?.name ?? {
         ar: sub?.name_ar ?? '',
         en: sub?.name_en ?? sub?.name_ar ?? '',
+      },
+      description: sub?.description ?? {
+        ar: sub?.description_ar ?? '',
+        en: sub?.description_en ?? sub?.description_ar ?? '',
       },
       url: sub?.url ?? '',
       isExternal: Boolean(sub?.isExternal ?? sub?.is_external),
@@ -513,7 +518,13 @@ class ApiDirectorateRepository implements IDirectorateRepository {
       subDirectorates: normalizedSubDirectorates,
       servicesCount: normalizedServicesCount ?? (Array.isArray(raw?.services) ? raw.services.length : 0),
       newsCount: normalizedNewsCount,
-      logo: raw?.logo ?? raw?.image,
+      logo: (() => {
+        const logoVal = raw?.logo ?? raw?.logo_path ?? raw?.image;
+        if (!logoVal) return undefined;
+        // Already valid URL or path
+        if (logoVal.startsWith('http') || logoVal.startsWith('/')) return logoVal;
+        return '/storage/' + logoVal;
+      })(),
       address_ar: raw?.address_ar ?? raw?.contact?.address ?? raw?.address,
       address_en: raw?.address_en ?? raw?.contact?.address ?? raw?.address,
       email: raw?.email ?? raw?.contact?.email,
@@ -2228,9 +2239,11 @@ export const API = {
   search: USE_MOCK_DATA ? new MockSearchRepository() : new ApiSearchRepository(),
   ai: USE_MOCK_DATA ? new MockAiRepository() : new ApiAiRepository(),
   quickLinks: {
-    async getBySection(section: string = 'homepage'): Promise<any[]> {
+    async getBySection(section: string = 'homepage', directorateId?: string): Promise<any[]> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/quick-links?section=${section}`);
+        const params = new URLSearchParams({ section });
+        if (directorateId) params.append('directorate_id', directorateId);
+        const res = await fetch(`${API_BASE_URL}/public/quick-links?${params.toString()}`);
         if (!res.ok) return [];
         return res.json();
       } catch { return []; }

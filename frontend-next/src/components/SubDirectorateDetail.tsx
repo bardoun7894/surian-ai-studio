@@ -103,17 +103,64 @@ const SubDirectorateDetail = () => {
 
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                        <button onClick={() => router.back()} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm">
+                        <Link
+                            href={`/directorates/${id}`}
+                            className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0"
+                        >
                             <ChevronLeft size={24} className={isAr ? "rotate-180" : ""} />
-                        </button>
+                        </Link>
 
-                        <div>
+                        <div className="flex-1">
                             <div className="text-gov-gold text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                                 <Building2 size={16} />
-                                {parentName}
+                                <Link href={`/directorates/${id}`} className="hover:underline">
+                                    {parentName}
+                                </Link>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{name}</h1>
                         </div>
+
+                        {/* Navigation arrows between sibling sub-directorates */}
+                        {parentDirectorate?.subDirectorates && parentDirectorate.subDirectorates.length > 1 && (() => {
+                            const subs = parentDirectorate.subDirectorates.filter(s => !s.isExternal);
+                            const currentIndex = subs.findIndex(s => s.id === subId);
+                            if (currentIndex === -1) return null;
+                            const prevSub = currentIndex > 0 ? subs[currentIndex - 1] : null;
+                            const nextSub = currentIndex < subs.length - 1 ? subs[currentIndex + 1] : null;
+                            return (
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    {prevSub ? (
+                                        <Link
+                                            href={`/directorates/${id}/${prevSub.id}`}
+                                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+                                            title={typeof prevSub.name === 'string' ? prevSub.name : (isAr ? prevSub.name.ar : prevSub.name.en)}
+                                        >
+                                            <ArrowRight size={20} className={isAr ? '' : 'rotate-180'} />
+                                        </Link>
+                                    ) : (
+                                        <div className="p-2 opacity-30 cursor-not-allowed">
+                                            <ArrowRight size={20} className={isAr ? '' : 'rotate-180'} />
+                                        </div>
+                                    )}
+                                    <span className="text-white/50 text-xs">
+                                        {currentIndex + 1}/{subs.length}
+                                    </span>
+                                    {nextSub ? (
+                                        <Link
+                                            href={`/directorates/${id}/${nextSub.id}`}
+                                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+                                            title={typeof nextSub.name === 'string' ? nextSub.name : (isAr ? nextSub.name.ar : nextSub.name.en)}
+                                        >
+                                            <ArrowRight size={20} className={isAr ? 'rotate-180' : ''} />
+                                        </Link>
+                                    ) : (
+                                        <div className="p-2 opacity-30 cursor-not-allowed">
+                                            <ArrowRight size={20} className={isAr ? 'rotate-180' : ''} />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

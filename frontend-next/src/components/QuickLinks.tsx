@@ -60,9 +60,10 @@ const normalizeQuickLinkUrl = (url: string, labelAr: string, labelEn: string): s
 
 interface QuickLinksProps {
   section?: string;
+  directorateId?: string;
 }
 
-const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
+const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directorateId }) => {
   const { language } = useLanguage();
   const isAr = language === 'ar';
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
@@ -128,13 +129,13 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
   }, [links, updateScrollButtons]);
 
   useEffect(() => {
-    API.quickLinks.getBySection(section)
+    API.quickLinks.getBySection(section, directorateId)
       .then((data) => {
         if (data && data.length > 0) setLinks(data);
       })
       .catch(() => { /* Fallback already set */ })
       .finally(() => setLoading(false));
-  }, [section]);
+  }, [section, directorateId]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;

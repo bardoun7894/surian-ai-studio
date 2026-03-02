@@ -12,6 +12,7 @@ class QuickLink extends Model
         'url',
         'icon',
         'section',
+        'directorate_id',
         'display_order',
         'is_active',
     ];
@@ -34,5 +35,18 @@ class QuickLink extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('display_order');
+    }
+
+    public function scopeForDirectorate($query, ?string $directorateId)
+    {
+        if ($directorateId) {
+            return $query->where('directorate_id', $directorateId);
+        }
+        return $query->whereNull('directorate_id');
+    }
+
+    public function directorate()
+    {
+        return $this->belongsTo(Directorate::class);
     }
 }

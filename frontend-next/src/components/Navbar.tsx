@@ -101,7 +101,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
       setIsSearching(true);
       try {
-        const results = await API.searchAutocomplete.suggest(debouncedSearchTerm);
+        // M7.1: Pass language to get suggestions in the correct language
+        const results = await API.searchAutocomplete.suggest(debouncedSearchTerm, language);
         // Filter out suggestions with URLs that don't match valid application routes
         const validRoutes = ['/news/', '/services/', '/announcements/', '/directorates/', '/complaints', '/suggestions', '/media', '/faq', '/contact', '/about', '/search', '/decrees/', '/dashboard', '/login', '/register'];
         const validSuggestions = results.filter((s: any) => {
@@ -118,7 +119,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
     };
 
     fetchSuggestions();
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, language]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,9 +226,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 ]
               },
               {
-                title: language === 'ar' ? 'التشريعات' : 'Legislations',
+                title: language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation',
                 items: [
-                  { label: language === 'ar' ? 'القوانين والمراسيم' : 'Laws & Decrees', href: '/decrees', icon: Scale, description: language === 'ar' ? 'التشريعات والقوانين الصادرة' : 'Published laws and decrees' },
+                  { label: language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation', href: '/decrees', icon: Scale, description: language === 'ar' ? 'التشريعات والقوانين الصادرة' : 'Published laws and decrees' },
                 ]
               }
             ]}
@@ -456,7 +457,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   {servicesMenu.map((item, i) => (
                     <Link key={i} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{item.label}</Link>
                   ))}
-                  <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{language === 'ar' ? 'القوانين والمراسيم' : 'Laws & Decrees'}</Link>
+                  <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 hover:text-gov-forest dark:hover:text-gov-gold rounded-lg transition-colors">{language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation'}</Link>
                 </div>
 
 

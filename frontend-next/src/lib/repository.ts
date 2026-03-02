@@ -35,7 +35,7 @@ export interface INewsRepository {
 
 export interface IDecreeRepository {
   getAll(): Promise<Decree[]>;
-  search(query: string, type?: string): Promise<Decree[]>;
+  search(query: string, type?: string, directorateId?: string): Promise<Decree[]>;
 }
 
 export interface IComplaintRepository {
@@ -175,7 +175,7 @@ class MockDecreeRepository implements IDecreeRepository {
   async getAll(): Promise<Decree[]> {
     return new Promise(resolve => setTimeout(() => resolve(DECREES), 500));
   }
-  async search(query: string, type?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorateId?: string): Promise<Decree[]> {
     return new Promise(resolve => {
       setTimeout(() => {
         let results = DECREES;
@@ -607,9 +607,10 @@ class ApiDecreeRepository implements IDecreeRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async search(query: string, type?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorateId?: string): Promise<Decree[]> {
     const params = new URLSearchParams({ q: query });
     if (type) params.append('type', type);
+    if (directorateId) params.append('directorate_id', directorateId);
     const res = await fetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
@@ -2658,10 +2659,13 @@ export const API = {
 
   // --- Search Autocomplete ---
   searchAutocomplete: {
-    async suggest(query: string): Promise<AutocompleteSuggestion[]> {
+    // M7.1: Accept lang parameter to return suggestions in the correct language
+    async suggest(query: string, lang?: string): Promise<AutocompleteSuggestion[]> {
       try {
         if (query.length < 2) return [];
-        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?q=${encodeURIComponent(query)}`, {
+        const params = new URLSearchParams({ q: query });
+        if (lang) params.append('lang', lang);
+        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?${params.toString()}`, {
           headers: { 'Accept': 'application/json' }
         });
         if (!res.ok) return [];

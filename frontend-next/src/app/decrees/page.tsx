@@ -23,6 +23,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { aiService } from "@/lib/aiService";
 import FavoriteButton from "@/components/FavoriteButton";
+import { SkeletonDecreeList } from "@/components/SkeletonLoader";
 
 // Type label mappings
 const typeLabels: Record<string, { ar: string; en: string }> = {
@@ -434,9 +435,7 @@ export default function DecreesPage() {
           {/* Results */}
           <div className="space-y-1.5">
             {loading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="animate-spin text-gov-teal" size={32} />
-              </div>
+              <SkeletonDecreeList rows={8} />
             ) : filteredDecrees.length === 0 ? (
               <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-xl border border-dashed border-gray-200 dark:border-gov-border/25">
                 <FileText size={48} className="mx-auto text-gray-300 mb-4" />

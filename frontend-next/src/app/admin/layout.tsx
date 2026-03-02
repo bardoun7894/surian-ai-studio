@@ -16,6 +16,7 @@ import {
   Mail,
   Image,
   MessageSquare,
+  Handshake,
   Lightbulb,
   HelpCircle
 } from 'lucide-react';
@@ -73,6 +74,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       href: '/admin/promotional',
       label: { ar: 'الأقسام الترويجية', en: 'Promotional' },
       icon: Image,
+    },
+    {
+      href: '/admin/partners',
+      label: { ar: 'الجهات الشريكة', en: 'Partners' },
+      icon: Handshake,
     },
     {
       href: '/admin/newsletters',

@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -40,6 +41,7 @@ function NewsPageContent() {
   const [groupedNews, setGroupedNews] = useState<DirectorateNewsGroup[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
   // Filter state
   const [activeView, setActiveView] = useState<string>(() => searchParams.get('directorate') || 'organized');

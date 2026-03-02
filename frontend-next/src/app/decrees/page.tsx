@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Scale, Loader2, Sparkles, X, ChevronDown } from 'lucide-react';
@@ -6,6 +7,7 @@ import { API } from '@/lib/repository';
 import { Decree } from '@/types';
 import { getLocalizedField } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -30,11 +32,14 @@ export default function DecreesPage() {
   const { language } = useLanguage();
   const isAr = language === 'ar';
   const lang = language as 'ar' | 'en';
+  const searchParams = useSearchParams();
+  const directorateFilter = searchParams.get('directorate') || '';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [decrees, setDecrees] = useState<Decree[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
@@ -74,7 +79,7 @@ export default function DecreesPage() {
     const fetchDecrees = async () => {
       setLoading(true);
       try {
-        const data = await API.decrees.search(searchTerm, filterType);
+        const data = await API.decrees.search(searchTerm, filterType, directorateFilter || undefined);
         setDecrees(data);
       } catch (e) {
         console.error("Failed to fetch decrees", e);
@@ -88,7 +93,7 @@ export default function DecreesPage() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterType]);
+  }, [searchTerm, filterType, directorateFilter]);
 
   // Filter type buttons - Arabic values are sent to API, display is localized
   const filterTypes = [

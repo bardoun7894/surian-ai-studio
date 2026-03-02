@@ -571,12 +571,37 @@ class PublicApiController extends Controller
      */
     public function decrees(Request $request): JsonResponse
     {
+        // Task 4: Support ?grouped=1 to return directorates with decree counts for nav menu
+        if ($request->has('grouped') && $request->grouped) {
+            $directorates = \App\Models\Directorate::select('id', 'name_ar', 'name_en')
+                ->whereHas('contents', function ($q) {
+                    $q->where('category', 'decree')->where('status', 'published');
+                })
+                ->withCount(['contents as decree_count' => function ($q) {
+                    $q->where('category', 'decree')->where('status', 'published');
+                }])
+                ->get()
+                ->map(fn($d) => [
+                    'id' => $d->id,
+                    'name_ar' => $d->name_ar,
+                    'name_en' => $d->name_en,
+                    'count' => $d->decree_count,
+                ]);
+
+            return response()->json(['directorates' => $directorates]);
+        }
+
         $query = Content::where('category', 'decree')
             ->where('status', 'published')
             ->orderBy('published_at', 'desc');
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->whereJsonContains('metadata->decree_type', $request->type);
+        }
+
+        // Task 4: Support filtering by directorate_id
+        if ($request->has('directorate') && $request->directorate) {
+            $query->where('directorate_id', $request->directorate);
         }
 
         if ($request->has('q')) {
@@ -612,6 +637,7 @@ class PublicApiController extends Controller
             'description_en' => $d->seo_description_en ?? mb_substr(strip_tags($d->content_en ?? ''), 0, 200),
             'content_ar' => $d->content_ar,
             'content_en' => $d->content_en,
+            'directorate_id' => $d->directorate_id,
         ]);
 
         return response()->json($decrees);

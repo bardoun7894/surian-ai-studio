@@ -34,8 +34,8 @@ export interface INewsRepository {
 }
 
 export interface IDecreeRepository {
-  getAll(): Promise<Decree[]>;
-  search(query: string, type?: string): Promise<Decree[]>;
+  getAll(directorate?: string): Promise<Decree[]>;
+  search(query: string, type?: string, directorate?: string): Promise<Decree[]>;
 }
 
 export interface IComplaintRepository {
@@ -172,10 +172,10 @@ class MockNewsRepository implements INewsRepository {
 }
 
 class MockDecreeRepository implements IDecreeRepository {
-  async getAll(): Promise<Decree[]> {
+  async getAll(directorate?: string): Promise<Decree[]> {
     return new Promise(resolve => setTimeout(() => resolve(DECREES), 500));
   }
-  async search(query: string, type?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorate?: string): Promise<Decree[]> {
     return new Promise(resolve => {
       setTimeout(() => {
         let results = DECREES;
@@ -602,14 +602,18 @@ class ApiNewsRepository implements INewsRepository {
 }
 
 class ApiDecreeRepository implements IDecreeRepository {
-  async getAll(): Promise<Decree[]> {
-    const res = await fetch(`${API_BASE_URL}/public/decrees`);
+  async getAll(directorate?: string): Promise<Decree[]> {
+    const params = new URLSearchParams();
+    if (directorate) params.append('directorate', directorate);
+    const url = params.toString() ? `${API_BASE_URL}/public/decrees?${params.toString()}` : `${API_BASE_URL}/public/decrees`;
+    const res = await fetch(url);
     if (!res.ok) return [];
     return res.json();
   }
-  async search(query: string, type?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorate?: string): Promise<Decree[]> {
     const params = new URLSearchParams({ q: query });
     if (type) params.append('type', type);
+    if (directorate) params.append('directorate', directorate);
     const res = await fetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();

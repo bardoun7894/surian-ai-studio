@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Printer, Share2, Download, RotateCcw } from 'lucide-react';
@@ -129,6 +130,7 @@ export default function AnnouncementsPage() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);

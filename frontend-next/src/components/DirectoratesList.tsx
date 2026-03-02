@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
@@ -38,6 +39,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [directorates, setDirectorates] = useState<Directorate[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     // Fetch Data
     useEffect(() => {

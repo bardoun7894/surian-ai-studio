@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import { Service, Directorate } from '@/types';
@@ -91,6 +92,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     const [service, setService] = useState<Service | null>(null);
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
     const [isCategory, setIsCategory] = useState(false);
 
     const slug = params.id;

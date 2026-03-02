@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import {
     Building2,
@@ -38,6 +39,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     const isAr = language === 'ar';
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
 
     // News & Announcements

@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search, HelpCircle, Loader2 } from 'lucide-react';
@@ -14,6 +15,7 @@ export default function FAQPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     useEffect(() => {
         const fetchFaqs = async () => {

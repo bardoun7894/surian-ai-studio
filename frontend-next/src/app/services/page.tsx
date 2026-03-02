@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -84,6 +85,7 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
   const [showStages, setShowStages] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);

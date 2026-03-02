@@ -12,7 +12,7 @@ const routeLabels: Record<string, { ar: string; en: string }> = {
   'announcements': { ar: 'الإعلانات', en: 'Announcements' },
   'complaints': { ar: 'الشكاوى', en: 'Complaints' },
   'suggestions': { ar: 'المقترحات', en: 'Suggestions' },
-  'directorates': { ar: 'الهيكل التنظيمي', en: 'Organizational Structure' },
+  'directorates': { ar: 'المديريات', en: 'Directorates' },
   'services': { ar: 'الخدمات', en: 'Services' },
   'media': { ar: 'المركز الإعلامي', en: 'Media Center' },
   'faq': { ar: 'الأسئلة الشائعة', en: 'FAQ' },
@@ -102,6 +102,7 @@ export default function Breadcrumbs() {
   const pathname = usePathname();
   const { language, direction } = useLanguage();
   const isAr = language === 'ar';
+  const isRtl = direction === 'rtl';
 
   // Don't render on homepage or excluded paths
   if (!pathname || excludedPaths.includes(pathname)) return null;
@@ -112,7 +113,7 @@ export default function Breadcrumbs() {
 
   if (segments.length === 0) return null;
 
-  const Separator = direction === 'rtl' ? ChevronLeft : ChevronRight;
+  const Separator = isRtl ? ChevronLeft : ChevronRight;
 
   const crumbs = segments.map((segment, index) => {
     const path = '/' + segments.slice(0, index + 1).join('/');
@@ -124,9 +125,7 @@ export default function Breadcrumbs() {
       label = isAr ? routeLabels[segment].ar : routeLabels[segment].en;
     } else if (isDynamicSegment(segment)) {
       // Dynamic segment - check if this is a nested sub-detail
-      // e.g. /directorates/3/5 → first ID = "Directorate Details", second ID = "Sub-Directorate Details"
-      const parentSegment = index > 0 ? segments[index - 1] : '';
-      const grandParentSegment = index > 1 ? segments[index - 1] : '';
+      // e.g. /directorates/3/5 -> first ID = "Directorate Details", second ID = "Sub-Directorate Details"
 
       // If the previous segment is also dynamic, this is a sub-detail (e.g. /directorates/3/5)
       if (index > 1 && isDynamicSegment(segments[index - 1])) {
@@ -136,7 +135,7 @@ export default function Breadcrumbs() {
           if (!isDynamicSegment(segments[i])) { ancestorRoute = segments[i]; break; }
         }
         if (ancestorRoute === 'directorates') {
-          label = isAr ? 'تفاصيل المديرية' : 'Sub-Directorate Details';
+          label = isAr ? 'تفاصيل المديرية الفرعية' : 'Sub-Directorate Details';
         } else {
           label = isAr ? 'التفاصيل' : 'Details';
         }
@@ -163,20 +162,24 @@ export default function Breadcrumbs() {
   });
 
   return (
-    <nav aria-label="Breadcrumb" className="pt-[80px] md:pt-[96px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10">
-      <ol className="flex items-center flex-wrap gap-2 text-[13px] max-w-7xl mx-auto py-3">
-        <li>
+    <nav
+      aria-label="Breadcrumb"
+      dir={isRtl ? 'rtl' : 'ltr'}
+      className="pt-[80px] md:pt-[96px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10"
+    >
+      <ol className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-[13px] leading-none max-w-7xl mx-auto py-3">
+        <li className="inline-flex items-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
+            className="inline-flex items-center gap-1.5 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
           >
-            <Home size={15} />
+            <Home size={15} className="shrink-0" />
             <span className="font-semibold">{isAr ? 'الرئيسية' : 'Home'}</span>
           </Link>
         </li>
         {crumbs.map((crumb) => (
-          <li key={crumb.path} className="inline-flex items-center gap-1">
-            <Separator size={14} className="text-gray-400/60 dark:text-white/30 mx-0.5" />
+          <li key={crumb.path} className="inline-flex items-center gap-1.5">
+            <Separator size={14} className="shrink-0 text-gray-400/60 dark:text-white/30" />
             {crumb.isLast ? (
               <span className="text-gov-stone dark:text-white/60 font-medium">{crumb.label}</span>
             ) : (

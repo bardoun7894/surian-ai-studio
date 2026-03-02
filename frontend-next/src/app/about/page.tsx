@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { Target, Eye, Award, Users, CheckCircle, Shield, Building, Lightbulb, Loader2 } from 'lucide-react';
@@ -43,6 +44,7 @@ export default function AboutPage() {
     const { language } = useLanguage();
     const [data, setData] = useState<AboutData>({});
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     useEffect(() => {
         const fetchAbout = async () => {

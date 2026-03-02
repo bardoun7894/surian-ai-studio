@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { Database, Download, FileSpreadsheet, FileJson, FileText, Loader2 } from 'lucide-react';
@@ -24,6 +25,7 @@ export default function OpenDataPage() {
     const { language } = useLanguage();
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     useEffect(() => {
         const fetchData = async () => {

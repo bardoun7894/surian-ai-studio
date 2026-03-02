@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect, use } from 'react';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
@@ -35,6 +36,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     const [news, setNews] = useState<NewsItemDetail | null>(null);
     const [relatedItems, setRelatedItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
     const [error, setError] = useState(false);
 
     // Favorites

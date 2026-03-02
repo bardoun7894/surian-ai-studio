@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
@@ -31,6 +32,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     const [announcement, setAnnouncement] = useState<any | null>(null);
     const [relatedItems, setRelatedItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
 
     const isAr = language === 'ar';

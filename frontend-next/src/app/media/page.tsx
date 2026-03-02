@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect, useMemo } from 'react';
 
@@ -42,6 +43,7 @@ export default function MediaPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);

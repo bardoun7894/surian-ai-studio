@@ -68,7 +68,7 @@ export default function SitemapPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 <div className="bg-gov-forest text-white py-12 px-4 shadow-lg animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">

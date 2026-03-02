@@ -28,7 +28,7 @@ export interface INewsRepository {
   getPaginated(page?: number, perPage?: number, directorateId?: string): Promise<PaginatedResponse<NewsItem>>;
   getById(id: string): Promise<NewsItem | null>;
   getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]>;
-  getBreakingNews(): Promise<string[]>;
+  getBreakingNews(duration?: string): Promise<string[]>;
   getHeroArticle(): Promise<Article>;
   getGridArticles(): Promise<Article[]>;
 }
@@ -133,7 +133,7 @@ class MockNewsRepository implements INewsRepository {
       resolve(item);
     }, 300));
   }
-  async getBreakingNews(): Promise<string[]> {
+  async getBreakingNews(duration?: string): Promise<string[]> {
     return new Promise(resolve => setTimeout(() => resolve(BREAKING_NEWS), 400));
   }
   async getHeroArticle(): Promise<Article> {
@@ -583,8 +583,8 @@ class ApiNewsRepository implements INewsRepository {
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
-  async getBreakingNews(): Promise<string[]> {
-    const res = await fetch(`${API_BASE_URL}/public/news/breaking`);
+  async getBreakingNews(duration: string = '48h'): Promise<string[]> {
+    const res = await fetch(`${API_BASE_URL}/public/news/breaking?duration=${duration}`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];

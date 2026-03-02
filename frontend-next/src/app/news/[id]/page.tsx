@@ -137,7 +137,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-20 md:pt-24 pb-20">
+                <main className="flex-grow pt-16 md:pt-[5.75rem] pb-20">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Back Link Skeleton */}
                         <div className="inline-flex items-center gap-2 mb-8">
@@ -246,7 +246,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 <ArticleDetail
                     title={language === 'ar'
                         ? (news.title_ar || news.title || '')

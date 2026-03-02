@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Investment, InvestmentStats } from '@/types';
 import { API } from '@/lib/repository';
+import { formatNumber } from '@/lib/utils';
 import { TrendingUp, ArrowLeft, ArrowRight, Building2, CheckCircle, Wallet, Sparkles, Target, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -48,9 +49,7 @@ export default function InvestmentSection() {
         fetchData();
     }, []);
 
-    const formatNumber = (num: number) => {
-        return new Intl.NumberFormat('en-US').format(num);
-    };
+
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -235,7 +234,7 @@ export default function InvestmentSection() {
                             },
                             {
                                 label: stats.labels?.total_investment_value?.[language as 'ar' | 'en'] ?? (language === 'ar' ? 'قيمة الاستثمار' : 'Investment Value'),
-                                value: formatNumber(stats.total_investment_value),
+                                value: formatNumber(stats.total_investment_value, language),
                                 suffix: '$',
                                 icon: Wallet,
                                 color: 'text-gov-teal dark:text-teal-400',
@@ -365,7 +364,7 @@ export default function InvestmentSection() {
                                                     </span>
                                                     <div className="flex items-baseline gap-1 md:gap-1.5">
                                                         <span className="font-bold text-gov-forest dark:text-gov-gold text-xl md:text-2xl">
-                                                            {formatNumber(item.investment_amount || 0)}
+                                                            {formatNumber(item.investment_amount || 0, language)}
                                                         </span>
                                                         <span className="text-[10px] md:text-xs font-bold text-gov-teal dark:text-gov-gold/70">{item.currency}</span>
                                                     </div>
@@ -393,11 +392,11 @@ export default function InvestmentSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.8 }}
-                    className="text-center mt-12 md:mt-20 relative z-10"
+                    className="text-center mt-8 md:mt-12 relative z-10"
                 >
                     <Link
                         href="/investment"
-                        className="group relative inline-flex items-center gap-3 md:gap-4 px-6 md:px-10 py-3 md:py-5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[2rem] hover:text-white transition-colors duration-500 overflow-hidden shadow-xl border border-gov-gold/20"
+                        className="group relative inline-flex items-center gap-3 md:gap-4 px-8 md:px-12 py-4 md:py-5 bg-gov-forest/5 dark:bg-dm-surface/40 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[2rem] hover:text-white transition-colors duration-500 overflow-hidden shadow-xl hover:shadow-2xl border border-gov-gold/30"
                     >
                         {/* Animated Gradient Background */}
                         <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />

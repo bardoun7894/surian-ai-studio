@@ -199,7 +199,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
   };
 
   return (
-    <section ref={ref} id="quick-links" className="py-12 md:py-24 relative overflow-hidden bg-white dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
+    <section ref={ref} id="quick-links" className="py-14 md:py-20 relative overflow-hidden bg-gradient-to-b from-gov-beige/40 via-white to-gov-beige/30 dark:from-dm-bg dark:via-dm-surface/30 dark:to-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -262,28 +262,31 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
           </motion.h2>
         </motion.div>
 
-        {/* Scroll Arrows */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5 }}
-          className="flex items-center justify-end gap-2 md:gap-3 mb-4 md:mb-6 max-w-[95%] mx-auto"
-        >
-          <button
+        {/* Scroll Arrows - positioned alongside the scroll container */}
+        <div className="relative">
+          {/* Left Arrow - absolutely positioned on the left side of the scroll area */}
+          <motion.button
+            initial={{ opacity: 0, x: -10 }}
+            animate={isInView ? { opacity: canScrollLeft ? 1 : 0, x: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.3 }}
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm bg-white dark:bg-dm-surface"
+            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
-            {language === 'ar' ? <ChevronRight size={16} className="md:w-5 md:h-5" /> : <ChevronLeft size={16} className="md:w-5 md:h-5" />}
-          </button>
-          <button
+            {language === 'ar' ? <ChevronRight size={20} className="md:w-6 md:h-6" /> : <ChevronLeft size={20} className="md:w-6 md:h-6" />}
+          </motion.button>
+
+          {/* Right Arrow - absolutely positioned on the right side of the scroll area */}
+          <motion.button
+            initial={{ opacity: 0, x: 10 }}
+            animate={isInView ? { opacity: canScrollRight ? 1 : 0, x: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.3 }}
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm bg-white dark:bg-dm-surface"
+            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
-            {language === 'ar' ? <ChevronLeft size={16} className="md:w-5 md:h-5" /> : <ChevronRight size={16} className="md:w-5 md:h-5" />}
-          </button>
-        </motion.div>
+            {language === 'ar' ? <ChevronLeft size={20} className="md:w-6 md:h-6" /> : <ChevronRight size={20} className="md:w-6 md:h-6" />}
+          </motion.button>
 
         {/* Links Grid */}
         <motion.div
@@ -291,7 +294,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className={`flex flex-nowrap overflow-x-auto gap-3 md:gap-5 py-4 md:py-8 px-4 sm:px-8 -mx-4 sm:-mx-8 snap-x snap-mandatory ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
+          className={`flex flex-nowrap overflow-x-auto gap-4 md:gap-6 py-6 md:py-8 px-10 sm:px-14 snap-x snap-mandatory ql-scroll-container ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
@@ -300,9 +303,8 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
           onWheel={handleWheel}
         >
           <style dangerouslySetInnerHTML={{
-            __html: `
-            .flex::-webkit-scrollbar { display: none; }
-          `}} />
+            __html: `.ql-scroll-container::-webkit-scrollbar { display: none; }`
+          }} />
           {loading ? (
             <div className="flex justify-center gap-8 w-full">
               {[1, 2, 3, 4, 5, 6].map(i => (
@@ -328,7 +330,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
               <motion.div
                 key={link.id}
                 variants={itemVariants}
-                className="group relative flex-shrink-0 snap-center min-w-max h-full"
+                className="group relative flex-shrink-0 snap-center w-[160px] sm:w-[180px] md:w-[200px] h-full"
               >
                 <Link
                   href={href}
@@ -337,7 +339,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
                       e.preventDefault();
                     }
                   }}
-                  className="flex relative px-4 py-3 md:px-6 md:py-4 min-h-[72px] md:min-h-[96px] bg-white/70 dark:bg-dm-surface backdrop-blur-xl rounded-[1rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-lg group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.15)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 items-stretch font-sans"
+                  className="flex relative w-full px-4 py-3 md:px-5 md:py-4 min-h-[80px] md:min-h-[100px] bg-white/80 dark:bg-dm-surface backdrop-blur-xl rounded-[1.25rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-[0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.2)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1.5 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 font-sans"
                 >
                   {/* Subtle Background Glow on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-[1rem] md:rounded-[1.5rem]`} />
@@ -359,6 +361,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage' }) => {
             );
           })}
         </motion.div>
+        </div>
       </div>
     </section>
   );

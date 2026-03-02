@@ -660,6 +660,8 @@ const translations: Record<string, Record<Language, string>> = {
   'news_section_subtitle': { ar: 'آخر الأخبار والمراسيم حسب المديريات', en: 'Latest news and decrees by directorates' },
   'show_more': { ar: 'عرض المزيد', en: 'Show More' },
   'no_news_currently': { ar: 'لا توجد أخبار حالياً.', en: 'No news currently.' },
+  'featured_news': { ar: 'الخبر الرئيسي', en: 'Featured' },
+  'latest_news': { ar: 'آخر الأخبار', en: 'Latest News' },
   'view_full_archive': { ar: 'عرض الأرشيف الكامل', en: 'View Full Archive' },
 
   // Newsletter Section

@@ -9,6 +9,7 @@ import { Announcement } from '@/lib/repository';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 interface DirectorateNewsGridProps {
@@ -57,15 +58,7 @@ const DirectorateNewsGrid: React.FC<DirectorateNewsGridProps> = ({ directorateId
     return locale === 'en' && en ? en : ar;
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateUtil(dateString, locale as 'ar' | 'en');
 
   if (loading) {
     return (

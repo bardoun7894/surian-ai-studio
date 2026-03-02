@@ -350,31 +350,60 @@ class PublicApiController extends Controller
 
     /**
      * Get breaking news (titles only)
+     * Supports ?duration=24h|48h|week|month to filter by created_at
      */
-    public function breakingNews(): JsonResponse
+    public function breakingNews(Request $request): JsonResponse
     {
-        return response()->json(Cache::remember('public.breaking_news', 120, function () {
-            $newsQuery = Content::where('category', 'news')
-            ->where('status', 'published')
-            ->where('priority', '>=', 8)
-            ->orderBy('published_at', 'desc')
-            ->limit(5);
-
-        $newsItems = $newsQuery->get(['title_ar', 'title_en']);
-
-        // If no breaking news, get latest news titles
-        if ($newsItems->isEmpty()) {
-            $newsItems = Content::where('category', 'news')
-                ->where('status', 'published')
-                ->orderBy('published_at', 'desc')
-                ->limit(5)
-                ->get(['title_ar', 'title_en']);
+        $duration = $request->query('duration', '48h');
+        $allowedDurations = ['24h', '48h', 'week', 'month'];
+        if (!in_array($duration, $allowedDurations)) {
+            $duration = '48h';
         }
 
-        return $newsItems->map(fn($n) => [
-            'title_ar' => $n->title_ar,
-            'title_en' => $n->title_en,
-        ])->toArray();
+        $cacheKey = 'public.breaking_news.' . $duration;
+
+        return response()->json(Cache::remember($cacheKey, 120, function () use ($duration) {
+            // Map duration to Carbon interval
+            $since = match ($duration) {
+                '24h'   => now()->subHours(24),
+                '48h'   => now()->subHours(48),
+                'week'  => now()->subWeek(),
+                'month' => now()->subMonth(),
+                default => now()->subHours(48),
+            };
+
+            $newsQuery = Content::where('category', 'news')
+                ->where('status', 'published')
+                ->where('created_at', '>=', $since)
+                ->where('priority', '>=', 8)
+                ->orderBy('published_at', 'desc')
+                ->limit(10);
+
+            $newsItems = $newsQuery->get(['title_ar', 'title_en', 'created_at']);
+
+            // If no breaking news in the duration, get latest news titles within the period
+            if ($newsItems->isEmpty()) {
+                $newsItems = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->where('created_at', '>=', $since)
+                    ->orderBy('published_at', 'desc')
+                    ->limit(10)
+                    ->get(['title_ar', 'title_en', 'created_at']);
+            }
+
+            // Final fallback: if still empty, get latest 5 regardless of duration
+            if ($newsItems->isEmpty()) {
+                $newsItems = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->orderBy('published_at', 'desc')
+                    ->limit(5)
+                    ->get(['title_ar', 'title_en', 'created_at']);
+            }
+
+            return $newsItems->map(fn($n) => [
+                'title_ar' => $n->title_ar,
+                'title_en' => $n->title_en,
+            ])->toArray();
         }));
     }
 

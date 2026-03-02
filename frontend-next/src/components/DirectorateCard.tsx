@@ -34,7 +34,7 @@ export default function DirectorateCard({ directorate, onOpen }: DirectorateCard
         >
             <Link
                 href={`/directorates/${directorate.id}`}
-                className="block relative overflow-hidden rounded-3xl bg-white/80 dark:bg-dm-surface/80 backdrop-blur-xl border-2 border-gov-gold/20 dark:border-gov-gold/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] hover:border-gov-gold/50 dark:hover:border-gov-gold/30 transition-all duration-500 h-full"
+                className="block relative overflow-hidden rounded-3xl bg-white/80 dark:bg-dm-surface/90 backdrop-blur-xl border-2 border-gov-gold/20 dark:border-gov-gold/15 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] hover:border-gov-gold/50 dark:hover:border-gov-gold/30 transition-all duration-500 h-full"
             >
                 {/* Abstract Shapes */}
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-gov-teal/10 to-transparent rounded-tr-[100px] -z-10 transition-transform duration-500 group-hover:scale-150" />

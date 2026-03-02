@@ -72,7 +72,7 @@ export default function ContactPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 {/* Header */}
                 <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">

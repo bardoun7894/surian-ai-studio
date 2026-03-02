@@ -1,6 +1,7 @@
 'use client';
 
 import PageTransitionLoader from './PageTransitionLoader';
+import SmoothScrollProvider from './SmoothScrollProvider';
 
 interface ClientLayoutWrapperProps {
   children: React.ReactNode;
@@ -8,8 +9,10 @@ interface ClientLayoutWrapperProps {
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
   return (
-    <PageTransitionLoader>
-      {children}
-    </PageTransitionLoader>
+    <SmoothScrollProvider>
+      <PageTransitionLoader>
+        {children}
+      </PageTransitionLoader>
+    </SmoothScrollProvider>
   );
 }

@@ -1049,6 +1049,7 @@ const translations: Record<string, Record<Language, string>> = {
   'civil_registry_unavailable': { ar: 'خدمة التحقق من السجل المدني غير متاحة حالياً', en: 'Civil registry verification service is currently unavailable' },
   'civil_registry_auto_fill': { ar: 'تم تعبئة البيانات تلقائياً من السجل المدني', en: 'Data auto-filled from civil registry' },
   'national_id_format_error': { ar: 'الرقم الوطني يجب أن يتكون من 11 رقماً فقط', en: 'National ID must be exactly 11 digits' },
+  'national_id_already_registered': { ar: 'الرقم الوطني مسجل مسبقاً في النظام', en: 'This National ID is already registered in the system' },
   'national_id_numeric_only': { ar: 'الرقم الوطني يجب أن يحتوي على أرقام فقط', en: 'National ID must contain numbers only' },
   'national_id_verify_button': { ar: 'تحقق من السجل المدني', en: 'Verify with Civil Registry' },
   'national_id_chars_remaining': { ar: 'رقم متبقي', en: 'digits remaining' },

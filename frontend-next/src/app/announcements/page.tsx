@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Printer, Share2, Download, RotateCcw } from 'lucide-react';
+import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Share2, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { getLocalizedField } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ShareMenu from '@/components/ShareMenu';
-import DownloadMenu from '@/components/DownloadMenu';
+// DownloadMenu removed - M9.6: no download on listing cards
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
 import Pagination from '@/components/Pagination';
@@ -138,7 +138,7 @@ export default function AnnouncementsPage() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
-  const [downloadData, setDownloadData] = useState<{ id: string; title: string; description: string; date: string } | null>(null);
+  
   const isAr = language === 'ar';
 
   // Status filter state
@@ -468,7 +468,7 @@ export default function AnnouncementsPage() {
                   <Link
                     key={announcement.id}
                     href={`/announcements/${announcement.id}`}
-                    className={`${cardBgClass} ${cardBorderClass} border rounded-2xl p-6 hover:shadow-[5px_5px_10px_#b9a779] transition-all duration-300 group block cursor-pointer flex flex-col h-full ${expired ? 'opacity-60' : ''}`}
+                    className={`${cardBgClass} ${cardBorderClass} border rounded-2xl p-6 hover:shadow-[5px_5px_10px_#b9a779] transition-all duration-300 group block cursor-pointer flex flex-col min-h-[340px] ${expired ? 'opacity-60' : ''}`}
                   >
                     {/* Expired Badge */}
                     {expired && (
@@ -490,25 +490,18 @@ export default function AnnouncementsPage() {
                       </span>
                     </div>
 
-                    {/* Title */}
-                    <h3 className={`text-lg font-bold mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 min-h-[3.5rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
+                    {/* Title - M9.7: Consistent height */}
+                    <h3 className={`text-lg font-bold mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 min-h-[3.25rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
                       {getLocalizedField(announcement, 'title', language as 'ar' | 'en')}
                     </h3>
 
-                    {/* Description */}
-                    <p className="text-gray-600 dark:text-white/70 text-sm mb-4 line-clamp-3">
+                    {/* Description - M9.7: Consistent height with line-clamp */}
+                    <p className="text-gray-600 dark:text-white/70 text-sm mb-4 line-clamp-3 min-h-[3.75rem] flex-grow">
                       {getLocalizedField(announcement, 'description', language as 'ar' | 'en')}
                     </p>
 
-                    {/* Action buttons: Print, Share & Download */}
+                    {/* M9.4: Share button only (print available on detail page, M9.6: download removed) */}
                     <div className="flex items-center gap-2 mb-3">
-                      <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.print(); }}
-                        className="p-2 rounded-lg bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 dark:hover:bg-white/10 transition-colors"
-                        title={isAr ? 'طباعة' : 'Print'}
-                      >
-                        <Printer size={14} />
-                      </button>
                       <button
                         onClick={(e) => {
                           e.preventDefault(); e.stopPropagation();
@@ -519,10 +512,10 @@ export default function AnnouncementsPage() {
                         }}
                         className="p-2 rounded-lg bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 dark:hover:bg-white/10 transition-colors"
                         title={isAr ? 'مشاركة' : 'Share'}
+                        aria-label={isAr ? 'مشاركة' : 'Share'}
                       >
                         <Share2 size={14} />
                       </button>
-                      {/* Download button removed per ministry request */}
                     </div>
 
                     {/* Footer (Date & CTA) - Push to bottom */}
@@ -542,9 +535,11 @@ export default function AnnouncementsPage() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-1 text-gov-teal dark:text-gov-gold font-bold text-sm group-hover:gap-2 transition-all">
-                        <span>{t('announcements_details')}</span>
-                        <ArrowIcon size={14} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                      <div className="flex items-center gap-1.5 text-gov-gold dark:text-gov-teal font-bold text-sm uppercase tracking-wide group-hover:gap-2.5 transition-all">
+                        <span>{t('announcements_read_more') || t('announcements_details')}</span>
+                        <div className="w-5 h-5 rounded-full bg-gov-gold/10 flex items-center justify-center group-hover:bg-gov-gold/20 transition-colors">
+                          <ArrowIcon size={11} className="group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -630,11 +625,7 @@ export default function AnnouncementsPage() {
         url={shareData?.url || ''}
       />
 
-      <DownloadMenu
-        isOpen={!!downloadData}
-        onClose={() => setDownloadData(null)}
-        announcement={downloadData}
-      />
+
     </div>
   );
 }

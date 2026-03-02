@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Loader2, Printer, Share2, Download } from 'lucide-react';
+import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Loader2, Share2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import ShareMenu from './ShareMenu';
-import DownloadMenu from './DownloadMenu';
 import Link from 'next/link';
 import { SkeletonGrid, SkeletonText } from '@/components/SkeletonLoader';
 
@@ -28,7 +27,6 @@ const Announcements: React.FC = () => {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
-    const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
 
     // Fetch announcements from API (FR-58: Show 9 items in 3x3 grid)
     useEffect(() => {
@@ -41,7 +39,8 @@ const Announcements: React.FC = () => {
                     title: language === 'ar' ? (item.title_ar || item.title) : (item.title_en || item.title),
                     date: item.date || item.created_at || new Date().toISOString(),
                     type: (item.is_urgent ? 'urgent' : (item.is_important ? 'important' : 'general')) as 'urgent' | 'important' | 'general',
-                    description: language === 'ar' ? (item.description_ar || item.description || item.content_ar) : (item.description_en || item.description || item.content_en)
+                    description: language === 'ar' ? (item.description_ar || item.description || item.content_ar) : (item.description_en || item.description || item.content_en),
+                    expires_at: item.expires_at,
                 }));
                 setAnnouncements(mapped);
             } catch (error) {
@@ -128,23 +127,20 @@ const Announcements: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* FR-58: Announcements 3x3 Grid (9 items) */}
+                    {/* FR-58: Announcements 3x3 Grid (9 items) - M9.7: Unified card sizes */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {announcements.map((announcement) => {
                             const styles = getTypeStyles(announcement.type);
                             const expired = isExpired(announcement.expires_at);
-                            const cardBorderClass = expired ? 'border-gov-red/30 dark:border-gov-red/30' : styles.border;
-                            const cardBgClass = expired ? 'bg-red-50/50 dark:bg-red-950/10' : styles.bg;
-                            const isDownloadMenuOpen = openDownloadMenuId === announcement.id;
                             return (
                                 <Link
                                     key={announcement.id}
                                     href={`/announcements/${announcement.id}`}
-                                    className="block h-full group"
+                                    className="block group"
                                 >
                                     <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
                                         <article
-                                            className={`relative h-full flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''}`}
+                                            className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[320px] md:min-h-[360px]`}
                                         >
                                             {/* Abstract Shapes */}
                                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-gov-teal/5 dark:from-gov-teal/[0.02] to-transparent rounded-tr-[100px] -z-10 transition-transform duration-500 group-hover:scale-150" />
@@ -168,13 +164,13 @@ const Announcements: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Title */}
-                                            <h3 className={`text-lg md:text-xl font-display font-bold mb-2 md:mb-4 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-3 leading-snug drop-shadow-sm flex-grow ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
+                                            {/* Title - M9.7: Fixed height for consistency */}
+                                            <h3 className={`text-lg md:text-xl font-display font-bold mb-2 md:mb-4 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 leading-snug drop-shadow-sm min-h-[3rem] md:min-h-[3.5rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
                                                 {announcement.title}
                                             </h3>
 
-                                            {/* Description */}
-                                            <p className="text-gov-stone/70 dark:text-white/70 text-xs md:text-sm mb-4 md:mb-6 line-clamp-2 leading-relaxed h-8 md:h-10">
+                                            {/* Description - M9.7: Fixed line-clamp and min-height */}
+                                            <p className="text-gov-stone/70 dark:text-white/70 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3 leading-relaxed min-h-[2.5rem] md:min-h-[3.75rem] flex-grow">
                                                 {announcement.description}
                                             </p>
 
@@ -189,22 +185,10 @@ const Announcements: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {/* Footer Actions */}
+                                            {/* Footer Actions - M9.4: Fixed button actions, M9.6: Removed download button */}
                                             <div className="flex items-center justify-between pt-4 border-t border-gov-gold/10 dark:border-white/10 mt-auto z-10 relative">
-                                                {/* Action buttons: Print, Share & Download */}
+                                                {/* Action buttons: Share only (M9.6: download removed for text-only announcements) */}
                                                 <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            window.print();
-                                                        }}
-                                                        className="p-2 rounded-xl bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 hover:text-gov-gold dark:hover:bg-white/10 transition-colors"
-                                                        title={t('print')}
-                                                        aria-label={t('print')}
-                                                    >
-                                                        <Printer size={16} />
-                                                    </button>
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
@@ -220,39 +204,10 @@ const Announcements: React.FC = () => {
                                                     >
                                                         <Share2 size={16} />
                                                     </button>
-                                                    <div className="relative">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setOpenDownloadMenuId(isDownloadMenuOpen ? null : announcement.id);
-                                                            }}
-                                                            className="p-2 rounded-xl bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 hover:text-gov-gold dark:hover:bg-white/10 transition-colors"
-                                                            title={language === 'ar' ? 'تحميل' : 'Download'}
-                                                            aria-label={language === 'ar' ? 'تحميل' : 'Download'}
-                                                        >
-                                                            <Download size={16} />
-                                                        </button>
-                                                        {isDownloadMenuOpen && (
-                                                            <div className="absolute bottom-full mb-2 z-50 w-48 shadow-xl rounded-xl border border-gov-gold/20" style={{ [language === 'ar' ? 'right' : 'left']: 0 }}>
-                                                                <DownloadMenu
-                                                                    isOpen={true}
-                                                                    onClose={() => setOpenDownloadMenuId(null)}
-                                                                    announcement={{
-                                                                        id: announcement.id,
-                                                                        title: announcement.title,
-                                                                        description: announcement.description || '',
-                                                                        date: announcement.date,
-                                                                        attachments: []
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
                                                 </div>
 
-                                                {/* Read More */}
-                                                <div className="flex items-center gap-2 text-gov-gold dark:text-gov-teal font-bold text-[11px] uppercase tracking-[0.15em] group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
+                                                {/* Read More - M9.7: More prominent CTA */}
+                                                <div className="flex items-center gap-2 text-gov-gold dark:text-gov-teal font-bold text-xs md:text-sm uppercase tracking-[0.1em] group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
                                                     <span>{t('announcements_read_more')}</span>
                                                     <div className="w-6 h-6 rounded-full bg-gov-gold/10 flex items-center justify-center group-hover:bg-gov-gold/20 transition-colors">
                                                         <ArrowIcon size={12} className="group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
@@ -295,8 +250,6 @@ const Announcements: React.FC = () => {
                 title={shareData?.title || ''}
                 url={shareData?.url || ''}
             />
-
-
         </>
     );
 };

@@ -661,8 +661,16 @@ class ApiComplaintRepository implements IComplaintRepository {
     // Guest token
     if ((data as any).guest_token) formData.append('guest_token', (data as any).guest_token);
 
-    // File attachments (single or multiple)
-    if (data.files && Array.isArray(data.files)) {
+    // M1-T3: Staged attachment IDs (files already uploaded to staging endpoint)
+    if (data.staged_attachment_ids && data.staged_attachment_ids.length > 0) {
+      data.staged_attachment_ids.forEach((id: string) => {
+        formData.append('staged_attachment_ids[]', id);
+      });
+      if (data.session_token) {
+        formData.append('session_token', data.session_token);
+      }
+    } else if (data.files && Array.isArray(data.files)) {
+      // Fallback: traditional file upload (backwards-compatible)
       data.files.forEach((file: File) => {
         formData.append('attachments[]', file);
       });
@@ -1078,18 +1086,21 @@ class ApiUserRepository implements IUserRepository {
   }
 
   async updateProfile(data: any): Promise<User | null> {
-    try {
-      const res = await fetch(`${API_BASE_URL}/users/me`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.user || json;
-    } catch {
-      return null;
+    const res = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      // Extract validation error messages from Laravel response
+      if (json.errors) {
+        const firstError = Object.values(json.errors).flat()[0] as string;
+        throw new Error(firstError || json.message || 'Validation failed');
+      }
+      throw new Error(json.message || 'Failed to update profile');
     }
+    return json.user || json;
   }
 
   async requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }> {

@@ -1189,7 +1189,7 @@ class PublicApiController extends Controller
             'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:5000',
-            'department' => 'nullable|string|max:255',
+            'department' => 'required|string|max:255',
         ]);
 
         // Determine recipient email based on department/directorate selection

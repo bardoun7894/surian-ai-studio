@@ -120,7 +120,7 @@ export default function InvestmentSection() {
     }
 
     return (
-        <section id="investments" className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
+        <section id="investments" className="py-10 md:py-16 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
             {/* Islamic Pattern Background */}
             <div className="absolute inset-0 opacity-5 pointer-events-none">
                 <div className="absolute inset-0" style={{
@@ -209,7 +209,7 @@ export default function InvestmentSection() {
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true }}
-                        className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-16 md:mb-24 relative"
+                        className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-16 relative"
                     >
                         {/* Decorative background glow for the stats section */}
                         <div className="absolute inset-0 bg-gradient-to-r from-gov-gold/5 via-gov-teal/5 to-gov-gold/5 blur-3xl rounded-[2rem] md:rounded-[3rem] -z-10" />
@@ -393,7 +393,7 @@ export default function InvestmentSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.8 }}
-                    className="text-center mt-12 md:mt-20 relative z-10"
+                    className="text-center mt-8 md:mt-12 relative z-10"
                 >
                     <Link
                         href="/investment"

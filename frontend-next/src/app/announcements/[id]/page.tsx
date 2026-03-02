@@ -63,8 +63,8 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                             {/* Article Skeleton */}
                             <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15">
                                 {/* Meta Data Skeleton */}
-                                <div className="p-8 md:p-12">
-                                    <div className="flex flex-wrap items-center gap-y-3 gap-x-4 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
+                                <div className="p-5 md:p-8 lg:p-12">
+                                    <div className="flex flex-wrap items-center gap-y-3 gap-x-4 mb-6 md:mb-8 pb-5 md:pb-8 border-b border-gray-100 dark:border-gov-border/15">
                                         <div className="flex items-center gap-2">
                                             <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-white/10 animate-pulse" />
                                             <div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
@@ -158,10 +158,10 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                 <div className="max-w-7xl mx-auto px-4 relative">
                     {/* Expired Banner */}
                     {expired && (
-                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-gov-red/30 rounded-2xl flex items-center gap-3">
-                            <AlertCircle className="text-gov-red" size={24} />
-                            <div>
-                                <span className="bg-gov-red text-white px-3 py-1 rounded-full text-sm font-bold">
+                        <div className="mb-4 md:mb-6 p-3 md:p-4 bg-red-50 dark:bg-red-950/20 border border-gov-red/30 rounded-2xl flex items-center gap-3">
+                            <AlertCircle className="text-gov-red shrink-0" size={24} />
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <span className="bg-gov-red text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-bold w-fit">
                                     {isAr ? 'انتهى التقديم' : 'Application Closed'}
                                 </span>
                                 {announcement.expires_at && (

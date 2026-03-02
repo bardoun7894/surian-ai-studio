@@ -36,24 +36,35 @@ class SuggestionController extends Controller
         $isAnonymous = $request->boolean('is_anonymous');
 
         $rules = [
-            'description' => 'required|string|min:10',
-            'directorate_id' => 'nullable|exists:directorates,id',
+            'description' => 'required|string|min:10|max:5000',
+            'directorate_id' => 'required|exists:directorates,id',
             'files' => 'nullable|array|max:5',
-            'files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB
+            'files.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:5120', new \App\Rules\ValidFileMagicBytes], // 5MB
             'is_anonymous' => 'nullable|boolean',
             'recaptcha_token' => 'nullable|string',
             'guest_token' => 'nullable|string',
         ];
 
         if (!$isAnonymous) {
-            $rules['name'] = 'required|string|max:255';
+            $rules['name'] = 'required|string|max:100';
             $rules['email'] = 'nullable|email|max:255';
-            $rules['phone'] = 'nullable|string|max:20';
-            $rules['national_id'] = 'nullable|string|size:11';
+            $rules['phone'] = ['nullable', 'string', 'regex:/^(\+?[0-9]{7,15})$/'];
+            $rules['national_id'] = 'nullable|string|digits:11';
             $rules['dob'] = 'nullable|date';
         }
 
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules, [
+            'name.required' => 'الاسم مطلوب',
+            'name.max' => 'الاسم يجب ألا يتجاوز 100 حرف',
+            'description.required' => 'الوصف مطلوب',
+            'description.min' => 'الوصف يجب أن يكون على الأقل 10 أحرف',
+            'description.max' => 'الوصف يجب ألا يتجاوز 5000 حرف',
+            'directorate_id.required' => 'يجب تحديد الجهة المستلمة | Please select a recipient directorate',
+            'directorate_id.exists' => 'الجهة المحددة غير صالحة | The selected directorate is invalid',
+            'email.email' => 'البريد الإلكتروني غير صالح',
+            'phone.regex' => 'رقم الهاتف غير صالح',
+            'national_id.digits' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -76,6 +87,14 @@ class SuggestionController extends Controller
         try {
             $data = $request->only(['name', 'email', 'phone', 'description', 'national_id', 'dob', 'directorate_id']);
             $data['is_anonymous'] = $isAnonymous;
+
+            // Sanitize string inputs
+            if (isset($data['name'])) {
+                $data['name'] = strip_tags(trim($data['name']));
+            }
+            if (isset($data['description'])) {
+                $data['description'] = strip_tags($data['description']);
+            }
 
             $suggestion = $this->suggestionService->store(
                 $data,

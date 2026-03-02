@@ -23,7 +23,7 @@ import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
 import FavoriteButton from '@/components/FavoriteButton';
-import { MediaItem } from '@/types';
+import { useLoading } from '@/contexts/LoadingContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -36,6 +36,7 @@ type ViewMode = 'grid' | 'list';
 
 export default function MediaPage() {
   const { language } = useLanguage();
+  const { startLoading, stopLoading } = useLoading();
   const isAr = language === 'ar';
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -150,6 +151,8 @@ export default function MediaPage() {
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
 
+    startLoading(); // Show the global loading popup during download
+
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -166,6 +169,8 @@ export default function MediaPage() {
     } catch {
       // Fallback: open in new tab
       window.open(url, '_blank');
+    } finally {
+      stopLoading(); // Hide the loading popup
     }
   };
 
@@ -315,16 +320,13 @@ export default function MediaPage() {
                         setExpandedImage(item);
                       }
                     }}
-                    className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
-                      viewMode === 'list' ? 'flex' : ''
-                    } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
-                      item.type !== 'video' ? 'cursor-pointer' : ''
-                    }`}
+                    className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${viewMode === 'list' ? 'flex' : ''
+                      } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${item.type !== 'video' ? 'cursor-pointer' : ''
+                      }`}
                   >
                     {/* Thumbnail / Inline Video Player */}
-                    <div className={`relative overflow-hidden ${
-                      viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
-                    } bg-black`}>
+                    <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
+                      } bg-black`}>
 
                       {/* Show inline player when playing */}
                       {isPlaying && isVideo ? (
@@ -346,13 +348,12 @@ export default function MediaPage() {
 
                       {/* Type Badge */}
                       <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 z-20">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm ${
-                          item.type === 'video'
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm ${item.type === 'video'
                             ? 'bg-red-500/90 text-white'
                             : item.type === 'photo'
                               ? 'bg-gov-teal/90 text-white'
                               : 'bg-gov-gold/90 text-gov-forest'
-                        }`}>
+                          }`}>
                           {getTypeIcon(item.type)}
                           {getTypeLabel(item.type)}
                         </span>
@@ -364,11 +365,10 @@ export default function MediaPage() {
                           onClick={(e) => handlePlayInline(item, e)}
                           className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
                         >
-                          <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-                            isPlaying
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${isPlaying
                               ? 'bg-black/60 backdrop-blur-sm scale-75 opacity-0 hover:opacity-100'
                               : 'bg-white/90 group-hover:scale-110 group-hover:bg-white'
-                          }`}>
+                            }`}>
                             {isPlaying ? (
                               <Pause size={24} className="text-white" fill="currentColor" />
                             ) : (

@@ -46,6 +46,7 @@ const LoginPage = () => {
     const [phoneFieldError, setPhoneFieldError] = useState<string | null>(null);
     const [nationalIdFieldError, setNationalIdFieldError] = useState<string | null>(null);
     const [emailFieldError, setEmailFieldError] = useState<string | null>(null);
+    const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -74,10 +75,40 @@ const LoginPage = () => {
         setError(null);
         setPhoneFieldError(null);
         setNationalIdFieldError(null);
+        setEmailFieldError(null);
+        setPasswordFieldError(null);
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
         try {
+            // Pre-submit validation for all fields
+            let hasErrors = false;
+
+            // Validate identifier field
+            if (loginMethod === 'email') {
+                if (!formData.email) {
+                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+                    hasErrors = true;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                    setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                    hasErrors = true;
+                }
+            }
+
+            // Validate password
+            if (!formData.password) {
+                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                hasErrors = true;
+            } else if (formData.password.length < 8) {
+                setPasswordFieldError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                setIsLoading(false);
+                return;
+            }
+
             // Prepare credentials based on method
             const credentials: LoginCredentials = { password: formData.password };
             if (loginMethod === 'email') {
@@ -300,11 +331,15 @@ const LoginPage = () => {
                                     onClick={() => {
                                         setLoginMethod(key as typeof loginMethod);
                                         setError(null);
+                                        setPasswordFieldError(null);
                                         if (key !== 'phone') {
                                             setPhoneFieldError(null);
                                         }
                                         if (key !== 'national') {
                                             setNationalIdFieldError(null);
+                                        }
+                                        if (key !== 'email') {
+                                            setEmailFieldError(null);
                                         }
                                     }}
                                     className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
@@ -411,9 +446,33 @@ const LoginPage = () => {
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setFormData({ ...formData, password: val });
+                                            // Real-time password validation
+                                            if (passwordFieldError) {
+                                                if (val && val.length >= 8) {
+                                                    setPasswordFieldError(null);
+                                                } else if (val && val.length < 8) {
+                                                    setPasswordFieldError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+                                                } else if (!val) {
+                                                    setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                                }
+                                            }
+                                        }}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all text-sm"
+                                        onBlur={() => {
+                                            if (!formData.password) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                            } else if (formData.password.length < 8) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+                                            }
+                                        }}
+                                        className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                            ${passwordFieldError
+                                                ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                            }`}
                                         required
                                     />
                                     <button
@@ -423,6 +482,14 @@ const LoginPage = () => {
                                     >
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
+                                </div>
+                                <div className="min-h-[1.25rem] mt-1">
+                                    {passwordFieldError && (
+                                        <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                            <AlertCircle size={12} className="shrink-0" />
+                                            {passwordFieldError}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

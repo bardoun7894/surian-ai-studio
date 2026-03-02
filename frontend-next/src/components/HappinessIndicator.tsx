@@ -13,14 +13,24 @@ const HappinessIndicator: React.FC = () => {
     const [submitted, setSubmitted] = useState(false);
     const [showHint, setShowHint] = useState(false);
 
-    // Show hint after 5 seconds if not interacted with
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Show indicator after 1 minute
     useEffect(() => {
         const timer = setTimeout(() => {
-            setShowHint(true);
-        }, 5000);
+            setIsMounted(true);
+
+            // Show hint 5 seconds after mounting
+            setTimeout(() => {
+                setShowHint(true);
+            }, 5000);
+
+        }, 60000); // 1 minute delay
 
         return () => clearTimeout(timer);
     }, []);
+
+    if (!isMounted) return null;
 
     const ratings = [
         { icon: <Frown className="w-8 h-8" />, label: 'sad', color: 'text-red-500', hoverColor: 'hover:bg-red-50', value: 1 },
@@ -54,9 +64,9 @@ const HappinessIndicator: React.FC = () => {
     };
 
     return (
-        // Positioned above the ChatBot (ChatBot is usually bottom-12 or bottom-16, ~80px height -> ends ~144px).
-        // giving it bottom-36 (144px) or bottom-40 (160px) to be safe.
-        <div className={`fixed bottom-36 md:bottom-40 ${language === 'ar' ? 'left-8' : 'right-8'} z-40 flex flex-col items-center pointer-events-none`}>
+        // Positioned above the ChatBot. Right in Arabic (right-8), Left in English (left-8)
+        // Adjusting bottom so it doesn't overlap with the ChatBot on mobile
+        <div className={`fixed bottom-48 md:bottom-40 ${language === 'ar' ? 'right-6 md:right-8' : 'left-6 md:left-8'} z-40 flex flex-col items-center pointer-events-none`}>
 
             {/* Hint Bubble */}
             <AnimatePresence>
@@ -88,7 +98,7 @@ const HappinessIndicator: React.FC = () => {
                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-                            className={`absolute bottom-full mb-4 ${language === 'ar' ? '-left-2' : '-right-2'} bg-white dark:bg-dm-surface border border-gov-gold/20 shadow-xl rounded-3xl p-5 w-72 origin-bottom-${language === 'ar' ? 'left' : 'right'}`}
+                            className={`absolute bottom-full mb-4 ${language === 'ar' ? '-right-2' : '-left-2'} bg-white dark:bg-dm-surface border border-gov-gold/20 shadow-xl rounded-3xl p-5 w-72 origin-bottom-${language === 'ar' ? 'right' : 'left'}`}
                         >
                             <button
                                 onClick={() => setIsOpen(false)}

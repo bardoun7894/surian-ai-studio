@@ -6,6 +6,7 @@ import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText
 import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 
 // Helper to render message text with clickable links for routes and URLs
 const renderMessageText = (text: string, onNavigate?: () => void): React.ReactNode => {
@@ -214,7 +215,19 @@ const ChatBot: React.FC = () => {
 
         // Limit file size (e.g., 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            alert(language === 'ar' ? "حجم الملف كبير جداً. يرجى اختيار ملف أقل من 5 ميغابايت." : "File is too large. Please select a file under 5MB.");
+            toast.error(language === 'ar' ? 'حجم الملف كبير جداً. يرجى اختيار ملف أقل من 5 ميغابايت.' : 'File is too large. Please select a file under 5MB.');
+            return;
+        }
+
+        // MIME type validation
+        const allowedMimeTypes = new Set([
+            'application/pdf', 'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'text/plain',
+        ]);
+        if (file.type && !allowedMimeTypes.has(file.type)) {
+            toast.error(language === 'ar' ? 'نوع الملف غير مدعوم.' : 'Unsupported file type.');
             return;
         }
 
@@ -332,8 +345,8 @@ const ChatBot: React.FC = () => {
     return (
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
-            {/* For Arabic: positioned on the LEFT side (left-6) */}
-            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
+            {/* For Arabic: positioned on the LEFT side and lifted well above ticker (bottom-24 on mobile) */}
+            <div className={`fixed bottom-20 md:bottom-16 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-4 md:left-6 right-auto flex-row' : 'right-4 md:right-6 left-auto flex-row-reverse'}`}>
                 {/* Hint bubble sits inward from screen edge */}
                 <AnimatePresence>
                     {!isOpen && showWelcome && (
@@ -362,24 +375,24 @@ const ChatBot: React.FC = () => {
                     )}
                 </AnimatePresence>
 
-                {/* FR-59: Professional Flat Button - Larger size with golden ring */}
+                {/* FR-59: Professional Flat Button - Smaller on mobile, larger on desktop */}
                 <button
                     onClick={() => {
                         setShowWelcome(false);
                         setIsOpen(true);
                     }}
-                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal dark:bg-gov-brand dark:hover:bg-gov-forest text-white w-20 h-20 rounded-full shadow-lg hover:shadow-xl hover:shadow-gov-gold/20 dark:hover:shadow-gov-gold/30 transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center overflow-hidden`}
+                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal dark:bg-gov-brand dark:hover:bg-gov-forest text-white w-14 h-14 md:w-20 md:h-20 rounded-full shadow-lg hover:shadow-xl hover:shadow-gov-gold/20 dark:hover:shadow-gov-gold/30 transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center overflow-hidden scale-90 md:scale-100`}
                 >
                     {/* Animated golden ring */}
                     <div className="absolute inset-0 rounded-full border-2 border-gov-gold/30 dark:border-gov-gold/50 animate-pulse"></div>
                     <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/30 animate-[spin_10s_linear_infinite]"></div>
-                    
+
                     <div className="relative flex items-center justify-center">
-                        <MessageSquare size={40} />
+                        <MessageSquare className="w-6 h-6 md:w-10 md:h-10" />
                     </div>
-                    <span className="absolute bottom-2 right-2 flex h-4 w-4">
+                    <span className="absolute bottom-2 right-2 flex h-3 w-3 md:h-4 md:w-4">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 md:h-4 md:w-4 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
                     </span>
                 </button>
             </div>

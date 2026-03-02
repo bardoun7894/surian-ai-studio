@@ -32,6 +32,12 @@ Route::prefix('v1')->group(function () {
         Route::post('reset-password', [\App\Http\Controllers\AuthController::class, 'resetPassword']);
     });
 
+    // M1-T3: Staged file upload (immediate upload on selection)
+    Route::prefix('attachments')->middleware('throttle:30,1')->group(function () {
+        Route::post('stage', [\App\Http\Controllers\Api\StagedUploadController::class, 'store']);
+        Route::delete('stage/{id}', [\App\Http\Controllers\Api\StagedUploadController::class, 'destroy']);
+    });
+
     // Complaint Public/Guest Routes
     Route::prefix('complaints')->group(function () {
         Route::get('templates', [\App\Http\Controllers\ComplaintController::class, 'indexTemplates']);
@@ -161,7 +167,8 @@ Route::prefix('v1')->group(function () {
 
     // Suggestions Routes (FR-52 to FR-56)
     Route::prefix('suggestions')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store']); // Public submission
+        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store'])
+            ->middleware(\App\Http\Middleware\SuggestionRateLimitMiddleware::class); // Public submission
         Route::get('track/{trackingNumber}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'track']); // FR-55: Track suggestion status
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'printView']); // T-SRS2-10: Print view
     });

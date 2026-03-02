@@ -345,7 +345,7 @@ function NewsPageContent() {
               </div>
 
               <Link href={`/news/${featuredNews.id}`} className="block group">
-                <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px]">
+                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-gov-forest h-[250px] md:h-[400px]">
                   {featuredNews.imageUrl ? (
                     <Image
                       src={featuredNews.imageUrl}
@@ -359,18 +359,18 @@ function NewsPageContent() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-10">
                     {featuredNews.isUrgent && (
-                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
+                      <span className="inline-block px-2 md:px-3 py-1 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3">
                         {isAr ? 'عاجل' : 'Breaking'}
                       </span>
                     )}
                     {(featuredNews as any).directorate_name && (
-                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
+                      <span className="inline-block px-2 md:px-3 py-1 bg-gov-gold/80 text-gov-forest text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3 ltr:ml-2 rtl:mr-2">
                         {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                       </span>
                     )}
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                    <h3 className="text-xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-2 md:mb-3 group-hover:text-gov-gold transition-colors leading-tight line-clamp-2 md:line-clamp-none">
                       {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                     </h3>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
@@ -533,8 +533,8 @@ function NewsPageContent() {
 
           {/* FAQ Section */}
           {activeView !== 'organized' && (
-            <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
-              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
+            <div className="mt-12 md:mt-16 bg-white dark:bg-dm-surface rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-gov-border/15">
+              <h2 className="text-xl md:text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 md:mb-6">
                 {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
               </h2>
               <div className="space-y-4">

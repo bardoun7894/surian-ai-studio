@@ -196,6 +196,9 @@ export interface ComplaintData {
   recaptcha_token?: string;
   file?: File | null;
   files?: File[];
+  // M1-T3: Pre-uploaded staged file IDs (sent instead of raw files)
+  staged_attachment_ids?: string[];
+  session_token?: string;
 }
 
 export interface SuggestionData {
@@ -209,6 +212,9 @@ export interface SuggestionData {
   directorate_id?: string;
   description: string;
   files?: File[];
+  // M1-T3: Pre-uploaded staged file IDs (sent instead of raw files)
+  staged_attachment_ids?: string[];
+  session_token?: string;
   recaptcha_token?: string;
   is_anonymous?: boolean;
   guest_token?: string;

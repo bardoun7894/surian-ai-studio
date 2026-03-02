@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,7 +19,7 @@ class ComplaintRateLimitMiddleware
     /**
      * Handle an incoming request.
      *
-     * FR-27: Limit complaint submissions to 3 per day per user/IP
+     * FR-27: Limit complaint submissions to 3 per day per user/national_id/IP
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -57,7 +56,10 @@ class ComplaintRateLimitMiddleware
     }
 
     /**
-     * Get the rate limit key for the request
+     * Get the rate limit key for the request.
+     *
+     * Priority: authenticated user_id > guest national_id > IP address.
+     * This ensures per-user limits, not global limits.
      */
     private function getRateLimitKey(Request $request): string
     {
@@ -66,7 +68,13 @@ class ComplaintRateLimitMiddleware
             return 'complaint_limit_user_' . $request->user()->id;
         }
 
-        // Fall back to IP address for guests
+        // Use national_id for identified guests (from form data or guest token)
+        $nationalId = $request->input('national_id');
+        if ($nationalId) {
+            return 'complaint_limit_nid_' . $nationalId;
+        }
+
+        // Fall back to IP address for anonymous guests
         return 'complaint_limit_ip_' . $request->ip();
     }
 }

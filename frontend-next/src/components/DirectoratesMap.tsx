@@ -74,28 +74,28 @@ function DirectoratesMap() {
     const mappedDirectorates = directorates.filter(d => d.latitude && d.longitude).length;
 
     return (
-        <div className="w-full bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
+        <div className="w-full bg-white dark:bg-dm-surface rounded-2xl md:rounded-3xl shadow-lg md:shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden">
+            <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gov-border/15 flex items-center justify-between">
                 <div>
-                    <h3 className="text-xl font-bold text-gov-forest dark:text-gov-gold flex items-center gap-2">
-                        <MapIcon className="text-gov-gold" />
+                    <h3 className="text-lg md:text-xl font-bold text-gov-forest dark:text-gov-gold flex items-center gap-1.5 md:gap-2">
+                        <MapIcon className="w-4 h-4 md:w-5 md:h-5 text-gov-gold" />
                         {isArabic ? 'مواقع المديريات' : 'Directorate Locations'}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-white/60">
+                    <p className="text-xs md:text-sm text-gray-500 dark:text-white/60">
                         {isArabic ? 'استكشف مواقع مديرياتنا في كافة أنحاء القطر' : 'Explore our directorate locations across the country'}
                     </p>
-                    <div className="flex items-center gap-4 mt-2">
-                        <span className="text-xs px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold font-medium">
+                    <div className="flex items-center gap-2 md:gap-4 mt-1.5 md:mt-2">
+                        <span className="text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-md md:rounded-lg bg-gov-gold/10 text-gov-gold font-medium">
                             {isArabic ? `${mappedDirectorates} من ${totalDirectorates} مديرية على الخريطة` : `${mappedDirectorates} of ${totalDirectorates} on map`}
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div className="relative h-[500px] w-full bg-gray-50 dark:bg-dm-bg group">
+            <div className="relative h-[300px] md:h-[500px] w-full bg-gray-50 dark:bg-dm-bg group">
                 {loading && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 dark:bg-dm-bg/50 backdrop-blur-sm">
-                        <div className="w-10 h-10 border-4 border-gov-gold border-t-transparent rounded-full animate-spin" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 border-4 border-gov-gold border-t-transparent rounded-full animate-spin" />
                     </div>
                 )}
 
@@ -201,31 +201,31 @@ function DirectoratesMap() {
 
                 {/* Selected Directorate Info Panel */}
                 {selectedDirectorate && (
-                    <div className={`absolute top-6 ${isArabic ? 'left-6' : 'right-6'} bg-white dark:bg-dm-surface rounded-2xl shadow-2xl border border-gray-100 dark:border-gov-border/20 p-6 max-w-sm z-30 animate-in fade-in slide-in-from-right duration-300`}>
+                    <div className={`absolute top-4 md:top-6 ${isArabic ? 'left-4 w-[calc(100%-2rem)] md:left-6' : 'right-4 w-[calc(100%-2rem)] md:right-6'} bg-white dark:bg-dm-surface rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl border border-gray-100 dark:border-gov-border/20 p-4 md:p-6 md:max-w-sm z-30 animate-in fade-in slide-in-from-right duration-300`}>
                         <button
                             onClick={() => setSelectedDirectorate(null)}
-                            className="absolute top-4 ltr:right-4 rtl:left-4 w-6 h-6 rounded-full bg-gray-100 dark:bg-gov-border/20 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gov-border/30 transition-colors"
+                            className="absolute top-3 md:top-4 ltr:right-3 md:ltr:right-4 rtl:left-3 md:rtl:left-4 w-5 h-5 md:w-6 md:h-6 rounded-full bg-gray-100 dark:bg-gov-border/20 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gov-border/30 transition-colors"
                         >
                             ×
                         </button>
 
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold">
-                                <MapPin size={24} />
+                        <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold">
+                                <MapPin className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gov-forest dark:text-white text-lg">
+                                <h3 className="font-bold text-gov-forest dark:text-white text-base md:text-lg">
                                     {isArabic
                                         ? (typeof selectedDirectorate.name === 'string' ? selectedDirectorate.name : selectedDirectorate.name.ar)
                                         : (typeof selectedDirectorate.name === 'string' ? selectedDirectorate.name : selectedDirectorate.name.en)}
                                 </h3>
-                                <span className="text-xs text-gray-500 dark:text-white/50">
+                                <span className="text-[10px] md:text-xs text-gray-500 dark:text-white/50">
                                     {isArabic ? 'مديرية' : 'Directorate'}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3">
                             {(selectedDirectorate.address_ar || selectedDirectorate.address_en) && (
                                 <div>
                                     <p className="text-xs text-gray-500 dark:text-white/50 mb-1 font-medium">
@@ -256,26 +256,26 @@ function DirectoratesMap() {
 
                             <Link
                                 href={`/directorates/${selectedDirectorate.id}`}
-                                className="flex items-center justify-center gap-2 w-full mt-4 py-2.5 px-4 bg-gov-gold text-white rounded-xl hover:bg-gov-gold/90 transition-colors font-medium text-sm"
+                                className="flex items-center justify-center gap-2 w-full mt-3 md:mt-4 py-2 md:py-2.5 px-3 md:px-4 bg-gov-gold text-white rounded-lg md:rounded-xl hover:bg-gov-gold/90 transition-colors font-medium text-xs md:text-sm"
                             >
                                 {isArabic ? 'عرض التفاصيل الكاملة' : 'View Full Details'}
-                                {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+                                {isArabic ? <ArrowLeft className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />}
                             </Link>
                         </div>
                     </div>
                 )}
 
                 {/* Zoom Controls */}
-                <div className={`absolute bottom-6 flex flex-col gap-2 ${isArabic ? 'left-6' : 'right-6'}`}>
+                <div className={`absolute bottom-4 md:bottom-6 flex flex-col gap-1.5 md:gap-2 ${isArabic ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}>
                     <button
                         onClick={handleZoomIn}
-                        className="w-10 h-10 bg-white dark:bg-dm-surface rounded-xl shadow-lg flex items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold transition-all border border-gray-100 dark:border-gov-border/15"
+                        className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-dm-surface rounded-lg md:rounded-xl shadow-md md:shadow-lg flex items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold transition-all border border-gray-100 dark:border-gov-border/15"
                     >
                         +
                     </button>
                     <button
                         onClick={handleZoomOut}
-                        className="w-10 h-10 bg-white dark:bg-dm-surface rounded-xl shadow-lg flex items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold transition-all border border-gray-100 dark:border-gov-border/15"
+                        className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-dm-surface rounded-lg md:rounded-xl shadow-md md:shadow-lg flex items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white dark:hover:bg-gov-gold transition-all border border-gray-100 dark:border-gov-border/15"
                     >
                         -
                     </button>

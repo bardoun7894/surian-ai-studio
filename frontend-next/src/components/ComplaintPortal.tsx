@@ -43,6 +43,7 @@ import ImportedSatisfactionRating from './SatisfactionRating'; // Import Rating 
 import UploadProgress, { MultiUploadProgress } from './UploadProgress';
 import { toast } from 'sonner';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Input from '@/components/ui/Input';
@@ -126,12 +127,6 @@ interface ComplaintPortalProps {
     initialTrackingNumber?: string;
 }
 
-type RejectedAttachment = {
-    name: string;
-    size: number;
-    reason: string;
-};
-
 const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     initialMode = 'submit',
     initialTrackingNumber = ''
@@ -211,9 +206,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     }, [authenticatedProfileData, isAnonymous]);
 
-    // Upload Progress State
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploadStatus, setUploadStatus] = useState<'ready' | 'uploading' | 'completed' | 'error'>('ready');
+    // Upload Progress State — managed by useFileUpload hook (hookUploadStatus, hookUploadProgress)
 
     // Dynamic template field values
     const [templateFieldValues, setTemplateFieldValues] = useState<Record<string, string>>({});
@@ -230,9 +223,29 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [guestToken, setGuestToken] = useState<string | null>(null);
     const [otpError, setOtpError] = useState<string | null>(null);
 
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [rejectedFiles, setRejectedFiles] = useState<RejectedAttachment[]>([]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const {
+        files: selectedFiles,
+        rejectedFiles,
+        fileUploadStatus: hookUploadStatus,
+        fileUploadProgress: hookUploadProgress,
+        handleFileChange,
+        removeFile,
+        removeRejectedFile,
+        resetFiles,
+        fileInputRef,
+        setUploadStatus: setHookUploadStatus,
+        setUploadProgress: setHookUploadProgress,
+        // M1-T3: Immediate staging upload
+        stagedFiles,
+        getStagedFileIds,
+        getSessionToken,
+    } = useFileUpload({
+        maxFiles: 5,
+        maxSizeMB: 5,
+        isAr,
+        stagingEndpoint: '/api/v1/attachments/stage',
+        stagingContext: 'complaint',
+    });
 
     // Tracking State
     const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
@@ -251,8 +264,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const MAX_ATTACHMENT_COUNT = 5;
     const MAX_ATTACHMENT_SIZE_MB = 5;
-    const MAX_ATTACHMENT_SIZE_BYTES = MAX_ATTACHMENT_SIZE_MB * 1024 * 1024;
-    const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']);
 
     const validateField = (name: string, value: string) => {
         let error = '';
@@ -390,119 +401,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) return;
-
-        const incomingFiles = Array.from(files);
-        const remainingSlots = Math.max(0, MAX_ATTACHMENT_COUNT - selectedFiles.length);
-
-        if (remainingSlots === 0) {
-            toast.error(isAr ? `الحد الأقصى للمرفقات هو ${MAX_ATTACHMENT_COUNT} ملفات` : `Maximum ${MAX_ATTACHMENT_COUNT} attachments allowed`);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            return;
-        }
-
-        const acceptedFiles: File[] = [];
-        const rejectedByType: File[] = [];
-        const rejectedBySize: File[] = [];
-
-        incomingFiles.forEach((file) => {
-            const fileExtension = file.name.includes('.')
-                ? file.name.split('.').pop()?.toLowerCase() || ''
-                : '';
-
-            const isSupportedType = ALLOWED_ATTACHMENT_EXTENSIONS.has(fileExtension);
-            const isSupportedSize = file.size <= MAX_ATTACHMENT_SIZE_BYTES;
-
-            if (!isSupportedType) {
-                rejectedByType.push(file);
-                return;
-            }
-
-            if (!isSupportedSize) {
-                rejectedBySize.push(file);
-                return;
-            }
-
-            acceptedFiles.push(file);
-        });
-
-        const filesToAdd = acceptedFiles.slice(0, remainingSlots);
-        const rejectedByCount = acceptedFiles.slice(remainingSlots);
-
-        if (filesToAdd.length > 0) {
-            setSelectedFiles(prev => [...prev, ...filesToAdd]);
-            // Show upload animation immediately on file selection
-            setUploadStatus('uploading');
-            setUploadProgress(0);
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 20;
-                setUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setUploadStatus('ready');
-                }
-            }, 150);
-        }
-
-        const rejectionItems: RejectedAttachment[] = [
-            ...rejectedByType.map((file) => ({
-                name: file.name,
-                size: file.size,
-                reason: isAr
-                    ? 'صيغة ملف غير مدعومة'
-                    : 'Unsupported file type',
-            })),
-            ...rejectedBySize.map((file) => ({
-                name: file.name,
-                size: file.size,
-                reason: isAr
-                    ? `حجم الملف يتجاوز ${MAX_ATTACHMENT_SIZE_MB} MB`
-                    : `File exceeds ${MAX_ATTACHMENT_SIZE_MB} MB limit`,
-            })),
-            ...rejectedByCount.map((file) => ({
-                name: file.name,
-                size: file.size,
-                reason: isAr
-                    ? `تجاوزت الحد الأقصى (${MAX_ATTACHMENT_COUNT} ملفات)`
-                    : `Exceeded attachment limit (${MAX_ATTACHMENT_COUNT} files)`,
-            })),
-        ];
-
-        if (rejectionItems.length > 0) {
-            setRejectedFiles(prev => [...prev, ...rejectionItems]);
-        }
-
-        if (rejectedByType.length > 0) {
-            toast.error(
-                isAr
-                    ? `${rejectedByType.length} ملف بصيغة غير مدعومة. الصيغ المسموحة: PDF, DOC, DOCX, JPG, PNG`
-                    : `${rejectedByType.length} file(s) rejected: unsupported type. Allowed: PDF, DOC, DOCX, JPG, PNG`
-            );
-        }
-
-        if (rejectedBySize.length > 0) {
-            toast.error(
-                isAr
-                    ? `${rejectedBySize.length} ملف يتجاوز ${MAX_ATTACHMENT_SIZE_MB} MB`
-                    : `${rejectedBySize.length} file(s) exceed ${MAX_ATTACHMENT_SIZE_MB} MB limit`
-            );
-        }
-
-        if (rejectedByCount.length > 0) {
-            toast.error(
-                isAr
-                    ? `تم تجاوز الحد الأقصى. يمكنك إرفاق ${MAX_ATTACHMENT_COUNT} ملفات فقط`
-                    : `Attachment limit reached. You can upload up to ${MAX_ATTACHMENT_COUNT} files`
-            );
-        }
-
-        // Reset the input so the same file can be selected again
-        if (fileInputRef.current) fileInputRef.current.value = '';
-    };
-
     const handleSendOtp = async () => {
         if (!formData.phone || !formData.nationalId) {
             toast.error(t('complaint_otp_fill_fields'));
@@ -556,28 +454,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     };
 
-    const removeFile = (index?: number) => {
-        if (index !== undefined) {
-            setSelectedFiles(prev => {
-                const newFiles = prev.filter((_, i) => i !== index);
-                if (newFiles.length === 0) {
-                    setUploadProgress(0);
-                    setUploadStatus('ready');
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                }
-                return newFiles;
-            });
-        } else {
-            setSelectedFiles([]);
-            setUploadProgress(0);
-            setUploadStatus('ready');
-            if (fileInputRef.current) fileInputRef.current.value = '';
-        }
-    };
-
-    const removeRejectedFile = (index: number) => {
-        setRejectedFiles(prev => prev.filter((_, i) => i !== index));
-    };
+    // removeFile and removeRejectedFile are provided by useFileUpload hook
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -602,20 +479,33 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             return;
         }
 
+        // M1-T3: Block submission if files are still uploading to staging
+        if (stagedFiles.some(sf => sf.status === 'uploading')) {
+            toast.error(
+                isAr
+                    ? 'يرجى الانتظار حتى اكتمال رفع الملفات'
+                    : 'Please wait for file uploads to complete'
+            );
+            return;
+        }
+
         setSubmitError(null);
         setIsSubmitting(true);
-        setUploadProgress(0);
-        setUploadStatus('uploading');
+        setHookUploadProgress(0);
+        setHookUploadStatus('uploading');
 
         try {
             // Execute reCAPTCHA v3
             const recaptchaToken = await executeRecaptcha('submit_complaint');
 
             // Build submission data with file and template info
+            // M1-T3: Send staged file IDs (already uploaded) instead of raw File objects
+            const stagedIds = getStagedFileIds();
             const submitData: any = {
                 ...formData,
                 recaptcha_token: recaptchaToken,
-                files: selectedFiles.length > 0 ? selectedFiles : undefined,
+                staged_attachment_ids: stagedIds.length > 0 ? stagedIds : undefined,
+                session_token: stagedIds.length > 0 ? getSessionToken() : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };
@@ -631,10 +521,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             }
 
             const ticketId = await API.complaints.submitWithProgress(submitData, (progress) => {
-                setUploadProgress(progress);
+                setHookUploadProgress(progress);
             });
 
-            setUploadStatus('completed');
+            setHookUploadStatus('completed');
             setSubmittedTicket(ticketId);
             toast.success(t('complaint_success'), {
                 description: ticketId
@@ -644,8 +534,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             });
         } catch (e: any) {
             console.error("Submission failed", e);
-            setUploadStatus('error');
-            setUploadProgress(0);
+            setHookUploadStatus('error');
+            setHookUploadProgress(0);
             const rawMessage = e?.message || '';
             // Translate common Arabic-only backend messages when language is English
             const translatedMessage = !isAr ? translateBackendError(rawMessage) : rawMessage;
@@ -990,6 +880,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(false)}
+                                        disabled={isSubmitting}
                                         className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${!isAnonymous
                                             ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
                                             : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
@@ -1008,6 +899,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(true)}
+                                        disabled={isSubmitting}
                                         className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${isAnonymous
                                             ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
                                             : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
@@ -1211,19 +1103,30 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                            onBlur={() => setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }))}
+                                                            error={touched[`tmpl_${fieldKey}`] && isRequired && !templateFieldValues[fieldKey]?.trim() ? (isAr ? 'هذا الحقل مطلوب' : 'This field is required') : undefined}
+                                                            isValid={touched[`tmpl_${fieldKey}`] && isRequired && !!templateFieldValues[fieldKey]?.trim()}
                                                             rows={4}
                                                             placeholder={fieldPlaceholder}
+                                                            disabled={isSubmitting}
                                                         />
                                                     ) : field.type === 'select' && field.options ? (
                                                         <Select
                                                             label={fieldLabel}
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
-                                                            onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                            onChange={(e) => {
+                                                                setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }));
+                                                                setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }));
+                                                            }}
+                                                            onBlur={() => setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }))}
+                                                            error={touched[`tmpl_${fieldKey}`] && isRequired && !templateFieldValues[fieldKey] ? (isAr ? 'هذا الحقل مطلوب' : 'This field is required') : undefined}
+                                                            isValid={touched[`tmpl_${fieldKey}`] && isRequired && !!templateFieldValues[fieldKey]}
                                                             options={field.options.map(opt => ({
                                                                 value: opt.value,
                                                                 label: isAr ? opt.label : (opt.label_en || opt.label)
                                                             }))}
+                                                            disabled={isSubmitting}
                                                         />
                                                     ) : field.type === 'date' ? (
                                                         <Input
@@ -1232,6 +1135,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                            onBlur={() => setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }))}
+                                                            error={touched[`tmpl_${fieldKey}`] && isRequired && !templateFieldValues[fieldKey] ? (isAr ? 'هذا الحقل مطلوب' : 'This field is required') : undefined}
+                                                            isValid={touched[`tmpl_${fieldKey}`] && isRequired && !!templateFieldValues[fieldKey]}
+                                                            disabled={isSubmitting}
                                                         />
                                                     ) : field.type === 'number' ? (
                                                         <Input
@@ -1240,7 +1147,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                            onBlur={() => setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }))}
+                                                            error={touched[`tmpl_${fieldKey}`] && isRequired && !templateFieldValues[fieldKey] ? (isAr ? 'هذا الحقل مطلوب' : 'This field is required') : undefined}
+                                                            isValid={touched[`tmpl_${fieldKey}`] && isRequired && !!templateFieldValues[fieldKey]}
                                                             placeholder={fieldPlaceholder}
+                                                            disabled={isSubmitting}
                                                         />
                                                     ) : (
                                                         <Input
@@ -1249,7 +1160,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                             required={isRequired}
                                                             value={templateFieldValues[fieldKey] || ''}
                                                             onChange={(e) => setTemplateFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                            onBlur={() => setTouched(prev => ({ ...prev, [`tmpl_${fieldKey}`]: true }))}
+                                                            error={touched[`tmpl_${fieldKey}`] && isRequired && !templateFieldValues[fieldKey]?.trim() ? (isAr ? 'هذا الحقل مطلوب' : 'This field is required') : undefined}
+                                                            isValid={touched[`tmpl_${fieldKey}`] && isRequired && !!templateFieldValues[fieldKey]?.trim()}
                                                             placeholder={fieldPlaceholder}
+                                                            disabled={isSubmitting}
                                                         />
                                                     )}
                                                 </div>
@@ -1270,7 +1185,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     multiple
                                 />
                                 {/* Upload button - always show when no files or to add more */}
-                                <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => !isSubmitting && fileInputRef.current?.click()}>
                                     <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
                                         <Upload size={24} />
                                     </div>
@@ -1293,18 +1208,31 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 {/* Show selected files immediately */}
                                 {selectedFiles.length > 0 && (
                                     <div className="mt-4 space-y-2">
-                                        {selectedFiles.map((file, index) => (
+                                        {selectedFiles.map((file, index) => {
+                                            const staged = stagedFiles[index];
+                                            const fileStatus = staged
+                                                ? staged.status === 'completed' ? 'completed'
+                                                : staged.status === 'uploading' ? 'uploading'
+                                                : staged.status === 'error' ? 'error'
+                                                : 'ready'
+                                                : (hookUploadStatus === 'uploading' || isSubmitting ? 'uploading' : 'ready');
+                                            const fileProgress = staged
+                                                ? staged.progress
+                                                : (hookUploadStatus === 'uploading' || isSubmitting ? hookUploadProgress : 100);
+                                            return (
                                             <div key={`${file.name}-${index}`}>
                                                 <UploadProgress
                                                     fileName={file.name}
-                                                    progress={uploadStatus === 'uploading' || isSubmitting ? uploadProgress : 100}
-                                                    status={uploadStatus === 'uploading' || isSubmitting ? 'uploading' : uploadStatus === 'error' ? 'error' : 'ready'}
+                                                    progress={fileProgress}
+                                                    status={fileStatus as any}
                                                     fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
                                                     language={isAr ? 'ar' : 'en'}
                                                     onCancel={!isSubmitting ? () => removeFile(index) : undefined}
+                                                    error={staged?.error}
                                                 />
                                             </div>
-                                        ))}
+                                            );
+                                        })}
 
                                         {/* Add more files button */}
                                         {selectedFiles.length < MAX_ATTACHMENT_COUNT && !isSubmitting && (
@@ -1318,12 +1246,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             </button>
                                         )}
 
-                                        {/* Show overall upload progress during submission */}
-                                        {isSubmitting && (
+                                        {/* Show overall upload progress during staging upload or submission */}
+                                        {(hookUploadStatus === 'uploading' || isSubmitting) && (
                                             <MultiUploadProgress
                                                 files={selectedFiles}
-                                                progress={uploadProgress}
-                                                isUploading={isSubmitting}
+                                                progress={hookUploadProgress}
+                                                isUploading={hookUploadStatus === 'uploading'}
                                                 isSubmitting={isSubmitting}
                                                 language={isAr ? 'ar' : 'en'}
                                             />
@@ -1378,7 +1306,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             error={touched.firstName && !formData.firstName.trim() ? (isAr ? 'الاسم الأول مطلوب' : 'First name is required') : undefined}
                                             isValid={touched.firstName && !!formData.firstName.trim()}
                                             icon={User}
-                                            disabled={shouldLockPersonalInfo}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                         />
                                         <Input
                                             label={t('complaint_father_name')}
@@ -1390,7 +1318,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             error={touched.fatherName && !formData.fatherName.trim() ? (isAr ? 'اسم الأب مطلوب' : 'Father name is required') : undefined}
                                             isValid={touched.fatherName && !!formData.fatherName.trim()}
                                             icon={User}
-                                            disabled={shouldLockPersonalInfo}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                         />
                                         <Input
                                             label={t('complaint_last_name')}
@@ -1402,7 +1330,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             error={touched.lastName && !formData.lastName.trim() ? (isAr ? 'اسم العائلة مطلوب' : 'Last name is required') : undefined}
                                             isValid={touched.lastName && !!formData.lastName.trim()}
                                             icon={User}
-                                            disabled={shouldLockPersonalInfo}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                         />
                                     </div>
 
@@ -1433,7 +1361,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             }}
                                             error={touched.nationalId ? errors.nationalId : undefined}
                                             required={!isAnonymous}
-                                            disabled={shouldLockNationalId}
+                                            disabled={shouldLockNationalId || isSubmitting}
                                             autoVerify={false}
                                             showVerifyButton={false}
                                             label={t('complaint_national_id')}
@@ -1442,9 +1370,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             type="date"
                                             label={t('complaint_dob')}
                                             required
+                                            name="dob"
                                             value={formData.dob}
                                             onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                            disabled={shouldLockPersonalInfo}
+                                            onBlur={handleBlur}
+                                            error={touched.dob && !formData.dob ? (isAr ? 'تاريخ الميلاد مطلوب' : 'Date of birth is required') : undefined}
+                                            isValid={touched.dob && !!formData.dob}
+                                            icon={Calendar}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                         />
                                     </div>
 
@@ -1460,7 +1393,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             onBlur={() => validateField('phone', formData.phone)}
                                             error={touched.phone ? errors.phone : undefined}
                                             isValid={touched.phone && !errors.phone && formData.phone.length > 10}
-                                            disabled={shouldLockPersonalInfo}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                             disableCountryCode={shouldLockPersonalInfo}
                                         />
                                         <Input
@@ -1476,7 +1409,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             placeholder="example@mail.com"
                                             icon={Mail}
                                             dir="ltr"
-                                            disabled={shouldLockPersonalInfo}
+                                            disabled={shouldLockPersonalInfo || isSubmitting}
                                         />
                                     </div>
                                 </div>
@@ -1488,15 +1421,25 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 return (!selectedTemplateId || selectedTmpl?.type === 'open');
                             })() && (
                                     // {/* Complaint Details */}
-                                    <Textarea
-                                        label={t('complaint_details')}
-                                        required
-                                        value={formData.details}
-                                        onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-                                        rows={6}
-                                        placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
-                                        containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
-                                    />
+                                    <div>
+                                        <Textarea
+                                            label={t('complaint_details')}
+                                            required
+                                            name="details"
+                                            value={formData.details}
+                                            onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                                            onBlur={handleBlur}
+                                            rows={6}
+                                            placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
+                                            containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
+                                            disabled={isSubmitting}
+                                            error={touched.details && !formData.details.trim() ? (isAr ? 'تفاصيل الشكوى مطلوبة' : 'Complaint details are required') : formData.details.length > 0 && formData.details.trim().length < 10 ? (isAr ? 'الوصف يجب أن يكون على الأقل 10 أحرف' : 'Description must be at least 10 characters') : undefined}
+                                            isValid={formData.details.trim().length >= 10}
+                                        />
+                                        <p className={`text-xs mt-1 transition-colors ${formData.details.trim().length >= 10 ? 'text-green-600 dark:text-gov-emerald' : 'text-gray-400 dark:text-white/40'}`}>
+                                            {formData.details.trim().length}/10 {isAr ? 'حرف كحد أدنى' : 'minimum characters'}
+                                        </p>
+                                    </div>
                                 )}
 
 
@@ -1512,6 +1455,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             checked={formData.hasPreviousComplaint || false}
                                             onChange={(e) => setFormData({ ...formData, hasPreviousComplaint: e.target.checked })}
                                             className="w-5 h-5 rounded border-gray-300 text-gov-forest focus:ring-gov-gold transition-colors cursor-pointer"
+                                            disabled={isSubmitting}
                                         />
                                         <label htmlFor="hasPreviousComplaint" className="text-gov-charcoal dark:text-white font-bold cursor-pointer select-none">
                                             {t('complaint_prev_related')}
@@ -1531,6 +1475,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     onChange={(e) => setFormData({ ...formData, previousTrackingNumber: e.target.value })}
                                                     placeholder={t('complaint_prev_ticket_placeholder')}
                                                     className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
+                                                    disabled={isSubmitting}
                                                 />
                                                 <History className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>

@@ -169,7 +169,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     {/* Featured Image */}
                     {imageUrl && (
                         <div
-                            className="relative h-[400px] md:h-[500px] w-full cursor-pointer group"
+                            className="relative h-[250px] md:h-[400px] lg:h-[500px] w-full cursor-pointer group"
                             onClick={() => galleryImages.length > 0 ? openLightbox(0) : undefined}
                         >
                             <Image
@@ -195,9 +195,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </div>
                     )}
 
-                    <div className="p-8 md:p-12">
+                    <div className="p-5 md:p-8 lg:p-12">
                         {/* Meta Data */}
-                        <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
+                        <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-xs md:text-sm text-gray-500 dark:text-white/70 mb-6 md:mb-8 pb-5 md:pb-8 border-b border-gray-100 dark:border-gov-border/15">
                             <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                 <Calendar size={16} className="text-gov-gold" />
                                 <span className="font-medium">{formatRelativeTime(date, lang as 'ar' | 'en')}</span>
@@ -261,7 +261,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </div>
 
                         {/* Content Body */}
-                        <h1 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-white mb-4 leading-tight">
+                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-white mb-4 md:mb-6 leading-tight">
                             {title}
                         </h1>
 

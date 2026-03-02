@@ -296,15 +296,15 @@ export default function AnnouncementsPage() {
       <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-16 transition-colors duration-500">
           {/* Hero Header */}
-          <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">
+          <div className="bg-gov-forest dark:bg-gov-forest/80 py-10 md:py-16 mb-6 md:mb-8 animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/20 rounded-full mb-4">
-                <Megaphone className="text-gov-gold" size={20} />
-                <span className="text-gov-gold font-bold text-sm">
+              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-gov-gold/20 rounded-full mb-3 md:mb-4">
+                <Megaphone className="text-gov-gold w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-gov-gold font-bold text-xs md:text-sm">
                   {t('announcements_portal_badge')}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+              <h1 className="text-2xl md:text-4xl font-display font-bold text-white mb-3 md:mb-4">
                 {t('announcements_title')}
               </h1>
               <p className="text-gray-300 max-w-2xl mx-auto">
@@ -315,18 +315,17 @@ export default function AnnouncementsPage() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Advanced Filters Section */}
-            <div className="bg-white dark:bg-dm-surface rounded-xl p-6 mb-8 border border-gray-100 dark:border-gov-border/15 shadow-sm">
+            <div className="bg-white dark:bg-dm-surface rounded-xl p-4 md:p-6 mb-6 md:mb-8 border border-gray-100 dark:border-gov-border/15 shadow-sm">
               {/* Status Filter Tabs */}
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
                 {statusFilters.map((filter) => (
                   <button
                     key={filter.value}
                     onClick={() => setStatusFilter(filter.value as 'all' | 'active' | 'expired')}
-                    className={`px-4 py-2 rounded-lg font-bold transition-all duration-200 ${
-                      statusFilter === filter.value
+                    className={`px-4 py-2 rounded-lg font-bold transition-all duration-200 ${statusFilter === filter.value
                         ? 'bg-gov-forest text-white shadow-md'
                         : 'bg-white border border-gray-200 text-gov-charcoal dark:bg-dm-surface dark:border-gov-border/30 dark:text-white hover:border-gov-gold/30'
-                    }`}
+                      }`}
                   >
                     {filter.label}
                   </button>
@@ -445,7 +444,7 @@ export default function AnnouncementsPage() {
               {/* Results Count */}
               <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15">
                 <p className="text-sm text-gray-600 dark:text-white/70">
-                  {isAr 
+                  {isAr
                     ? `عرض ${filteredAnnouncements.length} من ${totalItems} إعلان`
                     : `Showing ${filteredAnnouncements.length} of ${totalItems} announcements`
                   }
@@ -535,7 +534,7 @@ export default function AnnouncementsPage() {
                       {announcement.expires_at && (
                         <div className={`text-xs font-medium flex items-center gap-1.5 ${expired ? 'text-gov-red dark:text-gov-red' : 'text-gov-teal dark:text-gov-teal'}`}>
                           <Calendar size={12} />
-                          {expired 
+                          {expired
                             ? (isAr ? `انتهى بتاريخ: ${formatDate(announcement.expires_at)}` : `Expired on: ${formatDate(announcement.expires_at)}`)
                             : (isAr ? `ينتهي بتاريخ: ${formatDate(announcement.expires_at)}` : `Expires on: ${formatDate(announcement.expires_at)}`)
                           }
@@ -556,9 +555,9 @@ export default function AnnouncementsPage() {
 
             {/* Empty State */}
             {filteredAnnouncements.length === 0 && (
-              <div className="text-center py-16">
-                <Megaphone className="mx-auto text-gray-300 dark:text-white/70 mb-4" size={64} />
-                <h3 className="text-xl font-bold text-gray-500 dark:text-white/70 mb-2">
+              <div className="text-center py-10 md:py-16">
+                <Megaphone className="mx-auto text-gray-300 dark:text-white/70 mb-3 md:mb-4 w-12 h-12 md:w-16 md:h-16" />
+                <h3 className="text-lg md:text-xl font-bold text-gray-500 dark:text-white/70 mb-2">
                   {t('announcements_no_results')}
                 </h3>
                 <p className="text-gray-400 dark:text-white/70">
@@ -588,8 +587,8 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15 max-w-7xl mx-auto">
-            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
+          <div className="mt-12 md:mt-16 bg-white dark:bg-dm-surface rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-gov-border/15 max-w-7xl mx-auto">
+            <h2 className="text-xl md:text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 md:mb-6">
               {t('announcements_faq_title')}
             </h2>
             <div className="space-y-4">

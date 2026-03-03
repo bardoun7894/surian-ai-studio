@@ -1,16 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Map as MapIcon, Loader2, CheckCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Loader2, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import dynamic from 'next/dynamic';
-const DirectoratesMap = dynamic(() => import('@/components/DirectoratesMap'), {
-  ssr: false,
-  loading: () => <div className="w-full h-[400px] bg-gray-100 dark:bg-dm-surface rounded-3xl animate-pulse" />,
-});
 
 interface ContactInfo {
     contact_phone?: string;
@@ -150,7 +145,7 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        {/* Contact Form & Map */}
+                        {/* Contact Form */}
                         <div className="lg:col-span-2 space-y-8">
 
                             {/* Form */}
@@ -237,8 +232,6 @@ export default function ContactPage() {
                                 )}
                             </div>
 
-                            {/* Map Section */}
-                            <DirectoratesMap />
                         </div>
                     </div>
                 </div>

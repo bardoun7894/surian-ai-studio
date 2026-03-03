@@ -968,6 +968,37 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     max-height: 100pt !important;
     height: auto !important;
   }
+
+  /* --- M11: Article Image Print Fix --- */
+  article .relative[class*="h-"] {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  article .relative img[data-nimg],
+  article .relative img {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280pt !important;
+    object-fit: contain !important;
+    margin-bottom: 8pt !important;
+    break-inside: avoid !important;
+  }
+
+  article img[data-nimg="fill"] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280pt !important;
+    object-fit: contain !important;
+  }
+
+  /* Hide overlays/decorative elements on images in print */
+  article .relative .absolute {
+    display: none !important;
+  }
 }
 
 body.high-contrast {

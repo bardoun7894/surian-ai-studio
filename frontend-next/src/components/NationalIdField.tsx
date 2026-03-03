@@ -111,7 +111,7 @@ export default function NationalIdField({
             case 'verifying':
                 return 'border-gov-gold focus-within:border-gov-gold';
             case 'verified':
-                return 'border-emerald-500 dark:border-gov-emerald focus-within:border-emerald-500 dark:focus-within:border-gov-emerald';
+                return 'border-emerald-500 dark:border-emerald-400 focus-within:border-emerald-500 dark:focus-within:border-emerald-400';
             case 'error':
                 return 'border-gov-red focus-within:border-gov-red';
             case 'mismatch':
@@ -147,7 +147,7 @@ export default function NationalIdField({
             case 'verified':
                 return 'text-emerald-600 dark:text-emerald-400';
             case 'error':
-                return 'text-gov-red';
+                return 'text-gov-red dark:text-red-400';
             case 'mismatch':
                 return 'text-orange-600 dark:text-orange-400';
             default:
@@ -171,7 +171,7 @@ export default function NationalIdField({
                     size={20}
                     className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                         ${verificationStatus === 'verified'
-                            ? 'text-emerald-500 dark:text-gov-emerald'
+                            ? 'text-emerald-500 dark:text-emerald-400'
                             : verificationStatus === 'error'
                                 ? 'text-red-500 dark:text-red-400'
                                 : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'

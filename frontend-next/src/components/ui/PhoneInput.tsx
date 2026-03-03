@@ -93,9 +93,9 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                         className={`flex shrink-0 items-center gap-2 px-3 sm:px-4 min-w-[92px] sm:min-w-[104px] bg-gov-beige/20 dark:bg-white/10 border-y border-l rounded-l-xl transition-all
                             ${(props.disabled || disableCountryCode) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                             ${error
-                                ? 'border-red-500 dark:border-gov-cherry'
+                                ? 'border-red-500 dark:border-red-400'
                                 : isValid
-                                    ? 'border-green-500 dark:border-gov-emerald'
+                                    ? 'border-green-500 dark:border-emerald-400'
                                     : 'border-gov-gold/20 dark:border-gov-border/15'
                             }
                         `}
@@ -143,9 +143,9 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                             placeholder={currentCountry?.placeholder || ''}
                             className={`w-full py-3 px-4 rounded-r-xl bg-gov-beige/20 dark:bg-white/10 border border-l-0 outline-none transition-all text-gov-charcoal dark:text-white placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed
                                 ${error
-                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                    ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                     : isValid
-                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                        ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                         : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                 }
                                 ${className || ''}`}
@@ -155,8 +155,8 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                         {/* Status Icons */}
                         {(error || isValid) && (
                             <div className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none`}>
-                                {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
-                                {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />}
+                                {error && <AlertCircle size={18} className="text-red-500 dark:text-red-400" />}
+                                {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                             </div>
                         )}
                     </div>
@@ -164,7 +164,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                 {/* Validation message below field - min-height prevents layout shift */}
                 <div className="min-h-[1.25rem] mt-1">
                     {error && (
-                        <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                        <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                             <AlertCircle size={12} className="shrink-0" />
                             {error}
                         </p>

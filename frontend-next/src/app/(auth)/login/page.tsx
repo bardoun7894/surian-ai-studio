@@ -139,14 +139,33 @@ const LoginPage = () => {
         setError(null);
         setPhoneFieldError(null);
         setNationalIdFieldError(null);
+        setEmailFieldError(null);
+        setPasswordFieldError(null);
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
         try {
+            // Validate password first (applies to all methods)
+            if (!formData.password.trim()) {
+                setPasswordFieldError(t('validation_required'));
+                setIsLoading(false);
+                return;
+            }
+
             // Prepare credentials based on method
             const credentials: LoginCredentials = { password: formData.password };
             if (loginMethod === 'email') {
-                credentials.email = formData.email;
+                if (!formData.email.trim()) {
+                    setEmailFieldError(t('validation_required'));
+                    setIsLoading(false);
+                    return;
+                }
+                if (!isEmailValid(formData.email)) {
+                    setEmailFieldError(t('validation_email_invalid'));
+                    setIsLoading(false);
+                    return;
+                }
+                credentials.email = formData.email.trim();
             } else if (loginMethod === 'phone') {
                 const phoneValidation = validatePhoneWithCountryCode(formData.phone);
                 if (!phoneValidation.isValid) {
@@ -424,9 +443,9 @@ const LoginPage = () => {
                                                 setFormData({ ...formData, email: val });
                                                 // Real-time email validation
                                                 if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-                                                    setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                                                    setEmailFieldError(t('validation_email_invalid'));
                                                 } else if (!val && formSubmitted) {
-                                                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+                                                    setEmailFieldError(t('validation_required'));
                                                 } else {
                                                     setEmailFieldError(null);
                                                 }
@@ -493,12 +512,12 @@ const LoginPage = () => {
                                             if (e.target.value.trim()) {
                                                 setPasswordFieldError(null);
                                             } else if (formSubmitted) {
-                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                                setPasswordFieldError(t('validation_required'));
                                             }
                                         }}
                                         onBlur={() => {
                                             if (!formData.password.trim() && formSubmitted) {
-                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                                setPasswordFieldError(t('validation_required'));
                                             }
                                         }}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}

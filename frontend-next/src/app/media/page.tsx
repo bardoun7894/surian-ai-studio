@@ -1,7 +1,7 @@
 'use client';
 import { usePageLoading } from '@/hooks/usePageLoading';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import {
   Play,
@@ -16,7 +16,10 @@ import {
   X,
   Pause,
   Maximize2,
-  ChevronLeft
+  ChevronLeft,
+  Loader2,
+  CheckCircle2,
+  Package
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,7 +27,7 @@ import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
 import FavoriteButton from '@/components/FavoriteButton';
-import { useLoading } from '@/contexts/LoadingContext';
+import { MediaItem } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -36,8 +39,7 @@ type MediaType = 'all' | 'video' | 'photo' | 'infographic';
 type ViewMode = 'grid' | 'list';
 
 export default function MediaPage() {
-  const { language } = useLanguage();
-  const { startLoading, stopLoading } = useLoading();
+  const { language, t } = useLanguage();
   const isAr = language === 'ar';
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -58,6 +60,11 @@ export default function MediaPage() {
   const [perPage] = useState(12);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [loadingMedia, setLoadingMedia] = useState<Record<string, boolean>>({});
+
+  // Album download state
+  const [downloadingAlbum, setDownloadingAlbum] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
   // Reset to page 1 when filter changes
   useEffect(() => {
@@ -105,15 +112,12 @@ export default function MediaPage() {
   };
 
   const getTypeLabel = (type: string) => {
-    if (isAr) {
-      switch (type) {
-        case 'video': return 'فيديو';
-        case 'photo': return 'صور';
-        case 'infographic': return 'إنفوجرافيك';
-        default: return type;
-      }
+    switch (type) {
+      case 'video': return t('media_filter_video');
+      case 'photo': return t('media_filter_photo');
+      case 'infographic': return t('media_filter_infographic');
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
-    return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   const getYouTubeId = (url: string): string | null => {
@@ -153,8 +157,6 @@ export default function MediaPage() {
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
 
-    startLoading(); // Show the global loading popup during download
-
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -171,10 +173,69 @@ export default function MediaPage() {
     } catch {
       // Fallback: open in new tab
       window.open(url, '_blank');
-    } finally {
-      stopLoading(); // Hide the loading popup
     }
   };
+
+  // Download all album photos as a zip
+  const handleDownloadAlbum = useCallback(async (album: AlbumData) => {
+    if (downloadingAlbum || !album.photos || album.photos.length === 0) return;
+
+    setDownloadingAlbum(true);
+    setDownloadProgress({ current: 0, total: album.photos.length });
+
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const folder = zip.folder(album.title || 'album');
+
+      if (!folder) {
+        throw new Error('Failed to create zip folder');
+      }
+
+      // Download all images in parallel with concurrency limit
+      const concurrency = 4;
+      let completed = 0;
+
+      const downloadImage = async (photo: typeof album.photos[0], index: number) => {
+        try {
+          const response = await fetch(photo.url);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status} for ${photo.url}`);
+          }
+          const blob = await response.blob();
+          const ext = blob.type.split('/')[1]?.split('+')[0] || photo.url.split('.').pop()?.split('?')[0] || 'jpg';
+          const fileName = photo.file_name || `${photo.title || `photo-${index + 1}`}.${ext}`;
+          folder.file(fileName, blob);
+        } catch (err) {
+          console.warn(`Failed to download image ${index + 1}:`, err);
+        }
+        completed++;
+        setDownloadProgress({ current: completed, total: album.photos.length });
+      };
+
+      // Process in batches
+      for (let i = 0; i < album.photos.length; i += concurrency) {
+        const batch = album.photos.slice(i, i + concurrency);
+        await Promise.all(batch.map((photo, batchIndex) => downloadImage(photo, i + batchIndex)));
+      }
+
+      // Generate zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = zipUrl;
+      link.download = `${album.title || 'album'}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(zipUrl);
+    } catch (err) {
+      console.error('Failed to create album zip:', err);
+    } finally {
+      setDownloadingAlbum(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
+  }, [downloadingAlbum]);
 
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
 
@@ -202,10 +263,10 @@ export default function MediaPage() {
   };
 
   const filters: { key: MediaType; label: string; icon: React.ElementType }[] = [
-    { key: 'all', label: isAr ? 'الكل' : 'All', icon: Grid },
-    { key: 'video', label: isAr ? 'فيديو' : 'Videos', icon: Play },
-    { key: 'photo', label: isAr ? 'صور' : 'Photos', icon: ImageIcon },
-    { key: 'infographic', label: isAr ? 'إنفوجرافيك' : 'Infographics', icon: BarChart3 },
+    { key: 'all', label: t('media_filter_all'), icon: Grid },
+    { key: 'video', label: t('media_filter_video'), icon: Play },
+    { key: 'photo', label: t('media_filter_photo'), icon: ImageIcon },
+    { key: 'infographic', label: t('media_filter_infographic'), icon: BarChart3 },
   ];
 
   // Render inline video player
@@ -217,7 +278,7 @@ export default function MediaPage() {
       if (!ytId) return null;
       return (
         <iframe
-          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
           title={item.title}
           allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -227,16 +288,57 @@ export default function MediaPage() {
     }
 
     return (
-      <video
-        src={item.url}
-        poster={item.thumbnailUrl}
-        controls
-        autoPlay
-        playsInline
-        className="absolute inset-0 w-full h-full object-contain bg-black z-10"
-      >
-        {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
-      </video>
+      <>
+        {loadingMedia[item.id] && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20">
+            <Loader2 size={36} className="text-gov-gold animate-spin mb-2" />
+            <span className="text-white/80 text-sm font-medium">{t('media_loading')}</span>
+          </div>
+        )}
+        <video
+          src={item.url}
+          poster={item.thumbnailUrl}
+          controls
+          autoPlay
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+          onLoadStart={() => setLoadingMedia(prev => ({ ...prev, [item.id]: true }))}
+          onCanPlay={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+          onError={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            const videoEl = e.currentTarget;
+            if (document.fullscreenElement) {
+              document.exitFullscreen?.();
+            } else if ((videoEl as any).webkitEnterFullscreen) {
+              (videoEl as any).webkitEnterFullscreen();
+            } else if (videoEl.requestFullscreen) {
+              videoEl.requestFullscreen();
+            }
+          }}
+          onTouchEnd={(e) => {
+            const now = Date.now();
+            const DOUBLE_TAP_DELAY = 300;
+            const videoEl = e.currentTarget as HTMLVideoElement;
+            if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
+              e.preventDefault();
+              if (document.fullscreenElement) {
+                document.exitFullscreen?.();
+              } else if ((videoEl as any).webkitEnterFullscreen) {
+                (videoEl as any).webkitEnterFullscreen();
+              } else if (videoEl.requestFullscreen) {
+                videoEl.requestFullscreen();
+              }
+              (videoEl as any)._lastTap = 0;
+            } else {
+              (videoEl as any)._lastTap = now;
+            }
+          }}
+        >
+          {t('media_browser_no_video')}
+        </video>
+      </>
     );
   };
 
@@ -250,12 +352,10 @@ export default function MediaPage() {
           <div className="bg-gov-forest text-white py-16 px-4">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-                {isAr ? 'المركز الإعلامي' : 'Media Center'}
+                {t('media_center_title')}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
-                {isAr
-                  ? 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من وزارة الاقتصاد والصناعة'
-                  : 'Official video, photo, and infographic library from the Ministry of Economy and Industry'}
+                {t('media_center_subtitle')}
               </p>
             </div>
           </div>
@@ -271,24 +371,28 @@ export default function MediaPage() {
               selectedYear={selectedYear}
               onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
               totalCount={filteredMedia.length}
-              countLabel={isAr ? 'عنصر' : 'items'}
+              countLabel={t('media_items')}
               extraFilters={
-                <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
+                <div className="flex gap-1.5 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
-                      ? 'bg-gov-teal text-white'
-                      : 'text-gray-500 hover:text-gov-teal'
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === 'grid'
+                      ? 'bg-gov-teal text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gov-teal hover:bg-gray-50 dark:hover:bg-white/5'
                       }`}
+                    title={t('ui_view_grid')}
+                    aria-label={t('ui_view_grid')}
                   >
                     <Grid size={16} />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
-                      ? 'bg-gov-teal text-white'
-                      : 'text-gray-500 hover:text-gov-teal'
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === 'list'
+                      ? 'bg-gov-teal text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gov-teal hover:bg-gray-50 dark:hover:bg-white/5'
                       }`}
+                    title={t('ui_view_list')}
+                    aria-label={t('ui_view_list')}
                   >
                     <List size={16} />
                   </button>
@@ -322,25 +426,38 @@ export default function MediaPage() {
                         setExpandedImage(item);
                       }
                     }}
-                    className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${viewMode === 'list' ? 'flex' : ''
-                      } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${item.type !== 'video' ? 'cursor-pointer' : ''
-                      }`}
+                    className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
+                      viewMode === 'list' ? 'flex' : ''
+                    } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
+                      item.type !== 'video' ? 'cursor-pointer' : ''
+                    }`}
                   >
                     {/* Thumbnail / Inline Video Player */}
-                    <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
-                      } bg-black`}>
+                    <div className={`relative overflow-hidden ${
+                      viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
+                    } bg-black`}>
 
                       {/* Show inline player when playing */}
                       {isPlaying && isVideo ? (
                         renderInlinePlayer(item)
                       ) : (
-                        <Image
-                          src={item.thumbnailUrl}
-                          alt={item.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
+                        <>
+                          {loadingMedia[item.id] && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gov-forest/20 dark:bg-dm-bg/50 z-10">
+                              <Loader2 size={28} className="text-gov-gold animate-spin mb-2" />
+                              <span className="text-white/80 text-xs font-medium">{t('media_loading')}</span>
+                            </div>
+                          )}
+                          <Image
+                            src={item.thumbnailUrl}
+                            alt={item.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            onLoadingComplete={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+                            onError={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+                          />
+                        </>
                       )}
 
                       {/* Hover Overlay */}
@@ -350,32 +467,26 @@ export default function MediaPage() {
 
                       {/* Type Badge */}
                       <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 z-20">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm ${item.type === 'video'
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm ${
+                          item.type === 'video'
                             ? 'bg-red-500/90 text-white'
                             : item.type === 'photo'
                               ? 'bg-gov-teal/90 text-white'
                               : 'bg-gov-gold/90 text-gov-forest'
-                          }`}>
+                        }`}>
                           {getTypeIcon(item.type)}
                           {getTypeLabel(item.type)}
                         </span>
                       </div>
 
-                      {/* Play / Pause Button for Videos */}
-                      {isVideo && (
+                      {/* Play Button for Videos (only when not playing - native controls handle playback) */}
+                      {isVideo && !isPlaying && (
                         <button
                           onClick={(e) => handlePlayInline(item, e)}
                           className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
                         >
-                          <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${isPlaying
-                              ? 'bg-black/60 backdrop-blur-sm scale-75 opacity-0 hover:opacity-100'
-                              : 'bg-white/90 group-hover:scale-110 group-hover:bg-white'
-                            }`}>
-                            {isPlaying ? (
-                              <Pause size={24} className="text-white" fill="currentColor" />
-                            ) : (
-                              <Play size={28} className="text-gov-forest ltr:ml-1 rtl:mr-1" fill="currentColor" />
-                            )}
+                          <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
+                            <Play size={28} className="text-gov-forest ltr:ml-1 rtl:mr-1" fill="currentColor" />
                           </div>
                         </button>
                       )}
@@ -385,7 +496,7 @@ export default function MediaPage() {
                         <button
                           onClick={(e) => handleExpand(item, e)}
                           className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-30 w-8 h-8 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
-                          title={isAr ? 'توسيع' : 'Expand'}
+                          title={t('media_expand')}
                         >
                           <Maximize2 size={14} />
                         </button>
@@ -403,7 +514,7 @@ export default function MediaPage() {
                             ) : (
                               <>
                                 <ImageIcon size={12} />
-                                {item.count} {isAr ? 'صورة' : 'photos'}
+                                {item.count} {t('media_photos_count')}
                               </>
                             )}
                           </span>
@@ -429,7 +540,7 @@ export default function MediaPage() {
                           <button
                             onClick={(e) => handleShare(item, e)}
                             className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                            title={isAr ? 'مشاركة' : 'Share'}
+                            title={t('media_share')}
                           >
                             <Share2 size={14} />
                           </button>
@@ -438,7 +549,7 @@ export default function MediaPage() {
                             <button
                               onClick={(e) => handleDownload(item, e)}
                               className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                              title={isAr ? 'تحميل' : 'Download'}
+                              title={t('media_download')}
                             >
                               <Download size={14} />
                             </button>
@@ -479,7 +590,7 @@ export default function MediaPage() {
                                 className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Play size={14} />
-                                {isAr ? 'تشغيل' : 'Play'}
+                                {t('media_play')}
                               </button>
                             )}
                             <button
@@ -487,7 +598,7 @@ export default function MediaPage() {
                               className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                             >
                               <Share2 size={14} />
-                              {isAr ? 'مشاركة' : 'Share'}
+                              {t('media_share')}
                             </button>
                             {/* Hide download button for YouTube videos */}
                             {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
@@ -496,7 +607,7 @@ export default function MediaPage() {
                                 className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Download size={14} />
-                                {isAr ? 'تحميل' : 'Download'}
+                                {t('media_download')}
                               </button>
                             )}
                           </div>
@@ -528,12 +639,10 @@ export default function MediaPage() {
                   <ImageIcon size={32} className="text-gray-400" />
                 </div>
                 <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
-                  {isAr ? 'لا توجد عناصر' : 'No Items Found'}
+                  {t('media_no_items')}
                 </h3>
                 <p className="text-gray-500 dark:text-gov-gold/60">
-                  {isAr
-                    ? 'لا يوجد محتوى في هذه الفئة حالياً'
-                    : 'No content in this category currently'}
+                  {t('media_no_content')}
                 </p>
               </div>
             )}
@@ -553,7 +662,7 @@ export default function MediaPage() {
               <button
                 onClick={() => setExpandedVideo(null)}
                 className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                aria-label={isAr ? 'إغلاق' : 'Close'}
+                aria-label={t('ui_close')}
               >
                 <X size={20} />
               </button>
@@ -561,7 +670,7 @@ export default function MediaPage() {
               <div className="aspect-video w-full">
                 {isYouTubeUrl(expandedVideo.url) ? (
                   <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
                     title={expandedVideo.title}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -572,11 +681,49 @@ export default function MediaPage() {
                     src={expandedVideo.url}
                     poster={expandedVideo.thumbnailUrl}
                     controls
-                    autoPlay
                     playsInline
                     className="w-full h-full object-contain bg-black"
+                    ref={(el) => {
+                      if (el) {
+                        el.volume = 1;
+                        el.muted = false;
+                        el.play().catch(() => {
+                          el.muted = true;
+                          el.play().catch(() => {});
+                        });
+                      }
+                    }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      const videoEl = e.currentTarget;
+                      if (document.fullscreenElement) {
+                        document.exitFullscreen?.();
+                      } else if ((videoEl as any).webkitEnterFullscreen) {
+                        (videoEl as any).webkitEnterFullscreen();
+                      } else if (videoEl.requestFullscreen) {
+                        videoEl.requestFullscreen();
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      const now = Date.now();
+                      const DOUBLE_TAP_DELAY = 300;
+                      const videoEl = e.currentTarget as HTMLVideoElement;
+                      if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
+                        e.preventDefault();
+                        if (document.fullscreenElement) {
+                          document.exitFullscreen?.();
+                        } else if ((videoEl as any).webkitEnterFullscreen) {
+                          (videoEl as any).webkitEnterFullscreen();
+                        } else if (videoEl.requestFullscreen) {
+                          videoEl.requestFullscreen();
+                        }
+                        (videoEl as any)._lastTap = 0;
+                      } else {
+                        (videoEl as any)._lastTap = now;
+                      }
+                    }}
                   >
-                    {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
+                    {t('media_browser_no_video')}
                   </video>
                 )}
               </div>
@@ -631,7 +778,7 @@ export default function MediaPage() {
                     className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/40 text-white rounded-full text-sm font-bold transition-colors backdrop-blur-sm"
                   >
                     <ChevronLeft size={16} className={isAr ? 'rotate-180' : ''} />
-                    {isAr ? 'العودة للألبوم' : 'Back to Album'}
+                    {t('media_back_to_album')}
                   </button>
                 ) : (
                   <div />
@@ -642,7 +789,7 @@ export default function MediaPage() {
                     setSourceAlbum(null);
                   }}
                   className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                  aria-label={t('ui_close')}
                 >
                   <X size={20} />
                 </button>
@@ -671,7 +818,7 @@ export default function MediaPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-bold transition-colors"
                 >
                   <Download size={16} />
-                  {isAr ? 'تحميل' : 'Download'}
+                  {t('media_download')}
                 </button>
               </div>
             </div>
@@ -688,7 +835,7 @@ export default function MediaPage() {
               className="relative max-w-6xl w-full max-h-[90vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 flex items-center justify-between border-b border-gov-gold/20">
+              <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gov-gold/20">
                 <div className="text-white">
                   <h3 className="text-lg font-bold">{albumData?.title || expandedAlbum.title}</h3>
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-300">
@@ -698,26 +845,76 @@ export default function MediaPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <ImageIcon size={14} />
-                      {albumData?.count || expandedAlbum.count} {isAr ? 'صورة' : 'photos'}
+                      {albumData?.count || expandedAlbum.count} {t('media_photos_count')}
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={handleCloseAlbum}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={isAr ? 'إغلاق' : 'Close'}
-                >
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {/* Download All button */}
+                  {albumData && albumData.photos && albumData.photos.length > 0 && (
+                    <button
+                      onClick={() => handleDownloadAlbum(albumData)}
+                      disabled={downloadingAlbum}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex-1 sm:flex-initial justify-center ${
+                        downloadingAlbum
+                          ? 'bg-gov-gold/30 text-gov-gold cursor-wait'
+                          : 'bg-gov-gold hover:bg-gov-gold/90 text-gov-forest hover:shadow-lg'
+                      }`}
+                    >
+                      {downloadingAlbum ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>
+                            {t('media_downloading')} ({downloadProgress.current}/{downloadProgress.total})
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Package size={16} />
+                          <span>{t('media_download_all')}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCloseAlbum}
+                    className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+                    aria-label={t('ui_close')}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-gov-forest rounded-b-2xl p-6">
+              {/* Download Progress Bar */}
+              {downloadingAlbum && (
+                <div className="bg-gov-forest/90 px-5 py-3 border-b border-gov-gold/20">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gov-gold rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${downloadProgress.total > 0 ? (downloadProgress.current / downloadProgress.total) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gov-gold font-bold whitespace-nowrap">
+                      {downloadProgress.total > 0
+                        ? `${Math.round((downloadProgress.current / downloadProgress.total) * 100)}%`
+                        : '0%'}
+                    </span>
+                    {downloadProgress.current === downloadProgress.total && downloadProgress.total > 0 && (
+                      <CheckCircle2 size={16} className="text-green-400" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gov-forest rounded-b-2xl p-4 sm:p-6">
                 {loadingAlbum ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="w-12 h-12 border-4 border-gov-gold border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : albumData?.photos && albumData.photos.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {albumData.photos.map((photo, index) => (
                       <div
                         key={photo.id}
@@ -746,14 +943,14 @@ export default function MediaPage() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs font-medium">
-                            <span>{isAr ? 'صورة' : 'Photo'} {index + 1}</span>
+                            <span>{t('media_photo_label')} {index + 1}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDownload({ id: photo.id, title: photo.title, type: 'photo', thumbnailUrl: photo.url, url: photo.url, date: albumData.date } as MediaItem, e);
                               }}
                               className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"
-                              title={isAr ? 'تحميل' : 'Download'}
+                              title={t('media_download')}
                             >
                               <Download size={12} />
                             </button>
@@ -764,7 +961,7 @@ export default function MediaPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-white">
-                    <p>{isAr ? 'لا توجد صور في هذا الألبوم' : 'No photos in this album'}</p>
+                    <p>{t('media_no_album_photos')}</p>
                   </div>
                 )}
               </div>

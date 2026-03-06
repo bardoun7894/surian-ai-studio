@@ -108,6 +108,42 @@
                             <p class="text-[10px] text-slate-400 mt-1">اختر الإدارة المركزية التابع لها هذا الخبر</p>
                         </div>
 
+                        {{-- News Ticker Settings --}}
+                        @php
+                            $tickerEnabled = ($content->metadata['ticker_enabled'] ?? false);
+                            $tickerDuration = ($content->metadata['ticker_duration'] ?? 24);
+                            $tickerStartsAt = ($content->metadata['ticker_starts_at'] ?? null);
+                            $tickerExpiresAt = $tickerStartsAt ? \Carbon\Carbon::parse($tickerStartsAt)->addHours($tickerDuration) : null;
+                            $tickerActive = $tickerEnabled && $tickerExpiresAt && $tickerExpiresAt->isFuture();
+                        @endphp
+                        <div id="tickerField" class="{{ $content->category === 'news' ? '' : 'hidden' }} mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="ticker_enabled" id="tickerEnabled" value="1" {{ $tickerEnabled ? 'checked' : '' }}
+                                        class="rounded border-amber-400 text-amber-600 focus:ring-amber-500 dark:bg-slate-800 dark:border-amber-600">
+                                    <span class="text-sm font-bold text-amber-800 dark:text-amber-300">هل تريد أن يظهر في الشريط الإخباري؟</span>
+                                </label>
+                            </div>
+                            <div id="tickerDurationField" class="{{ $tickerEnabled ? '' : 'hidden' }}">
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">مدة العرض في الشريط</label>
+                                <select name="ticker_duration" id="tickerDuration" class="w-full rounded-lg border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                    <option value="24" {{ $tickerDuration == 24 ? 'selected' : '' }}>24 ساعة</option>
+                                    <option value="48" {{ $tickerDuration == 48 ? 'selected' : '' }}>48 ساعة</option>
+                                    <option value="168" {{ $tickerDuration == 168 ? 'selected' : '' }}>أسبوع</option>
+                                    <option value="720" {{ $tickerDuration == 720 ? 'selected' : '' }}>شهر</option>
+                                </select>
+                                @if($tickerActive)
+                                    <p class="mt-2 text-xs text-green-600 dark:text-green-400">
+                                        ✅ يظهر حالياً في الشريط حتى {{ $tickerExpiresAt->format('Y-m-d H:i') }}
+                                    </p>
+                                @elseif($tickerEnabled && !$tickerActive)
+                                    <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                                        ⏰ انتهت مدة العرض — عدّل المدة لإعادة العرض
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5">تاريخ النشر</label>
                             <input type="date" name="published_at" value="{{ old('published_at', $content->published_at?->format('Y-m-d')) }}"
@@ -336,8 +372,10 @@
         function toggleCategoryFields() {
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
+                document.getElementById('tickerField').classList.remove('hidden');
             } else {
                 directorateField.classList.add('hidden');
+                document.getElementById('tickerField').classList.add('hidden');
             }
         }
 

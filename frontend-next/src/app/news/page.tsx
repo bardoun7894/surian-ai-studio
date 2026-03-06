@@ -33,11 +33,12 @@ interface DirectorateNewsGroup {
 }
 
 function NewsPageContent() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const searchParams = useSearchParams();
   const isAr = language === 'ar';
 
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [initialFeaturedNews, setInitialFeaturedNews] = useState<NewsItem | null>(null);
   const [groupedNews, setGroupedNews] = useState<DirectorateNewsGroup[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,11 +71,9 @@ function NewsPageContent() {
     const localFallbackSummary = (value: string) => {
       const excerpt = normalizeText(value).slice(0, 280);
       if (!excerpt) {
-        return isAr ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.';
+        return t('news_no_enough_content');
       }
-      return isAr
-        ? `تعذر إنشاء الملخص الذكي حالياً. هذه نبذة مختصرة من الخبر: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`
-        : `AI summary is temporarily unavailable. Showing a short article excerpt instead: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
+      return `${t('news_ai_unavailable')} ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
     };
 
     const displayTitle = isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title);
@@ -149,7 +148,14 @@ function NewsPageContent() {
           API.news.getGroupedByDirectorate()
         ]);
         // allNews from getOfficialNews is used for organized view (featured hero, "All News" section)
+        // Also store the initial featured news so it persists across view switches
         setAllNews(newsData);
+        // Compute and persist the featured news from the initial full dataset
+        if (newsData.length > 0) {
+          const sorted = [...newsData].sort((a: NewsItem, b: NewsItem) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          const urgent = sorted.find((n: NewsItem) => n.isUrgent);
+          setInitialFeaturedNews(urgent || sorted[0]);
+        }
         setDirectorates(dirsData);
         setGroupedNews(grouped);
       } catch (e) {
@@ -192,19 +198,19 @@ function NewsPageContent() {
 
   // View tabs - use only main departments (featured directorates), not all individual directorates
   const viewTabs = useMemo(() => {
-    const t = [
-      { key: 'organized', label: isAr ? 'عرض منظم' : 'Organized View', icon: LayoutGrid },
-      { key: 'all', label: isAr ? 'جميع الأخبار' : 'All News', icon: LayoutGrid },
-      { key: 'central', label: isAr ? 'أخبار الإدارة المركزية' : 'Central Admin News', icon: Landmark },
+    const tabs = [
+      { key: 'organized', label: t('news_organized_view'), icon: LayoutGrid },
+      { key: 'all', label: t('news_all'), icon: LayoutGrid },
+      { key: 'central', label: t('news_central_admin'), icon: Landmark },
     ];
     // Only show the main departments (featured directorates) as tabs
     filteredGroupedNews.forEach(group => {
       const nameAr = group.directorate.name_ar || group.directorate.name;
       const nameEn = group.directorate.name_en || group.directorate.name;
-      t.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
+      tabs.push({ key: String(group.directorate.id), label: isAr ? nameAr : nameEn, icon: Building2 });
     });
-    return t;
-  }, [filteredGroupedNews, language, isAr]);
+    return tabs;
+  }, [filteredGroupedNews, language, isAr, t]);
 
   // Filtered flat news (for non-organized views)
   const filteredFlatNews = useMemo(() => {
@@ -243,13 +249,14 @@ function NewsPageContent() {
     return result;
   }, [allNews, activeView, searchQuery, selectedMonth, selectedYear]);
 
-  // Featured / hero news (most recent or marked urgent)
+  // Featured / hero news - use initialFeaturedNews to persist across view switches
   const featuredNews = useMemo(() => {
+    if (initialFeaturedNews) return initialFeaturedNews;
     const sorted = [...allNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const urgent = sorted.find(n => n.isUrgent);
     if (urgent) return urgent;
     return sorted[0] || null;
-  }, [allNews]);
+  }, [allNews, initialFeaturedNews]);
 
   // News card component
   const NewsCard = ({ item, index = 0, compact = false }: { item: NewsItem; index?: number; compact?: boolean }) => (
@@ -301,10 +308,10 @@ function NewsPageContent() {
           <button
             onClick={(e) => { e.preventDefault(); handleAISummary(item); }}
             className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gov-gold/10 text-gov-gold hover:bg-gov-gold hover:text-white transition-colors"
-            title={isAr ? 'ملخص ذكي' : 'AI Summary'}
+            title={t('news_ai_summary')}
           >
             <Sparkles size={12} />
-            <span className="text-[10px] font-bold">{isAr ? 'ملخص AI' : 'AI'}</span>
+            <span className="text-[10px] font-bold">{t('news_ai_label')}</span>
           </button>
         </div>
         <Link href={`/news/${item.id}`}>
@@ -318,7 +325,7 @@ function NewsPageContent() {
           </p>
         )}
         <Link href={`/news/${item.id}`} className="text-xs font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1 mt-auto">
-          {isAr ? 'اقرأ التفاصيل' : 'Read More'}
+          {t('news_read_details')}
           <ChevronLeft size={14} className={language === 'ar' ? '' : 'rotate-180'} />
         </Link>
       </div>
@@ -342,12 +349,12 @@ function NewsPageContent() {
                   <Star size={20} className="text-gov-gold" />
                 </div>
                 <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                  {isAr ? 'الخبر الرئيسي' : 'Featured News'}
+                  {t('news_featured')}
                 </h2>
               </div>
 
               <Link href={`/news/${featuredNews.id}`} className="block group">
-                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-gov-forest h-[250px] md:h-[400px]">
+                <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px]">
                   {featuredNews.imageUrl ? (
                     <Image
                       src={featuredNews.imageUrl}
@@ -361,18 +368,18 @@ function NewsPageContent() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-10">
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                     {featuredNews.isUrgent && (
-                      <span className="inline-block px-2 md:px-3 py-1 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3">
-                        {isAr ? 'عاجل' : 'Breaking'}
+                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
+                        {t('ui_breaking')}
                       </span>
                     )}
                     {(featuredNews as any).directorate_name && (
-                      <span className="inline-block px-2 md:px-3 py-1 bg-gov-gold/80 text-gov-forest text-[10px] md:text-xs font-bold rounded-full mb-2 md:mb-3 ltr:ml-2 rtl:mr-2">
+                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
                         {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                       </span>
                     )}
-                    <h3 className="text-xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-2 md:mb-3 group-hover:text-gov-gold transition-colors leading-tight line-clamp-2 md:line-clamp-none">
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
                       {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                     </h3>
                     <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
@@ -408,7 +415,7 @@ function NewsPageContent() {
                   onClick={() => { setActiveView(group.directorate.id); setVisibleCount(12); }}
                   className="text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1"
                 >
-                  {isAr ? 'عرض الكل' : 'View All'}
+                  {t('news_view_all_btn')}
                   <ArrowLeft size={14} className={isAr ? '' : 'rotate-180'} />
                 </button>
               </div>
@@ -430,7 +437,7 @@ function NewsPageContent() {
                 <LayoutGrid size={20} className="text-gov-teal dark:text-gov-teal" />
               </div>
               <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                {isAr ? 'جميع الأخبار' : 'All News'}
+                {t('news_all')}
               </h2>
             </div>
 
@@ -446,7 +453,7 @@ function NewsPageContent() {
                   onClick={() => { setActiveView('all'); setCurrentPage(1); }}
                   className="px-10 py-3.5 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
                 >
-                  {isAr ? 'عرض جميع الأخبار' : 'View All News'}
+                  {t('news_view_all')}
                 </button>
               </div>
             )}
@@ -467,10 +474,10 @@ function NewsPageContent() {
         <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
           <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
           <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
-            {isAr ? 'لا توجد نتائج' : 'No Results'}
+            {t('news_no_results')}
           </h3>
           <p className="text-gray-500 dark:text-white/70 text-sm">
-            {isAr ? 'لم يتم العثور على أخبار مطابقة.' : 'No news found matching your criteria.'}
+            {t('news_no_results_desc')}
           </p>
         </div>
       );
@@ -505,10 +512,10 @@ function NewsPageContent() {
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
-              {isAr ? 'المحتوى الإعلامي' : 'Media Content'}
+              {t('news_page_title')}
             </h1>
             <p className="text-white/70 mb-6">
-              {isAr ? 'تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة.' : 'Browse all news, decisions, and press reports.'}
+              {t('news_page_subtitle')}
             </p>
           </div>
         </div>
@@ -526,7 +533,7 @@ function NewsPageContent() {
             onSearch={activeView !== 'organized' ? (q) => setSearchQuery(q) : undefined}
             searchValue={searchQuery}
             totalCount={activeView === 'organized' ? allNews.length : totalItems}
-            countLabel={isAr ? 'خبر' : 'articles'}
+            countLabel={t('news_article_count')}
             className="mb-8"
           />
 
@@ -535,42 +542,42 @@ function NewsPageContent() {
 
           {/* FAQ Section */}
           {activeView !== 'organized' && (
-            <div className="mt-12 md:mt-16 bg-white dark:bg-dm-surface rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-gov-border/15">
-              <h2 className="text-xl md:text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 md:mb-6">
-                {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
+            <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
+              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
+                {t('news_faq_title')}
               </h2>
               <div className="space-y-4">
                 <details className="group">
                   <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'كيف أبقى على اطلاع بآخر الأخبار؟' : 'How do I stay updated with latest news?'}
+                    {t('news_faq_q1')}
                     <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                   </summary>
                   <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'يمكنك متابعة أحدث الأخبار من خلال هذه الصفحة أو الاشتراك في النشرة البريدية للوزارة.' : 'You can follow the latest news through this page or subscribe to the ministry newsletter.'}
+                    {t('news_faq_a1')}
                   </p>
                 </details>
                 <details className="group">
                   <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'هل يمكنني تصفية الأخبار حسب المديرية؟' : 'Can I filter news by directorate?'}
+                    {t('news_faq_q2')}
                     <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                   </summary>
                   <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'نعم، استخدم أزرار الفلترة أعلاه لتصفية الأخبار حسب المديرية أو الفترة الزمنية.' : 'Yes, use the filter buttons above to filter news by directorate or time period.'}
+                    {t('news_faq_a2')}
                   </p>
                 </details>
                 <details className="group">
                   <summary className="flex items-center justify-between cursor-pointer p-4 bg-gray-50 dark:bg-gov-card/10 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    {isAr ? 'ما هو الملخص الذكي؟' : 'What is AI Summary?'}
+                    {t('news_faq_q3')}
                     <Calendar size={16} className="text-gray-400 group-open:rotate-180 transition-transform" />
                   </summary>
                   <p className="p-4 text-sm text-gray-600 dark:text-white/70 leading-relaxed">
-                    {isAr ? 'خدمة تعتمد على الذكاء الاصطناعي لتلخيص محتوى الأخبار الطويلة بشكل مختصر ومفيد.' : 'An AI-powered service that summarizes long news content into a concise and useful format.'}
+                    {t('news_faq_a3')}
                   </p>
                 </details>
               </div>
               <div className="mt-4 text-center">
                 <Link href="/faq" className="text-gov-teal dark:text-gov-gold font-bold text-sm hover:underline">
-                  {isAr ? 'عرض جميع الأسئلة الشائعة ←' : '→ View all FAQs'}
+                  {t('news_faq_view_all')}
                 </Link>
               </div>
             </div>
@@ -587,7 +594,7 @@ function NewsPageContent() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
               <div className="flex items-center gap-2 text-gov-gold">
                 <Sparkles size={20} />
-                <h3 className="font-bold">{isAr ? 'ملخص ذكي' : 'AI Summary'}</h3>
+                <h3 className="font-bold">{t('news_ai_summary')}</h3>
               </div>
               <button
                 onClick={() => setSummaryModal({ isOpen: false, title: '', summary: '', loading: false })}

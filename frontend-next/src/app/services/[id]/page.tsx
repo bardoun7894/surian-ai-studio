@@ -146,12 +146,27 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
             try {
                 const s = await API.services.getById(params.id);
                 if (s) {
+                    // Normalize requirements: ensure it is always an array or null
+                    if (s.requirements && typeof s.requirements === 'string') {
+                        // Split text by newlines and filter empty lines
+                        s.requirements = (s.requirements as string)
+                            .split(/\r?\n/)
+                            .map((r: string) => r.trim())
+                            .filter((r: string) => r.length > 0);
+                    } else if (s.requirements && !Array.isArray(s.requirements)) {
+                        s.requirements = [];
+                    }
                     setService(s);
-                    const d = await API.directorates.getById(s.directorateId);
-                    setDirectorate(d);
+                    try {
+                        const d = await API.directorates.getById(s.directorateId);
+                        setDirectorate(d);
+                    } catch (dirErr) {
+                        console.error('Failed to fetch directorate:', dirErr);
+                        // Continue without directorate info
+                    }
                 }
             } catch (e) {
-                console.error(e);
+                console.error('Failed to fetch service:', e);
             } finally {
                 setLoading(false);
             }
@@ -421,7 +436,11 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     variant="default"
                                     metadata={{
                                         title: getLocalizedField(service, 'title', language as 'ar' | 'en'),
+                                        title_ar: getLocalizedField(service, 'title', 'ar'),
+                                        title_en: getLocalizedField(service, 'title', 'en'),
                                         description: getLocalizedField(service, 'description', language as 'ar' | 'en'),
+                                        description_ar: getLocalizedField(service, 'description', 'ar'),
+                                        description_en: getLocalizedField(service, 'description', 'en'),
                                         url: `/services/${service.id}`
                                     }}
                                 />

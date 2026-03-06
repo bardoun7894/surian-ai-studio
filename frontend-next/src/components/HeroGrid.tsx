@@ -16,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 // Icon mapping for Lucide icons
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Play, Users, TrendingUp, Star, Award, Zap, Target, Heart, ThumbsUp, MessageCircle, FileText, Calendar, Globe, Shield, Briefcase
 };
 
@@ -27,6 +27,15 @@ interface PromotionalCardProps {
 }
 
 const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) => {
+  const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+  const [isMobileDevice, setIsMobileDevice] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobileDevice(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const isArabic = locale === 'ar';
   const title = isArabic ? section.title_ar : section.title_en;
   const description = isArabic ? section.description_ar : section.description_en;
@@ -42,7 +51,10 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
     // If video_url is present, use actual video player
     if (section.video_url) {
       return (
-        <div className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden">
+        <div
+          className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden"
+          onClick={() => { if (isMobileDevice) setIsVideoPlaying(true); }}
+        >
           <VideoCard
             videoUrl={section.video_url}
             posterUrl={section.image || undefined}
@@ -51,9 +63,9 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
             className="h-full min-h-[220px] rounded-[2rem]"
             autoPlayOnHover={true}
           />
-          {/* Badge overlay */}
-          <div className="absolute top-2 right-2 md:top-4 md:right-4 rtl:right-auto rtl:md:right-auto rtl:left-2 rtl:md:left-4 z-20">
-            <span className="inline-block px-1.5 py-0.5 md:px-3 md:py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] md:text-xs font-semibold tracking-wide border border-white/20 shadow-sm">
+          {/* Badge overlay - M6.10: hide on mobile when video is playing */}
+          <div className={`absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20 transition-opacity duration-300 ${isMobileDevice && isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <span className="inline-block px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold border border-white/10">
               {badge}
             </span>
           </div>
@@ -78,21 +90,21 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
         <div className="absolute top-0 right-0 p-40 bg-white/10 rounded-full blur-3xl transform -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 p-32 bg-black/20 rounded-full blur-2xl transform translate-y-1/3 -translate-x-1/3"></div>
 
-        <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-between">
+        <div className="relative z-10 p-5 h-full flex flex-col justify-between">
           <div>
-            <span className="inline-block px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-black/30 backdrop-blur-md text-white text-[10px] md:text-xs font-semibold tracking-wide mb-3 md:mb-4 border border-white/20">
+            <span className="inline-block px-3 py-1 rounded-full bg-black/20 text-white text-xs font-bold mb-4 border border-white/10">
               {badge}
             </span>
-            <h3 className="text-xl md:text-2xl font-bold text-white leading-snug mb-2 md:mb-3 drop-shadow-md">{title}</h3>
-            {description && <p className="text-white/90 text-xs md:text-sm line-clamp-2 md:line-clamp-3 leading-relaxed drop-shadow-sm">{description}</p>}
+            <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+            {description && <p className="text-white/80 text-sm">{description}</p>}
           </div>
-          <div className="flex items-center justify-start mt-4 md:mt-0">
+          <div className="flex items-center justify-center">
             <a
               href={section.button_url || '#'}
-              className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300 group-hover:shadow-2xl"
+              className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
               style={{ color: section.background_color }}
             >
-              <Icon className="ml-1 fill-current w-4 h-4 md:w-8 md:h-8" />
+              <Icon size={32} className="ml-1 fill-current" />
             </a>
           </div>
         </div>
@@ -123,15 +135,15 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
           </div>
         )}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-[1rem] bg-gradient-to-br from-gov-gold/90 to-gov-sand/90 backdrop-blur-md mb-3 md:mb-4 flex items-center justify-center text-gov-forest shadow-xl group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">
-            <span className="font-display font-extrabold text-xl md:text-2xl tracking-tighter">{statValue}</span>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gov-gold to-gov-sand mb-2 flex items-center justify-center text-gov-forest shadow-lg group-hover:scale-110 transition-transform">
+            <span className="font-display font-bold text-xl">{statValue}</span>
           </div>
-          <h3 className="text-lg md:text-xl font-bold text-white mb-2 tracking-tight drop-shadow-md">{statLabel}</h3>
-          {description && <p className="text-white/80 text-xs md:text-sm mb-4 md:mb-6 px-2 drop-shadow-sm">{description}</p>}
+          <h3 className="text-xl font-bold text-white mb-2">{statLabel}</h3>
+          {description && <p className="text-gov-beige/60 text-sm mb-6">{description}</p>}
           {buttonText && (
             <a
               href={section.button_url || '#'}
-              className="px-5 py-2 md:px-6 md:py-2.5 rounded-full border border-gov-gold/40 text-gov-gold font-semibold text-[11px] md:text-sm hover:bg-gov-gold hover:text-gov-forest hover:border-gov-gold transition-all duration-300 shadow-lg"
+              className="px-6 py-2 rounded-full border border-gov-gold/30 text-gov-gold text-sm hover:bg-gov-gold hover:text-gov-forest transition-all"
             >
               {buttonText}
             </a>
@@ -158,16 +170,16 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-        <div className="relative z-10 p-3 md:p-5 h-full flex flex-col justify-end">
-          <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
-            <Icon className="text-gov-gold w-4 h-4 md:w-[18px] md:h-[18px]" />
-            <h3 className="text-base md:text-lg font-bold text-white leading-tight">{title}</h3>
+        <div className="relative z-10 p-5 h-full flex flex-col justify-end">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon size={18} className="text-gov-gold" />
+            <h3 className="text-lg font-bold text-white">{title}</h3>
           </div>
-          {description && <p className="text-white/80 text-[10px] md:text-sm mb-3 md:mb-4 line-clamp-2 md:line-clamp-none">{description}</p>}
+          {description && <p className="text-white/80 text-sm mb-4">{description}</p>}
           {buttonText && (
             <a
               href={section.button_url || '#'}
-              className="px-4 py-1.5 md:px-6 md:py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-[10px] md:text-sm hover:bg-white/20 transition-all inline-block w-fit border border-white/10"
+              className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm hover:bg-white/20 transition-all inline-block w-fit border border-white/10"
             >
               {buttonText}
             </a>
@@ -188,18 +200,18 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
           src={section.image}
           alt={title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+          className="object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 transition-opacity duration-300 group-hover:opacity-90"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
-      <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-end">
-        <h3 className="text-lg md:text-xl font-bold text-white mb-2 leading-tight drop-shadow-lg">{title}</h3>
-        {description && <p className="text-white/80 text-xs md:text-sm mb-4 line-clamp-2 leading-relaxed drop-shadow-sm">{description}</p>}
+      <div className="relative z-10 p-5 h-full flex flex-col justify-end">
+        <h3 className="text-lg font-bold text-white mb-1">{title}</h3>
+        {description && <p className="text-white/80 text-sm mb-4">{description}</p>}
         {buttonText && (
           <a
             href={section.button_url || '#'}
-            className="px-5 py-2 md:px-6 md:py-2.5 rounded-full bg-gov-gold text-gov-forest font-bold text-[11px] md:text-sm hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 inline-block w-fit shadow-xl"
+            className="px-6 py-3 rounded-full bg-gov-gold text-gov-forest font-bold hover:bg-white transition-all inline-block w-fit"
           >
             {buttonText}
           </a>
@@ -300,106 +312,105 @@ const HeroGrid: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
 
         {/* Main Headline (latest hero news) */}
-        <div className="lg:col-span-7 relative group rounded-3xl overflow-hidden min-h-[300px] md:min-h-[380px] lg:min-h-[420px] shadow-2xl transition-all duration-500 hover:shadow-gov-gold/20 border border-white/10">
+        <div className="lg:col-span-7 relative group rounded-2xl overflow-hidden min-h-[250px] md:min-h-[320px] border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
           <div className="absolute inset-0">
             {heroArticle.imageUrl && (
               <Image
                 src={heroArticle.imageUrl}
                 alt={getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || 'News'}
                 fill
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-gov-forest/95 via-gov-forest/40 to-black/20 group-hover:from-gov-forest group-hover:via-gov-forest/50 transition-colors duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-gov-forest via-gov-forest/60 to-transparent opacity-95"></div>
           </div>
 
-          <div className="absolute inset-0 p-5 md:p-8 lg:p-10 flex flex-col justify-end z-10">
-            <div className="absolute top-4 right-4 md:top-6 md:right-6 rtl:right-auto rtl:md:right-auto rtl:left-4 rtl:md:left-6 flex gap-2">
-              <button
-                onClick={() => {
-                  setShareData({
+          <div className="absolute inset-0 p-4 md:p-8 flex flex-col justify-end z-10">
+            <div className="mb-auto flex w-full justify-between items-start">
+              <span className="px-2 py-1 md:px-3 rounded-full bg-gov-red text-white text-[10px] md:text-xs font-bold shadow-lg animate-pulse">
+                {t('hero_live_badge')}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShareData({
+                      title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
+                      url: `${window.location.origin}/news/${heroArticle.id}`
+                    });
+                  }}
+                  className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white transition-all border border-white/10"
+                >
+                  <Share2 size={16} />
+                </button>
+                <FavoriteButton
+                  contentType="news"
+                  contentId={heroArticle.id}
+                  variant="overlay"
+                  size={16}
+                  className="!p-2 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
+                  metadata={{
                     title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
-                    url: `${window.location.origin}/news/${heroArticle.id}`
-                  });
-                }}
-                className="p-2 md:p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 text-white transition-all duration-300 shadow-lg border border-white/20"
-              >
-                <Share2 className="w-4 h-4 md:w-5 md:h-5" />
-              </button>
-              <FavoriteButton
-                contentType="news"
-                contentId={heroArticle.id}
-                variant="overlay"
-                className="!p-2 md:!p-2.5 !rounded-full !bg-white/20 !backdrop-blur-md !border !border-white/20 hover:!bg-white/30 [&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5 !shadow-lg transition-all duration-300"
-                metadata={{
-                  title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
-                  description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
-                  image: heroArticle.imageUrl || '',
-                  url: `/news/${heroArticle.id}`
-                }}
-              />
+                    title_ar: getLocalizedField(heroArticle, 'title', 'ar') || '',
+                    title_en: getLocalizedField(heroArticle, 'title', 'en') || '',
+                    description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
+                    description_ar: getLocalizedField(heroArticle, 'excerpt', 'ar') || '',
+                    description_en: getLocalizedField(heroArticle, 'excerpt', 'en') || '',
+                    image: heroArticle.imageUrl || '',
+                    url: `/news/${heroArticle.id}`
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4">
-              <div className="flex items-center gap-2 md:gap-3">
-                <span className="px-2.5 py-1 md:px-3.5 md:py-1 rounded-full bg-gov-red text-white text-[10px] md:text-xs font-bold tracking-wide shadow-md uppercase">
-                  {t('hero_live_badge')}
-                </span>
-                <span className="font-semibold text-gov-gold text-xs md:text-sm tracking-wide">{getLocalizedField(heroArticle, 'category', locale as 'ar' | 'en')}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-gov-beige/40"></span>
-                <span className="text-white/80 text-xs md:text-sm font-medium">{heroArticle.date}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-1 md:gap-2 text-gov-beige/80 text-[10px] md:text-xs">
+                <span className="font-semibold text-gov-gold">{getLocalizedField(heroArticle, 'category', locale as 'ar' | 'en')}</span>
+                <span className="w-1 h-1 rounded-full bg-gov-gold/30"></span>
+                <span>{heroArticle.date}</span>
               </div>
 
-              <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-display font-bold text-white leading-tight drop-shadow-md">
+              <h2 className="text-lg md:text-2xl lg:text-3xl font-display font-bold text-white leading-tight line-clamp-3">
                 {getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en')}
               </h2>
 
-              <p className="text-xs md:text-sm lg:text-base text-gov-beige/90 leading-relaxed line-clamp-2 md:line-clamp-3 max-w-3xl drop-shadow-sm">
+              <p className="text-xs md:text-sm text-gov-beige/80 leading-relaxed line-clamp-2 hidden md:block">
                 {getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en')}
               </p>
 
-              <div className="pt-2">
-                <Link href={`/news/${heroArticle.id}`} className="group/btn inline-flex items-center justify-center gap-2 px-5 py-2.5 md:px-7 md:py-3 rounded-full bg-gov-gold text-gov-forest text-xs md:text-sm font-bold hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 w-auto">
-                  {t('hero_read_more')}
-                  <ArrowLeft className="w-4 h-4 transition-transform group-hover/btn:-translate-x-1 rtl:rotate-180 rtl:group-hover/btn:translate-x-1" />
-                </Link>
-              </div>
+              <Link href={`/news/${heroArticle.id}`} className="inline-flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 rounded-full bg-gov-gold text-gov-forest text-[11px] md:text-sm font-bold hover:bg-white transition-all group/btn shadow-md">
+                {t('hero_read_more')}
+                <ArrowLeft size={14} className="transition-transform group-hover/btn:-translate-x-1" />
+              </Link>
             </div>
           </div>
         </div>
 
         {/* 3 Side Headlines */}
-        <div className="lg:col-span-5 flex flex-row lg:flex-col gap-3 md:gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x snap-mandatory hide-scrollbar">
+        <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
           {sideArticles.map((article) => (
             <Link
               key={article.id}
               href={`/news/${article.id}`}
-              className="group flex-shrink-0 w-[85%] sm:w-[60%] lg:w-full lg:flex-shrink-1 snap-center flex gap-3 md:gap-4 bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 md:p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+              className="group flex gap-2 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-2 md:p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
-              {/* Subtle hover gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-gov-gold/0 to-gov-gold/0 group-hover:from-gov-gold/5 transition-colors duration-500 pointer-events-none"></div>
-
               {article.imageUrl && (
-                <div className="relative w-24 h-20 md:w-32 md:h-28 rounded-xl overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                <div className="relative w-20 h-16 md:w-28 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
                     src={article.imageUrl}
                     alt={getLocalizedField(article, 'title', locale as 'ar' | 'en') || ''}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {/* Subtle overlay on hover */}
-                  <div className="absolute inset-0 bg-gov-forest/0 group-hover:bg-gov-forest/10 transition-colors duration-500"></div>
                 </div>
               )}
-              <div className="flex-1 flex flex-col justify-center min-w-0 pr-1 select-none">
-                <span className="inline-block text-[10px] md:text-xs text-gov-gold font-bold mb-1.5 md:mb-2 uppercase tracking-wider">
+              <div className="flex-1 flex flex-col justify-center min-w-0">
+                <span className="text-[10px] md:text-xs text-gov-gold font-bold mb-1">
                   {getLocalizedField(article, 'category', locale as 'ar' | 'en')}
                 </span>
-                <h3 className="text-sm md:text-lg font-bold text-gov-charcoal dark:text-white leading-snug line-clamp-2 group-hover:text-gov-forest transition-colors duration-300">
+                <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors">
                   {getLocalizedField(article, 'title', locale as 'ar' | 'en')}
                 </h3>
-                <span className="text-[10px] md:text-xs text-gray-500 dark:text-white/50 mt-2 flex items-center gap-1.5 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-white/20"></span>
+                <span className="text-[10px] md:text-xs text-gray-400 dark:text-white/50 mt-1">
                   {article.date}
                 </span>
               </div>

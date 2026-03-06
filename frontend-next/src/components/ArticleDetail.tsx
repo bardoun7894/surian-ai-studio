@@ -153,23 +153,23 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 language={lang as 'ar' | 'en'}
             />
 
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 print:pt-4 print:px-0">
+            <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 md:pt-12 print:pt-4 print:px-0">
 
                 {/* Back Link */}
                 <Link
                     href={backLink.href}
-                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-teal font-bold mb-8 hover:gap-3 transition-all print:hidden"
+                    className="inline-flex items-center gap-2 text-gov-teal dark:text-gov-teal font-bold mb-5 md:mb-8 hover:gap-3 transition-all print:hidden"
                 >
                     <ChevronRight size={20} className="rtl:rotate-0 rotate-180" />
                     {backLink.label}
                 </Link>
 
-                <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 print:shadow-none print:border-none print:rounded-none print:bg-white">
+                <article className="bg-white dark:bg-gov-card/10 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 print:shadow-none print:border-none print:rounded-none print:bg-white">
 
                     {/* Featured Image */}
                     {imageUrl && (
                         <div
-                            className="relative h-[250px] md:h-[400px] lg:h-[500px] w-full cursor-pointer group"
+                            className="relative h-[250px] md:h-[500px] w-full cursor-pointer group"
                             onClick={() => galleryImages.length > 0 ? openLightbox(0) : undefined}
                         >
                             <Image
@@ -195,9 +195,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </div>
                     )}
 
-                    <div className="p-5 md:p-8 lg:p-12">
+                    <div className="p-4 md:p-12">
                         {/* Meta Data */}
-                        <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-xs md:text-sm text-gray-500 dark:text-white/70 mb-6 md:mb-8 pb-5 md:pb-8 border-b border-gray-100 dark:border-gov-border/15">
+                        <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
                             <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                 <Calendar size={16} className="text-gov-gold" />
                                 <span className="font-medium">{formatRelativeTime(date, lang as 'ar' | 'en')}</span>
@@ -261,13 +261,13 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </div>
 
                         {/* Content Body */}
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-white mb-4 md:mb-6 leading-tight">
+                        <h1 className="text-2xl md:text-4xl font-display font-bold text-gov-forest dark:text-white mb-4 leading-tight">
                             {title}
                         </h1>
 
                         {/* T047: AI Smart Summary */}
                         <div className="mb-8 p-1 bg-gradient-to-br from-gov-gold/20 to-gov-forest/5 rounded-2xl border border-gov-gold/30" data-print-hide="true">
-                            <div className="bg-white/50 dark:bg-black/20 rounded-xl p-4 transition-all">
+                            <div className="bg-white/50 dark:bg-black/20 rounded-xl p-3 md:p-4 transition-all">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2 text-gov-forest dark:text-gov-gold font-bold">
                                         <Sparkles size={18} className="text-gov-gold" />

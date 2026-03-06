@@ -34,8 +34,8 @@ export interface INewsRepository {
 }
 
 export interface IDecreeRepository {
-  getAll(directorate?: string): Promise<Decree[]>;
-  search(query: string, type?: string, directorate?: string): Promise<Decree[]>;
+  getAll(): Promise<Decree[]>;
+  search(query: string, type?: string, directorateId?: string): Promise<Decree[]>;
 }
 
 export interface IComplaintRepository {
@@ -172,10 +172,10 @@ class MockNewsRepository implements INewsRepository {
 }
 
 class MockDecreeRepository implements IDecreeRepository {
-  async getAll(directorate?: string): Promise<Decree[]> {
+  async getAll(): Promise<Decree[]> {
     return new Promise(resolve => setTimeout(() => resolve(DECREES), 500));
   }
-  async search(query: string, type?: string, directorate?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorateId?: string): Promise<Decree[]> {
     return new Promise(resolve => {
       setTimeout(() => {
         let results = DECREES;
@@ -602,18 +602,15 @@ class ApiNewsRepository implements INewsRepository {
 }
 
 class ApiDecreeRepository implements IDecreeRepository {
-  async getAll(directorate?: string): Promise<Decree[]> {
-    const params = new URLSearchParams();
-    if (directorate) params.append('directorate', directorate);
-    const url = params.toString() ? `${API_BASE_URL}/public/decrees?${params.toString()}` : `${API_BASE_URL}/public/decrees`;
-    const res = await fetch(url);
+  async getAll(): Promise<Decree[]> {
+    const res = await fetch(`${API_BASE_URL}/public/decrees`);
     if (!res.ok) return [];
     return res.json();
   }
-  async search(query: string, type?: string, directorate?: string): Promise<Decree[]> {
+  async search(query: string, type?: string, directorateId?: string): Promise<Decree[]> {
     const params = new URLSearchParams({ q: query });
     if (type) params.append('type', type);
-    if (directorate) params.append('directorate', directorate);
+    if (directorateId) params.append('directorate_id', directorateId);
     const res = await fetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
@@ -665,16 +662,8 @@ class ApiComplaintRepository implements IComplaintRepository {
     // Guest token
     if ((data as any).guest_token) formData.append('guest_token', (data as any).guest_token);
 
-    // M1-T3: Staged attachment IDs (files already uploaded to staging endpoint)
-    if (data.staged_attachment_ids && data.staged_attachment_ids.length > 0) {
-      data.staged_attachment_ids.forEach((id: string) => {
-        formData.append('staged_attachment_ids[]', id);
-      });
-      if (data.session_token) {
-        formData.append('session_token', data.session_token);
-      }
-    } else if (data.files && Array.isArray(data.files)) {
-      // Fallback: traditional file upload (backwards-compatible)
+    // File attachments (single or multiple)
+    if (data.files && Array.isArray(data.files)) {
       data.files.forEach((file: File) => {
         formData.append('attachments[]', file);
       });
@@ -1095,15 +1084,12 @@ class ApiUserRepository implements IUserRepository {
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
     });
-    const json = await res.json();
     if (!res.ok) {
-      // Extract validation error messages from Laravel response
-      if (json.errors) {
-        const firstError = Object.values(json.errors).flat()[0] as string;
-        throw new Error(firstError || json.message || 'Validation failed');
-      }
-      throw new Error(json.message || 'Failed to update profile');
+      const json = await res.json().catch(() => ({}));
+      const msg = json.message || (json.errors && Object.values(json.errors).flat()[0]) || 'Failed to update profile';
+      throw new Error(String(msg));
     }
+    const json = await res.json();
     return json.user || json;
   }
 
@@ -1226,7 +1212,7 @@ export interface Announcement {
 
 export interface IAnnouncementsRepository {
   getAll(): Promise<Announcement[]>;
-  getPaginated(page?: number, perPage?: number, filter?: string): Promise<PaginatedResponse<any>>;
+  getPaginated(page?: number, perPage?: number, filter?: string, search?: string): Promise<PaginatedResponse<any>>;
   getById(id: string): Promise<Announcement | null>;
   getByDirectorate(directorateId: string): Promise<Announcement[]>;
 }
@@ -1560,9 +1546,10 @@ class ApiAnnouncementsRepository implements IAnnouncementsRepository {
     return res.json();
   }
 
-  async getPaginated(page: number = 1, perPage: number = 9, filter?: string): Promise<PaginatedResponse<any>> {
+  async getPaginated(page: number = 1, perPage: number = 9, filter?: string, search?: string): Promise<PaginatedResponse<any>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (filter && filter !== 'all') params.append('filter', filter);
+    if (search) params.append('search', search);
     const res = await fetch(`${API_BASE_URL}/public/announcements?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
@@ -1605,7 +1592,7 @@ export interface AlbumData {
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
-  getPaginated(page: number, perPage: number, type?: string): Promise<PaginatedResponse<MediaItem>>;
+  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>>;
   getAlbumPhotos(id: string): Promise<AlbumData>;
 }
 
@@ -1621,7 +1608,7 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
     const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
@@ -1667,9 +1654,11 @@ class ApiMediaRepository implements IMediaRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
+    if (month !== null && month !== undefined) params.append('month', String(month));
+    if (year !== null && year !== undefined) params.append('year', String(year));
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
@@ -2673,10 +2662,13 @@ export const API = {
 
   // --- Search Autocomplete ---
   searchAutocomplete: {
-    async suggest(query: string): Promise<AutocompleteSuggestion[]> {
+    // M7.1: Accept lang parameter to return suggestions in the correct language
+    async suggest(query: string, lang?: string): Promise<AutocompleteSuggestion[]> {
       try {
         if (query.length < 2) return [];
-        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?q=${encodeURIComponent(query)}`, {
+        const params = new URLSearchParams({ q: query });
+        if (lang) params.append('lang', lang);
+        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?${params.toString()}`, {
           headers: { 'Accept': 'application/json' }
         });
         if (!res.ok) return [];

@@ -103,7 +103,7 @@ export default function NationalIdField({
     // Border color based on status
     const borderClass = (() => {
         if (error && verificationStatus === 'idle') {
-            return 'border-red-500 dark:border-gov-cherry focus-within:border-red-500 dark:focus-within:border-gov-cherry focus-within:ring-2 focus-within:ring-red-500/20 dark:focus-within:ring-gov-cherry/20';
+            return 'border-red-500 dark:border-red-400 focus-within:border-red-500 dark:focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-500/20 dark:focus-within:ring-red-400/20';
         }
         switch (verificationStatus) {
             case 'validating':
@@ -130,7 +130,7 @@ export default function NationalIdField({
             case 'verified':
                 return <CheckCircle2 size={18} className="text-emerald-500" />;
             case 'error':
-                return <XCircle size={18} className="text-red-500 dark:text-gov-cherry" />;
+                return <XCircle size={18} className="text-red-500 dark:text-red-400" />;
             case 'mismatch':
                 return <AlertTriangle size={18} className="text-orange-500" />;
             default:
@@ -160,7 +160,7 @@ export default function NationalIdField({
             {/* Label */}
             {resolvedLabel && (
                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                    {resolvedLabel} {required && <span className="text-gov-cherry">*</span>}
+                    {resolvedLabel} {required && <span className="text-red-500 dark:text-red-400">*</span>}
                 </label>
             )}
 
@@ -173,7 +173,7 @@ export default function NationalIdField({
                         ${verificationStatus === 'verified'
                             ? 'text-emerald-500 dark:text-gov-emerald'
                             : verificationStatus === 'error'
-                                ? 'text-red-500 dark:text-gov-cherry'
+                                ? 'text-red-500 dark:text-red-400'
                                 : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                         }`}
                 />
@@ -209,7 +209,7 @@ export default function NationalIdField({
                 )}
 
                 {error && verificationStatus === 'idle' && (
-                    <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                    <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                         <AlertCircle size={12} className="shrink-0" />
                         {error}
                     </p>

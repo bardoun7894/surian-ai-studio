@@ -110,14 +110,35 @@ export interface NewsItem {
   directorate_name_en?: string;
 }
 
+export interface DecreeAttachment {
+  id: number;
+  file_name: string;
+  file_path: string;
+  file_type: string;
+  mime_type: string;
+  file_size: number;
+  download_url: string;
+}
+
 export interface Decree {
   id: string;
   number: string;
   year: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   type: string;
+  type_en?: string;
   date: string;
   description: string;
+  description_ar?: string;
+  description_en?: string;
+  content_ar?: string;
+  content_en?: string;
+  directorate_id?: string;
+  directorate_name?: string;
+  directorate_name_en?: string;
+  attachments?: DecreeAttachment[];
 }
 
 export interface MediaItem {

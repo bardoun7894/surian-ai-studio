@@ -1079,18 +1079,18 @@ class ApiUserRepository implements IUserRepository {
   }
 
   async updateProfile(data: any): Promise<User | null> {
-    try {
-      const res = await fetch(`${API_BASE_URL}/users/me`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.user || json;
-    } catch {
-      return null;
+    const res = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      const msg = json.message || (json.errors && Object.values(json.errors).flat()[0]) || 'Failed to update profile';
+      throw new Error(String(msg));
     }
+    const json = await res.json();
+    return json.user || json;
   }
 
   async requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }> {

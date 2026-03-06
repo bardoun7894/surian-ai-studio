@@ -300,7 +300,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 }}
                 className={`absolute top-0 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full text-white hover:bg-gov-gold transition-colors ${isSearchExpanded ? (language === 'ar' ? 'left-0' : 'right-0') : 'left-0 right-0'}`}
               >
-                <Search size={16} className="md:w-[18px] md:h-[18px]" />
+                {isSearching ? <Loader2 size={16} className="md:w-[18px] md:h-[18px] animate-spin" /> : <Search size={16} className="md:w-[18px] md:h-[18px]" />}
               </button>
             </form>
 

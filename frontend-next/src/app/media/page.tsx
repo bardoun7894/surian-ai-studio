@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
@@ -156,6 +157,7 @@ export default function MediaPage() {
 
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
+    toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
 
     try {
       const response = await fetch(url);

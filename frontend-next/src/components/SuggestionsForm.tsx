@@ -614,10 +614,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     <div className="p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Lightbulb size={32} className="text-gov-forest dark:text-gov-teal" />
                             </div>
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                            <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {t('suggestion_terms_title')}
                             </h2>
                             <p className="text-gray-600 dark:text-white/70">
@@ -725,7 +725,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </button>
 
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                            <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {formStep === 1 ? (isAr ? 'تحديد الهوية' : 'Identity Selection') : t('suggestion_form_title')}
                             </h2>
                             <p className="text-gray-600 dark:text-white/70">
@@ -1007,13 +1007,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <div className="w-20 h-20 bg-gov-emerald/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mb-6 text-gov-emerald">
                             <CheckCircle size={40} />
                         </div>
-                        <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_success')}</h2>
+                        <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_success')}</h2>
                         <p className="text-gray-500 dark:text-white/70 mb-8 max-w-md">{t('suggestion_success_desc')}</p>
 
                         <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-8 w-full max-w-sm">
                             <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</span>
                             <div className="flex items-center justify-center gap-3">
-                                <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket || 'SUG-123456'}</span>
+                                <span className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket || 'SUG-123456'}</span>
                                 <button
                                     onClick={copyTrackingNumber}
                                     className="p-2 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/15 hover:bg-gray-50 dark:hover:bg-white/20 transition-colors"
@@ -1052,7 +1052,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     activeTab === 'track' && !submittedTicket && (
                         <div className="p-8 md:p-12 animate-fade-in">
                             <div className="text-center mb-10">
-                                <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_track_title')}</h2>
+                                <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('suggestion_track_title')}</h2>
                                 <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
                             </div>
 

@@ -894,10 +894,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                     <div className="p-8 md:p-12 animate-fade-in">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-gov-forest/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Scale size={32} className="text-gov-forest dark:text-gov-teal" />
                             </div>
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                            <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                                 {t('nav_complaints')}
                             </h2>
                         </div>
@@ -919,7 +919,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                         {/* Terms Section */}
                         <div className="bg-white dark:bg-gov-card/10 border border-gray-200 dark:border-gov-border/25 rounded-xl p-6 mb-6">
-                            <h3 className="text-lg font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
+                            <h3 className="text-base md:text-lg font-display font-bold text-gov-forest dark:text-gov-teal mb-4">
                                 {t('complaint_review_guidelines')}
                             </h3>
 
@@ -1004,7 +1004,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </button>
 
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('general_form')}</h2>
+                            <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('general_form')}</h2>
                             <p className="text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
                         </div>
 
@@ -1598,7 +1598,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             <div className="w-20 h-20 bg-gov-emerald/10 dark:bg-gov-emerald/20 rounded-full flex items-center justify-center mb-6 text-gov-emerald">
                                 <CheckCircle size={40} />
                             </div>
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_success')}</h2>
+                            <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_success')}</h2>
                             <p className="text-gray-500 dark:text-white/70 mb-4 max-w-md">{t('complaint_success_desc')}</p>
                             <p className="text-sm text-gov-teal dark:text-gov-teal mb-8 max-w-md font-bold">
                                 {isAr ? 'تم تسجيل شكواك بنجاح وسيتم مراجعتها في أقرب وقت ممكن.' : 'Your complaint has been registered and will be reviewed as soon as possible.'}
@@ -1607,7 +1607,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             <div className="bg-gov-beige dark:bg-white/10 border-2 border-dashed border-gov-gold/30 p-6 rounded-xl mb-6 w-full max-w-sm">
                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_number')}</span>
                                 <div className="flex items-center justify-center gap-3">
-                                    <span className="text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket}</span>
+                                    <span className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-gov-teal tracking-wider">{submittedTicket}</span>
                                     <button
                                         type="button"
                                         onClick={async () => {
@@ -1646,7 +1646,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                     activeTab === 'track' && (
                         <div className="p-8 md:p-12 animate-fade-in">
                             <div className="text-center mb-10">
-                                <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_track_title')}</h2>
+                                <h2 className="text-xl md:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">{t('complaint_track_title')}</h2>
                                 <p className="text-gray-500 dark:text-white/70">{t('complaint_track_subtitle')}</p>
                             </div>
 

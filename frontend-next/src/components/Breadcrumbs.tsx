@@ -173,13 +173,13 @@ export default function Breadcrumbs() {
             href="/"
             className="inline-flex items-center gap-1.5 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
           >
-            <Home size={15} className="shrink-0" />
+            <span className="shrink-0"><Home size={15} /></span>
             <span className="font-semibold">{isAr ? 'الرئيسية' : 'Home'}</span>
           </Link>
         </li>
         {crumbs.map((crumb) => (
           <li key={crumb.path} className="inline-flex items-center gap-1.5">
-            <Separator size={14} className="shrink-0 text-gray-400/60 dark:text-white/30" />
+            <span className="shrink-0 text-gray-400/60 dark:text-white/30"><Separator size={14} /></span>
             {crumb.isLast ? (
               <span className="text-gov-stone dark:text-white/60 font-medium">{crumb.label}</span>
             ) : (

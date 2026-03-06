@@ -367,7 +367,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               href="/dashboard"
               className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <LayoutDashboard size={16} />
+              <span className="shrink-0"><LayoutDashboard size={16} /></span>
               <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
             </Link>
           ) : (
@@ -375,7 +375,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               href="/login"
               className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <User size={16} />
+              <span className="shrink-0"><User size={16} /></span>
               <span>{language === 'ar' ? 'دخول' : 'Login'}</span>
             </Link>
           )}
@@ -419,7 +419,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
                     >
-                      <LayoutDashboard size={18} />
+                      <span className="shrink-0"><LayoutDashboard size={18} /></span>
                       <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
                     </Link>
                   ) : (
@@ -429,7 +429,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
                       >
-                        <User size={18} />
+                        <span className="shrink-0"><User size={18} /></span>
                         <span>{t('nav_login')}</span>
                       </Link>
                       <Link
@@ -437,7 +437,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center gap-2.5 w-full px-4 py-2.5 border-2 border-gov-forest/20 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors"
                       >
-                        <User size={18} />
+                        <span className="shrink-0"><User size={18} /></span>
                         <span>{t('sitemap_register')}</span>
                       </Link>
                     </div>

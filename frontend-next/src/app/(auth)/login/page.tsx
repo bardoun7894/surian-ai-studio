@@ -12,6 +12,7 @@ import {
     Fingerprint,
     Shield,
     AlertCircle,
+    CheckCircle2,
     ChevronRight,
     ChevronLeft
 } from 'lucide-react';
@@ -47,6 +48,8 @@ const LoginPage = () => {
     const [phoneFieldError, setPhoneFieldError] = useState<string | null>(null);
     const [nationalIdFieldError, setNationalIdFieldError] = useState<string | null>(null);
     const [emailFieldError, setEmailFieldError] = useState<string | null>(null);
+    const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+    const [formSubmitted, setFormSubmitted] = useState(false);
     const [whatsappNumber, setWhatsappNumber] = useState('963912345678');
     const formRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -80,8 +83,58 @@ const LoginPage = () => {
         }
     }, [isAuthenticated, router]);
 
+    // Validation helpers
+    const isEmailValid = (email: string): boolean => {
+        return !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const isNationalIdValid = (id: string): boolean => {
+        return /^\d{11}$/.test(id.trim());
+    };
+
+
+    const isPasswordFilled = (pw: string): boolean => {
+        return pw.length > 0;
+    };
+
+    // Border class helpers for visual validation
+    const getIdentifierBorderClass = (): string => {
+        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
+        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
+        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
+
+        if (hasError) {
+            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
+        }
+        if (fieldValue && fieldIsValid) {
+            return 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20';
+        }
+        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
+    };
+
+    const getPasswordBorderClass = (): string => {
+        if (passwordFieldError) {
+            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
+        }
+        if (formData.password && isPasswordFilled(formData.password)) {
+            return 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20';
+        }
+        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
+    };
+
+    const getIdentifierIconColor = (): string => {
+        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
+        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
+        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
+
+        if (hasError) return 'text-red-500 dark:text-red-400';
+        if (fieldValue && fieldIsValid) return 'text-green-500 dark:text-emerald-400';
+        return 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFormSubmitted(true);
         setIsLoading(true);
         setError(null);
         setPhoneFieldError(null);
@@ -294,7 +347,7 @@ const LoginPage = () => {
                         )}
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg">
                                 {error}
                             </div>
                         )}
@@ -372,6 +425,8 @@ const LoginPage = () => {
                                                 // Real-time email validation
                                                 if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
                                                     setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                                                } else if (!val && formSubmitted) {
+                                                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
                                                 } else {
                                                     setEmailFieldError(null);
                                                 }
@@ -382,20 +437,30 @@ const LoginPage = () => {
                                                     : '12345678901'
                                             }
                                             className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
-                                                ${(loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)
-                                                    ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
-                                                    : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
-                                                }`}
+                                                ${getIdentifierBorderClass()}`}
                                             required
                                         />
                                         <div className={`absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 transition-colors
-                                            ${(loginMethod === 'national' && nationalIdFieldError)
-                                                ? 'text-red-500 dark:text-red-400'
-                                                : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
-                                            }`}>
+                                            ${getIdentifierIconColor()}`}>
                                             {loginMethod === 'email' && <Mail size={18} />}
                                             {loginMethod === 'national' && <Fingerprint size={18} />}
                                         </div>
+                                        {/* Validation status icons */}
+                                        {((loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
+                                            </div>
+                                        )}
+                                        {loginMethod === 'email' && !emailFieldError && formData.email && isEmailValid(formData.email) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
+                                            </div>
+                                        )}
+                                        {loginMethod === 'national' && !nationalIdFieldError && formData.nationalId && isNationalIdValid(formData.nationalId) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 <div className="min-h-[1.25rem] mt-1">
@@ -417,15 +482,28 @@ const LoginPage = () => {
                             {/* Password Input */}
                             <div>
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                    {language === 'ar' ? 'كلمة المرور' : 'Password'}
+                                    {language === 'ar' ? 'كلمة المرور' : 'Password'}{' '}<span className="text-red-500 dark:text-red-400">*</span>
                                 </label>
                                 <div className="relative group">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, password: e.target.value });
+                                            if (e.target.value.trim()) {
+                                                setPasswordFieldError(null);
+                                            } else if (formSubmitted) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            if (!formData.password.trim() && formSubmitted) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                            }
+                                        }}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all text-sm"
+                                        className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                            ${getPasswordBorderClass()}`}
                                         required
                                     />
                                     <button
@@ -435,6 +513,14 @@ const LoginPage = () => {
                                     >
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
+                                </div>
+                                <div className="min-h-[1.25rem] mt-1">
+                                    {passwordFieldError && (
+                                        <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                            <AlertCircle size={12} className="shrink-0" />
+                                            {passwordFieldError}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

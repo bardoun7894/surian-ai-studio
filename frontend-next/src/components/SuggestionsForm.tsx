@@ -696,7 +696,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => prevStep()}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             <span>{formStep === 2

@@ -94,7 +94,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
     const handleToggleFavorite = async () => {
         if (!isAuthenticated) {
-            toast.error(t('auth_login_required') || (language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites'));
+            toast.error(t('auth_login_required') !== 'auth_login_required' ? t('auth_login_required') : (language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites'));
             return;
         }
 

@@ -74,7 +74,7 @@ export default function ContentFilter({
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
         }
-    }, [activeTab]);
+    }, [activeTab, tabs]);
 
     // Sync internal search if controlled prop changes
     React.useEffect(() => {

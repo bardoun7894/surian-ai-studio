@@ -197,6 +197,9 @@ export default function MediaPage() {
       const downloadImage = async (photo: typeof album.photos[0], index: number) => {
         try {
           const response = await fetch(photo.url);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status} for ${photo.url}`);
+          }
           const blob = await response.blob();
           const ext = blob.type.split('/')[1]?.split('+')[0] || photo.url.split('.').pop()?.split('?')[0] || 'jpg';
           const fileName = photo.file_name || `${photo.title || `photo-${index + 1}`}.${ext}`;

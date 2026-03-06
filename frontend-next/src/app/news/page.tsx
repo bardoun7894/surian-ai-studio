@@ -69,11 +69,9 @@ function NewsPageContent() {
     const localFallbackSummary = (value: string) => {
       const excerpt = normalizeText(value).slice(0, 280);
       if (!excerpt) {
-        return language === 'ar' ? 'لا يوجد محتوى كافٍ لإنشاء ملخص.' : 'Not enough content to generate a summary.';
+        return t('news_no_enough_content');
       }
-      return isAr
-        ? `تعذر إنشاء الملخص الذكي حالياً. هذه نبذة مختصرة من الخبر: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`
-        : `AI summary is temporarily unavailable. Showing a short article excerpt instead: ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
+      return `${t('news_ai_unavailable')} ${excerpt}${excerpt.length >= 280 ? '...' : ''}`;
     };
 
     const displayTitle = isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title);

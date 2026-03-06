@@ -1689,7 +1689,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 )}
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
+                                    <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
                                     <input
                                         type="text"
                                         placeholder={t('complaint_ticket_placeholder')}
@@ -1702,7 +1702,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                                 {requiresNationalIdForTracking && (
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
+                                        <label className="block text-sm font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_national_id_verify')}</label>
                                         <input
                                             type="text"
                                             inputMode="numeric"

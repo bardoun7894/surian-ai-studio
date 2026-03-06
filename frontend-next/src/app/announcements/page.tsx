@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Share2, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
@@ -138,8 +138,20 @@ export default function AnnouncementsPage() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const isAr = language === 'ar';
+
+  // Debounce search input
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 400);
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, [searchQuery]);
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
@@ -156,7 +168,8 @@ export default function AnnouncementsPage() {
         const response = await API.announcements.getPaginated(
           currentPage,
           perPage,
-          statusFilter !== 'all' ? statusFilter : undefined
+          statusFilter !== 'all' ? statusFilter : undefined,
+          debouncedSearch || undefined
         );
         setAnnouncements(response.data);
         setCurrentPage(response.current_page);
@@ -169,7 +182,7 @@ export default function AnnouncementsPage() {
       }
     };
     fetchAnnouncements();
-  }, [currentPage, perPage, statusFilter]);
+  }, [currentPage, perPage, statusFilter, debouncedSearch]);
 
   const statusFilters = [
     { value: 'all', label: isAr ? 'الكل' : 'All' },
@@ -268,21 +281,14 @@ export default function AnnouncementsPage() {
 
   const dataSource = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS;
   const filteredAnnouncements = dataSource.filter((announcement: any) => {
-    const title = getLocalizedField(announcement, 'title', language as 'ar' | 'en');
-    const description = getLocalizedField(announcement, 'description', language as 'ar' | 'en');
-    const matchesSearch = !searchQuery.trim() || title.toLowerCase().includes(searchQuery.toLowerCase()) || description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
 
-    // Month/Year filtering
+    // Month/Year filtering (local — lightweight filters)
     const date = new Date(announcement.date);
     const matchesMonth = selectedMonth === null || date.getMonth() === selectedMonth;
     const matchesYear = selectedYear === null || date.getFullYear() === selectedYear;
 
-    // Status filter
-    if (statusFilter === 'active' && isExpired(announcement.expires_at)) return false;
-    if (statusFilter === 'expired' && !isExpired(announcement.expires_at)) return false;
-
-    return matchesSearch && matchesType && matchesMonth && matchesYear;
+    return matchesType && matchesMonth && matchesYear;
   });
 
   const hasActiveFilters = statusFilter !== 'all' || searchQuery || selectedType !== 'all' || selectedMonth !== null || selectedYear !== null;

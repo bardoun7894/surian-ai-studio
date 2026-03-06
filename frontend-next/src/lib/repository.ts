@@ -1212,7 +1212,7 @@ export interface Announcement {
 
 export interface IAnnouncementsRepository {
   getAll(): Promise<Announcement[]>;
-  getPaginated(page?: number, perPage?: number, filter?: string): Promise<PaginatedResponse<any>>;
+  getPaginated(page?: number, perPage?: number, filter?: string, search?: string): Promise<PaginatedResponse<any>>;
   getById(id: string): Promise<Announcement | null>;
   getByDirectorate(directorateId: string): Promise<Announcement[]>;
 }
@@ -1546,9 +1546,10 @@ class ApiAnnouncementsRepository implements IAnnouncementsRepository {
     return res.json();
   }
 
-  async getPaginated(page: number = 1, perPage: number = 9, filter?: string): Promise<PaginatedResponse<any>> {
+  async getPaginated(page: number = 1, perPage: number = 9, filter?: string, search?: string): Promise<PaginatedResponse<any>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (filter && filter !== 'all') params.append('filter', filter);
+    if (search) params.append('search', search);
     const res = await fetch(`${API_BASE_URL}/public/announcements?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();

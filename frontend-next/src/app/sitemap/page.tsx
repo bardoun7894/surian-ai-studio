@@ -47,7 +47,7 @@ export default function SitemapPage() {
             titleEn: 'Legislation & Data',
             icon: <Scale size={20} />,
             links: [
-                { href: '/decrees', labelAr: 'الجريدة الرسمية', labelEn: 'Official Gazette' },
+                { href: '/decrees', labelAr: 'القوانين والتشريعات', labelEn: 'Laws & Legislation' },
                 { href: '/open-data', labelAr: 'البيانات المفتوحة', labelEn: 'Open Data' },
                 { href: '/privacy-policy', labelAr: 'سياسة الخصوصية', labelEn: 'Privacy Policy' },
             ]

@@ -44,7 +44,6 @@ import Select from '@/components/ui/Select';
 import PhoneInput from '@/components/ui/PhoneInput';
 import NationalIdField from './NationalIdField';
 import UploadProgress, { MultiUploadProgress } from './UploadProgress';
-import { useFileUpload } from '@/hooks/useFileUpload';
 
 interface SuggestionPortalProps {
     initialMode?: 'submit' | 'track';
@@ -92,6 +91,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [isUploading, setIsUploading] = useState(false);
 
     // Tracking State
@@ -103,6 +103,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     // T032: Support anonymous tracking mode
     const [trackMode, setTrackMode] = useState<'identified' | 'anonymous'>('identified');
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
     // Copy state
@@ -111,27 +112,19 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     // Rating state - track if user already rated
     const [hasRated, setHasRated] = useState(false);
 
-    // File upload via shared hook
-    const {
-        files: hookFiles,
-        rejectedFiles: hookRejectedFiles,
-        fileUploadStatus,
-        fileUploadProgress,
-        handleFileChange: hookHandleFileChange,
-        removeFile: hookRemoveFile,
-        removeRejectedFile: hookRemoveRejectedFile,
-        resetFiles: hookResetFiles,
-        fileInputRef,
-        setUploadStatus: setHookUploadStatus,
-        setUploadProgress: setHookUploadProgress,
-    } = useFileUpload({ maxFiles: 5, maxSizeMB: 5, isAr });
+    // File upload visual progress
+    const [fileUploadStatus, setFileUploadStatus] = useState<'ready' | 'uploading' | 'completed'>('ready');
+    const [fileUploadProgress, setFileUploadProgress] = useState(0);
 
     // Validation State
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // File upload constants
     const MAX_ATTACHMENT_COUNT = 5;
     const MAX_ATTACHMENT_SIZE_MB = 5;
+    const MAX_ATTACHMENT_SIZE_BYTES = MAX_ATTACHMENT_SIZE_MB * 1024 * 1024;
+    const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']);
 
     const validateField = (name: string, value: string) => {
         let error = '';
@@ -152,8 +145,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             error = isAr ? 'اسم الأب مطلوب' : 'Father name is required';
         } else if (name === 'description' && !value.trim()) {
             error = isAr ? 'الوصف مطلوب' : 'Description is required';
-        } else if (name === 'description' && value.trim().length > 0 && value.trim().length < 10) {
-            error = isAr ? 'الوصف يجب أن يكون على الأقل 10 أحرف' : 'Description must be at least 10 characters';
         }
         setErrors(prev => ({ ...prev, [name]: error }));
         return error;
@@ -218,7 +209,102 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         inputs.forEach(el => focusPulse(el as any));
     }, [activeTab]);
 
-    // handleFileChange and removeFile are provided by useFileUpload hook
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const incomingFiles = Array.from(e.target.files);
+        const remainingSlots = Math.max(0, MAX_ATTACHMENT_COUNT - formData.files.length);
+
+        if (remainingSlots === 0) {
+            toast.error(isAr ? `الحد الأقصى للمرفقات هو ${MAX_ATTACHMENT_COUNT} ملفات` : `Maximum ${MAX_ATTACHMENT_COUNT} attachments allowed`);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        const acceptedFiles: File[] = [];
+        const existingNames = new Set(formData.files.map(f => f.name.toLowerCase()));
+
+        incomingFiles.forEach((file) => {
+            // Check duplicate
+            if (existingNames.has(file.name.toLowerCase())) {
+                toast.error(isAr ? `الملف "${file.name}" مرفق مسبقاً` : `File "${file.name}" is already attached`);
+                return;
+            }
+
+            // Check file type
+            const fileExtension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() || '' : '';
+            if (!ALLOWED_ATTACHMENT_EXTENSIONS.has(fileExtension)) {
+                toast.error(isAr
+                    ? `صيغة الملف "${file.name}" غير مدعومة. الصيغ المسموحة: PDF, DOC, DOCX, JPG, PNG`
+                    : `File "${file.name}" has unsupported type. Allowed: PDF, DOC, DOCX, JPG, PNG`);
+                return;
+            }
+
+            // Check file size
+            if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+                toast.error(isAr
+                    ? `الملف "${file.name}" يتجاوز الحد المسموح ${MAX_ATTACHMENT_SIZE_MB} MB`
+                    : `File "${file.name}" exceeds ${MAX_ATTACHMENT_SIZE_MB} MB limit`);
+                return;
+            }
+
+            acceptedFiles.push(file);
+            existingNames.add(file.name.toLowerCase());
+        });
+
+        const filesToAdd = acceptedFiles.slice(0, remainingSlots);
+        if (acceptedFiles.length > remainingSlots) {
+            toast.error(isAr
+                ? `تم تجاوز الحد الأقصى. يمكنك إرفاق ${MAX_ATTACHMENT_COUNT} ملفات فقط`
+                : `Attachment limit reached. You can upload up to ${MAX_ATTACHMENT_COUNT} files`);
+        }
+
+        if (filesToAdd.length > 0) {
+            setFormData(prev => ({ ...prev, files: [...prev.files, ...filesToAdd] }));
+            // Stage upload immediately on file selection
+            setFileUploadStatus('uploading');
+            setFileUploadProgress(0);
+            const totalFiles = filesToAdd.length;
+            let completed = 0;
+
+            const failedFiles: string[] = [];
+            for (const file of filesToAdd) {
+                try {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    const res = await fetch('/api/v1/complaints/attachments/stage', {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'include',
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
+                    }
+                } catch (err) {
+                    console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
+                }
+                completed++;
+                setFileUploadProgress(Math.round((completed / totalFiles) * 100));
+            }
+            setFileUploadStatus(failedFiles.length > 0 ? 'ready' : 'completed');
+        }
+
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const removeFile = (index: number) => {
+        setFormData(prev => {
+            const newFiles = prev.files.filter((_, i) => i !== index);
+            if (newFiles.length === 0) {
+                setFileUploadStatus('ready');
+                setFileUploadProgress(0);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+            return { ...prev, files: newFiles };
+        });
+    };
 
     const copyTrackingNumber = async () => {
         if (submittedTicket) {
@@ -323,16 +409,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             return true;
         }
         if (step === 2) {
-            if (!formData.directorate_id) {
-                toast.error(isAr ? 'يجب تحديد الجهة المستلمة' : 'Please select a recipient directorate');
-                return false;
-            }
             if (!formData.description.trim()) {
                 toast.error(t('suggestion_required_fields'));
-                return false;
-            }
-            if (formData.description.trim().length < 10) {
-                toast.error(isAr ? 'يجب أن يكون الوصف 10 أحرف على الأقل' : 'Description must be at least 10 characters');
                 return false;
             }
             return true;
@@ -347,29 +425,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     };
     const prevStep = () => setFormStep(prev => prev - 1);
 
-    // Check if current step fields are valid (for disabling Next button)
-    const isStepValid = (step: number): boolean => {
-        if (step === 0) return hasAgreedToTerms;
-        if (step === 1) {
-            if (isAnonymous) return true;
-            return !!(
-                formData.firstName.trim() &&
-                formData.lastName.trim() &&
-                formData.fatherName.trim() &&
-                formData.nationalId.trim() &&
-                formData.phone.trim() &&
-                formData.email.trim() &&
-                !errors.nationalId &&
-                !errors.phone &&
-                !errors.email
-            );
-        }
-        if (step === 2) {
-            return !!(formData.directorate_id && formData.description.trim() && formData.description.trim().length >= 10);
-        }
-        return true;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formStep < 2) {
@@ -378,6 +433,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }
         if (!isAnonymous && !formData.firstName) {
             toast.error(t('suggestion_required_fields'));
+            return;
+        }
+        if (!formData.directorate_id) {
+            toast.error(isAr ? 'يرجى تحديد الجهة المختصة' : 'Please select a target entity');
             return;
         }
         if (!formData.description) {
@@ -389,18 +448,16 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         setUploadProgress(0);
 
         // T030: Track file upload progress
-        const hasFiles = hookFiles.length > 0;
+        const hasFiles = formData.files.length > 0;
         if (hasFiles) {
             setIsUploading(true);
-            setHookUploadStatus('uploading');
-            setHookUploadProgress(0);
         }
 
         try {
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
 
             const submitData = isAnonymous
-                ? { description: formData.description, directorate_id: formData.directorate_id, files: hookFiles, is_anonymous: true as const, recaptcha_token: recaptchaToken }
+                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken, staged_attachment_ids: Object.values(stagedIds).filter(Boolean) }
                 : {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -411,18 +468,16 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     phone: formData.phone,
                     directorate_id: formData.directorate_id,
                     description: formData.description,
-                    files: hookFiles,
+                    files: formData.files,
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
+                    staged_attachment_ids: Object.values(stagedIds).filter(Boolean),
                 };
 
             const result = await API.suggestions.submitWithProgress(
                 submitData,
-                (progress) => {
-                    setUploadProgress(progress);
-                    setHookUploadProgress(progress);
-                }
+                (progress) => setUploadProgress(progress)
             );
 
             setUploadProgress(100);
@@ -436,9 +491,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     : undefined,
                 duration: 8000,
             });
-            setHookUploadStatus('completed');
             setFormData({ firstName: '', lastName: '', fatherName: '', nationalId: '', dob: '', email: '', phone: '', directorate_id: '', description: '', files: [] });
-            hookResetFiles();
             setUploadProgress(0);
             setOtpStep('none');
             setOtpCode('');
@@ -661,7 +714,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => prevStep()}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             <span>{formStep === 2
@@ -680,6 +734,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting} className="space-y-6">
                             {formStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Anonymous / Known Identity Toggle */}
@@ -688,7 +743,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setIsAnonymous(false)}
-                                                disabled={isSubmitting}
                                                 className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${!isAnonymous
                                                     ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
                                                     : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
@@ -705,7 +759,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setIsAnonymous(true)}
-                                                disabled={isSubmitting}
                                                 className={`flex-1 w-full md:w-auto flex flex-col items-center gap-3 p-6 rounded-2xl font-bold transition-all border-2 ${isAnonymous
                                                     ? 'bg-gov-forest/5 border-gov-forest dark:bg-gov-button/20 dark:border-gov-teal text-gov-forest dark:text-gov-teal'
                                                     : 'bg-white dark:bg-white/5 border-gray-100 dark:border-gov-border/15 text-gray-400 opacity-60'
@@ -741,7 +794,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         error={touched.firstName ? errors.firstName : undefined}
                                                         isValid={touched.firstName && !errors.firstName && !!formData.firstName.trim()}
                                                         icon={User}
-                                                        disabled={isSubmitting}
                                                     />
                                                     <Input
                                                         label={t('suggestion_last_name')}
@@ -752,7 +804,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         error={touched.lastName ? errors.lastName : undefined}
                                                         isValid={touched.lastName && !errors.lastName && !!formData.lastName.trim()}
                                                         icon={User}
-                                                        disabled={isSubmitting}
                                                     />
                                                 </div>
 
@@ -766,7 +817,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         error={touched.fatherName ? errors.fatherName : undefined}
                                                         isValid={touched.fatherName && !errors.fatherName && !!formData.fatherName.trim()}
                                                         icon={User}
-                                                        disabled={isSubmitting}
                                                     />
                                                     <NationalIdField
                                                         value={formData.nationalId}
@@ -784,7 +834,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         required={!isAnonymous}
                                                         autoVerify={true}
                                                         label={t('complaint_national_id')}
-                                                        disabled={isSubmitting}
                                                     />
                                                 </div>
 
@@ -801,7 +850,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                             onBlur={() => handleBlur('phone', formData.phone)}
                                                             error={touched.phone ? errors.phone : undefined}
                                                             isValid={touched.phone && !errors.phone && !!formData.phone}
-                                                            disabled={isSubmitting}
                                                         />
                                                     </div>
                                                     <Input
@@ -815,7 +863,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         isValid={touched.email && !errors.email && !!formData.email.trim()}
                                                         icon={Mail}
                                                         dir="ltr"
-                                                        disabled={isSubmitting}
                                                     />
                                                 </div>
                                             </div>
@@ -825,8 +872,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => nextStep()}
-                                        disabled={!isStepValid(1)}
-                                        className={`w-full py-4 rounded-xl text-white font-bold shadow-lg transition-all flex items-center justify-center gap-2 ${isStepValid(1) ? "bg-gov-forest dark:bg-gov-button hover:bg-gov-teal dark:hover:bg-gov-gold" : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed opacity-60"}`}
+                                        className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
                                     >
                                         <span>{t('ui_next') || 'التالي'}</span>
                                         {isAr ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
@@ -841,37 +887,40 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         <Select
                                             value={formData.directorate_id}
                                             onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
-                                            onBlur={() => handleBlur('directorate_id', formData.directorate_id)}
                                             label={t('complaint_entity')}
-                                            required
-                                            error={touched.directorate_id && !formData.directorate_id ? (isAr ? 'يرجى اختيار الجهة' : 'Please select a directorate') : undefined}
-                                            isValid={touched.directorate_id && !!formData.directorate_id}
                                             options={[
                                                 { value: '', label: t('complaint_select_entity') },
                                                 ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
                                             ]}
                                             icon={Building2}
-                                            disabled={isSubmitting}
                                         />
                                     </div>
 
                                     {/* Description and Files here */}
                                     <div>
-                                        <Textarea
-                                            label={t('suggestion_description')}
-                                            required
+                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {t('suggestion_description')} <span className="text-gov-gold">*</span>
+                                        </label>
+                                        <textarea
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             onBlur={() => handleBlur('description', formData.description)}
-                                            error={touched.description && errors.description ? errors.description : undefined}
-                                            isValid={touched.description && !errors.description && !!formData.description.trim()}
                                             rows={6}
+                                            className={`w-full p-4 rounded-xl bg-white dark:bg-white/10 border text-gov-charcoal dark:text-white focus:ring-2 transition-all outline-none resize-none ${
+                                                touched.description && errors.description
+                                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 focus:ring-red-500/20'
+                                                    : touched.description && !errors.description && formData.description.trim()
+                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 focus:ring-green-500/20'
+                                                        : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold focus:ring-gov-teal/20'
+                                            }`}
                                             placeholder={t('suggestion_description_placeholder')}
-                                            disabled={isSubmitting}
                                         />
-                                        <p className={`text-xs mt-1 transition-colors ${formData.description.trim().length >= 10 ? 'text-green-600 dark:text-gov-emerald' : 'text-gray-400 dark:text-white/40'}`}>
-                                            {formData.description.trim().length}/10 {isAr ? 'حرف كحد أدنى' : 'minimum characters'}
-                                        </p>
+                                        {touched.description && errors.description && (
+                                            <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 mt-1 animate-fade-in">
+                                                <AlertCircle size={12} className="shrink-0" />
+                                                {errors.description}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* File Upload */}
@@ -882,9 +931,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         <div className="bg-gov-beige/50 dark:bg-gov-card/10 border-2 border-dashed border-gov-gold/40 rounded-xl p-6 text-center">
                                             <input
                                                 type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                                className="hidden" ref={fileInputRef} onChange={hookHandleFileChange}
+                                                className="hidden" ref={fileInputRef} onChange={handleFileChange}
                                             />
-                                            <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => !isSubmitting && fileInputRef.current?.click()}>
+                                            <div className="flex flex-col items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                                 <div className="w-12 h-12 rounded-full bg-white dark:bg-gov-emerald/20 flex items-center justify-center text-gov-forest dark:text-gov-teal shadow-sm">
                                                     <Upload size={24} />
                                                 </div>
@@ -896,9 +945,9 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </div>
 
                                         {/* File List */}
-                                        {hookFiles.length > 0 && (
+                                        {formData.files.length > 0 && (
                                             <div className="mt-4 space-y-2">
-                                                {hookFiles.map((file, idx) => (
+                                                {formData.files.map((file, idx) => (
                                                     <div key={`${file.name}-${idx}`}>
                                                         <UploadProgress
                                                             fileName={file.name}
@@ -906,20 +955,20 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                             status={isUploading || isSubmitting ? 'uploading' : fileUploadStatus === 'uploading' ? 'uploading' : 'ready'}
                                                             fileSize={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
                                                             language={isAr ? 'ar' : 'en'}
-                                                            onCancel={!isSubmitting ? () => hookRemoveFile(idx) : undefined}
+                                                            onCancel={!isSubmitting ? () => removeFile(idx) : undefined}
                                                         />
                                                     </div>
                                                 ))}
 
                                                 {/* Add more files button */}
-                                                {hookFiles.length < MAX_ATTACHMENT_COUNT && !isSubmitting && (
+                                                {formData.files.length < MAX_ATTACHMENT_COUNT && !isSubmitting && (
                                                     <button
                                                         type="button"
                                                         onClick={() => fileInputRef.current?.click()}
                                                         className="w-full py-2.5 rounded-xl border-2 border-dashed border-gov-gold/30 text-gov-forest dark:text-gov-teal text-sm font-bold hover:bg-gov-beige/30 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2"
                                                     >
                                                         <Upload size={16} />
-                                                        <span>{isAr ? `إضافة مرفقات أخرى (${hookFiles.length}/${MAX_ATTACHMENT_COUNT})` : `Add more files (${hookFiles.length}/${MAX_ATTACHMENT_COUNT})`}</span>
+                                                        <span>{isAr ? `إضافة مرفقات أخرى (${formData.files.length}/${MAX_ATTACHMENT_COUNT})` : `Add more files (${formData.files.length}/${MAX_ATTACHMENT_COUNT})`}</span>
                                                     </button>
                                                 )}
                                             </div>
@@ -927,7 +976,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
                                         {/* T030: Upload Progress Bar (shown during submission) */}
                                         <MultiUploadProgress
-                                            files={hookFiles}
+                                            files={formData.files}
                                             progress={uploadProgress}
                                             isUploading={isUploading}
                                             isSubmitting={isSubmitting}
@@ -937,14 +986,15 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting || !isStepValid(2)}
-                                        className={`w-full py-4 rounded-xl text-white font-bold shadow-lg transition-all flex items-center justify-center gap-2 ${!isSubmitting && isStepValid(2) ? "bg-gov-forest dark:bg-gov-button hover:bg-gov-teal dark:hover:bg-gov-gold" : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed opacity-60"}`}
+                                        disabled={isSubmitting}
+                                        className="w-full py-4 rounded-xl bg-gov-forest dark:bg-gov-button text-white font-bold shadow-lg hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2"
                                     >
                                         {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} className="rtl:-scale-x-100" />}
                                         <span>{isSubmitting ? t('suggestion_sending') : t('suggestion_submit')}</span>
                                     </button>
                                 </div>
                             )}
+                            </fieldset>
                         </form>
                     </div>
                 )}

@@ -29,10 +29,10 @@ export default function ScrollToTop() {
     <button
       onClick={scrollToTop}
       aria-label={language === 'ar' ? 'العودة إلى الأعلى' : 'Scroll to top'}
-      className={`fixed bottom-4 md:bottom-8 z-40 p-2 md:p-3 rounded-full bg-gov-forest dark:bg-gov-button text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${language === 'ar' ? 'right-4 md:right-6 left-auto' : 'left-4 md:left-6 right-auto'
+      className={`fixed bottom-4 md:bottom-6 z-40 w-14 h-14 flex items-center justify-center rounded-full bg-gov-forest dark:bg-gov-button text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${language === 'ar' ? 'right-4 md:right-6 left-auto' : 'left-4 md:left-6 right-auto'
         }`}
     >
-      <ArrowUp size={20} className="w-4 h-4 md:w-5 md:h-5" />
+      <ArrowUp size={22} />
     </button>
   );
 }

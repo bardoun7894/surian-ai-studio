@@ -99,7 +99,7 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
-                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-white/70">{phone}</p>
+                                    <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-3xl font-display font-bold text-gov-forest dark:text-white/70 hover:text-gov-gold dark:hover:text-gov-gold transition-colors">{phone}</a>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>
@@ -111,8 +111,8 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
-                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{email}</p>
-                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{supportEmail}</p>
+                                    <a href={`mailto:${email}`} className="block text-base font-bold text-gray-700 dark:text-white/70 hover:text-gov-teal dark:hover:text-gov-gold transition-colors">{email}</a>
+                                    <a href={`mailto:${supportEmail}`} className="block text-base font-bold text-gray-700 dark:text-white/70 hover:text-gov-teal dark:hover:text-gov-gold transition-colors">{supportEmail}</a>
                                 </div>
                             </div>
 

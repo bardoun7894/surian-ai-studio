@@ -353,28 +353,37 @@ class PublicApiController extends Controller
      */
     public function breakingNews(): JsonResponse
     {
-        return response()->json(Cache::remember('public.breaking_news', 120, function () {
-            $newsQuery = Content::where('category', 'news')
-            ->where('status', 'published')
-            ->where('priority', '>=', 8)
-            ->orderBy('published_at', 'desc')
-            ->limit(5);
-
-        $newsItems = $newsQuery->get(['title_ar', 'title_en']);
-
-        // If no breaking news, get latest news titles
-        if ($newsItems->isEmpty()) {
-            $newsItems = Content::where('category', 'news')
+        return response()->json(Cache::remember('public.breaking_news', 60, function () {
+            // Get news with active ticker (duration not expired)
+            $tickerNews = Content::where('category', 'news')
                 ->where('status', 'published')
+                ->whereJsonContains('metadata->ticker_enabled', true)
                 ->orderBy('published_at', 'desc')
-                ->limit(5)
-                ->get(['title_ar', 'title_en']);
-        }
+                ->get(['title_ar', 'title_en', 'metadata']);
 
-        return $newsItems->map(fn($n) => [
-            'title_ar' => $n->title_ar,
-            'title_en' => $n->title_en,
-        ])->toArray();
+            // Filter by duration expiry
+            $activeTickerNews = $tickerNews->filter(function ($item) {
+                $meta = $item->metadata ?? [];
+                $startsAt = $meta['ticker_starts_at'] ?? null;
+                $durationHours = $meta['ticker_duration'] ?? 24;
+                if (!$startsAt) return false;
+                $expiresAt = \Carbon\Carbon::parse($startsAt)->addHours($durationHours);
+                return now()->lt($expiresAt);
+            });
+
+            // If no active ticker news, fall back to latest news
+            if ($activeTickerNews->isEmpty()) {
+                $activeTickerNews = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->orderBy('published_at', 'desc')
+                    ->limit(5)
+                    ->get(['title_ar', 'title_en']);
+            }
+
+            return $activeTickerNews->map(fn($n) => [
+                'title_ar' => $n->title_ar,
+                'title_en' => $n->title_en,
+            ])->values()->toArray();
         }));
     }
 
@@ -504,6 +513,17 @@ class PublicApiController extends Controller
             };
         }
 
+        // Search by title or content (Arabic and English)
+        if ($request->filled('search')) {
+            $search = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title_ar', 'like', "%{$search}%")
+                  ->orWhere('title_en', 'like', "%{$search}%")
+                  ->orWhere('content_ar', 'like', "%{$search}%")
+                  ->orWhere('content_en', 'like', "%{$search}%");
+            });
+        }
+
         $formatAnnouncement = fn($a) => [
             'id' => (string) $a->id,
             'title' => $a->title_ar,
@@ -573,10 +593,18 @@ class PublicApiController extends Controller
     {
         $query = Content::where('category', 'decree')
             ->where('status', 'published')
+            ->with(['directorate', 'attachments' => function ($q) {
+                $q->where('is_public', true)->orderBy('display_order');
+            }])
             ->orderBy('published_at', 'desc');
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->whereJsonContains('metadata->decree_type', $request->type);
+        }
+
+        // M7.13: Filter by directorate
+        if ($request->has('directorate_id') && $request->directorate_id) {
+            $query->where('directorate_id', $request->directorate_id);
         }
 
         if ($request->has('q')) {
@@ -612,6 +640,18 @@ class PublicApiController extends Controller
             'description_en' => $d->seo_description_en ?? mb_substr(strip_tags($d->content_en ?? ''), 0, 200),
             'content_ar' => $d->content_ar,
             'content_en' => $d->content_en,
+            'directorate_id' => $d->directorate_id,
+            'directorate_name' => $d->directorate?->name_ar,
+            'directorate_name_en' => $d->directorate?->name_en,
+            'attachments' => $d->attachments->map(fn($a) => [
+                'id' => $a->id,
+                'file_name' => $a->file_name,
+                'file_path' => $a->file_path,
+                'file_type' => $a->file_type,
+                'mime_type' => $a->mime_type,
+                'file_size' => $a->file_size,
+                'download_url' => url("/api/v1/public/decrees/{$d->id}/attachments/{$a->id}/download"),
+            ])->toArray(),
         ]);
 
         return response()->json($decrees);
@@ -685,6 +725,14 @@ class PublicApiController extends Controller
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->whereJsonContains('metadata->media_type', $request->type);
+        }
+
+        // Month/Year date filtering
+        if ($request->filled('month')) {
+            $query->whereMonth('published_at', (int) $request->month + 1); // JS months are 0-indexed
+        }
+        if ($request->filled('year')) {
+            $query->whereYear('published_at', (int) $request->year);
         }
 
         $formatMedia = function($m) {
@@ -837,31 +885,53 @@ class PublicApiController extends Controller
 
     /**
      * Global search with semantic search support (FR-36)
+     * M7.3: Search respects language parameter - returns content in matching language.
+     * M7.4: Only returns published content with valid routes.
+     * M7.5: Results are ordered by relevance (title match > description match > content match).
      */
     public function search(Request $request): JsonResponse
     {
         $q = $request->get('q', '');
+        $lang = $request->get('lang', 'ar');
+        $type = $request->get('type');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
+        $entity = $request->get('entity');
         $useSemanticSearch = $request->boolean('semantic', true);
 
         if (strlen($q) < 2) {
             return response()->json(['results' => [], 'total' => 0, 'search_type' => 'none']);
         }
 
+        // M7.1: Auto-detect language from query if not explicitly provided
+        if (!$request->has('lang')) {
+            $lang = $this->detectSearchLanguage($q);
+        }
+
         $results = collect([]);
         $searchType = 'text';
 
+        // Sanitize the query for LIKE usage
+        $safeQ = str_replace(['%', '_'], ['\\%', '\\_'], $q);
+
         // Try semantic search first if enabled and available
         if ($useSemanticSearch && $this->vectorSearch->isAvailable()) {
-            $semanticResults = $this->vectorSearch->semanticSearch($q, 20);
+            $semanticResults = $this->vectorSearch->semanticSearch($q, 30);
 
             if ($semanticResults->isNotEmpty()) {
                 $searchType = 'semantic';
+                // M7.3: Return both language fields for frontend to choose
                 $results = $semanticResults->map(fn($r) => [
                     'id' => (string) $r->id,
-                    'title' => $r->title_ar,
+                    'title' => $lang === 'ar' ? ($r->title_ar ?: $r->title_en) : ($r->title_en ?: $r->title_ar),
+                    'title_ar' => $r->title_ar,
+                    'title_en' => $r->title_en,
+                    'description' => mb_substr(strip_tags($lang === 'ar' ? ($r->content_ar ?: $r->content_en) : ($r->content_en ?: $r->content_ar)), 0, 200),
+                    'description_ar' => mb_substr(strip_tags($r->content_ar ?? ''), 0, 200),
+                    'description_en' => mb_substr(strip_tags($r->content_en ?? ''), 0, 200),
                     'type' => $r->category,
-                    'excerpt' => mb_substr(strip_tags($r->content_ar), 0, 150),
                     'url' => $this->getContentUrl((object) ['id' => $r->id, 'category' => $r->category]),
+                    'date' => $r->published_at ?? null,
                     'similarity' => round($r->similarity, 3),
                 ]);
             }
@@ -870,30 +940,156 @@ class PublicApiController extends Controller
         // Fallback to text search if semantic search is disabled or returns no results
         if ($results->isEmpty()) {
             $searchType = 'text';
-            $results = Content::where('status', 'published')
-                ->where(function ($query) use ($q) {
-                    $query->where('title_ar', 'like', "%{$q}%")
-                        ->orWhere('title_en', 'like', "%{$q}%")
-                        ->orWhere('content_ar', 'like', "%{$q}%")
-                        ->orWhere('content_en', 'like', "%{$q}%");
-                })
-                ->limit(20)
+
+            // M7.4: Only search published content
+            $query = Content::published();
+
+            // M7.4: Filter by valid content categories only
+            $validCategories = ['news', 'announcement', 'decree', 'service', 'faq'];
+            if ($type && in_array($type, array_merge($validCategories, ['decrees', 'announcements', 'services']))) {
+                // Map plural frontend types to singular backend categories
+                $categoryMap = [
+                    'news' => 'news',
+                    'decrees' => 'decree',
+                    'decree' => 'decree',
+                    'announcements' => 'announcement',
+                    'announcement' => 'announcement',
+                    'services' => 'service',
+                    'service' => 'service',
+                    'faq' => 'faq',
+                ];
+                $query->where('category', $categoryMap[$type] ?? $type);
+            } else {
+                $query->whereIn('category', $validCategories);
+            }
+
+            // Search across all language fields
+            $query->where(function ($qb) use ($safeQ) {
+                $qb->where('title_ar', 'like', "%{$safeQ}%")
+                    ->orWhere('title_en', 'like', "%{$safeQ}%")
+                    ->orWhere('content_ar', 'like', "%{$safeQ}%")
+                    ->orWhere('content_en', 'like', "%{$safeQ}%")
+                    ->orWhere('seo_description_ar', 'like', "%{$safeQ}%")
+                    ->orWhere('seo_description_en', 'like', "%{$safeQ}%");
+            });
+
+            // Date filters
+            if ($dateFrom) {
+                $query->where('published_at', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->where('published_at', '<=', $dateTo . ' 23:59:59');
+            }
+
+            // Entity/directorate filter
+            if ($entity) {
+                $query->where('directorate_id', $entity);
+            }
+
+            // M7.5: Order by relevance - title matches first, then description, then content
+            $escapedQ = str_replace("'", "''", $q);
+            $titleField = $lang === 'ar' ? 'title_ar' : 'title_en';
+            $otherTitleField = $lang === 'ar' ? 'title_en' : 'title_ar';
+            $descField = $lang === 'ar' ? 'seo_description_ar' : 'seo_description_en';
+
+            $query->orderByRaw("CASE
+                WHEN LOWER({$titleField}) = LOWER('{$escapedQ}') THEN 1
+                WHEN LOWER({$titleField}) LIKE LOWER('{$escapedQ}%') THEN 2
+                WHEN LOWER({$titleField}) LIKE LOWER('%{$escapedQ}%') THEN 3
+                WHEN LOWER({$otherTitleField}) LIKE LOWER('%{$escapedQ}%') THEN 4
+                WHEN LOWER(COALESCE({$descField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 5
+                ELSE 6
+            END ASC");
+
+            $results = $query->limit(30)
                 ->get()
                 ->map(fn($r) => [
                     'id' => (string) $r->id,
-                    'title' => $r->title_ar,
+                    // M7.3: Return title/description in the search language
+                    'title' => $lang === 'ar' ? ($r->title_ar ?: $r->title_en) : ($r->title_en ?: $r->title_ar),
+                    'title_ar' => $r->title_ar,
+                    'title_en' => $r->title_en,
+                    'description' => mb_substr(strip_tags(
+                        $lang === 'ar'
+                            ? ($r->seo_description_ar ?: $r->content_ar ?: $r->seo_description_en ?: $r->content_en)
+                            : ($r->seo_description_en ?: $r->content_en ?: $r->seo_description_ar ?: $r->content_ar)
+                    ), 0, 200),
+                    'description_ar' => mb_substr(strip_tags($r->seo_description_ar ?: $r->content_ar ?? ''), 0, 200),
+                    'description_en' => mb_substr(strip_tags($r->seo_description_en ?: $r->content_en ?? ''), 0, 200),
                     'type' => $r->category,
-                    'excerpt' => mb_substr(strip_tags($r->content_ar), 0, 150),
                     'url' => $this->getContentUrl($r),
+                    'date' => $r->published_at ? $r->published_at->toISOString() : null,
                 ]);
         }
 
+        // Also search Services if not filtering by a specific content type (or filtering by services)
+        $serviceResults = collect([]);
+        if (!$type || $type === 'services' || $type === 'service') {
+            $serviceQuery = Service::active()
+                ->where(function ($qb) use ($safeQ) {
+                    $qb->where('name_ar', 'like', "%{$safeQ}%")
+                        ->orWhere('name_en', 'like', "%{$safeQ}%")
+                        ->orWhere('description_ar', 'like', "%{$safeQ}%")
+                        ->orWhere('description_en', 'like', "%{$safeQ}%");
+                });
+
+            $serviceResults = $serviceQuery->limit(10)->get()->map(fn($s) => [
+                'id' => (string) $s->id,
+                'title' => $lang === 'ar' ? ($s->name_ar ?: $s->name_en) : ($s->name_en ?: $s->name_ar),
+                'title_ar' => $s->name_ar,
+                'title_en' => $s->name_en,
+                'description' => mb_substr(strip_tags(
+                    $lang === 'ar'
+                        ? ($s->description_ar ?: $s->description_en)
+                        : ($s->description_en ?: $s->description_ar)
+                ) ?? '', 0, 200),
+                'type' => 'service',
+                'url' => '/services/' . $s->id,
+                'date' => $s->created_at ? $s->created_at->toISOString() : null,
+                'isDigital' => $s->is_digital ?? false,
+            ]);
+        }
+
+        // Also search FAQs if not filtering by a specific content type (or filtering by FAQ)
+        $faqResults = collect([]);
+        if (!$type || $type === 'faq') {
+            $faqQuery = Faq::where('is_published', true)
+                ->where('is_active', true)
+                ->where(function ($qb) use ($safeQ) {
+                    $qb->where('question_ar', 'like', "%{$safeQ}%")
+                        ->orWhere('question_en', 'like', "%{$safeQ}%")
+                        ->orWhere('answer_ar', 'like', "%{$safeQ}%")
+                        ->orWhere('answer_en', 'like', "%{$safeQ}%");
+                });
+
+            $faqResults = $faqQuery->limit(5)->get()->map(fn($f) => [
+                'id' => (string) $f->id,
+                'title' => $lang === 'ar' ? ($f->question_ar ?: $f->question_en) : ($f->question_en ?: $f->question_ar),
+                'title_ar' => $f->question_ar,
+                'title_en' => $f->question_en,
+                'description' => mb_substr(strip_tags(
+                    $lang === 'ar' ? ($f->answer_ar ?: $f->answer_en) : ($f->answer_en ?: $f->answer_ar)
+                ) ?? '', 0, 200),
+                'question_ar' => $f->question_ar,
+                'question_en' => $f->question_en,
+                'answer_ar' => $f->answer_ar,
+                'answer_en' => $f->answer_en,
+                'type' => 'faq',
+                'url' => '/faq',
+                'date' => $f->created_at ? $f->created_at->toISOString() : null,
+            ]);
+        }
+
+        // Merge all results
+        $allResults = $results->merge($serviceResults)->merge($faqResults);
+
         return response()->json([
-            'results' => $results,
-            'total' => $results->count(),
+            'results' => $allResults->values(),
+            'total' => $allResults->count(),
             'search_type' => $searchType,
         ]);
     }
+
 
     /**
      * AI-generated summary for content (FR-12)
@@ -1105,6 +1301,24 @@ class PublicApiController extends Controller
 
     private function formatServiceModel(Service $s): array
     {
+        // Normalize requirements: always return an array
+        $requirements = $s->requirements;
+        if (is_string($requirements)) {
+            // Try JSON decode first (in case it's a JSON string)
+            $decoded = json_decode($requirements, true);
+            if (is_array($decoded)) {
+                $requirements = $decoded;
+            } else {
+                // Split plain text by newlines
+                $requirements = array_values(array_filter(
+                    array_map('trim', preg_split('/\r?\n/', $requirements)),
+                    fn($r) => strlen($r) > 0
+                ));
+            }
+        } elseif (!is_array($requirements)) {
+            $requirements = [];
+        }
+
         return [
             'id' => (string) $s->id,
             'title' => $s->name_ar,
@@ -1122,7 +1336,7 @@ class PublicApiController extends Controller
             'url' => $s->url,
             'fees' => $s->fees,
             'estimated_time' => $s->estimated_time,
-            'requirements' => $s->requirements,
+            'requirements' => $requirements,
         ];
     }
 
@@ -1141,6 +1355,16 @@ class PublicApiController extends Controller
             'content_ar' => $s->content_ar,
             'content_en' => $s->content_en,
         ];
+    }
+
+    /**
+     * M7.1: Detect search query language based on character analysis.
+     */
+    private function detectSearchLanguage(string $text): string
+    {
+        $arabicCount = preg_match_all('/[\x{0600}-\x{06FF}\x{0750}-\x{077F}\x{08A0}-\x{08FF}\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]/u', $text);
+        $latinCount = preg_match_all('/[a-zA-Z]/', $text);
+        return $arabicCount > $latinCount ? 'ar' : 'en';
     }
 
     private function getContentUrl($content): string

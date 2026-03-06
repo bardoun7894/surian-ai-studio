@@ -20,7 +20,8 @@ import {
   Map,
   Factory,
   CheckCircle2,
-  Circle
+  Circle,
+  Info
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
@@ -90,13 +91,22 @@ export default function ServicesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [perPage] = useState(12);
 
-  // TASK 3: Read URL search params to apply filters from header navigation
+  // Map slug names from header nav to actual directorate IDs
+  const directorateSlugMap: Record<string, string> = {
+    'industry': 'd1',
+    'economy': 'd2',
+    'trade': 'd3',
+  };
+
+  // Read URL search params to apply filters from header navigation
   useEffect(() => {
     const dirParam = searchParams.get('directorate');
     const typeParam = searchParams.get('type');
 
     if (dirParam) {
-      setSelectedDirectorate(dirParam);
+      // Resolve slug to actual directorate ID, or use as-is if already an ID
+      const resolvedId = directorateSlugMap[dirParam] || dirParam;
+      setSelectedDirectorate(resolvedId);
     }
     if (typeParam === 'ministry') {
       // "ministry" type means show all — no specific directorate filter
@@ -261,6 +271,16 @@ export default function ServicesPage() {
 
 
 
+          {/* M7.8: Disclaimer banner */}
+          <div className="flex items-center gap-3 px-4 py-3 mb-4 md:mb-6 bg-gov-teal/5 dark:bg-gov-gold/5 border border-gov-teal/15 dark:border-gov-gold/15 rounded-xl">
+            <Info size={18} className="text-gov-teal dark:text-gov-gold shrink-0" />
+            <p className="text-sm text-gov-charcoal/80 dark:text-gov-gold/80 font-medium">
+              {language === 'ar'
+                ? 'الخدمات المعروضة تخضع للتعديل والتحديث المستمر'
+                : 'Services shown are subject to continuous updates'}
+            </p>
+          </div>
+
           {/* Services Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {loading ? (
@@ -291,7 +311,11 @@ export default function ServicesPage() {
                           contentId={String(service.id)}
                           metadata={{
                             title: getLocalizedField(service, 'title', language as 'ar' | 'en'),
+                            title_ar: getLocalizedField(service, 'title', 'ar'),
+                            title_en: getLocalizedField(service, 'title', 'en'),
                             description: getLocalizedField(service, 'description', language as 'ar' | 'en'),
+                            description_ar: getLocalizedField(service, 'description', 'ar'),
+                            description_en: getLocalizedField(service, 'description', 'en'),
                             url: `/services/${service.id}`,
                           }}
                           variant="compact"
@@ -319,9 +343,9 @@ export default function ServicesPage() {
 
                     {/* Service Footer */}
                     <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100 dark:border-gov-border/15 mt-auto">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gov-gold/50">
-                        <Clock size={14} />
-                        <span>{language === 'ar' ? 'فوري' : 'Instant'}</span>
+                      <div className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gov-gold/50">
+                        <Clock size={14} className="shrink-0 rtl:order-none ltr:order-none" />
+                        <span className="leading-none">{language === 'ar' ? 'فوري' : 'Instant'}</span>
                       </div>
                     </div>
                   </Link>

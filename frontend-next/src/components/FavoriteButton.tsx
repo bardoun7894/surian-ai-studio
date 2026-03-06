@@ -14,7 +14,11 @@ interface FavoriteButtonProps {
   contentId: string;
   metadata?: {
     title?: string;
+    title_ar?: string;
+    title_en?: string;
     description?: string;
+    description_ar?: string;
+    description_en?: string;
     image?: string;
     url?: string;
   };

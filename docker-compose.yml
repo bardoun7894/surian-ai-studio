@@ -1,0 +1,105 @@
+services:
+  # Frontend (Next.js 14)
+  frontend-next:
+    build:
+      context: ./frontend-next
+      dockerfile: Dockerfile
+    ports:
+      - "3120:3000"
+    environment:
+      # Runtime env vars for server-side rewrites
+      - BACKEND_URL=http://backend-web
+      - AI_SERVICE_URL=http://ai-service:8000
+      # Build-time env vars for client-side code
+      - NEXT_PUBLIC_API_URL=http://backend-web/api/v1
+      - NEXT_PUBLIC_BACKEND_URL=http://backend-web
+      - NEXT_PUBLIC_AI_SERVICE_URL=http://ai-service:8000
+      - NEXT_PUBLIC_SESSION_TIMEOUT=15
+    depends_on:
+      - backend-web
+      - ai-service
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend Web Server (Nginx)
+  backend-web:
+    image: nginx:alpine
+    ports:
+      - "8002:80"
+    volumes:
+      - ./backend:/var/www
+      - ./backend/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    restart: always
+
+  # Backend App (PHP-FPM)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=surian_db
+      - DB_USERNAME=surian_user
+      - DB_PASSWORD=surian_pass
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - SANCTUM_STATEFUL_DOMAINS=localhost:3110,localhost:3120,localhost:3002,localhost:8080,localhost:8002,frontend-next:3000,91.230.110.187:8002,91.230.110.187:3110,91.230.110.187:3120,91.230.110.187:3002
+      - SESSION_DOMAIN=null
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  # Database (PostgreSQL)
+  db:
+    image: pgvector/pgvector:0.8.0-pg15
+    environment:
+      - POSTGRES_DB=surian_db
+      - POSTGRES_USER=surian_user
+      - POSTGRES_PASSWORD=surian_pass
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # Cache (Redis)
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  # AI Service (FastAPI)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./ai-service/.env
+    environment:
+      - CORS_ORIGINS=["http://localhost:8080","http://localhost:3110","http://localhost:3120","http://localhost:3002","http://frontend-next:3000","http://91.230.110.187:3110","http://91.230.110.187:3120","http://91.230.110.187:3002","http://91.230.110.187:8002"]
+    ports:
+      - "8001:8000"
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+  redis_data:

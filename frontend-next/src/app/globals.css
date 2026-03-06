@@ -1,0 +1,1149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Qomra Font (Official Government Font) */
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Core Colors - Updated */
+  --background: #EDEBE0;
+  /* Light Beige background */
+  --foreground: #161616;
+  /* Charcoal text */
+  --card-bg: #ffffff;
+  /* White cards */
+  --button-bg: #094239;
+  /* Dark green buttons */
+  --title-color: #b9a779;
+  /* Gold titles */
+
+  /* Brand Colors - Light Mode Defaults (RGB Channels) */
+  --color-gov-forest: 9 66 57;
+  --color-gov-emerald: 9 66 57;
+  --color-gov-emerald-light: 17 94 89;
+  --color-gov-teal: 66 129 119;
+  --color-mofa-teal: 5 66 57;
+  --color-surface-dark: 15 23 42;
+
+  /* Persistent Brand Colors */
+  --color-gov-brand-green: 9 66 57;
+
+  /* Semantic Colors */
+  --color-gov-border: 185 167 121;
+  /* Gold border */
+  --color-gov-button: 9 66 57;
+  /* Dark green button */
+}
+
+.dark {
+  --background: #094239;
+  /* Dark Forest Green */
+  --foreground: #EDEBE0;
+  /* Light Beige */
+
+  /* Brand Colors - Dark Mode */
+  --color-gov-forest: 9 66 57;
+  /* Keep dark green */
+  --color-gov-emerald: 9 66 57;
+  --color-gov-emerald-light: 17 94 89;
+  --color-gov-teal: 185 167 121;
+  /* Gold */
+  --color-mofa-teal: 9 66 57;
+
+  --color-gov-brand-green: 9 66 57;
+
+  /* Semantic Colors */
+  --color-gov-border: 185 167 121;
+  /* Gold border */
+  --color-gov-button: 9 66 57;
+  /* Dark green button */
+
+  /* Unified Dark Mode Tokens */
+  --dm-background: #1a1a1a;
+  --dm-surface: #2a2a2a;
+  --dm-card: rgba(179, 163, 211, 0.1);
+  --dm-button: #094239;
+  --dm-title: #b9a779;
+  --dm-text: #ffffff;
+  --dm-text-secondary: rgba(255, 255, 255, 0.7);
+  --dm-border: rgba(185, 167, 121, 0.15);
+  --dm-input-bg: rgba(255, 255, 255, 0.05);
+}
+
+/*
+ * Fluid Typography — single rule, no DPR hacks.
+ * Wider viewport (lower DPR) = slightly smaller base.
+ * 1280px (Retina Mac)   → 16px    (your device, perfect)
+ * 1440px (More Space)   → 15.6px  (subtle reduction)
+ * 1536px (Win 125%)     → 15.4px
+ * 1920px (Win 100%)     → 14.5px  (noticeably tighter)
+ * Mobile                → 16px    (capped at max)
+ */
+html {
+  font-size: clamp(14.5px, calc(19.2px - 0.25vw), 16px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Glass Card Effect - Updated with new color scheme */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  /* White/Neutral cards */
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(185, 167, 121, 0.2);
+  /* Gold border */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.dark .glass-card {
+  background: var(--dm-surface);
+  border: 1px solid var(--dm-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode fix for native select/option elements */
+.dark select {
+  background-color: var(--dm-surface);
+  color: #ffffff;
+}
+
+.dark select option {
+  background-color: var(--dm-surface);
+  color: #ffffff;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #b9a779 0%, #988561 50%, #b9a779 100%);
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #b9a779 0%, #ecd79c 50%, #b9a779 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 60%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translate(-100%, -100%) rotate(45deg);
+  }
+
+  100% {
+    transform: translate(100%, 100%) rotate(45deg);
+  }
+}
+
+/* Custom Scrollbar - Updated */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #094239;
+  /* Dark green */
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #115E59;
+  /* Dark green hover */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+/* Selection Colors - Updated */
+::selection {
+  background-color: #b9a779;
+  /* Gold */
+  color: #ffffff;
+  /* White text */
+}
+
+.dark ::selection {
+  background-color: #b9a779;
+  /* Gold */
+  color: #ffffff;
+  /* White text */
+}
+
+/* Date Picker Styling - Match visual identity (gov-forest / gov-gold) */
+input[type="date"] {
+  accent-color: #094239; /* gov-forest */
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  /* Target gov-forest (#094239) — dark green */
+  filter: invert(22%) sepia(15%) saturate(2000%) hue-rotate(130deg) brightness(0.7);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.dark input[type="date"] {
+  accent-color: #b9a779; /* gov-gold */
+  color-scheme: dark;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  /* Target gov-gold (#b9a779) */
+  filter: invert(80%) sepia(20%) saturate(400%) hue-rotate(10deg);
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .animate-bounce-slight {
+    animation: bounce-slight 2.5s ease-in-out infinite;
+  }
+}
+
+@keyframes bounce-slight {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@layer components {
+
+  /* Button styles - Dark Green (أخضر غامق) */
+  .btn-primary {
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald-light transition-all shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply bg-gov-forest text-white font-bold py-3 px-6 rounded-xl hover:bg-gov-emerald-light transition-all;
+  }
+
+  /* Card styles - Gray (#b3a3d) */
+  .card {
+    @apply bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gray-300 dark:border-dm-border;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full py-3 px-4 rounded-xl bg-white dark:bg-dm-input border border-gray-300 dark:border-dm-border dark:text-white focus:border-gov-forest outline-none transition-all;
+  }
+
+  /* Main Titles - Gold (ذهبي) */
+  .title-main {
+    @apply text-gov-gold font-bold text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  /* Subtitles and Text - Using variable for contrast */
+  .text-content {
+    color: var(--foreground);
+  }
+
+  .subtitle {
+    @apply text-lg md:text-xl;
+    color: var(--foreground);
+  }
+
+  /* Icons - Dark Green */
+  .icon-primary {
+    @apply text-gov-forest;
+  }
+}
+
+/* News Ticker Scroll */
+/* News Ticker Scroll */
+@keyframes ticker-scroll-rtl {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes ticker-scroll-ltr {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker-rtl {
+  animation-name: ticker-scroll-rtl;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 60s;
+}
+
+.animate-ticker-ltr {
+  animation-name: ticker-scroll-ltr;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 60s;
+}
+
+/* --- Animation Keyframes --- */
+
+/* Gentle Pulse for Badges */
+@keyframes badge-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(200, 16, 46, 0.3);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(200, 16, 46, 0.5);
+  }
+}
+
+/* Form Validation Shake */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-5px);
+  }
+
+  40% {
+    transform: translateX(5px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fade In Up */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Underline Expand */
+@keyframes underline-expand {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+/* --- Utility Classes --- */
+
+.animate-badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* --- Reduced Motion Support --- */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-ticker-ltr,
+  .animate-ticker-rtl {
+    animation-duration: 30s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* ============================================================
+   Print Styles — Authority-Standard Government Print Output
+   Matches هيئة التحول الرقمي standards for official documents.
+   ============================================================ */
+@media print {
+
+  /* --- Page Setup --- */
+  @page {
+    size: A4;
+    margin: 15mm 18mm 20mm 18mm;
+  }
+
+  /* --- Hide non-printable elements --- */
+  [data-sonner-toaster],
+  .sonner-toast,
+  [role="status"],
+  .fixed.bottom-12,
+  .fixed.bottom-32,
+  .fixed.bottom-36,
+  nav,
+  .z-\[9999\],
+  .z-\[60\],
+  .z-\[55\] {
+    display: none !important;
+  }
+
+  /* --- Global Reset for Print --- */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html {
+    font-size: 12pt !important;
+  }
+
+  body {
+    background: white !important;
+    color: #161616 !important;
+    font-family: 'Qomra', 'Cairo', 'Segoe UI', Tahoma, sans-serif !important;
+    line-height: 1.7 !important;
+    -webkit-font-smoothing: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* --- Hide Non-Essential UI Elements --- */
+  nav,
+  footer,
+  .chatbot-container,
+  .fixed,
+  .sticky,
+  button:not(.print-visible),
+  [role="dialog"],
+  [data-print-hide="true"],
+  .print\:hidden,
+  .animate-ticker-rtl,
+  .animate-ticker-ltr,
+  .animate-badge-pulse,
+  iframe,
+  video,
+  audio,
+  .tooltip,
+  .dropdown-menu,
+  .modal,
+  .toast,
+  [class*="hover:"],
+  .scroll-to-top,
+  .breadcrumb,
+  .pagination,
+  .share-buttons,
+  .rating-section {
+    display: none !important;
+  }
+
+  /* --- White Backgrounds (override dark mode) --- */
+  [class*="dark:bg-"],
+  .dark *,
+  .glass-card,
+  .card {
+    background-color: white !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Remove decorative background-images but preserve content images */
+  [class*="dark:bg-"]:not(img):not(picture):not([data-nimg]),
+  .dark *:not(img):not(picture):not([data-nimg]),
+  .glass-card:not(img),
+  .card:not(img) {
+    background-image: none !important;
+  }
+
+  .glass-card {
+    border: 1px solid #d0d0d0 !important;
+    box-shadow: none !important;
+  }
+
+  /* --- Text Color Reset (override dark mode) --- */
+  [class*="dark:text-"],
+  .dark * {
+    color: #161616 !important;
+  }
+
+  /* --- Layout Cleanup --- */
+  main {
+    padding-top: 0 !important;
+    max-width: 100% !important;
+  }
+
+  article {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+  }
+
+  /* Remove all animations in print */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* --- Typography for Print --- */
+  h1 {
+    font-size: 18pt !important;
+    font-weight: 700 !important;
+    color: #094239 !important;
+    margin-bottom: 8pt !important;
+    line-height: 1.3 !important;
+  }
+
+  h2 {
+    font-size: 15pt !important;
+    font-weight: 700 !important;
+    color: #094239 !important;
+    margin-bottom: 6pt !important;
+    line-height: 1.3 !important;
+  }
+
+  h3 {
+    font-size: 13pt !important;
+    font-weight: 600 !important;
+    color: #094239 !important;
+    margin-bottom: 4pt !important;
+    line-height: 1.3 !important;
+  }
+
+  p,
+  li,
+  td,
+  th,
+  span,
+  div {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+  table,
+  figure,
+  img {
+    page-break-inside: avoid;
+  }
+
+  /* --- Prose Content --- */
+  .prose p,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose li {
+    color: #161616 !important;
+  }
+
+  .prose a {
+    color: #094239 !important;
+    text-decoration: underline !important;
+  }
+
+  /* --- Links: Show URL after text --- */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666;
+    word-break: break-all;
+  }
+
+  /* Don't show URL for navigation/button links */
+  nav a::after,
+  button a::after,
+  .print-header a::after,
+  .print-footer a::after,
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: none !important;
+  }
+
+  /* --- Images in Print --- */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    break-inside: avoid !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Ensure Next.js Image wrappers are visible */
+  img[src],
+  picture,
+  [data-nimg] {
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  /* --- News Article Images in Print --- */
+  article img,
+  .prose img,
+  [class*="article"] img {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 400pt !important;
+    object-fit: contain !important;
+    float: none !important;
+    margin: 8pt 0 !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Fix Next.js Image fill containers in print */
+  [style*="position: relative"] > img[data-nimg],
+  [style*="position:relative"] > img[data-nimg] {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Article image containers */
+  article [class*="relative"],
+  .prose [class*="relative"] {
+    position: relative !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* --- Borders for Print Cards/Sections --- */
+  [class*="border-gov-"] {
+    border-color: #d0d0d0 !important;
+  }
+
+  [class*="rounded-"] {
+    border-radius: 4px !important;
+  }
+
+  /* --- Print Header Component Styles --- */
+  .print-header {
+    margin-bottom: 20pt;
+  }
+
+  .print-header-gold-line {
+    height: 3pt;
+    background: #b9a779 !important;
+    margin-bottom: 12pt;
+  }
+
+  .print-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12pt;
+    margin-bottom: 8pt;
+  }
+
+  .print-header-logo {
+    width: 60pt !important;
+    height: auto !important;
+    object-fit: contain;
+  }
+
+  .print-header-text {
+    flex: 1;
+  }
+
+  .print-header-republic {
+    font-size: 9pt !important;
+    color: #666 !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .print-header-ministry {
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: #094239 !important;
+    margin: 2pt 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .print-header-doctitle {
+    font-size: 10pt !important;
+    color: #b9a779 !important;
+    font-weight: 600 !important;
+    margin: 2pt 0 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .print-header-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9pt !important;
+    color: #555 !important;
+    padding: 4pt 0;
+  }
+
+  .print-header-separator {
+    height: 1.5pt;
+    background: linear-gradient(to right, #094239, #b9a779) !important;
+    margin-top: 8pt;
+  }
+
+  /* --- Print Footer Component Styles --- */
+  .print-footer {
+    margin-top: 24pt;
+    page-break-inside: avoid;
+  }
+
+  .print-footer-separator {
+    height: 0.75pt;
+    background: #d0d0d0 !important;
+    margin-bottom: 8pt;
+  }
+
+  .print-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8pt !important;
+    color: #888 !important;
+  }
+
+  .print-footer-url {
+    font-weight: 600 !important;
+    color: #094239 !important;
+    direction: ltr;
+  }
+
+  .print-footer-copyright {
+    text-align: center;
+    font-size: 7pt !important;
+    color: #aaa !important;
+    margin-top: 4pt !important;
+  }
+
+  /* --- Status Badge Print Overrides --- */
+  [class*="bg-yellow-"] {
+    background-color: #fef9c3 !important;
+    border: 1px solid #ca8a04 !important;
+  }
+
+  [class*="bg-green-"] {
+    background-color: #dcfce7 !important;
+    border: 1px solid #16a34a !important;
+  }
+
+  [class*="bg-red-"] {
+    background-color: #fee2e2 !important;
+    border: 1px solid #dc2626 !important;
+  }
+
+  [class*="bg-blue-"] {
+    background-color: #dbeafe !important;
+    border: 1px solid #2563eb !important;
+  }
+
+  /* --- Complaint Print Mode --- */
+  body.complaint-print-mode * {
+    visibility: hidden !important;
+  }
+
+  body.complaint-print-mode .print-header,
+  body.complaint-print-mode .print-header *,
+  body.complaint-print-mode .print-footer,
+  body.complaint-print-mode .print-footer *,
+  body.complaint-print-mode [data-complaint-print-target="true"],
+  body.complaint-print-mode [data-complaint-print-target="true"] * {
+    visibility: visible !important;
+  }
+
+  body.complaint-print-mode .print-header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    display: block !important;
+    padding: 0 !important;
+    margin-bottom: 12pt !important;
+    page-break-after: avoid !important;
+  }
+
+  body.complaint-print-mode .print-footer {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    display: block !important;
+    padding: 0 !important;
+    margin-top: 16pt !important;
+    page-break-before: avoid !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8pt 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: #161616 !important;
+    animation: none !important;
+    page-break-inside: auto !important;
+    overflow: visible !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="dark:bg-"],
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="bg-gov-"],
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="bg-gray-50"] {
+    background-color: #f9f9f6 !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="dark:text-"] {
+    color: #161616 !important;
+  }
+
+
+  /* Bug #431 Fix: Prevent element overlaps in complaint print */
+  body.complaint-print-mode [data-complaint-print-target="true"] .grid {
+    display: block !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .grid > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 6pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .space-y-4 > * {
+    margin-bottom: 8pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .flex {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-xl,
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-2xl,
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-lg {
+    border-radius: 4px !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .animate-slide-up {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Hide delete and print buttons in print output */
+  body.complaint-print-mode [data-complaint-print-target="true"] button {
+    display: none !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .border-t {
+    border-top: 1px solid #e5e5e5 !important;
+    padding-top: 8pt !important;
+    margin-top: 8pt !important;
+  }
+
+  /* --- Suggestion Track Print --- */
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:border-none {
+    border: none !important;
+  }
+
+  /* --- M11.7: Fix images covering text in print --- */
+
+  /* Featured / hero images in articles - constrain height and prevent overflow */
+  article .relative[class*='h-['],
+  article .relative[class*='md:h-['],
+  article div[class*='aspect-video'] {
+    height: auto !important;
+    max-height: 250pt !important;
+    overflow: hidden !important;
+    position: relative !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* All images inside articles - flow naturally, never overlap text */
+  article img,
+  article picture,
+  article [data-nimg] {
+    position: relative !important;
+    float: none !important;
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 250pt !important;
+    object-fit: contain !important;
+    margin: 8pt auto !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Next.js Image fill wrappers - collapse to flow layout */
+  article .relative > img[style*='position'],
+  article .relative > span > img {
+    position: relative !important;
+    inset: auto !important;
+  }
+
+  /* Gradient overlays - remove in print so they don't cover content */
+  article [class*='bg-gradient-to-t'],
+  article [class*='bg-gradient-to-b'],
+  article .absolute.inset-0[class*='bg-'] {
+    display: none !important;
+  }
+
+  /* Image gallery in print - smaller thumbnails that don't overflow */
+  article .grid img {
+    max-height: 120pt !important;
+    width: auto !important;
+  }
+
+  /* Ensure prose content flows after images */
+  .prose,
+  .prose p,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose ul,
+  .prose ol {
+    position: relative !important;
+    z-index: 1 !important;
+    overflow: visible !important;
+  }
+
+  /* Related items section - smaller images in print */
+  [class*='grid-cols'] img {
+    max-height: 100pt !important;
+    height: auto !important;
+  }
+
+  /* --- M11: Article Image Print Fix --- */
+  article .relative[class*="h-"] {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  article .relative img[data-nimg],
+  article .relative img {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280pt !important;
+    object-fit: contain !important;
+    margin-bottom: 8pt !important;
+    break-inside: avoid !important;
+  }
+
+  article img[data-nimg="fill"] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280pt !important;
+    object-fit: contain !important;
+  }
+
+  /* Hide overlays/decorative elements on images in print */
+  article .relative .absolute {
+    display: none !important;
+  }
+}
+
+body.high-contrast {
+  background-color: #000000 !important;
+  color: #FFFF00 !important;
+}
+
+/* Force overrides for High Contrast */
+.high-contrast * {
+  background-color: #000000 !important;
+  color: #FFFF00 !important;
+  border-color: #FFFFFF !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+
+.high-contrast img,
+.high-contrast video {
+  filter: grayscale(100%);
+  border: 2px solid #FFFFFF !important;
+}
+
+.high-contrast a,
+.high-contrast button {
+  color: #00FFFF !important;
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  border: 2px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+  background-color: #000000 !important;
+}
+
+.high-contrast ::placeholder {
+  color: #AAAAAA !important;
+}
+
+.high-contrast svg path {
+  fill: #000000 !important;
+  stroke: #FFFFFF !important;
+}
+
+.high-contrast svg path:hover {
+  fill: #FFFF00 !important;
+}
+
+/* Hide scrollbar utility for horizontal scroll containers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

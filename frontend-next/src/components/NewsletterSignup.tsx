@@ -1,0 +1,105 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Mail, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
+import { API } from '@/lib/repository';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
+
+interface NewsletterSignupProps {
+    className?: string;
+}
+
+export default function NewsletterSignup({ className = '' }: NewsletterSignupProps) {
+    const { t } = useLanguage();
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const { executeRecaptcha } = useRecaptcha();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!email || !email.includes('@')) {
+            toast.error(t('newsletter_email_invalid'));
+            return;
+        }
+
+        setLoading(true);
+        setStatus('idle');
+
+        try {
+            const recaptchaToken = await executeRecaptcha('newsletter_subscribe');
+            const data = await API.newsletter.subscribe(email, recaptchaToken);
+
+            if (data.success) {
+                setStatus('success');
+                setEmail('');
+                toast.success(data.message || t('newsletter_subscribe_success'));
+            } else {
+                setStatus('error');
+                toast.error(data.message || t('newsletter_subscribe_failed'));
+            }
+        } catch {
+            setStatus('error');
+            toast.error(t('newsletter_subscribe_error'));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className={`${className}`}>
+            <h3 className="text-base md:text-lg font-bold text-gov-forest dark:text-gov-teal mb-2 md:mb-3">
+                {t('newsletter_title')}
+            </h3>
+            <p className="text-xs md:text-sm text-gov-forest/70 dark:text-white/70 mb-3 md:mb-4">
+                {t('newsletter_description')}
+            </p>
+
+            {status === 'success' ? (
+                <div className="flex items-center gap-2 text-gov-emerald dark:text-gov-emeraldLight text-sm bg-gov-emerald/10 dark:bg-white/5 p-3 rounded-lg border border-gov-emerald/20">
+                    <CheckCircle2 size={18} />
+                    <span>{t('newsletter_subscribed_message')}</span>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
+                    <div className="relative">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder={t('newsletter_placeholder')}
+                            className="w-full py-2.5 px-3 md:py-3 md:px-4 pr-10 md:pr-12 rtl:pr-3 md:rtl:pr-4 rtl:pl-10 md:rtl:pl-12 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-xs md:text-sm text-gov-forest dark:text-white placeholder:text-gov-forest/45 dark:placeholder:text-white/40 focus:outline-none focus:border-gov-gold transition-colors"
+                            disabled={loading}
+                        />
+                        <Mail className="absolute right-3 md:right-4 rtl:right-auto rtl:left-3 md:rtl:left-4 top-1/2 -translate-y-1/2 text-gov-forest/45 dark:text-white/40 w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading || !email}
+                        className="w-full py-2.5 md:py-3 bg-gov-gold text-gov-forest font-bold rounded-lg hover:bg-gov-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs md:text-sm"
+                    >
+                        {loading ? (
+                            <Loader2 className="animate-spin w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
+                        ) : (
+                            <>
+                                <Mail className="w-4 h-4 md:w-[18px] md:h-[18px]" size={18} />
+                                {t('newsletter_subscribe_btn')}
+                            </>
+                        )}
+                    </button>
+
+                    {status === 'error' && (
+                        <div className="flex items-center gap-2 text-gov-cherry dark:text-red-400 text-xs mt-2">
+                            <AlertCircle size={14} />
+                            <span>{t('newsletter_error_display')}</span>
+                        </div>
+                    )}
+                </form>
+            )}
+        </div>
+    );
+}

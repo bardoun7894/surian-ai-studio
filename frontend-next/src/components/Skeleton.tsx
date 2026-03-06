@@ -1,0 +1,128 @@
+'use client';
+
+import React from 'react';
+
+interface SkeletonProps {
+  className?: string;
+  variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
+  width?: string | number;
+  height?: string | number;
+  animation?: 'pulse' | 'wave' | 'none';
+}
+
+const Skeleton: React.FC<SkeletonProps> = ({
+  className = '',
+  variant = 'text',
+  width,
+  height,
+  animation = 'pulse'
+}) => {
+  const baseClasses = 'bg-gray-200 dark:bg-white/10';
+
+  const animationClasses = {
+    pulse: 'animate-pulse',
+    wave: 'animate-shimmer',
+    none: ''
+  };
+
+  const variantClasses = {
+    text: 'rounded',
+    circular: 'rounded-full',
+    rectangular: '',
+    rounded: 'rounded-xl'
+  };
+
+  const style: React.CSSProperties = {
+    width: width ? (typeof width === 'number' ? `${width}px` : width) : undefined,
+    height: height ? (typeof height === 'number' ? `${height}px` : height) : undefined
+  };
+
+  // Default dimensions based on variant
+  if (!width) {
+    if (variant === 'text') style.width = '100%';
+    if (variant === 'circular') style.width = style.height || '40px';
+  }
+  if (!height) {
+    if (variant === 'text') style.height = '1em';
+    if (variant === 'circular') style.height = style.width || '40px';
+  }
+
+  return (
+    <div
+      className={`${baseClasses} ${animationClasses[animation]} ${variantClasses[variant]} ${className}`}
+      style={style}
+    />
+  );
+};
+
+// Predefined skeleton patterns
+export const CardSkeleton: React.FC = () => (
+  <div className="bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15">
+    <Skeleton variant="rounded" height={200} className="mb-4" />
+    <Skeleton variant="text" className="mb-2" height={24} width="60%" />
+    <Skeleton variant="text" className="mb-2" height={16} />
+    <Skeleton variant="text" height={16} width="80%" />
+  </div>
+);
+
+export const ArticleSkeleton: React.FC = () => (
+  <div className="flex gap-4 p-4">
+    <Skeleton variant="rounded" width={120} height={80} />
+    <div className="flex-1">
+      <Skeleton variant="text" height={20} className="mb-2" width="80%" />
+      <Skeleton variant="text" height={14} className="mb-1" />
+      <Skeleton variant="text" height={14} width="60%" />
+    </div>
+  </div>
+);
+
+export const TableRowSkeleton: React.FC = () => (
+  <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gov-border/15">
+    <Skeleton variant="circular" width={40} height={40} />
+    <Skeleton variant="text" width="30%" height={16} />
+    <Skeleton variant="text" width="20%" height={16} />
+    <Skeleton variant="text" width="15%" height={16} />
+    <Skeleton variant="rounded" width={80} height={28} />
+  </div>
+);
+
+export const SkeletonList: React.FC<{ count?: number; className?: string }> = ({ count = 5, className = '' }) => (
+  <div className={`space-y-3 ${className}`}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="flex items-center gap-4 p-4 bg-white dark:bg-gov-card/10 rounded-xl border border-gray-100 dark:border-gov-border/15">
+        <Skeleton variant="circular" width={48} height={48} />
+        <div className="flex-1 space-y-2">
+          <Skeleton variant="text" width="60%" height={18} />
+          <Skeleton variant="text" width="40%" height={14} />
+        </div>
+        <Skeleton variant="rounded" width={80} height={32} />
+      </div>
+    ))}
+  </div>
+);
+
+export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`bg-white dark:bg-gov-card/10 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gov-border/15 ${className}`}>
+    <div className="flex items-center justify-between mb-4">
+      <Skeleton variant="circular" width={48} height={48} />
+      <Skeleton variant="rounded" width={24} height={24} />
+    </div>
+    <Skeleton variant="text" width="50%" height={32} className="mb-2" />
+    <Skeleton variant="text" width="70%" height={16} />
+  </div>
+);
+
+export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({ lines = 3, className = '' }) => (
+  <div className={`space-y-2 ${className}`}>
+    {Array.from({ length: lines }).map((_, i) => (
+      <Skeleton
+        key={i}
+        variant="text"
+        height={16}
+        width={i === lines - 1 ? '60%' : '100%'}
+      />
+    ))}
+  </div>
+);
+
+export default Skeleton;

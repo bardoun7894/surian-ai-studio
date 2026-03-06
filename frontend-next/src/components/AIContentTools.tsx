@@ -1,0 +1,241 @@
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Sparkles,
+  FileText,
+  Heading,
+  Languages,
+  Loader2,
+  Check,
+  X,
+  AlertCircle
+} from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { aiService } from '@/lib/aiService';
+
+interface AIContentToolsProps {
+  content: string;
+  onAcceptProofread?: (text: string) => void;
+  onAcceptSummary?: (summary: string) => void;
+  onAcceptTitle?: (title: string) => void;
+  onAcceptTranslation?: (text: string) => void;
+  /** Source language for translation (default: auto-detect based on content) */
+  translateFrom?: 'ar' | 'en';
+  className?: string;
+}
+
+type ToolType = 'proofread' | 'summarize' | 'title' | 'translate';
+
+export const AIContentTools: React.FC<AIContentToolsProps> = ({
+  content,
+  onAcceptProofread,
+  onAcceptSummary,
+  onAcceptTitle,
+  onAcceptTranslation,
+  translateFrom,
+  className = ''
+}) => {
+  const { language } = useLanguage();
+  const [activeResult, setActiveResult] = useState<{
+    type: ToolType;
+    result: string;
+  } | null>(null);
+  const [loading, setLoading] = useState<ToolType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Detect source language: if translateFrom is set use it, otherwise guess from content
+  const detectSourceLang = (): 'ar' | 'en' => {
+    if (translateFrom) return translateFrom;
+    // Simple heuristic: check for Arabic characters
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(content) ? 'ar' : 'en';
+  };
+
+  const sourceLang = detectSourceLang();
+  const targetLang = sourceLang === 'ar' ? 'en' : 'ar';
+
+  const labels = {
+    proofread: { ar: 'تدقيق لغوي', en: 'Proofread' },
+    summarize: { ar: 'إنشاء ملخص', en: 'Summarize' },
+    title: { ar: 'اقتراح عناوين', en: 'Suggest Titles' },
+    translate: {
+      ar: targetLang === 'en' ? 'ترجمة إلى الإنجليزية' : 'ترجمة إلى العربية',
+      en: targetLang === 'en' ? 'Translate to English' : 'Translate to Arabic'
+    }
+  };
+
+  const minChars = {
+    proofread: 10,
+    summarize: 100,
+    title: 50,
+    translate: 5
+  };
+
+  const handleTool = async (type: ToolType) => {
+    if (content.length < minChars[type]) {
+      setError(language === 'ar'
+        ? `يجب أن يحتوي النص على ${minChars[type]} حرف على الأقل`
+        : `Content must be at least ${minChars[type]} characters`
+      );
+      return;
+    }
+
+    setLoading(type);
+    setError(null);
+    setActiveResult(null);
+
+    try {
+      let result: string;
+      switch (type) {
+        case 'proofread':
+          result = await aiService.proofread(content);
+          break;
+        case 'summarize':
+          result = await aiService.summarize(content);
+          break;
+        case 'title':
+          result = await aiService.suggestTitle(content);
+          break;
+        case 'translate':
+          result = await aiService.translate(content, sourceLang, targetLang);
+          break;
+      }
+      setActiveResult({ type, result });
+    } catch (e) {
+      setError(language === 'ar'
+        ? 'فشل الاتصال بخدمة الذكاء الاصطناعي'
+        : 'AI service connection failed'
+      );
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleAccept = () => {
+    if (!activeResult) return;
+
+    switch (activeResult.type) {
+      case 'proofread':
+        onAcceptProofread?.(activeResult.result);
+        break;
+      case 'summarize':
+        onAcceptSummary?.(activeResult.result);
+        break;
+      case 'title':
+        onAcceptTitle?.(activeResult.result);
+        break;
+      case 'translate':
+        onAcceptTranslation?.(activeResult.result);
+        break;
+    }
+    setActiveResult(null);
+  };
+
+  const lang = language as 'ar' | 'en';
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      {/* Tool Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => handleTool('proofread')}
+          disabled={loading !== null}
+          className="flex items-center gap-2 px-3 py-2 bg-gov-gold/10 text-gov-gold
+            rounded-lg text-sm font-bold hover:bg-gov-gold/20 transition-colors
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading === 'proofread' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          {labels.proofread[lang]}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTool('summarize')}
+          disabled={loading !== null}
+          className="flex items-center gap-2 px-3 py-2 bg-gov-teal/10 text-gov-teal
+            rounded-lg text-sm font-bold hover:bg-gov-teal/20 transition-colors
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading === 'summarize' ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+          {labels.summarize[lang]}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTool('title')}
+          disabled={loading !== null}
+          className="flex items-center gap-2 px-3 py-2 bg-gov-ocean/10 text-gov-ocean
+            rounded-lg text-sm font-bold hover:bg-gov-ocean/20 transition-colors
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading === 'title' ? <Loader2 size={16} className="animate-spin" /> : <Heading size={16} />}
+          {labels.title[lang]}
+        </button>
+
+        {onAcceptTranslation && (
+          <button
+            type="button"
+            onClick={() => handleTool('translate')}
+            disabled={loading !== null}
+            className="flex items-center gap-2 px-3 py-2 bg-purple-500/10 text-purple-600 dark:text-purple-400
+              rounded-lg text-sm font-bold hover:bg-purple-500/20 transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading === 'translate' ? <Loader2 size={16} className="animate-spin" /> : <Languages size={16} />}
+            {labels.translate[lang]}
+          </button>
+        )}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20
+          border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">
+          <AlertCircle size={16} />
+          {error}
+        </div>
+      )}
+
+      {/* Result Panel */}
+      {activeResult && (
+        <div className="p-4 bg-gov-beige dark:bg-gov-card/10 rounded-xl border border-gov-gold/20 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-gov-charcoal dark:text-white">
+            <Sparkles size={16} className="text-gov-gold" />
+            {language === 'ar' ? 'نتيجة ' : 'Result: '}
+            {labels[activeResult.type][lang]}
+          </div>
+
+          <div className="p-3 bg-white dark:bg-white/10 rounded-lg text-sm text-gov-charcoal dark:text-white/70 whitespace-pre-wrap">
+            {activeResult.result}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleAccept}
+              className="flex items-center gap-1 px-4 py-2 bg-gov-emerald text-white
+                rounded-lg text-sm font-bold hover:bg-gov-teal transition-colors"
+            >
+              <Check size={16} />
+              {language === 'ar' ? 'تطبيق' : 'Apply'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveResult(null)}
+              className="flex items-center gap-1 px-4 py-2 bg-gray-200 dark:bg-white/10
+                text-gov-charcoal dark:text-white rounded-lg text-sm font-bold
+                hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
+            >
+              <X size={16} />
+              {language === 'ar' ? 'تجاهل' : 'Dismiss'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AIContentTools;

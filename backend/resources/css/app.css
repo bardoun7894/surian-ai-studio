@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@font-face {
+    font-family: 'Qomra';
+    src: url('/fonts/Qomra/itfQomraArabic-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Qomra';
+    src: url('/fonts/Qomra/itfQomraArabic-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Qomra';
+    src: url('/fonts/Qomra/itfQomraArabic-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+:root {
+    --color-gov-emerald: 9 66 57;
+    --color-gov-forest: 9 66 57;
+    --color-gov-teal: 66 129 119;
+    --color-gov-emerald-light: 17 94 89;
+    --color-mofa-teal: 5 66 57;
+    --color-surface-dark: 15 23 42;
+    --color-primary: 23 130 130;
+}
+
+.dark,
+:root[class~="dark"] {
+    --color-gov-emerald: 185 167 121;
+    /* Gold */
+    --color-gov-forest: 38 15 20;
+    /* Chocolate */
+    --color-gov-teal: 185 167 121;
+    /* Gold */
+    --color-gov-emerald-light: 185 167 121;
+    /* Gold */
+    --color-mofa-teal: 38 15 20;
+    /* Chocolate */
+    --color-surface-dark: 38 15 20;
+    --color-primary: 185 167 121;
+}
+
+@theme {
+    --font-sans: 'Qomra', 'Cairo', system-ui, sans-serif;
+    --color-primary: var(--color-primary);
+    --color-primary-dark: #126363;
+    --color-secondary: #D4AF37;
+    --color-secondary-dark: #B5952F;
+}
+
+@layer utilities {
+    .bg-subtle-pattern {
+        background-color: transparent;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23178282' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+}

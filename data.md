@@ -1,0 +1,1 @@
+mcp firecrawl = fc-f3a171d66a3048ae94ef194d968b9760  

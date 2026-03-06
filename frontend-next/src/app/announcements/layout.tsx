@@ -1,0 +1,23 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "الإعلانات",
+  description: "إعلانات ومناقصات وزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+  openGraph: {
+    title: "الإعلانات | وزارة الاقتصاد والصناعة",
+    description: "إعلانات ومناقصات وزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+    url: '/announcements',
+    type: "website",
+    images: [{ url: '/assets/logo/11.png', width: 512, height: 512, alt: 'وزارة الاقتصاد والصناعة' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: "الإعلانات | وزارة الاقتصاد والصناعة",
+    description: "إعلانات ومناقصات وزارة الاقتصاد والصناعة",
+  },
+  alternates: { canonical: '/announcements' },
+};
+
+export default function AnnouncementsLayout({ children }: { children: React.ReactNode }) {
+  return children;
+}

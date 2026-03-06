@@ -1,0 +1,255 @@
+openapi: "3.0.3"
+info:
+  title: "MOE Portal API Additions - 005-ministry-frontend-fixes"
+  version: "1.0.0"
+  description: "New and modified API endpoints for ministry portal amendments"
+
+paths:
+  # ---- Favorites ----
+  /api/v1/favorites:
+    get:
+      summary: "Get user's favorites"
+      tags: [Favorites]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [news, announcement, service, law]
+      responses:
+        "200":
+          description: "List of favorites"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Favorite"
+    post:
+      summary: "Add content to favorites"
+      tags: [Favorites]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content_type, content_id]
+              properties:
+                content_type:
+                  type: string
+                  enum: [news, announcement, service, law]
+                content_id:
+                  type: string
+      responses:
+        "201":
+          description: "Added to favorites"
+        "409":
+          description: "Already in favorites"
+
+  /api/v1/favorites/{content_type}/{content_id}:
+    delete:
+      summary: "Remove from favorites"
+      tags: [Favorites]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: content_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: content_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Removed from favorites"
+
+  /api/v1/favorites/check:
+    post:
+      summary: "Check if items are favorited"
+      tags: [Favorites]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      content_type:
+                        type: string
+                      content_id:
+                        type: string
+      responses:
+        "200":
+          description: "Map of favorited item IDs"
+
+  # ---- Admin Settings ----
+  /api/v1/admin/settings:
+    get:
+      summary: "Get all admin settings"
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: "Settings object"
+    put:
+      summary: "Update admin settings"
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                investment_section_enabled:
+                  type: boolean
+                complaint_rules_ar:
+                  type: string
+                complaint_rules_en:
+                  type: string
+                suggestion_rules_ar:
+                  type: string
+                suggestion_rules_en:
+                  type: string
+      responses:
+        "200":
+          description: "Settings updated"
+
+  # ---- Directorate Location ----
+  /api/v1/admin/directorates/{id}/location:
+    put:
+      summary: "Update directorate map location"
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                address_ar:
+                  type: string
+                address_en:
+                  type: string
+      responses:
+        "200":
+          description: "Location updated"
+
+  /api/v1/public/directorates/map:
+    get:
+      summary: "Get all directorates with map coordinates"
+      tags: [Public]
+      responses:
+        "200":
+          description: "Directorates with lat/lng for map display"
+
+  # ---- Complaint Rating (enhanced) ----
+  /api/v1/complaints/{tracking_number}/rate:
+    post:
+      summary: "Rate a complaint (submission or resolution)"
+      tags: [Complaints]
+      parameters:
+        - name: tracking_number
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating, type]
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                type:
+                  type: string
+                  enum: [submission, resolution]
+                comment:
+                  type: string
+      responses:
+        "200":
+          description: "Rating recorded"
+
+  # ---- Search Autocomplete ----
+  /api/v1/public/search/autocomplete:
+    get:
+      summary: "Get search autocomplete suggestions"
+      tags: [Public]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        "200":
+          description: "Autocomplete suggestions"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        type:
+                          type: string
+                        url:
+                          type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Favorite:
+      type: object
+      properties:
+        id:
+          type: integer
+        content_type:
+          type: string
+        content_id:
+          type: string
+        content:
+          type: object
+          description: "Resolved content (news item, announcement, etc.)"
+        created_at:
+          type: string
+          format: date-time

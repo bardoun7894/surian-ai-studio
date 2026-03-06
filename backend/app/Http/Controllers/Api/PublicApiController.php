@@ -707,6 +707,14 @@ class PublicApiController extends Controller
             $query->whereJsonContains('metadata->media_type', $request->type);
         }
 
+        // Month/Year date filtering
+        if ($request->filled('month')) {
+            $query->whereMonth('published_at', (int) $request->month + 1); // JS months are 0-indexed
+        }
+        if ($request->filled('year')) {
+            $query->whereYear('published_at', (int) $request->year);
+        }
+
         $formatMedia = function($m) {
             $mediaType = $m->metadata['media_type'] ?? 'photo';
             // For photo/infographic types, use actual attachment count if metadata count is not set

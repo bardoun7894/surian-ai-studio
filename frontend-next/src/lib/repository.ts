@@ -1591,7 +1591,7 @@ export interface AlbumData {
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
-  getPaginated(page: number, perPage: number, type?: string): Promise<PaginatedResponse<MediaItem>>;
+  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>>;
   getAlbumPhotos(id: string): Promise<AlbumData>;
 }
 
@@ -1607,7 +1607,7 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
     const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
@@ -1653,9 +1653,11 @@ class ApiMediaRepository implements IMediaRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
+    if (month !== null && month !== undefined) params.append('month', String(month));
+    if (year !== null && year !== undefined) params.append('year', String(year));
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();

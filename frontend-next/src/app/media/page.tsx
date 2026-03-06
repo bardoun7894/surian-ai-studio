@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Play,
@@ -59,13 +59,13 @@ export default function MediaPage() {
   // Reset to page 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeFilter]);
+  }, [activeFilter, selectedMonth, selectedYear]);
 
   useEffect(() => {
     const fetchMedia = async () => {
       setLoading(true);
       try {
-        const response = await API.media.getPaginated(currentPage, perPage, activeFilter);
+        const response = await API.media.getPaginated(currentPage, perPage, activeFilter, selectedMonth, selectedYear);
         setMedia(response.data);
         setLastPage(response.last_page);
         setTotalItems(response.total);
@@ -76,21 +76,10 @@ export default function MediaPage() {
       }
     };
     fetchMedia();
-  }, [activeFilter, currentPage, perPage]);
+  }, [activeFilter, currentPage, perPage, selectedMonth, selectedYear]);
 
-  // Date filtering
-  const filteredMedia = useMemo(() => {
-    let result = [...media];
-    if (selectedMonth !== null || selectedYear !== null) {
-      result = result.filter(item => {
-        const d = new Date(item.date);
-        if (selectedYear !== null && d.getFullYear() !== selectedYear) return false;
-        if (selectedMonth !== null && d.getMonth() !== selectedMonth) return false;
-        return true;
-      });
-    }
-    return result;
-  }, [media, selectedMonth, selectedYear]);
+  // Data is now filtered by the API (month/year params sent to backend)
+  const filteredMedia = media;
 
   const getTypeIcon = (type: string) => {
     switch (type) {

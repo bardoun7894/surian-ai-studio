@@ -17,7 +17,7 @@ const routeLabels: Record<string, { ar: string; en: string }> = {
   'media': { ar: 'المركز الإعلامي', en: 'Media Center' },
   'faq': { ar: 'الأسئلة الشائعة', en: 'FAQ' },
   'contact': { ar: 'اتصل بنا', en: 'Contact Us' },
-  'decrees': { ar: 'المراسيم والقوانين', en: 'Decrees & Laws' },
+  'decrees': { ar: 'القوانين والتشريعات', en: 'Laws & Legislation' },
   'search': { ar: 'البحث', en: 'Search' },
   'semantic': { ar: 'البحث الذكي', en: 'Smart Search' },
   'investments': { ar: 'الاستثمار', en: 'Investments' },

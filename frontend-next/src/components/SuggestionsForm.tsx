@@ -91,6 +91,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [isUploading, setIsUploading] = useState(false);
 
     // Tracking State
@@ -208,7 +209,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         inputs.forEach(el => focusPulse(el as any));
     }, [activeTab]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
 
         const incomingFiles = Array.from(e.target.files);
@@ -260,18 +261,34 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setFormData(prev => ({ ...prev, files: [...prev.files, ...filesToAdd] }));
-            // Show upload animation immediately on file selection
+            // Stage upload immediately on file selection
             setFileUploadStatus('uploading');
             setFileUploadProgress(0);
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 20;
-                setFileUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setFileUploadStatus('completed');
+            const totalFiles = filesToAdd.length;
+            let completed = 0;
+
+            const failedFiles: string[] = [];
+            for (const file of filesToAdd) {
+                try {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    const res = await fetch('/api/v1/complaints/attachments/stage', {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'include',
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
+                    }
+                } catch (err) {
+                    console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
                 }
-            }, 150);
+                completed++;
+                setFileUploadProgress(Math.round((completed / totalFiles) * 100));
+            }
+            setFileUploadStatus(failedFiles.length > 0 ? 'ready' : 'completed');
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -418,6 +435,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             toast.error(t('suggestion_required_fields'));
             return;
         }
+        if (!formData.directorate_id) {
+            toast.error(isAr ? 'يرجى تحديد الجهة المختصة' : 'Please select a target entity');
+            return;
+        }
         if (!formData.description) {
             toast.error(t('suggestion_required_fields'));
             return;
@@ -436,7 +457,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
 
             const submitData = isAnonymous
-                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken }
+                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken, staged_attachment_ids: Object.values(stagedIds).filter(Boolean) }
                 : {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -451,6 +472,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
+                    staged_attachment_ids: Object.values(stagedIds).filter(Boolean),
                 };
 
             const result = await API.suggestions.submitWithProgress(
@@ -692,7 +714,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => prevStep()}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             <span>{formStep === 2
@@ -711,6 +734,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting} className="space-y-6">
                             {formStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Anonymous / Known Identity Toggle */}
@@ -970,6 +994,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     </button>
                                 </div>
                             )}
+                            </fieldset>
                         </form>
                     </div>
                 )}

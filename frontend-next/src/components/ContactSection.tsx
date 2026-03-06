@@ -195,13 +195,13 @@ const ContactSection: React.FC = () => {
   // Loading skeleton
   if (loading) {
     return (
-      <section className="py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg" id="contact">
+      <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg" id="contact">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <SkeletonText lines={1} className="max-w-xs mx-auto mb-6" />
             <SkeletonText lines={2} className="max-w-3xl mx-auto" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
             <div className="space-y-4">
               <SkeletonList rows={4} />
             </div>
@@ -219,7 +219,7 @@ const ContactSection: React.FC = () => {
   const mainAdministrations = directorates.filter(d => d.featured || ['d1', 'd2', 'd3'].includes(d.id));
 
   return (
-    <section className="py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg" id="contact">
+    <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg" id="contact">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -240,7 +240,7 @@ const ContactSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-16"
         >
           {/* Decorative Line */}
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -300,7 +300,7 @@ const ContactSection: React.FC = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
           {/* Contact Info Card */}
           <motion.div
             variants={containerVariants}
@@ -310,7 +310,7 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-gov-forest dark:bg-gov-forest/90 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl h-full"
+              className="bg-gov-forest dark:bg-gov-forest/90 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-2xl h-full"
             >
               {/* Background Effects */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gov-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -319,7 +319,7 @@ const ContactSection: React.FC = () => {
               <div className="relative z-10">
                 <motion.h3
                   variants={itemVariants}
-                  className="text-2xl md:text-3xl font-bold text-white mb-4"
+                  className="text-xl md:text-3xl font-bold text-white mb-3 md:mb-4"
                 >
                   {isAr ? 'معلومات الاتصال' : 'Contact Information'}
                 </motion.h3>
@@ -385,13 +385,13 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-white dark:bg-dm-surface rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gov-gold/10 dark:border-gov-border/15 h-full"
+              className="bg-white dark:bg-dm-surface rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 shadow-xl border border-gov-gold/10 dark:border-gov-border/15 h-full"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
                   <MessageSquare className="text-gov-forest dark:text-gov-gold" size={24} />
                 </div>
-                <h3 className="text-2xl font-bold text-gov-forest dark:text-gov-gold">
+                <h3 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-gov-gold">
                   {isAr ? 'نموذج المراسلة الإلكتروني' : 'Electronic Contact Form'}
                 </h3>
               </div>

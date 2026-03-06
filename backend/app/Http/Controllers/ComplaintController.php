@@ -9,6 +9,8 @@ use App\Services\AuditService;
 use App\Services\RecaptchaService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -209,9 +211,38 @@ class ComplaintController extends Controller
             $data['email'] = $request->input('email');
         }
 
-        $files = $request->file('attachments', []);
+        $files = $request->file("attachments", []);
+
+        // Support staged uploads: move temp files to attachments
+        $consumedTempPaths = [];
+        if ($request->has("staged_attachment_ids")) {
+            $stagedIds = $request->input("staged_attachment_ids", []);
+            $tempFiles = Storage::disk("local")->files("temp-uploads");
+            foreach ($stagedIds as $stagedId) {
+                // Validate UUID format
+                if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $stagedId)) {
+                    continue;
+                }
+                foreach ($tempFiles as $tempFile) {
+                    $stem = pathinfo(basename($tempFile), PATHINFO_FILENAME);
+                    if ($stem === $stagedId) {
+                        $fullPath = storage_path("app/" . $tempFile);
+                        if (file_exists($fullPath)) {
+                            $files[] = new UploadedFile($fullPath, basename($tempFile), null, null, true);
+                            $consumedTempPaths[] = $tempFile;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
         $complaint = $this->complaintService->createComplaint($data, $files);
+
+        // Clean up consumed temp files
+        foreach ($consumedTempPaths as $tempPath) {
+            Storage::disk("local")->delete($tempPath);
+        }
 
         // Hit rate limiter for non-whitelisted IPs
         if (!in_array($request->ip(), ['196.70.75.216'], true)) {

@@ -353,28 +353,37 @@ class PublicApiController extends Controller
      */
     public function breakingNews(): JsonResponse
     {
-        return response()->json(Cache::remember('public.breaking_news', 120, function () {
-            $newsQuery = Content::where('category', 'news')
-            ->where('status', 'published')
-            ->where('priority', '>=', 8)
-            ->orderBy('published_at', 'desc')
-            ->limit(5);
-
-        $newsItems = $newsQuery->get(['title_ar', 'title_en']);
-
-        // If no breaking news, get latest news titles
-        if ($newsItems->isEmpty()) {
-            $newsItems = Content::where('category', 'news')
+        return response()->json(Cache::remember('public.breaking_news', 60, function () {
+            // Get news with active ticker (duration not expired)
+            $tickerNews = Content::where('category', 'news')
                 ->where('status', 'published')
+                ->whereJsonContains('metadata->ticker_enabled', true)
                 ->orderBy('published_at', 'desc')
-                ->limit(5)
-                ->get(['title_ar', 'title_en']);
-        }
+                ->get(['title_ar', 'title_en', 'metadata']);
 
-        return $newsItems->map(fn($n) => [
-            'title_ar' => $n->title_ar,
-            'title_en' => $n->title_en,
-        ])->toArray();
+            // Filter by duration expiry
+            $activeTickerNews = $tickerNews->filter(function ($item) {
+                $meta = $item->metadata ?? [];
+                $startsAt = $meta['ticker_starts_at'] ?? null;
+                $durationHours = $meta['ticker_duration'] ?? 24;
+                if (!$startsAt) return false;
+                $expiresAt = \Carbon\Carbon::parse($startsAt)->addHours($durationHours);
+                return now()->lt($expiresAt);
+            });
+
+            // If no active ticker news, fall back to latest news
+            if ($activeTickerNews->isEmpty()) {
+                $activeTickerNews = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->orderBy('published_at', 'desc')
+                    ->limit(5)
+                    ->get(['title_ar', 'title_en']);
+            }
+
+            return $activeTickerNews->map(fn($n) => [
+                'title_ar' => $n->title_ar,
+                'title_en' => $n->title_en,
+            ])->values()->toArray();
         }));
     }
 

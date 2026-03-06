@@ -506,7 +506,7 @@ class PublicApiController extends Controller
 
         // Search by title or content (Arabic and English)
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('title_ar', 'like', "%{$search}%")
                   ->orWhere('title_en', 'like', "%{$search}%")

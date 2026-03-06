@@ -128,6 +128,7 @@ export default function AnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -145,23 +146,7 @@ export default function AnnouncementsPage() {
 
   // Debounce search input
   useEffect(() => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setCurrentPage(1);
-    }, 400);
-    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
-  }, [searchQuery]);
-
-  // Status filter state
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
-
-  // Reset to page 1 when statusFilter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter]);
-
-  useEffect(() => {
+    let cancelled = false;
     const fetchAnnouncements = async () => {
       setLoading(true);
       try {
@@ -171,17 +156,20 @@ export default function AnnouncementsPage() {
           statusFilter !== 'all' ? statusFilter : undefined,
           debouncedSearch || undefined
         );
+        if (cancelled) return;
         setAnnouncements(response.data);
+        setHasFetched(true);
         setCurrentPage(response.current_page);
         setLastPage(response.last_page);
         setTotalItems(response.total);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchAnnouncements();
+    return () => { cancelled = true; };
   }, [currentPage, perPage, statusFilter, debouncedSearch]);
 
   const statusFilters = [
@@ -279,7 +267,7 @@ export default function AnnouncementsPage() {
     setCurrentPage(1);
   };
 
-  const dataSource = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS;
+  const dataSource = hasFetched ? announcements : MOCK_ANNOUNCEMENTS;
   const filteredAnnouncements = dataSource.filter((announcement: any) => {
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
 

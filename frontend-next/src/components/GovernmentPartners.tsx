@@ -148,17 +148,17 @@ const GovernmentPartners: React.FC = () => {
 
     if (loading) {
         return (
-            <section className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
+            <section className="py-12 md:py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <div className="h-6 w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-6 animate-pulse" />
-                        <div className="h-12 w-64 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-6 animate-pulse" />
-                        <div className="h-4 w-96 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto animate-pulse" />
+                    <div className="text-center mb-10 md:mb-16">
+                        <div className="h-5 w-24 md:h-6 md:w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 md:mb-6 animate-pulse" />
+                        <div className="h-8 w-48 md:h-12 md:w-64 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-4 md:mb-6 animate-pulse" />
+                        <div className="h-3 w-64 md:h-4 md:w-96 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto animate-pulse" />
                     </div>
-                    <div className="flex gap-6 overflow-hidden py-4">
+                    <div className="flex gap-4 md:gap-6 overflow-hidden py-2 md:py-4">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-48 h-48 md:w-56 md:h-56 flex-shrink-0">
-                                <SkeletonCard className="h-full w-full rounded-3xl" />
+                            <div key={i} className="w-36 h-36 md:w-48 md:h-48 lg:w-56 lg:h-56 flex-shrink-0">
+                                <SkeletonCard className="h-full w-full rounded-2xl md:rounded-3xl" />
                             </div>
                         ))}
                     </div>
@@ -172,33 +172,33 @@ const GovernmentPartners: React.FC = () => {
     }
 
     return (
-        <section className="py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
+        <section className="py-12 md:py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Centered Header - matching Announcements pattern */}
-                <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-6">
-                        <Handshake className="text-gov-gold" size={20} />
-                        <span className="text-gov-gold font-bold text-sm tracking-wide">
+                <div className="text-center mb-10 md:mb-16">
+                    <div className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-4 md:mb-6">
+                        <Handshake className="text-gov-gold w-4 h-4 md:w-5 md:h-5" />
+                        <span className="text-gov-gold font-bold text-xs md:text-sm tracking-wide">
                             {t('partners_title')}
                         </span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-6">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-4 md:mb-6">
                         {t('partners_title')}
                     </h2>
-                    <p className="text-gov-stone/60 dark:text-white/70 max-w-2xl mx-auto text-lg leading-relaxed">
+                    <p className="text-gov-stone/60 dark:text-white/70 max-w-2xl mx-auto text-sm md:text-lg leading-relaxed">
                         {t('partners_subtitle')}
                     </p>
                 </div>
 
                 {/* Partners Carousel (Infinite Marquee) */}
                 <div
-                    className="relative overflow-hidden w-full group mb-12 [mask-image:linear-gradient(to_right,transparent,white_5%,white_95%,transparent)]"
+                    className="relative overflow-hidden w-full group mb-8 md:mb-12 [mask-image:linear-gradient(to_right,transparent,white_5%,white_95%,transparent)]"
                     dir="ltr" // Force LTR for consistent marquee direction regardless of language
                 >
                     <div
                         ref={scrollRef}
-                        className="flex gap-6 w-max flex-nowrap py-4"
+                        className="flex gap-4 md:gap-6 w-max flex-nowrap py-2 md:py-4"
                     >
                         {/* Duplicate the array multiple times to ensure it covers wide screens and loops seamlessly */}
                         {[...directorates, ...directorates, ...directorates, ...directorates].map((directorate, index) => (
@@ -207,30 +207,30 @@ const GovernmentPartners: React.FC = () => {
                                 className="flex-shrink-0"
                                 onClick={() => setSelectedDirectorate(directorate)}
                             >
-                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
+                                <div className="w-36 h-36 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-2xl md:rounded-3xl bg-white dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 flex flex-col items-center justify-center p-4 md:p-6 transition-all duration-500 hover:shadow-xl md:hover:shadow-2xl hover:-translate-y-2 md:hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
                                     {/* Glass reflection effect */}
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
 
                                     {/* Icon */}
-                                    <div className="w-16 h-16 rounded-2xl bg-gov-forest/5 dark:bg-gov-emerald/10 text-gov-forest dark:text-gov-teal flex items-center justify-center mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm">
-                                        {iconMap[directorate.icon] || <Building2 size={28} />}
+                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gov-forest/5 dark:bg-gov-emerald/10 text-gov-forest dark:text-gov-teal flex items-center justify-center mb-3 md:mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8">
+                                        {iconMap[directorate.icon] || <Building2 className="w-6 h-6 md:w-8 md:h-8" />}
                                     </div>
 
                                     {/* Name */}
-                                    <h3 className="text-sm md:text-base font-bold text-gov-forest dark:text-gov-teal text-center leading-tight line-clamp-2 px-2">
+                                    <h3 className="text-[11px] md:text-sm lg:text-base font-bold text-gov-forest dark:text-gov-teal text-center leading-tight line-clamp-2 px-1 md:px-2">
                                         {loc(directorate, 'name')}
                                     </h3>
 
                                     {/* Service Count */}
-                                    <div className="flex items-center gap-1.5 mt-3 opacity-60 group-hover/card:opacity-100 transition-all duration-300">
-                                        <TrendingUp size={12} className="text-gov-gold" />
-                                        <span className="text-xs font-medium text-gov-sand dark:text-gov-beige">
+                                    <div className="flex items-center gap-1 md:gap-1.5 mt-2 md:mt-3 opacity-60 group-hover/card:opacity-100 transition-all duration-300">
+                                        <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-gov-gold" />
+                                        <span className="text-[9px] md:text-xs font-medium text-gov-sand dark:text-gov-beige">
                                             {directorate.servicesCount} {language === 'ar' ? 'خدمة' : 'services'}
                                         </span>
                                     </div>
 
                                     {/* Decorative corner accent */}
-                                    <div className="absolute bottom-0 right-0 w-8 h-8 bg-gov-gold/10 rounded-tl-full translate-x-4 translate-y-4 group-hover/card:translate-x-0 group-hover/card:translate-y-0 transition-transform duration-500"></div>
+                                    <div className="absolute bottom-0 right-0 w-6 h-6 md:w-8 md:h-8 bg-gov-gold/10 rounded-tl-full translate-x-3 translate-y-3 md:translate-x-4 md:translate-y-4 group-hover/card:translate-x-0 group-hover/card:translate-y-0 transition-transform duration-500"></div>
                                 </div>
                             </div>
                         ))}
@@ -245,10 +245,10 @@ const GovernmentPartners: React.FC = () => {
                 <div className="flex justify-center">
                     <Link
                         href="/directorates"
-                        className="inline-flex items-center gap-2 px-10 py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-gov-forest/20 dark:hover:shadow-gov-gold/20 transition-all duration-300 group hover:-translate-y-1 active:translate-y-0"
+                        className="inline-flex items-center gap-2 px-6 py-3 md:px-10 md:py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl md:rounded-2xl hover:shadow-lg hover:shadow-gov-forest/20 dark:hover:shadow-gov-gold/20 transition-all duration-300 group hover:-translate-y-1 active:translate-y-0 text-xs md:text-base"
                     >
                         <span>{language === 'ar' ? 'عرض دليل الجهات الكامل' : 'View Full Directorates Guide'}</span>
-                        <BookOpen size={18} className="group-hover:scale-110 transition-transform" />
+                        <BookOpen className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                     </Link>
                 </div>
 
@@ -267,74 +267,74 @@ const GovernmentPartners: React.FC = () => {
                     {/* Modal Content */}
                     <div
                         ref={modalRef}
-                        className="relative w-full max-w-3xl bg-white dark:bg-dm-surface rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-white dark:bg-dm-surface rounded-[1.5rem] md:rounded-[2rem] shadow-2xl overflow-hidden opacity-0 flex flex-col md:flex-row max-h-[90vh]"
                     >
                         {/* Header / Sidebar Image */}
-                        <div className="w-full md:w-1/3 bg-gov-forest relative p-8 flex flex-col items-center justify-center text-center">
+                        <div className="w-full md:w-1/3 bg-gov-forest relative p-6 md:p-8 flex flex-col items-center justify-center text-center">
                             <div className="absolute inset-0 bg-pattern-islamic opacity-10"></div>
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
 
                             <div className="relative z-10">
-                                <div className="w-32 h-32 mx-auto mb-6 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+                                <div className="w-20 h-20 md:w-32 md:h-32 mx-auto mb-4 md:mb-6 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg [&>svg]:w-10 [&>svg]:h-10 md:[&>svg]:w-12 md:[&>svg]:h-12">
                                     {iconMap[selectedDirectorate.icon] ?
-                                        React.cloneElement(iconMap[selectedDirectorate.icon] as React.ReactElement, { size: 48, className: "text-white" })
-                                        : <Building2 size={48} className="text-white" />}
+                                        React.cloneElement(iconMap[selectedDirectorate.icon] as React.ReactElement, { className: "text-white" })
+                                        : <Building2 className="text-white w-10 h-10 md:w-12 md:h-12" />}
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2 leading-tight">{loc(selectedDirectorate, 'name')}</h3>
-                                <div className="h-1 w-12 bg-gov-gold mx-auto rounded-full"></div>
+                                <h3 className="text-lg md:text-xl font-bold text-white mb-2 leading-tight">{loc(selectedDirectorate, 'name')}</h3>
+                                <div className="h-1 w-10 md:w-12 bg-gov-gold mx-auto rounded-full"></div>
                             </div>
                         </div>
 
                         {/* Content Area */}
-                        <div className="flex-1 p-8 md:p-10 overflow-y-auto bg-gray-50 dark:bg-zinc-900/50">
-                            <div className="flex justify-between items-start mb-6">
+                        <div className="flex-1 p-6 md:p-10 overflow-y-auto bg-gray-50 dark:bg-zinc-900/50">
+                            <div className="flex justify-between items-start mb-4 md:mb-6">
                                 <div>
-                                    <h4 className="text-lg font-bold text-gov-forest dark:text-gov-teal mb-2">
+                                    <h4 className="text-base md:text-lg font-bold text-gov-forest dark:text-gov-teal mb-1 md:mb-2">
                                         {language === 'ar' ? 'المديريات والهيئات التابعة' : 'Affiliated Directorates & Bodies'}
                                     </h4>
-                                    <p className="text-sm text-gov-stone dark:text-white/70">
+                                    <p className="text-xs md:text-sm text-gov-stone dark:text-white/70">
                                         {loc(selectedDirectorate, 'description')}
                                     </p>
                                 </div>
                                 <button
                                     onClick={handleClose}
-                                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                                    className="p-1.5 md:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                                 >
-                                    <X className="text-gov-stone dark:text-white" size={24} />
+                                    <X className="text-gov-stone dark:text-white w-5 h-5 md:w-6 md:h-6" />
                                 </button>
                             </div>
 
                             {/* List of Sub-Directorates */}
                             {selectedDirectorate.subDirectorates && selectedDirectorate.subDirectorates.length > 0 ? (
-                                <div className="grid gap-3">
+                                <div className="grid gap-2 md:gap-3">
                                     {selectedDirectorate.subDirectorates.map((sub, idx) => (
                                         <a
                                             key={sub.id}
                                             href={sub.isExternal ? (sub.url || '#') : `/directorates/${selectedDirectorate.id}/sub-directorates`}
                                             target={sub.isExternal ? '_blank' : '_self'}
                                             rel="noreferrer"
-                                            className="modal-item group flex items-center justify-between p-4 bg-white dark:bg-gov-card/10 border border-gov-gold/10 dark:border-white/5 rounded-xl hover:border-gov-gold/40 hover:shadow-md transition-all duration-300"
+                                            className="modal-item group flex items-center justify-between p-3 md:p-4 bg-white dark:bg-gov-card/10 border border-gov-gold/10 dark:border-white/5 rounded-lg md:rounded-xl hover:border-gov-gold/40 hover:shadow-sm md:hover:shadow-md transition-all duration-300"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-gov-gold group-hover:scale-150 transition-transform"></div>
-                                                <span className="font-medium text-gov-forest dark:text-white/70 group-hover:text-gov-gold transition-colors">
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gov-gold group-hover:scale-150 transition-transform"></div>
+                                                <span className="font-medium text-[11px] md:text-sm text-gov-forest dark:text-white/70 group-hover:text-gov-gold transition-colors">
                                                     {loc(sub, 'name')}
                                                 </span>
                                             </div>
-                                            {sub.isExternal ? <ExternalLink size={16} className="text-gray-400" /> : <TrendingUp size={16} className="text-gray-400 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 rtl:translate-x-2 rtl:group-hover:translate-x-0 transition-all" />}
+                                            {sub.isExternal ? <ExternalLink className="text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" /> : <TrendingUp className="text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4 opacity-0 group-hover:opacity-100 -translate-x-1 md:-translate-x-2 group-hover:translate-x-0 rtl:translate-x-1 rtl:md:translate-x-2 rtl:group-hover:translate-x-0 transition-all" />}
                                         </a>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-gray-400 italic">
+                                <div className="text-center py-6 md:py-8 text-xs md:text-sm text-gray-400 italic">
                                     {language === 'ar' ? 'لا توجد مديريات فرعية متاحة حالياً' : 'No affiliated directorates available at the moment'}
                                 </div>
                             )}
 
-                            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gov-border/15 flex justify-end">
+                            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-200 dark:border-gov-border/15 flex justify-end">
                                 <button
                                     onClick={handleClose}
-                                    className="px-6 py-2 rounded-lg bg-gray-200 dark:bg-white/10 text-gov-forest dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
+                                    className="px-4 py-1.5 md:px-6 md:py-2 rounded-md md:rounded-lg bg-gray-200 dark:bg-white/10 text-gov-forest dark:text-white text-xs md:text-sm font-medium hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
                                 >
                                     {language === 'ar' ? 'إغلاق' : 'Close'}
                                 </button>

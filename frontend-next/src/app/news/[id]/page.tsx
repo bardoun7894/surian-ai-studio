@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect, use } from 'react';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
@@ -26,7 +27,7 @@ import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
 
     // Handle both sync and async params (Next.js 14.x compatibility)
     const resolvedParams = params instanceof Promise ? use(params) : params;
@@ -35,6 +36,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     const [news, setNews] = useState<NewsItemDetail | null>(null);
     const [relatedItems, setRelatedItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
     const [error, setError] = useState(false);
 
     // Favorites
@@ -94,7 +96,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
     const handleToggleFavorite = async () => {
         if (!isAuthenticated) {
-            toast.error(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites');
+            toast.error(t('auth_login_required') !== 'auth_login_required' ? t('auth_login_required') : (language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'You must be logged in to add favorites'));
             return;
         }
 
@@ -137,7 +139,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-20 md:pt-24 pb-20">
+                <main className="flex-grow pt-16 md:pt-[5.75rem] pb-20">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Back Link Skeleton */}
                         <div className="inline-flex items-center gap-2 mb-8">
@@ -226,16 +228,16 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 <Navbar />
                 <main className="flex-grow flex flex-col items-center justify-center p-12 text-center">
                     <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-4">
-                        {language === 'ar' ? 'عفواً، الخبر غير موجود' : 'Article Not Found'}
+                        {t('news_not_found')}
                     </h1>
                     <p className="text-gray-500 mb-8 max-w-md">
-                        {language === 'ar' ? 'قد يكون هذا الخبر قد تم نقله أو حذفه.' : 'This article might have been moved or deleted.'}
+                        {t('news_not_found_desc')}
                     </p>
                     <a
                         href="/news"
                         className="px-6 py-3 bg-gov-teal text-white rounded-lg hover:bg-gov-teal/90 transition-colors"
                     >
-                        {language === 'ar' ? 'العودة لمركز الأخبار' : 'Back to News Center'}
+                        {t('news_back_to_center')}
                     </a>
                 </main>
                 <Footer />
@@ -246,7 +248,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 <ArticleDetail
                     title={language === 'ar'
                         ? (news.title_ar || news.title || '')

@@ -1,18 +1,13 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import {
-    MapPin,
-    Phone,
-    Mail,
-    Globe,
     Building2,
     Loader2,
     ExternalLink,
     ChevronLeft,
     ChevronRight,
-    Clock,
-    Users,
     Newspaper,
     Megaphone,
     Calendar,
@@ -44,7 +39,8 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     const isAr = language === 'ar';
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
-    const [ministryContact, setMinistryContact] = useState<Record<string, string>>({});
+    usePageLoading(loading);
+
 
     // News & Announcements
     const [news, setNews] = useState<NewsItem[]>([]);
@@ -68,12 +64,8 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dir, contactSettings] = await Promise.all([
-                    API.directorates.getById(directorateId),
-                    API.settings.getByGroup('contact'),
-                ]);
+                const dir = await API.directorates.getById(directorateId);
                 setDirectorate(dir);
-                setMinistryContact((contactSettings ?? {}) as Record<string, string>);
             } catch (e) {
                 console.error(e);
             } finally {
@@ -153,27 +145,6 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
         : Number((directorate as any).subDirectoratesCount ?? (directorate as any).sub_directorates_count) || 0;
 
     // Contact info resolution
-    const contactAddress = loc(directorate, 'address')
-        || (directorate as any).contact?.address
-        || (isAr
-            ? (ministryContact.contact_address_ar || t('directorate_address'))
-            : (ministryContact.contact_address_en || t('directorate_address')));
-    const contactPhone = directorate.phone
-        || (directorate as any).contact?.phone
-        || ministryContact.contact_phone
-        || t('directorate_phone');
-    const contactEmail = directorate.email
-        || (directorate as any).contact?.email
-        || ministryContact.contact_email
-        || t('directorate_email');
-    const contactWebsite = directorate.website
-        || (directorate as any).contact?.website
-        || '';
-    const contactWorkingHours = (isAr
-        ? (directorate.working_hours_ar || ministryContact.contact_working_hours_ar)
-        : (directorate.working_hours_en || ministryContact.contact_working_hours_en))
-        || '';
-
     const featuredNews = news.slice(0, 4);
     const ArrowIcon = isAr ? ArrowLeft : ArrowRight;
 
@@ -194,11 +165,11 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* 2. SUB-DIRECTORATES */}
             {/* ═══════════════════════════════════════════════════ */}
             {directorate.subDirectorates && directorate.subDirectorates.length > 0 && (
-                <section id="sub-directorates" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <section id="sub-directorates" className="py-10 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                     <ScrollAnimation>
                         <div className="bg-gradient-to-br from-gov-forest to-gov-emerald dark:from-gov-brand dark:to-gov-forest rounded-2xl shadow-lg overflow-hidden">
-                            <div className="p-8">
-                                <div className="flex items-center justify-between mb-6">
+                            <div className="p-6 md:p-8">
+                                <div className="flex items-center justify-between mb-4 md:mb-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
                                             <Building2 className="text-gov-gold" size={24} />
@@ -257,9 +228,9 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             {/* 3. FEATURED NEWS (Last 4) */}
             {/* ═══════════════════════════════════════════════════ */}
-            <section id="news" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <section id="news" className="py-10 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <ScrollAnimation>
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center justify-between mb-6 md:mb-8">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
                                 <Newspaper className="text-gov-forest dark:text-gov-gold" size={20} />
@@ -354,9 +325,9 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             {/* 4. ANNOUNCEMENTS */}
             {/* ═══════════════════════════════════════════════════ */}
-            <section id="announcements" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <section id="announcements" className="py-10 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <ScrollAnimation>
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center justify-between mb-6 md:mb-8">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gov-gold/10 flex items-center justify-center">
                                 <Megaphone className="text-gov-gold" size={20} />
@@ -436,94 +407,9 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             {/* 8. FAQ (directorate-specific) */}
             {/* ═══════════════════════════════════════════════════ */}
-            <section id="faq" className="py-12 bg-gray-50 dark:bg-dm-bg">
+            <section id="faq" className="py-10 md:py-12 bg-gray-50 dark:bg-dm-bg">
                 <ScrollAnimation>
                     <FAQSection directorateId={directorateId} />
-                </ScrollAnimation>
-            </section>
-
-            {/* ═══════════════════════════════════════════════════ */}
-            {/* 9. CONTACT US (directorate-specific info) */}
-            {/* ═══════════════════════════════════════════════════ */}
-            <section id="contact" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <ScrollAnimation>
-                    <div className="text-center mb-10">
-                        <h2 className="text-3xl font-bold text-gov-charcoal dark:text-white mb-2">
-                            {isAr ? 'تواصل معنا' : 'Contact Us'}
-                        </h2>
-                        <p className="text-gray-500 dark:text-white/60">
-                            {isAr ? `معلومات التواصل الخاصة بـ ${loc(directorate, 'name')}` : `Contact information for ${loc(directorate, 'name')}`}
-                        </p>
-                        <div className="mt-3 mx-auto w-20 h-1 rounded-full bg-gov-gold" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                        {/* Contact Info Card */}
-                        <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gov-border/15 p-6 h-full flex flex-col justify-center">
-                            <h3 className="font-bold text-gov-charcoal dark:text-white mb-5 flex items-center gap-2">
-                                <Users className="text-gov-forest dark:text-gov-teal" size={20} />
-                                {t('directorate_contact')}
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-white/70">
-                                    <MapPin className="shrink-0 text-gov-forest dark:text-gov-teal mt-0.5" size={18} />
-                                    <span>{contactAddress}</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
-                                    <Phone className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    <a href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`} className="hover:text-gov-forest dark:hover:text-gov-gold dir-ltr transition-colors">
-                                        {contactPhone}
-                                    </a>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
-                                    <Mail className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    <a href={`mailto:${contactEmail}`} className="hover:text-gov-forest dark:hover:text-gov-gold transition-colors">
-                                        {contactEmail}
-                                    </a>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-white/70">
-                                    <Globe className="shrink-0 text-gov-forest dark:text-gov-teal" size={18} />
-                                    {contactWebsite ? (
-                                        <a
-                                            href={contactWebsite}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:text-gov-forest dark:hover:text-gov-gold underline break-all"
-                                        >
-                                            {contactWebsite}
-                                        </a>
-                                    ) : (
-                                        <span>{t('directorate_website')}</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Working Hours Card */}
-                        <div className="bg-gov-forest text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col justify-center h-full">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                            <h3 className="font-bold mb-5 relative z-10 flex items-center gap-2">
-                                <Clock size={20} />
-                                {t('directorate_hours')}
-                            </h3>
-                            <div className="space-y-3 text-sm relative z-10">
-                                {contactWorkingHours ? (
-                                    <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
-                                        <span className="font-bold text-gov-gold">{contactWorkingHours}</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
-                                        <span className="font-medium">{t('directorate_hours_sun_thu')}</span>
-                                        <span className="font-bold text-gov-gold">{t('directorate_hours_value')}</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
-                                    <span className="font-medium">{t('directorate_fri_sat')}</span>
-                                    <span className="font-bold text-red-300">{t('directorate_holiday')}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </ScrollAnimation>
             </section>
 

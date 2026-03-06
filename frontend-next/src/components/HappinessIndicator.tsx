@@ -56,7 +56,7 @@ const HappinessIndicator: React.FC = () => {
     return (
         // Positioned above the ChatBot (ChatBot is usually bottom-12 or bottom-16, ~80px height -> ends ~144px).
         // giving it bottom-36 (144px) or bottom-40 (160px) to be safe.
-        <div className={`fixed bottom-36 md:bottom-40 ${language === 'ar' ? 'left-8' : 'right-8'} z-40 flex flex-col items-center pointer-events-none`}>
+        <div className={`fixed bottom-20 md:bottom-24 ${language === 'ar' ? 'left-4 md:left-6' : 'right-4 md:right-6'} z-[55] flex flex-col items-center pointer-events-none`}>
 
             {/* Hint Bubble */}
             <AnimatePresence>
@@ -150,7 +150,7 @@ const HappinessIndicator: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={toggleOpen}
-                    className={`group w-12 h-12 bg-white dark:bg-dm-surface text-gov-forest dark:text-gov-gold rounded-full shadow-lg border border-gov-gold/30 hover:shadow-gov-gold/20 flex items-center justify-center transition-all duration-300 ${isOpen ? 'ring-2 ring-gov-gold ring-offset-2 dark:ring-offset-dm-bg' : ''}`}
+                    className={`group w-14 h-14 bg-white dark:bg-dm-surface text-gov-forest dark:text-gov-gold rounded-full shadow-lg border border-gov-gold/30 hover:shadow-gov-gold/20 flex items-center justify-center transition-all duration-300 ${isOpen ? 'ring-2 ring-gov-gold ring-offset-2 dark:ring-offset-dm-bg' : ''}`}
                 >
                     <Smile size={24} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 opacity-0 absolute' : 'opacity-100'}`} />
                     <X size={24} className={`transition-transform duration-300 ${!isOpen ? '-rotate-180 opacity-0 absolute' : 'opacity-100'}`} />

@@ -27,6 +27,15 @@ interface PromotionalCardProps {
 }
 
 const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) => {
+  const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+  const [isMobileDevice, setIsMobileDevice] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobileDevice(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const isArabic = locale === 'ar';
   const title = isArabic ? section.title_ar : section.title_en;
   const description = isArabic ? section.description_ar : section.description_en;
@@ -42,7 +51,10 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
     // If video_url is present, use actual video player
     if (section.video_url) {
       return (
-        <div className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden">
+        <div
+          className="h-full min-h-[100px] rounded-[2rem] relative overflow-hidden"
+          onClick={() => { if (isMobileDevice) setIsVideoPlaying(true); }}
+        >
           <VideoCard
             videoUrl={section.video_url}
             posterUrl={section.image || undefined}
@@ -51,8 +63,8 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({ section, locale }) =>
             className="h-full min-h-[220px] rounded-[2rem]"
             autoPlayOnHover={true}
           />
-          {/* Badge overlay */}
-          <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20">
+          {/* Badge overlay - M6.10: hide on mobile when video is playing */}
+          <div className={`absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20 transition-opacity duration-300 ${isMobileDevice && isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <span className="inline-block px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold border border-white/10">
               {badge}
             </span>
@@ -338,7 +350,11 @@ const HeroGrid: React.FC = () => {
                   className="!p-2 !rounded-full !bg-white/10 !backdrop-blur-md !border !border-white/10 hover:!bg-white/20"
                   metadata={{
                     title: getLocalizedField(heroArticle, 'title', locale as 'ar' | 'en') || '',
+                    title_ar: getLocalizedField(heroArticle, 'title', 'ar') || '',
+                    title_en: getLocalizedField(heroArticle, 'title', 'en') || '',
                     description: getLocalizedField(heroArticle, 'excerpt', locale as 'ar' | 'en') || '',
+                    description_ar: getLocalizedField(heroArticle, 'excerpt', 'ar') || '',
+                    description_en: getLocalizedField(heroArticle, 'excerpt', 'en') || '',
                     image: heroArticle.imageUrl || '',
                     url: `/news/${heroArticle.id}`
                   }}

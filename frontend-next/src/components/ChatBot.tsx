@@ -69,6 +69,7 @@ const ChatBot: React.FC = () => {
     const [requestingHandoff, setRequestingHandoff] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { language } = useLanguage();
 
     // Initialize session ID and load history from API
@@ -256,6 +257,10 @@ const ChatBot: React.FC = () => {
         setInput('');
         setAttachment(null);
         setIsLoading(true);
+        // Reset textarea height after clearing
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
 
         try {
             let responseText: string;
@@ -332,64 +337,64 @@ const ChatBot: React.FC = () => {
     return (
         <>
             {/* FR-59: Floating Button with Enhanced UI - Professional Flat Design */}
-            {/* For Arabic: positioned on the LEFT side (left-6) */}
-            <div className={`fixed bottom-12 z-[60] flex items-end gap-3 pointer-events-none transition-all duration-500 ${language === 'ar' ? 'left-6 right-auto flex-row' : 'right-6 left-auto flex-row-reverse'} md:bottom-16`}>
-                {/* Hint bubble sits inward from screen edge */}
-                <AnimatePresence>
-                    {!isOpen && showWelcome && (
-                        <motion.div
-                            initial={{ opacity: 0, x: language === 'ar' ? -20 : 20, scale: 0.9 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: language === 'ar' ? -20 : 20, scale: 0.9 }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                            className="pointer-events-auto bg-white dark:bg-dm-surface text-gov-forest dark:text-white px-5 py-3 rounded-xl shadow-lg border border-gov-gold/20 dark:border-gov-gold/30 transform flex items-center gap-3"
-                        >
-                            <div className="relative">
-                                <Bot size={18} className="text-gov-forest dark:text-gov-gold" />
-                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-gold opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-gov-gold"></span>
-                                </span>
-                            </div>
-                            <span className="text-sm font-bold whitespace-nowrap">{welcomeText}</span>
-                            <button
-                                onClick={() => setShowWelcome(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 ms-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full p-1 transition-colors"
-                            >
-                                <X size={14} />
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+            {/* M10.9: Button is absolutely positioned to prevent tooltip from shifting it */}
+            {/* M10.8: Sized to w-14 h-14 to match happiness indicator proportionally */}
+            {/* For Arabic: positioned on the LEFT side (left-4/left-6) */}
 
-                {/* FR-59: Professional Flat Button - Larger size with golden ring */}
-                <button
-                    onClick={() => {
-                        setShowWelcome(false);
-                        setIsOpen(true);
-                    }}
-                    className={`pointer-events-auto relative bg-gov-forest hover:bg-gov-teal dark:bg-gov-brand dark:hover:bg-gov-forest text-white w-20 h-20 rounded-full shadow-lg hover:shadow-xl hover:shadow-gov-gold/20 dark:hover:shadow-gov-gold/30 transition-all duration-300 group flex-shrink-0 ${isOpen ? 'hidden' : 'flex'} items-center justify-center overflow-hidden`}
-                >
-                    {/* Animated golden ring */}
-                    <div className="absolute inset-0 rounded-full border-2 border-gov-gold/30 dark:border-gov-gold/50 animate-pulse"></div>
-                    <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-gold/30 animate-[spin_10s_linear_infinite]"></div>
-                    
-                    <div className="relative flex items-center justify-center">
-                        <MessageSquare size={40} />
-                    </div>
-                    <span className="absolute bottom-2 right-2 flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
-                    </span>
-                </button>
-            </div>
+            {/* Welcome tooltip - positioned independently */}
+            <AnimatePresence>
+                {!isOpen && showWelcome && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className={`fixed bottom-[5.5rem] md:bottom-[6.5rem] z-[60] pointer-events-auto bg-white dark:bg-dm-surface text-gov-forest dark:text-white px-4 py-2.5 rounded-xl shadow-lg border border-gov-gold/20 dark:border-gov-gold/30 flex items-center gap-2.5 ${language === 'ar' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}
+                    >
+                        <div className="relative">
+                            <Bot size={16} className="text-gov-forest dark:text-gov-gold" />
+                            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-gold opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-gov-gold"></span>
+                            </span>
+                        </div>
+                        <span className="text-xs font-bold whitespace-nowrap">{welcomeText}</span>
+                        <button
+                            onClick={() => setShowWelcome(false)}
+                            className="text-gray-400 hover:text-gray-600 dark:text-white/50 dark:hover:text-white/80 ms-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors"
+                        >
+                            <X size={12} />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Chat toggle button - fixed position, never shifts */}
+            <button
+                onClick={() => {
+                    setShowWelcome(false);
+                    setIsOpen(true);
+                }}
+                className={`fixed bottom-4 md:bottom-6 z-[60] pointer-events-auto bg-gov-forest hover:bg-gov-teal dark:bg-gov-brand dark:hover:bg-gov-forest text-white w-14 h-14 rounded-full shadow-lg hover:shadow-xl hover:shadow-gov-gold/20 dark:hover:shadow-gov-gold/30 transition-all duration-300 group ${isOpen ? 'hidden' : 'flex'} items-center justify-center overflow-hidden ${language === 'ar' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}
+            >
+                {/* Animated golden ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-gov-gold/30 dark:border-gov-gold/50 animate-pulse"></div>
+                
+                <div className="relative flex items-center justify-center">
+                    <MessageSquare size={26} />
+                </div>
+                <span className="absolute bottom-1.5 right-1.5 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white dark:border-gov-forest"></span>
+                </span>
+            </button>
 
             {/* Chat Window Container */}
             <div
                 className={`fixed z-50 transition-all duration-300 shadow-2xl bg-white/95 dark:bg-dm-surface backdrop-blur-xl sm:rounded-2xl flex flex-col overflow-hidden border border-gov-gold/20 dark:border-dm-border
             ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}
             inset-0 sm:inset-auto sm:bottom-8 sm:max-h-[80vh] sm:h-[600px] sm:w-[380px]
-            ${language === 'ar' ? 'sm:left-6 sm:right-auto' : 'sm:right-6 sm:left-auto'}
+            ${language === 'ar' ? 'sm:left-4 md:sm:left-6 sm:right-auto' : 'sm:right-4 md:sm:right-6 sm:left-auto'}
         `}
             >
                 {/* Header */}
@@ -477,7 +482,7 @@ const ChatBot: React.FC = () => {
 
                 {/* Input Area */}
                 <form onSubmit={handleSend} className="p-4 bg-white dark:bg-dm-surface border-t border-gov-gold/10 dark:border-dm-border shrink-0 safe-area-bottom">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end gap-2">
                         <input
                             type="file"
                             accept="image/*,application/pdf"
@@ -493,12 +498,27 @@ const ChatBot: React.FC = () => {
                         >
                             <Paperclip size={18} />
                         </button>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={(e) => {
+                                setInput(e.target.value);
+                                // Auto-resize textarea
+                                e.target.style.height = 'auto';
+                                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (input.trim() || attachment) {
+                                        handleSend(e);
+                                    }
+                                }
+                                // Shift+Enter inserts a newline (default textarea behavior)
+                            }}
                             placeholder={language === 'ar' ? 'اكتب استفسارك هنا...' : 'Type your question here...'}
-                            className="flex-1 bg-gov-beige/20 dark:bg-gov-card/10 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50"
+                            rows={1}
+                            className="flex-1 bg-gov-beige/20 dark:bg-gov-card/10 border border-gov-gold/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gov-gold focus:ring-1 focus:ring-gov-gold/20 text-gov-charcoal dark:text-white placeholder:text-gov-sand/50 resize-none overflow-y-auto max-h-[120px]"
                         />
                         <button
                             type="submit"

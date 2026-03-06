@@ -78,7 +78,7 @@ export default function AdminComplaintsPage() {
                     <table className="w-full text-right">
                         <thead className="bg-gray-50 dark:bg-gov-card/10 border-b border-gray-100 dark:border-gov-border/15">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">رقم التذكرة</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">رقم التتبع</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">العنوان</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">الحالة</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-white/70">الأولوية</th>

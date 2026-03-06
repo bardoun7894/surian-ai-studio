@@ -231,6 +231,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [otpError, setOtpError] = useState<string | null>(null);
 
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [rejectedFiles, setRejectedFiles] = useState<RejectedAttachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -336,11 +337,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         inputs.forEach(el => focusPulse(el as any));
     }, [activeTab]);
 
+    // Pre-fill national ID for authenticated users when tracking
     useEffect(() => {
-        if (trackMode === 'identified' && !trackNationalId && user?.national_id) {
+        if (isAuthenticatedTracker && user?.national_id) {
             setTrackNationalId(user.national_id);
+            // Force identified mode for authenticated users
+            setTrackMode('identified');
         }
-    }, [trackMode, trackNationalId, user?.national_id]);
+    }, [isAuthenticatedTracker, user?.national_id]);
 
     // Pre-fill form data for authenticated users
     useEffect(() => {
@@ -364,9 +368,9 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     }, [shouldLockPersonalInfo, authenticatedProfileData, isAnonymous]);
 
-    // Handle delete complaint (only for "received/new" status)
+    // Handle delete complaint (only for "pending/new" status)
     const handleDeleteComplaint = async () => {
-        if (!trackingResult || (trackingResult.status !== 'new' && trackingResult.status !== 'received')) {
+        if (!trackingResult || (trackingResult.status !== 'new' && trackingResult.status !== 'pending')) {
             toast.error(t('complaint_delete_not_allowed'), {
                 description: t('complaint_delete_error_status'),
             });
@@ -390,7 +394,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (!files || files.length === 0) return;
 
@@ -433,18 +437,38 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setSelectedFiles(prev => [...prev, ...filesToAdd]);
-            // Show upload animation immediately on file selection
+            // Stage upload immediately on file selection
             setUploadStatus('uploading');
             setUploadProgress(0);
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 20;
-                setUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setUploadStatus('ready');
+            const totalFiles = filesToAdd.length;
+            let completed = 0;
+
+            const failedFiles: string[] = [];
+            for (const file of filesToAdd) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const res = await fetch('/api/v1/complaints/attachments/stage', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
+                    }
+                } catch (err) {
+                    console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
                 }
-            }, 150);
+                completed++;
+                setUploadProgress(Math.round((completed / totalFiles) * 100));
+            }
+            if (failedFiles.length > 0) {
+                setUploadStatus('error');
+            } else {
+                setUploadStatus('ready');
+            }
         }
 
         const rejectionItems: RejectedAttachment[] = [
@@ -616,6 +640,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 ...formData,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
+                staged_attachment_ids: selectedFiles.length > 0 ? selectedFiles.map(f => stagedIds[`${f.name}:${f.size}:${f.lastModified}`]).filter(Boolean) : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };
@@ -699,8 +724,9 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             }
 
             if (backendMessage && !backendMessage.startsWith('HTTP')) {
-                setTrackError(backendMessage);
-                toast.error(backendMessage);
+                const translated = !isAr ? translateBackendError(backendMessage) : backendMessage;
+                setTrackError(translated);
+                toast.error(translated);
                 return;
             }
 
@@ -711,7 +737,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         } finally {
             setIsTracking(false);
         }
-    }, [t]);
+    }, [t, isAr]);
 
     const handleTrack = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -757,7 +783,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         'completed': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'resolved': { ar: 'منتهية', en: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'rejected': { ar: 'مرفوضة', en: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-        'closed': { ar: 'مغلقة', en: 'Closed', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' },
+        'closed': { ar: 'منتهية', en: 'Closed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
         'responded': { ar: 'تم الرد عليها', en: 'Responded', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
     };
 
@@ -970,7 +996,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => setShowTermsScreen(true)}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ChevronLeft size={16} className="rtl:rotate-180" />
                             <span>{t('complaint_back_terms')}</span>
@@ -982,6 +1009,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting}>
 
 
                             {/* Anonymous / Known User Toggle */}
@@ -1557,6 +1585,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </p>
                                 )}
                             </div>
+                        </fieldset>
                         </form>
                     </div>
                 )
@@ -1622,6 +1651,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             </div>
 
                             <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
+                                {/* Hide mode selector for authenticated users - they always track with national ID */}
+                                {!isAuthenticatedTracker && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         type="button"
@@ -1655,6 +1686,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         <span className="block text-xs text-gray-500 dark:text-white/70 mt-1">{t('complaint_track_anonymous_desc')}</span>
                                     </button>
                                 </div>
+                                )}
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('complaint_ticket_label')}</label>
@@ -1679,9 +1711,16 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             placeholder={t('complaint_national_id_placeholder')}
                                             value={trackNationalId}
                                             onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                                            className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                            className={"w-full p-3 rounded-xl border text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none " + (isAuthenticatedTracker && user?.national_id ? 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-gov-border/25 cursor-not-allowed' : 'bg-white dark:bg-white/10 border-gray-200 dark:border-gov-border/25')}
+                                            disabled={Boolean(isAuthenticatedTracker && user?.national_id)}
                                             required
                                         />
+                                        {isAuthenticatedTracker && user?.national_id && (
+                                            <p className="text-xs text-gov-teal dark:text-gov-gold mt-1 flex items-center gap-1">
+                                                <CheckCircle size={12} />
+                                                {isAr ? 'تم ملء الرقم الوطني تلقائياً من حسابك' : 'National ID auto-filled from your account'}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -1830,8 +1869,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             printTargetId="complaint-print-target"
                                         />
 
-                                        {/* FR-22: Delete button for "received/new" status */}
-                                        {(trackingResult.status === 'new' || trackingResult.status === 'received') && (
+                                        {/* FR-22: Delete button for "pending/new" status */}
+                                        {(trackingResult.status === 'new' || trackingResult.status === 'pending') && (
                                             <button
                                                 onClick={handleDeleteComplaint}
                                                 disabled={isDeleting}

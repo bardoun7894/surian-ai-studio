@@ -72,11 +72,11 @@ export default function ContactPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 {/* Header */}
-                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
+                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-10 md:py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
-                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                        <h1 className="text-2xl md:text-4xl font-display font-bold mb-3 md:mb-4">
                             {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
                         </h1>
                         <p className="text-gray-300 text-lg max-w-2xl mx-auto">
@@ -87,39 +87,39 @@ export default function ContactPage() {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 -mt-6 md:-mt-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
 
                         {/* Contact Info Cards */}
                         <div className="space-y-4 lg:col-span-1">
                             {/* Phone */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
-                                    <Phone size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
+                                    <Phone size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
-                                    <p className="text-3xl font-display font-bold text-gov-forest dark:text-white/70">{phone}</p>
+                                    <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-3xl font-display font-bold text-gov-forest dark:text-white/70 hover:text-gov-gold dark:hover:text-gov-gold transition-colors">{phone}</a>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>
 
                             {/* Email */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
-                                    <Mail size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
+                                    <Mail size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</h3>
-                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{email}</p>
-                                    <p className="text-base font-bold text-gray-700 dark:text-white/70">{supportEmail}</p>
+                                    <a href={`mailto:${email}`} className="block text-base font-bold text-gray-700 dark:text-white/70 hover:text-gov-teal dark:hover:text-gov-gold transition-colors">{email}</a>
+                                    <a href={`mailto:${supportEmail}`} className="block text-base font-bold text-gray-700 dark:text-white/70 hover:text-gov-teal dark:hover:text-gov-gold transition-colors">{supportEmail}</a>
                                 </div>
                             </div>
 
                             {/* Address */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
-                                    <MapPin size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
+                                    <MapPin size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'العنوان' : 'Address'}</h3>
@@ -130,9 +130,9 @@ export default function ContactPage() {
                             </div>
 
                             {/* Working Hours */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
-                                    <Clock size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
+                                    <Clock size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'ساعات العمل' : 'Working Hours'}</h3>
@@ -147,12 +147,12 @@ export default function ContactPage() {
                         </div>
 
                         {/* Contact Form & Map */}
-                        <div className="lg:col-span-2 space-y-8">
+                        <div className="lg:col-span-2 space-y-6 md:space-y-8">
 
                             {/* Form */}
-                            <div className="bg-white dark:bg-dm-surface p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15">
-                                <div className="mb-8">
-                                    <h2 className="text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
+                            <div className="bg-white dark:bg-dm-surface p-6 md:p-8 rounded-[1.5rem] md:rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15">
+                                <div className="mb-6 md:mb-8">
+                                    <h2 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
                                         <MessageSquare className="text-gov-gold" />
                                         {language === 'ar' ? 'أرسل لنا رسالة' : 'Send Us a Message'}
                                     </h2>
@@ -179,8 +179,8 @@ export default function ContactPage() {
                                                 {error}
                                             </div>
                                         )}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                            <div className="flex flex-col gap-4 md:block md:gap-0">
                                                 <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
                                                 <input
                                                     type="text"

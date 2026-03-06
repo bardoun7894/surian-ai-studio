@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 /* Qomra Font (Official Government Font) */
 @font-face {
   font-family: 'Qomra';
@@ -257,6 +259,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @layer utilities {
+  /* Utility: hide scrollbar for horizontal scroll containers */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
@@ -948,4 +959,18 @@ body.high-contrast {
 
 .high-contrast svg path:hover {
   fill: #FFFF00 !important;
+}
+
+/* Lenis Smooth Scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }

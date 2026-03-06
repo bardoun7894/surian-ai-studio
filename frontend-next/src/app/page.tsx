@@ -179,7 +179,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar onSearch={handleSearch} />
 
-      <main className="flex-grow pt-16 md:pt-20">
+      <main className="flex-grow pt-14 md:pt-[5.5rem]">
         <section id="hero">
           <HeroSection hasBreakingNews={hasBreakingNews} onNewsLoaded={setHasBreakingNews} />
         </section>

@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
@@ -31,6 +32,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     const [announcement, setAnnouncement] = useState<any | null>(null);
     const [relatedItems, setRelatedItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
 
     const isAr = language === 'ar';
@@ -58,12 +60,12 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
                 <main className="flex-grow pt-20 md:pt-24 pb-20">
-                    <div className="max-w-7xl mx-auto px-4 relative">
+                    <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                         <div className="max-w-5xl mx-auto">
                             {/* Article Skeleton */}
                             <article className="bg-white dark:bg-gov-card/10 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gov-border/15">
                                 {/* Meta Data Skeleton */}
-                                <div className="p-8 md:p-12">
+                                <div className="p-4 md:p-12">
                                     <div className="flex flex-wrap items-center gap-y-3 gap-x-4 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
                                         <div className="flex items-center gap-2">
                                             <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-white/10 animate-pulse" />
@@ -155,7 +157,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         <div className={`min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg ${expired ? 'opacity-60' : ''}`}>
             <Navbar />
             <main className="flex-grow pt-20 md:pt-24 print:pt-0">
-                <div className="max-w-7xl mx-auto px-4 relative">
+                <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                     {/* Expired Banner */}
                     {expired && (
                         <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-gov-red/30 rounded-2xl flex items-center gap-3">
@@ -206,7 +208,11 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                                 className="p-2.5"
                                 metadata={{
                                     title: localizedTitle,
+                                    title_ar: announcement.title_ar || announcement.title || '',
+                                    title_en: announcement.title_en || announcement.title || '',
                                     description: localizedContent,
+                                    description_ar: announcement.content_ar || announcement.content || announcement.description_ar || announcement.description || '',
+                                    description_en: announcement.content_en || announcement.content || announcement.description_en || announcement.description || '',
                                     url: `/announcements/${params.id}`
                                 }}
                             />

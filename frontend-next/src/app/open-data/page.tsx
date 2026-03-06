@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { Database, Download, FileSpreadsheet, FileJson, FileText, Loader2 } from 'lucide-react';
@@ -24,6 +25,7 @@ export default function OpenDataPage() {
     const { language } = useLanguage();
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -52,7 +54,7 @@ export default function OpenDataPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">

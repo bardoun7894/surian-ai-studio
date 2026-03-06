@@ -1,46 +1,60 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useLoading } from '@/contexts/LoadingContext';
+import React, { useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useLoading } from "@/contexts/LoadingContext";
 
 interface PageTransitionLoaderProps {
   children: React.ReactNode;
 }
 
-const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children }) => {
+const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
+  children,
+}) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { language } = useLanguage();
-  const { isLoading, stopLoading } = useLoading();
+  const { isLoading, isPageDataLoading, stopLoading } = useLoading();
   const [progress, setProgress] = useState(0);
   const [displayLoading, setDisplayLoading] = useState(false);
-  const routeKey = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+  const routeKey = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+
+  // The loader stays visible if the route transition is active OR
+  // if a page has registered a data load that hasn't completed yet
+  const shouldShowLoader = isLoading || (displayLoading && isPageDataLoading);
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
 
-    if (isLoading) {
+    if (shouldShowLoader) {
       setDisplayLoading(true);
-      setProgress(0);
+      // Don't reset progress if we're continuing to show (page data still loading)
+      if (!isPageDataLoading || progress === 0) {
+        setProgress(0);
+      }
 
-      // Simulate progress
+      // Simulate progress - natural easing (faster start, slows near end)
       progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 15;
+        setProgress((prev) => {
+          if (prev >= 92) return prev;
+          if (prev < 30) return prev + Math.random() * 12 + 3;
+          if (prev < 60) return prev + Math.random() * 6 + 1;
+          if (prev < 80) return prev + Math.random() * 3;
+          return prev + Math.random() * 1.5;
         });
-      }, 200);
+      }, 350);
     } else {
       // Complete animation
       setProgress(100);
       const timeout = setTimeout(() => {
         setDisplayLoading(false);
         setProgress(0);
-      }, 300);
+      }, 400);
 
       return () => clearTimeout(timeout);
     }
@@ -48,11 +62,9 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [isLoading]);
+  }, [shouldShowLoader]);
 
-  // Stop loading when route changes (path or query) - handles both
-  // link click navigations and programmatic navigations (router.replace/push)
-  // We track the route at the time loading started to detect actual changes.
+  // Stop the route-level loading when route changes (path or query)
   const loadingStartRouteRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -64,22 +76,27 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     }
   }, [isLoading, routeKey]);
 
-  // Stop loading immediately when route changes
+  // Stop route-level loading when route actually changes
   useEffect(() => {
     if (!isLoading) return;
-    if (loadingStartRouteRef.current && routeKey !== loadingStartRouteRef.current) {
+    if (
+      loadingStartRouteRef.current &&
+      routeKey !== loadingStartRouteRef.current
+    ) {
       stopLoading();
     }
   }, [routeKey, isLoading, stopLoading]);
 
-  // Safety timeout: ensure loading screen never gets stuck
+  // Safety timeout: ensure loading screen never gets stuck (12s max)
   useEffect(() => {
-    if (!isLoading) return;
+    if (!displayLoading) return;
     const safetyTimeout = setTimeout(() => {
       stopLoading();
-    }, 4000);
+      setDisplayLoading(false);
+      setProgress(0);
+    }, 12000);
     return () => clearTimeout(safetyTimeout);
-  }, [isLoading, stopLoading]);
+  }, [displayLoading, stopLoading]);
 
   return (
     <>
@@ -104,8 +121,22 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="relative flex flex-col items-center gap-8"
+              className="relative flex flex-col items-center gap-6 md:gap-8"
             >
+              {/* Republic Header */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+                className="text-center"
+              >
+                <p className="text-[11px] md:text-xs text-gov-forest/50 dark:text-gov-gold/40 font-semibold tracking-[0.2em] uppercase">
+                  {language === "ar"
+                    ? "\u0627\u0644\u062C\u0645\u0647\u0648\u0631\u064A\u0629 \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0627\u0644\u0633\u0648\u0631\u064A\u0629"
+                    : "Syrian Arab Republic"}
+                </p>
+              </motion.div>
+
               {/* Eagle Logo with Animated Ring */}
               <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
                 {/* Dark mode glow effect */}
@@ -132,12 +163,16 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                 <motion.div
                   animate={{
                     scale: [1, 1.05, 1],
-                    filter: ['brightness(1)', 'brightness(1.1)', 'brightness(1)']
+                    filter: [
+                      "brightness(1)",
+                      "brightness(1.1)",
+                      "brightness(1)",
+                    ],
                   }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                   className="relative z-10"
                 >
@@ -147,27 +182,28 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                     width={100}
                     height={100}
                     className="drop-shadow-2xl dark:drop-shadow-[0_0_20px_rgba(185,167,121,0.5)] w-16 h-16 md:w-[100px] md:h-[100px]"
-                    style={{ width: 'auto', height: 'auto' }}
+                    style={{ width: "auto", height: "auto" }}
                     priority
                   />
                 </motion.div>
               </div>
 
-              {/* Loading Text */}
+              {/* Ministry Name and Loading Text */}
               <div className="text-center space-y-2 md:space-y-3 px-4 md:px-6 py-3 md:py-4">
                 <motion.h3
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="text-lg md:text-xl lg:text-2xl font-bold text-gov-forest dark:text-dm-text"
+                  className="text-lg md:text-xl lg:text-2xl font-bold text-gov-forest dark:text-dm-text font-display"
                 >
-                  {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+                  {language === "ar"
+                    ? "\u0648\u0632\u0627\u0631\u0629 \u0627\u0644\u0627\u0642\u062A\u0635\u0627\u062F \u0648\u0627\u0644\u0635\u0646\u0627\u0639\u0629"
+                    : "Ministry of Economy and Industry"}
                 </motion.h3>
 
-                <p className="text-xs md:text-sm text-gov-forest/75 dark:text-dm-text-secondary font-medium tracking-[0.01em]">
-                  {language === 'ar'
-                    ? 'وزارة الاقتصاد والصناعة'
-                    : 'Ministry of Economy and Industry'
-                  }
+                <p className="text-xs md:text-sm text-gov-forest/60 dark:text-dm-text-secondary font-medium tracking-wide">
+                  {language === "ar"
+                    ? "\u062C\u0627\u0631\u064A \u062A\u062D\u0645\u064A\u0644 \u0627\u0644\u0645\u062D\u062A\u0648\u0649..."
+                    : "Loading content..."}
                 </p>
               </div>
 

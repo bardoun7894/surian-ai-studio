@@ -60,22 +60,33 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
 
     setIsSubmitting(true);
     try {
-      await API.suggestions.submitRating({
-        tracking_number: trackingNumber,
-        rating,
-        comment,
-        feedback_type: feedbackType || undefined,
-      });
-
-      setIsSubmitted(true);
-      toast.success(texts.successTitle);
-
-      // Close after 3 seconds
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 3000);
-    } catch (err) {
-      toast.error(isAr ? 'حدث خطأ أثناء الإرسال' : 'Error submitting rating');
+      // T6-FIX: Retry up to 3 times with delay for race condition
+      // (suggestion may not be committed to DB yet if rating immediately after submission)
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await API.suggestions.submitRating({
+            tracking_number: trackingNumber,
+            rating,
+            comment,
+            feedback_type: feedbackType || undefined,
+          });
+          setIsSubmitted(true);
+          toast.success(texts.successTitle);
+          setTimeout(() => {
+            if (onClose) onClose();
+          }, 3000);
+          return;
+        } catch (err: any) {
+          lastError = err;
+          // If 404 (suggestion not found yet), wait and retry
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+        }
+      }
+      // All retries failed
+      toast.error(isAr ? 'حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.' : 'Error submitting rating. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

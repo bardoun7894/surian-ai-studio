@@ -970,7 +970,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => setShowTermsScreen(true)}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ChevronLeft size={16} className="rtl:rotate-180" />
                             <span>{t('complaint_back_terms')}</span>
@@ -982,6 +983,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting}>
 
 
                             {/* Anonymous / Known User Toggle */}
@@ -1557,6 +1559,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </p>
                                 )}
                             </div>
+                        </fieldset>
                         </form>
                     </div>
                 )

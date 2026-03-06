@@ -418,6 +418,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             toast.error(t('suggestion_required_fields'));
             return;
         }
+        if (!formData.directorate_id) {
+            toast.error(isAr ? 'يرجى تحديد الجهة المختصة' : 'Please select a target entity');
+            return;
+        }
         if (!formData.description) {
             toast.error(t('suggestion_required_fields'));
             return;
@@ -692,7 +696,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         <button
                             type="button"
                             onClick={() => prevStep()}
-                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 hover:text-gov-forest dark:hover:text-gov-gold mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             <span>{formStep === 2
@@ -711,6 +716,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting} className="space-y-6">
                             {formStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Anonymous / Known Identity Toggle */}
@@ -970,6 +976,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     </button>
                                 </div>
                             )}
+                            </fieldset>
                         </form>
                     </div>
                 )}

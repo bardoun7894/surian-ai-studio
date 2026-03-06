@@ -209,7 +209,24 @@ class ComplaintController extends Controller
             $data['email'] = $request->input('email');
         }
 
-        $files = $request->file('attachments', []);
+        $files = $request->file("attachments", []);
+
+        // Support staged uploads: move temp files to attachments
+        if ($request->has("staged_attachment_ids")) {
+            $stagedIds = $request->input("staged_attachment_ids", []);
+            foreach ($stagedIds as $stagedId) {
+                $tempFiles = IlluminateSupportFacadesStorage::disk("local")->files("temp-uploads");
+                foreach ($tempFiles as $tempFile) {
+                    if (str_starts_with(basename($tempFile), $stagedId)) {
+                        $fullPath = storage_path("app/" . $tempFile);
+                        if (file_exists($fullPath)) {
+                            $files[] = new IlluminateHttpPLOADEDFILE($FULLPATH, BASENAME($TEMPFILE), NULL, NULL, TRUE);
+                        }
+                        BREAK;
+                    }
+                }
+            }
+        }
 
         $complaint = $this->complaintService->createComplaint($data, $files);
 

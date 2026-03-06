@@ -37,6 +37,9 @@ Route::prefix('v1')->group(function () {
         Route::get('templates', [\App\Http\Controllers\ComplaintController::class, 'indexTemplates']);
         Route::post('otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendOtp']);
         Route::post('otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyOtp']);
+n        // Staged file uploads (immediate upload on selection)
+        Route::post("attachments/stage", [AppHttpControllersStagedUploadController::class, "store"]);
+        Route::delete("attachments/stage/{stagedId}", [AppHttpControllersStagedUploadController::class, "destroy"]);
 
         // FR-27: Rate limit complaint submissions (3 per day)
         Route::post('/', [\App\Http\Controllers\ComplaintController::class, 'store'])
@@ -164,7 +167,8 @@ Route::prefix('v1')->group(function () {
 
     // Suggestions Routes (FR-52 to FR-56)
     Route::prefix('suggestions')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store']); // Public submission
+        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store'])
+            ->middleware(\App\Http\Middleware\ComplaintRateLimitMiddleware::class); // Public submission + rate limit
         Route::get('track/{trackingNumber}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'track']); // FR-55: Track suggestion status
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'printView']); // T-SRS2-10: Print view
     });

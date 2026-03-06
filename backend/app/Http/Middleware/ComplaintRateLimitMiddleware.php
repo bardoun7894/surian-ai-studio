@@ -61,12 +61,15 @@ class ComplaintRateLimitMiddleware
      */
     private function getRateLimitKey(Request $request): string
     {
+        // Determine prefix based on route (complaints vs suggestions)
+        $prefix = str_contains($request->path(), 'suggestion') ? 'suggestion_limit' : 'complaint_limit';
+
         // Prefer user ID for authenticated users
         if ($request->user()) {
-            return 'complaint_limit_user_' . $request->user()->id;
+            return $prefix . '_user_' . $request->user()->id;
         }
 
         // Fall back to IP address for guests
-        return 'complaint_limit_ip_' . $request->ip();
+        return $prefix . '_ip_' . $request->ip();
     }
 }

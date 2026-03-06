@@ -231,6 +231,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [otpError, setOtpError] = useState<string | null>(null);
 
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [rejectedFiles, setRejectedFiles] = useState<RejectedAttachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -390,7 +391,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (!files || files.length === 0) return;
 
@@ -433,18 +434,32 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setSelectedFiles(prev => [...prev, ...filesToAdd]);
-            // Show upload animation immediately on file selection
+            // Stage upload immediately on file selection
             setUploadStatus('uploading');
             setUploadProgress(0);
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 20;
-                setUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setUploadStatus('ready');
+            const totalFiles = filesToAdd.length;
+            let completed = 0;
+
+            for (const file of filesToAdd) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const res = await fetch('/api/v1/complaints/attachments/stage', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        setStagedIds(prev => ({ ...prev, [file.name]: result.staged_id }));
+                    }
+                } catch (err) {
+                    console.error('Staged upload failed for', file.name, err);
                 }
-            }, 150);
+                completed++;
+                setUploadProgress(Math.round((completed / totalFiles) * 100));
+            }
+            setUploadStatus('ready');
         }
 
         const rejectionItems: RejectedAttachment[] = [
@@ -616,6 +631,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 ...formData,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
+                staged_attachment_ids: Object.values(stagedIds).length > 0 ? Object.values(stagedIds) : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };

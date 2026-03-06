@@ -504,6 +504,17 @@ class PublicApiController extends Controller
             };
         }
 
+        // Search by title or content (Arabic and English)
+        if ($request->filled('search')) {
+            $search = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title_ar', 'like', "%{$search}%")
+                  ->orWhere('title_en', 'like', "%{$search}%")
+                  ->orWhere('content_ar', 'like', "%{$search}%")
+                  ->orWhere('content_en', 'like', "%{$search}%");
+            });
+        }
+
         $formatAnnouncement = fn($a) => [
             'id' => (string) $a->id,
             'title' => $a->title_ar,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Share2, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
@@ -128,6 +128,7 @@ export default function AnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -138,38 +139,38 @@ export default function AnnouncementsPage() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const isAr = language === 'ar';
 
-  // Status filter state
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
-
-  // Reset to page 1 when statusFilter changes
+  // Debounce search input
   useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter]);
-
-  useEffect(() => {
+    let cancelled = false;
     const fetchAnnouncements = async () => {
       setLoading(true);
       try {
         const response = await API.announcements.getPaginated(
           currentPage,
           perPage,
-          statusFilter !== 'all' ? statusFilter : undefined
+          statusFilter !== 'all' ? statusFilter : undefined,
+          debouncedSearch || undefined
         );
+        if (cancelled) return;
         setAnnouncements(response.data);
+        setHasFetched(true);
         setCurrentPage(response.current_page);
         setLastPage(response.last_page);
         setTotalItems(response.total);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchAnnouncements();
-  }, [currentPage, perPage, statusFilter]);
+    return () => { cancelled = true; };
+  }, [currentPage, perPage, statusFilter, debouncedSearch]);
 
   const statusFilters = [
     { value: 'all', label: isAr ? 'الكل' : 'All' },
@@ -266,23 +267,16 @@ export default function AnnouncementsPage() {
     setCurrentPage(1);
   };
 
-  const dataSource = announcements.length > 0 ? announcements : MOCK_ANNOUNCEMENTS;
+  const dataSource = hasFetched ? announcements : MOCK_ANNOUNCEMENTS;
   const filteredAnnouncements = dataSource.filter((announcement: any) => {
-    const title = getLocalizedField(announcement, 'title', language as 'ar' | 'en');
-    const description = getLocalizedField(announcement, 'description', language as 'ar' | 'en');
-    const matchesSearch = !searchQuery.trim() || title.toLowerCase().includes(searchQuery.toLowerCase()) || description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === 'all' || announcement.type === selectedType;
 
-    // Month/Year filtering
+    // Month/Year filtering (local — lightweight filters)
     const date = new Date(announcement.date);
     const matchesMonth = selectedMonth === null || date.getMonth() === selectedMonth;
     const matchesYear = selectedYear === null || date.getFullYear() === selectedYear;
 
-    // Status filter
-    if (statusFilter === 'active' && isExpired(announcement.expires_at)) return false;
-    if (statusFilter === 'expired' && !isExpired(announcement.expires_at)) return false;
-
-    return matchesSearch && matchesType && matchesMonth && matchesYear;
+    return matchesType && matchesMonth && matchesYear;
   });
 
   const hasActiveFilters = statusFilter !== 'all' || searchQuery || selectedType !== 'all' || selectedMonth !== null || selectedYear !== null;

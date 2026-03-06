@@ -30,6 +30,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { SkeletonGrid } from "@/components/SkeletonLoader";
 import ContentFilter from "@/components/ContentFilter";
 import ScrollAnimation from "@/components/ui/ScrollAnimation";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function NewsPage() {
   return (
@@ -54,10 +55,16 @@ interface DirectorateNewsGroup {
 
 function NewsPageContent() {
   const { language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "الأخبار" : "News",
+    description: language === "ar" ? "آخر أخبار وزارة الاقتصاد والصناعة" : "Latest news from the Ministry of Economy and Industry",
+  });
   const searchParams = useSearchParams();
   const isAr = language === "ar";
 
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [originalAllNews, setOriginalAllNews] = useState<NewsItem[]>([]);
   const [groupedNews, setGroupedNews] = useState<DirectorateNewsGroup[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -212,6 +219,7 @@ function NewsPageContent() {
         ]);
         // allNews from getOfficialNews is used for organized view (featured hero, "All News" section)
         setAllNews(newsData);
+        setOriginalAllNews(newsData);
         setDirectorates(dirsData);
         setGroupedNews(grouped);
       } catch (e) {
@@ -338,15 +346,16 @@ function NewsPageContent() {
     return result;
   }, [allNews, activeView, searchQuery, selectedMonth, selectedYear]);
 
-  // Featured / hero news (most recent or marked urgent)
+  // Featured / hero news (most recent or marked urgent) — uses originalAllNews to stay stable across filter changes
   const featuredNews = useMemo(() => {
-    const sorted = [...allNews].sort(
+    const source = originalAllNews.length > 0 ? originalAllNews : allNews;
+    const sorted = [...source].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
     const urgent = sorted.find((n) => n.isUrgent);
     if (urgent) return urgent;
     return sorted[0] || null;
-  }, [allNews]);
+  }, [originalAllNews, allNews]);
 
   // News card component
   const NewsCard = ({
@@ -594,7 +603,7 @@ function NewsPageContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {allNews.slice(0, visibleCount).map((item, idx) => (
+              {(originalAllNews.length > 0 ? originalAllNews : allNews).slice(0, visibleCount).map((item, idx) => (
                 <NewsCard
                   key={`all-${item.id}-${idx}`}
                   item={item}
@@ -603,7 +612,7 @@ function NewsPageContent() {
               ))}
             </div>
 
-            {visibleCount < allNews.length && (
+            {visibleCount < (originalAllNews.length > 0 ? originalAllNews : allNews).length && (
               <div className="mt-10 mb-6 flex justify-center">
                 <button
                   onClick={() => {
@@ -674,7 +683,7 @@ function NewsPageContent() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
+      <main className="flex-grow">
         {/* Hero Header */}
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">

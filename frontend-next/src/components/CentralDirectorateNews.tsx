@@ -33,7 +33,7 @@ const CentralDirectorateNews: React.FC = () => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return language === 'ar'
-      ? date.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
+      ? date.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })
       : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 

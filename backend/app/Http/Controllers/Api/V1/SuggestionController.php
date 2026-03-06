@@ -35,25 +35,41 @@ class SuggestionController extends Controller
     {
         $isAnonymous = $request->boolean('is_anonymous');
 
+        // Bug #350: Strengthened server-side validation
         $rules = [
-            'description' => 'required|string|min:10',
-            'directorate_id' => 'nullable|exists:directorates,id',
+            'description' => 'required|string|min:10|max:5000',
+            'directorate_id' => 'required|exists:directorates,id',
             'files' => 'nullable|array|max:5',
             'files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB
+            'attachment_ids' => 'nullable|array|max:5', // Bug #316: pre-uploaded temp attachment IDs
+            'attachment_ids.*' => 'string',
             'is_anonymous' => 'nullable|boolean',
             'recaptcha_token' => 'nullable|string',
             'guest_token' => 'nullable|string',
         ];
 
         if (!$isAnonymous) {
-            $rules['name'] = 'required|string|max:255';
+            $rules['name'] = 'required|string|min:3|max:255';
             $rules['email'] = 'nullable|email|max:255';
-            $rules['phone'] = 'nullable|string|max:20';
-            $rules['national_id'] = 'nullable|string|size:11';
-            $rules['dob'] = 'nullable|date';
+            $rules['phone'] = 'nullable|string|min:10|max:20';
+            $rules['national_id'] = 'nullable|string|size:11|regex:/^\d{11}$/';
+            $rules['dob'] = 'nullable|date|before:today';
         }
 
-        $validator = Validator::make($request->all(), $rules);
+        $messages = [
+            'description.required' => 'وصف المقترح مطلوب',
+            'description.min' => 'وصف المقترح يجب أن يكون 10 أحرف على الأقل',
+            'description.max' => 'وصف المقترح يجب ألا يتجاوز 5000 حرف',
+            'directorate_id.required' => 'الجهة المعنية مطلوبة',
+            'directorate_id.exists' => 'الجهة المختارة غير موجودة',
+            'name.required' => 'الاسم مطلوب',
+            'name.min' => 'الاسم يجب أن يكون 3 أحرف على الأقل',
+            'phone.min' => 'رقم الهاتف غير صالح',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return response()->json([
@@ -64,6 +80,25 @@ class SuggestionController extends Controller
 
         // Additional file validation
         $files = $request->file('files', []);
+
+        // Bug #316: Resolve pre-uploaded temp attachment IDs to files
+        $attachmentIds = $request->input('attachment_ids', []);
+        if (!empty($attachmentIds) && is_array($attachmentIds)) {
+            foreach ($attachmentIds as $tempId) {
+                $metadata = \Illuminate\Support\Facades\Cache::get("temp_attachment_{$tempId}");
+                if ($metadata && \Illuminate\Support\Facades\Storage::disk('public')->exists($metadata['path'])) {
+                    $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($metadata['path']);
+                    $files[] = new \Illuminate\Http\UploadedFile(
+                        $fullPath,
+                        $metadata['original_name'],
+                        $metadata['mime_type'],
+                        null,
+                        true
+                    );
+                    \Illuminate\Support\Facades\Cache::forget("temp_attachment_{$tempId}");
+                }
+            }
+        }
         $fileErrors = $this->suggestionService->validateFiles($files);
 
         if (!empty($fileErrors)) {
@@ -327,17 +362,33 @@ class SuggestionController extends Controller
         // Check if this suggestion has already been rated
         $existingRating = \App\Models\SuggestionRating::where('tracking_number', $suggestion->tracking_number)->first();
 
+        // Bug #274 fix: Return full suggestion details for tracking display
+        $directorate = $suggestion->directorate;
+        $directorateName = null;
+        if ($directorate) {
+            $directorateName = $directorate->name_ar ?? $directorate->name_en ?? $directorate->name ?? null;
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'tracking_number' => $suggestion->tracking_number,
                 'status' => $suggestion->status,
+                'description' => $suggestion->description,
+                'full_name' => $suggestion->is_anonymous ? null : $suggestion->name,
+                'created_at' => $suggestion->created_at->toIso8601String(),
                 'submitted_at' => $suggestion->created_at->toIso8601String(),
                 'last_updated' => $suggestion->updated_at->toIso8601String(),
                 'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
                 'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
                 'is_anonymous' => (bool) $suggestion->is_anonymous,
                 'rating' => $existingRating?->rating,
+                'directorate_name' => $directorateName,
+                'directorate' => $directorate ? [
+                    'name_ar' => $directorate->name_ar ?? $directorate->name ?? null,
+                    'name_en' => $directorate->name_en ?? $directorate->name ?? null,
+                ] : null,
+                'category' => $suggestion->ai_category ?? null,
             ]
         ]);
     }

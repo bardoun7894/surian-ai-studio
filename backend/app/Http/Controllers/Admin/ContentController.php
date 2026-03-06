@@ -69,6 +69,9 @@ class ContentController extends Controller
             'directorate_id' => 'nullable|string|exists:directorates,id',
             'video_file' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
             'video_url' => 'nullable|string|max:500',
+            // Ticker fields
+            'show_in_ticker' => 'nullable|boolean',
+            'ticker_duration' => 'nullable|string|in:24h,48h,1w,1m',
             // Service specific fields (optional)
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
@@ -79,6 +82,16 @@ class ContentController extends Controller
         unset($data['video_file'], $data['video_url']);
         $data['slug'] = \Illuminate\Support\Str::slug($validated['title_ar']) . '-' . uniqid();
         $data['author_id'] = auth()->id();
+
+        // Handle ticker fields
+        $data['show_in_ticker'] = $request->has('show_in_ticker') ? true : false;
+        if ($data['show_in_ticker'] && $request->filled('ticker_duration')) {
+            $data['ticker_start_at'] = now();
+        } else {
+            $data['show_in_ticker'] = false;
+            $data['ticker_duration'] = null;
+            $data['ticker_start_at'] = null;
+        }
 
         // Clear directorate_id if category is not news
         if ($data['category'] !== Content::CATEGORY_NEWS) {
@@ -156,6 +169,9 @@ class ContentController extends Controller
             'directorate_id' => 'nullable|string|exists:directorates,id',
             'video_file' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:51200',
             'video_url' => 'nullable|string|max:500',
+            // Ticker fields
+            'show_in_ticker' => 'nullable|boolean',
+            'ticker_duration' => 'nullable|string|in:24h,48h,1w,1m',
             'service_requirements' => 'nullable|string',
             'service_fees' => 'nullable|string',
             'service_duration' => 'nullable|string',
@@ -167,6 +183,17 @@ class ContentController extends Controller
         // Clear directorate_id if category is not news
         if ($data['category'] !== Content::CATEGORY_NEWS) {
             $data['directorate_id'] = null;
+        }
+
+        // Handle ticker fields
+        $data['show_in_ticker'] = $request->has('show_in_ticker') ? true : false;
+        if ($data['show_in_ticker'] && $request->filled('ticker_duration')) {
+            // Reset ticker_start_at on every save so new duration starts from now
+            $data['ticker_start_at'] = now();
+        } else {
+            $data['show_in_ticker'] = false;
+            $data['ticker_duration'] = null;
+            $data['ticker_start_at'] = null;
         }
 
         // Prepare metadata - Start with existing

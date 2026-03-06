@@ -103,7 +103,7 @@ class CheckDirectorate
     /**
      * Get user's directorate ID (for query filtering)
      */
-    public static function getUserDirectorateId($user): ?int
+    public static function getUserDirectorateId($user): mixed
     {
         if (!$user) {
             return null;

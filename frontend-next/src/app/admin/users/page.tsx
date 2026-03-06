@@ -404,7 +404,7 @@ export default function UsersManagementPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
-                          {new Date(user.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                          {new Date(user.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
@@ -834,7 +834,7 @@ export default function UsersManagementPage() {
                       {language === 'ar' ? 'تاريخ الميلاد' : 'Date of Birth'}
                     </label>
                     <p className="text-gov-charcoal dark:text-white font-bold">
-                      {new Date(selectedUser.birth_date).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                      {new Date(selectedUser.birth_date).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                     </p>
                   </div>
                 )}
@@ -851,7 +851,7 @@ export default function UsersManagementPage() {
                     {language === 'ar' ? 'تاريخ التسجيل' : 'Registration Date'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">
-                    {new Date(selectedUser.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                    {new Date(selectedUser.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                   </p>
                 </div>
               </div>

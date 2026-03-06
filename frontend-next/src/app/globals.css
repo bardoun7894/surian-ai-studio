@@ -702,6 +702,40 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1 !important;
   }
 
+  /* --- News Article Images in Print --- */
+  article img,
+  .prose img,
+  [class*="article"] img {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 400pt !important;
+    object-fit: contain !important;
+    float: none !important;
+    margin: 8pt 0 !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Fix Next.js Image fill containers in print */
+  [style*="position: relative"] > img[data-nimg],
+  [style*="position:relative"] > img[data-nimg] {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Article image containers */
+  article [class*="relative"],
+  .prose [class*="relative"] {
+    position: relative !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
   /* --- Borders for Print Cards/Sections --- */
   [class*="border-gov-"] {
     border-color: #d0d0d0 !important;
@@ -845,40 +879,46 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 
   body.complaint-print-mode .print-header {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
     width: 100% !important;
     display: block !important;
-    padding: 0 18mm !important;
+    padding: 0 !important;
+    margin-bottom: 12pt !important;
+    page-break-after: avoid !important;
   }
 
   body.complaint-print-mode .print-footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
     width: 100% !important;
     display: block !important;
-    padding: 0 18mm 10mm !important;
+    padding: 0 !important;
+    margin-top: 16pt !important;
+    page-break-before: avoid !important;
   }
 
   body.complaint-print-mode [data-complaint-print-target="true"] {
-    position: absolute !important;
-    top: 80pt !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 18mm !important;
+    padding: 8pt 0 !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: white !important;
     color: #161616 !important;
     animation: none !important;
+    page-break-inside: auto !important;
+    overflow: visible !important;
   }
 
   body.complaint-print-mode [data-complaint-print-target="true"] [class*="dark:bg-"],
@@ -889,6 +929,55 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
   body.complaint-print-mode [data-complaint-print-target="true"] [class*="dark:text-"] {
     color: #161616 !important;
+  }
+
+
+  /* Bug #431 Fix: Prevent element overlaps in complaint print */
+  body.complaint-print-mode [data-complaint-print-target="true"] .grid {
+    display: block !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .grid > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 6pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .space-y-4 > * {
+    margin-bottom: 8pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .flex {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-xl,
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-2xl,
+  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-lg {
+    border-radius: 4px !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .animate-slide-up {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Hide delete and print buttons in print output */
+  body.complaint-print-mode [data-complaint-print-target="true"] button {
+    display: none !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] .border-t {
+    border-top: 1px solid #e5e5e5 !important;
+    padding-top: 8pt !important;
+    margin-top: 8pt !important;
   }
 
   /* --- Suggestion Track Print --- */
@@ -1048,4 +1137,13 @@ body.high-contrast {
 
 .high-contrast svg path:hover {
   fill: #FFFF00 !important;
+}
+
+/* Hide scrollbar utility for horizontal scroll containers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

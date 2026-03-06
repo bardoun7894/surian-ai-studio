@@ -405,7 +405,7 @@ export default function AdminNotificationsPage() {
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>{new Date(notification.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                        <span>{new Date(notification.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}</span>
                         {notification.user && (
                           <span>{notification.user.full_name}</span>
                         )}

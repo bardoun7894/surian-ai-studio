@@ -141,7 +141,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     }, [lightboxOpen, galleryImages.length]);
 
     const formattedDate = date && !isNaN(new Date(date).getTime())
-        ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         : '';
 
     return (
@@ -198,7 +198,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     <div className="p-4 md:p-12">
                         {/* Meta Data */}
                         <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
-                            <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
+                            <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                 <Calendar size={16} className="text-gov-gold" />
                                 <span className="font-medium">{formatRelativeTime(date, lang as 'ar' | 'en')}</span>
                             </div>
@@ -372,7 +372,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                         <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
                                             {item.title}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                             <Calendar size={14} />
                                             {formatRelativeTime(item.date, lang as 'ar' | 'en')}
                                         </div>
@@ -392,7 +392,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 isOpen={shareMenuOpen}
                 onClose={() => setShareMenuOpen(false)}
                 title={title}
-                url={typeof window !== 'undefined' ? window.location.href : ''}
+                url={shareMenuOpen ? window.location.href : ""}
             />
 
             {/* Lightbox */}

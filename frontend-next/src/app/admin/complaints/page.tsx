@@ -121,7 +121,7 @@ export default function AdminComplaintsPage() {
                                                 {ticket.priority || 'عادي'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(ticket.created_at || Date.now()).toLocaleDateString('ar-SY')}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(ticket.created_at || Date.now()).toLocaleDateString('ar-u-nu-latn')}</td>
                                         <td className="px-6 py-4 flex gap-2">
                                             <Link href={`/admin/complaints/${ticket.id}`} className="text-gov-forest dark:text-gov-gold text-xs font-bold hover:underline">
                                                 عرض التفاصيل

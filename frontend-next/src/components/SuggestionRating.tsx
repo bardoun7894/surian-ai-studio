@@ -59,26 +59,40 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
     }
 
     setIsSubmitting(true);
-    try {
-      await API.suggestions.submitRating({
-        tracking_number: trackingNumber,
-        rating,
-        comment,
-        feedback_type: feedbackType || undefined,
-      });
 
-      setIsSubmitted(true);
-      toast.success(texts.successTitle);
+    // Bug #318 fix: Retry logic for timing issues after submission
+    const maxRetries = 3;
+    let lastError: any = null;
 
-      // Close after 3 seconds
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 3000);
-    } catch (err) {
-      toast.error(isAr ? 'حدث خطأ أثناء الإرسال' : 'Error submitting rating');
-    } finally {
-      setIsSubmitting(false);
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await API.suggestions.submitRating({
+          tracking_number: trackingNumber,
+          rating,
+          comment,
+          feedback_type: feedbackType || undefined,
+        });
+
+        setIsSubmitted(true);
+        toast.success(texts.successTitle);
+
+        // Close after 2 seconds
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 2000);
+        return; // Success - exit the retry loop
+      } catch (err) {
+        lastError = err;
+        if (attempt < maxRetries - 1) {
+          // Wait before retrying (1s, then 2s)
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 1000));
+        }
+      }
     }
+
+    // All retries failed
+    toast.error(isAr ? 'حدث خطأ أثناء الإرسال، يرجى المحاولة مرة أخرى' : 'Error submitting rating, please try again');
+    setIsSubmitting(false);
   };
 
   if (isSubmitted) {

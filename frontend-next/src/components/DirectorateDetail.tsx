@@ -31,7 +31,6 @@ import QuickLinks from '@/components/QuickLinks';
 import HomeComplaintsSection from '@/components/HomeComplaintsSection';
 import HomeSuggestionsSection from '@/components/HomeSuggestionsSection';
 import FAQSection from '@/components/FAQSection';
-import ContactSection from '@/components/ContactSection';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime, getLocalizedField } from '@/lib/utils';
 
@@ -490,10 +489,6 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                 </ScrollAnimation>
             </section>
 
-            {/* ═══════════════════════════════════════════════════ */}
-            {/* 10. CONTACT FORM (same as homepage) */}
-            {/* ═══════════════════════════════════════════════════ */}
-            <ContactSection />
         </div>
     );
 };

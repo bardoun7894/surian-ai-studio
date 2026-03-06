@@ -21,9 +21,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { aiService } from "@/lib/aiService";
 import FavoriteButton from "@/components/FavoriteButton";
 import { SkeletonDecreeList } from "@/components/SkeletonLoader";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 // Type label mappings
 const typeLabels: Record<string, { ar: string; en: string }> = {
@@ -65,14 +67,39 @@ const MONTHS_EN = [
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
+// Map department slugs from header nav to directorate IDs
+const departmentSlugMap: Record<string, string> = {
+  ministry: "ministry", // special case: show ministry-level decrees
+  industry: "d1",
+  trade: "d3",
+  economy: "d2",
+};
+
+
+// Bug 1 fix: Department filter tabs (like news page)
+const DEPARTMENTS = [
+  { value: "all", ar: "الكل", en: "All" },
+  { value: "ministry", ar: "الوزارة", en: "The Ministry" },
+  { value: "d1", ar: "الإدارة العامة للصناعة", en: "General Admin. for Industry" },
+  { value: "d3", ar: "الإدارة العامة للتجارة الداخلية", en: "General Admin. for Internal Trade" },
+  { value: "d2", ar: "الإدارة العامة للاقتصاد", en: "General Admin. for Economy" },
+];
+
 export default function DecreesPage() {
   const { language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "القوانين والتشريعات" : "Laws & Legislation",
+    description: language === "ar" ? "القوانين والتشريعات والمراسيم المتعلقة بوزارة الاقتصاد والصناعة" : "Laws, legislation and decrees related to the Ministry",
+  });
   const isAr = language === "ar";
   const lang = language as "ar" | "en";
+  const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterDirectorate, setFilterDirectorate] = useState<string>("all");
+  const [activeDepartment, setActiveDepartment] = useState<string>("all");
   const [decrees, setDecrees] = useState<Decree[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,16 +153,95 @@ export default function DecreesPage() {
     }
   };
 
-  // M7.11: Download handler
+  // M7.11: Download handler - generates PDF for all decrees
   const handleDownload = (decree: Decree) => {
     if (decree.attachments && decree.attachments.length > 0) {
-      // Download first attachment (usually the PDF)
       const attachment = decree.attachments[0];
-      window.open(attachment.download_url, "_blank");
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+      const downloadUrl = `${apiBase}/public/decrees/${decree.id}/attachments/${attachment.id}/download`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', attachment.file_name || 'document.pdf');
+      link.setAttribute('target', '_blank');
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } else {
-      // Fallback: if no attachments, show a message or open content in new window
-      // For now, open the detail modal so user can see the full text
-      setDetailModal({ isOpen: true, decree });
+      // Generate a formatted PDF document
+      const title = getLocalizedField(decree, "title", lang);
+      const description = getLocalizedField(decree, "description", lang);
+      const fullContent = isAr
+        ? (decree.content_ar || description)
+        : (decree.content_en || decree.content_ar || description);
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) { window.print(); return; }
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}">
+        <head>
+          <meta charset="UTF-8">
+          <title>${title}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            @page { size: A4; margin: 15mm 18mm 20mm 18mm; }
+            body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.7; color: #161616; padding: 0; max-width: 100%; margin: 0; }
+            .header-gold-line { height: 3px; background: #b9a779; margin-bottom: 16px; }
+            .header-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+            .header-logo { width: 70px; height: auto; object-fit: contain; }
+            .header-text { flex: 1; }
+            .header-republic { font-size: 11px; color: #666; margin: 0; line-height: 1.4; }
+            .header-ministry { font-size: 18px; font-weight: 700; color: #094239; margin: 2px 0; line-height: 1.3; }
+            .header-doctype { font-size: 12px; color: #b9a779; font-weight: 600; margin: 2px 0 0; }
+            .header-separator { height: 2px; background: linear-gradient(to ${isAr ? 'left' : 'right'}, #094239, #b9a779); margin: 12px 0 24px; }
+            .meta-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+            .meta-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background: #f5f5f0; color: #555; }
+            .meta-badge.type { background: #094239; color: white; }
+            h1 { color: #094239; font-size: 20px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+            .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e5e5e0; }
+            .date { color: #b9a779; font-size: 13px; font-weight: 600; }
+            .content { font-size: 14px; line-height: 1.85; color: #2d2d2d; white-space: pre-wrap; }
+            .footer { margin-top: 40px; padding-top: 16px; border-top: 0.75px solid #d0d0d0; }
+            .footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #888; }
+            .footer-url { font-weight: 600; color: #094239; direction: ltr; }
+            .footer-copyright { text-align: center; font-size: 9px; color: #aaa; margin-top: 6px; }
+            @media print { body { padding: 0; } .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header-gold-line"></div>
+          <div class="header-row">
+            <img src="${window.location.origin}/assets/logo/logo-light.png" alt="Logo" class="header-logo" />
+            <div class="header-text">
+              <p class="header-republic">${isAr ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}</p>
+              <p class="header-ministry">${isAr ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}</p>
+              <p class="header-doctype">${isAr ? getTypeLabel(decree.type) : getTypeLabel(decree.type)}</p>
+            </div>
+          </div>
+          <div class="header-separator"></div>
+          <div class="meta-badges">
+            <span class="meta-badge type">${getTypeLabel(decree.type)}</span>
+            <span class="meta-badge">${isAr ? 'رقم ' + decree.number : 'No. ' + decree.number}</span>
+            <span class="meta-badge">${isAr ? 'عام ' + decree.year : 'Year ' + decree.year}</span>
+          </div>
+          <h1>${title}</h1>
+          <div class="meta-row">
+            <div class="date">${isAr ? 'تاريخ الصدور: ' + decree.date : 'Issued: ' + decree.date}</div>
+          </div>
+          <div class="content">${fullContent}</div>
+          <div class="footer">
+            <div class="footer-row">
+              <span>${isAr ? 'تم إنشاء هذا المستند من البوابة الإلكترونية لوزارة الاقتصاد والصناعة' : 'Generated from the Ministry of Economy and Industry E-Portal'}</span>
+              <span class="footer-url">www.moe.gov.sy</span>
+            </div>
+            <p class="footer-copyright">${isAr ? '© 2026 وزارة الاقتصاد والصناعة - جميع الحقوق محفوظة' : '© 2026 Ministry of Economy and Industry - All Rights Reserved'}</p>
+          </div>
+          <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
   };
 
@@ -143,6 +249,15 @@ export default function DecreesPage() {
   const handleViewDetails = (decree: Decree) => {
     setDetailModal({ isOpen: true, decree });
   };
+
+  // Read department param from URL and set initial filter
+  useEffect(() => {
+    const deptParam = searchParams.get("department");
+    if (deptParam && departmentSlugMap[deptParam]) {
+      const resolvedId = departmentSlugMap[deptParam];
+      setFilterDirectorate(resolvedId);
+    }
+  }, [searchParams]);
 
   // Fetch directorates on mount
   useEffect(() => {
@@ -161,10 +276,20 @@ export default function DecreesPage() {
     const fetchDecrees = async () => {
       setLoading(true);
       try {
-        const dirId =
-          filterDirectorate !== "all" ? filterDirectorate : undefined;
+        // Combine department tab + directorate dropdown filter
+        let dirId: string | undefined;
+        if (activeDepartment !== "all" && activeDepartment !== "ministry") {
+          dirId = activeDepartment;
+        } else if (filterDirectorate !== "all" && filterDirectorate !== "ministry") {
+          dirId = filterDirectorate;
+        }
         const data = await API.decrees.search(searchTerm, filterType, dirId);
-        setDecrees(data);
+        // If "ministry" is active (via tab or URL param), filter to only decrees without a directorate
+        if (activeDepartment === "ministry" || filterDirectorate === "ministry") {
+          setDecrees(data.filter((d: any) => !d.directorate_id));
+        } else {
+          setDecrees(data);
+        }
       } catch (e) {
         console.error("Failed to fetch decrees", e);
       } finally {
@@ -177,7 +302,7 @@ export default function DecreesPage() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterType, filterDirectorate]);
+  }, [searchTerm, filterType, filterDirectorate, activeDepartment]);
 
   // Filter type buttons
   const filterTypes = [
@@ -222,7 +347,7 @@ export default function DecreesPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-20 md:pt-24">
+      <main className="flex-grow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-6">
@@ -235,6 +360,26 @@ export default function DecreesPage() {
                 ? "البوابة الرسمية للوصول إلى كافة المراسيم التشريعية، القوانين، والقرارات الحكومية الصادرة في الجمهورية العربية السورية."
                 : "The official portal for accessing all legislative decrees, laws, and government decisions issued in the Syrian Arab Republic."}
             </p>
+          </div>
+
+          {/* Bug 1: Department Filter Tabs */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {DEPARTMENTS.map((dept) => (
+              <button
+                key={dept.value}
+                onClick={() => {
+                  setActiveDepartment(dept.value);
+                  if (dept.value !== "all") setFilterDirectorate("all");
+                }}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                  activeDepartment === dept.value
+                    ? "bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest border-gov-forest dark:border-gov-gold shadow-md"
+                    : "bg-white dark:bg-dm-surface text-gray-600 dark:text-white/70 border-gray-200 dark:border-gov-border/15 hover:border-gov-gold/50 hover:bg-gov-beige dark:hover:bg-white/10"
+                }`}
+              >
+                {isAr ? dept.ar : dept.en}
+              </button>
+            ))}
           </div>
 
           {/* Unified Filter Bar */}
@@ -413,12 +558,14 @@ export default function DecreesPage() {
               {/* Clear filters */}
               {(selectedMonth !== null ||
                 selectedYear !== null ||
-                filterDirectorate !== "all") && (
+                filterDirectorate !== "all" ||
+                activeDepartment !== "all") && (
                 <button
                   onClick={() => {
                     setSelectedMonth(null);
                     setSelectedYear(null);
                     setFilterDirectorate("all");
+                    setActiveDepartment("all");
                   }}
                   className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
                 >
@@ -538,23 +685,8 @@ export default function DecreesPage() {
                       </button>
                       <button
                         onClick={() => handleDownload(decree)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs ${
-                          decree.attachments && decree.attachments.length > 0
-                            ? "bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest"
-                            : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/30 cursor-not-allowed"
-                        }`}
-                        disabled={
-                          !decree.attachments || decree.attachments.length === 0
-                        }
-                        title={
-                          decree.attachments && decree.attachments.length > 0
-                            ? isAr
-                              ? "تحميل الملف"
-                              : "Download file"
-                            : isAr
-                              ? "لا يوجد ملف للتحميل"
-                              : "No file available"
-                        }
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest"
+                        title={isAr ? "تحميل PDF" : "Download PDF"}
                       >
                         <Download size={14} />
                         PDF
@@ -646,9 +778,9 @@ export default function DecreesPage() {
 
       <Footer />
 
-      {/* AI Summary Modal */}
+      {/* AI Summary Modal - Bug 3 fix: z-[60] renders above detail modal (z-50) */}
       {summaryModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
               <div className="flex items-center gap-2 text-gov-gold">
@@ -804,7 +936,8 @@ export default function DecreesPage() {
                       {detailModal.decree.attachments.map((att) => (
                         <a
                           key={att.id}
-                          href={att.download_url}
+                          href={`${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/public/decrees/${detailModal.decree.id}/attachments/${att.id}/download`}
+                          download={att.file_name}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors group/att"
@@ -846,16 +979,13 @@ export default function DecreesPage() {
                 {isAr ? "ملخص ذكي" : "AI Summary"}
               </button>
               <div className="flex items-center gap-2">
-                {detailModal.decree.attachments &&
-                  detailModal.decree.attachments.length > 0 && (
-                    <button
-                      onClick={() => handleDownload(detailModal.decree!)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest font-bold hover:opacity-90 transition-all text-sm"
-                    >
-                      <Download size={16} />
-                      {isAr ? "تحميل PDF" : "Download PDF"}
-                    </button>
-                  )}
+                <button
+                  onClick={() => handleDownload(detailModal.decree!)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest font-bold hover:opacity-90 transition-all text-sm"
+                >
+                  <Download size={16} />
+                  {isAr ? "تحميل PDF" : "Download PDF"}
+                </button>
                 <button
                   onClick={() =>
                     setDetailModal({ isOpen: false, decree: null })

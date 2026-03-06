@@ -118,7 +118,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
       if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
       if (diffHours < 24) return `منذ ${diffHours} ساعة`;
       if (diffDays < 7) return `منذ ${diffDays} يوم`;
-      return date.toLocaleDateString('ar-SA');
+      return date.toLocaleDateString('ar-u-nu-latn');
     } else {
       if (diffMins < 1) return 'Just now';
       if (diffMins < 60) return `${diffMins}m ago`;

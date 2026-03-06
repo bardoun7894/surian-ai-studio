@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, useRef, memo } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -13,7 +13,6 @@ import Link from 'next/link';
 
 const GEO_URL = '/assets/geo/syria-governorates.json';
 
-/** Maps GeoJSON NAME_1 values → display names */
 const GOVERNORATE_NAMES: Record<string, { ar: string; en: string }> = {
   'Aleppo':       { ar: 'حلب',       en: 'Aleppo' },
   'ArRaqqah':     { ar: 'الرقة',     en: 'Ar-Raqqa' },
@@ -27,7 +26,7 @@ const GOVERNORATE_NAMES: Record<string, { ar: string; en: string }> = {
   'RifDimashq':   { ar: 'ريف دمشق',  en: 'Rif Dimashq' },
   'Damascus':     { ar: 'دمشق',      en: 'Damascus' },
   'Quneitra':     { ar: 'القنيطرة',  en: 'Quneitra' },
-  "Dar`a":        { ar: 'درعا',      en: 'Daraa' },
+  "Dar`a":       { ar: 'درعا',      en: 'Daraa' },
   "AsSuwayda'":   { ar: 'السويداء',  en: 'As-Suwayda' },
 };
 
@@ -46,6 +45,7 @@ function SyriaMap() {
   const { theme } = useTheme();
   const isArabic = language === 'ar';
   const isDark = theme === 'dark';
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: CENTER,
@@ -53,6 +53,7 @@ function SyriaMap() {
   });
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredName, setHoveredName] = useState<string | null>(null);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
 
   const handleZoomIn = useCallback(() => {
     setPosition((pos) => ({
@@ -72,31 +73,58 @@ function SyriaMap() {
     setPosition(pos);
   }, []);
 
+  // Convert client coordinates to map-container-relative coordinates
+  const toRelative = useCallback((clientX: number, clientY: number) => {
+    if (!mapContainerRef.current) return { x: clientX, y: clientY };
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }, []);
+
   const handleMouseEnter = useCallback((geo: { properties: { name: string } }, evt: React.MouseEvent) => {
     const name = geo.properties.name;
     setHoveredName(name);
-    setTooltip({ x: evt.clientX, y: evt.clientY, name });
-  }, []);
+    const pos = toRelative(evt.clientX, evt.clientY);
+    setTooltip({ x: pos.x, y: pos.y, name });
+  }, [toRelative]);
 
   const handleMouseMove = useCallback((geo: { properties: { name: string } }, evt: React.MouseEvent) => {
-    setTooltip({ x: evt.clientX, y: evt.clientY, name: geo.properties.name });
-  }, []);
+    const pos = toRelative(evt.clientX, evt.clientY);
+    setTooltip({ x: pos.x, y: pos.y, name: geo.properties.name });
+  }, [toRelative]);
 
   const handleMouseLeave = useCallback(() => {
     setHoveredName(null);
     setTooltip(null);
   }, []);
 
-  // Colors based on theme
+  const handleClick = useCallback((geo: { properties: { name: string } }, evt: React.MouseEvent) => {
+    const name = geo.properties.name;
+    const pos = toRelative(evt.clientX, evt.clientY);
+
+    if (selectedName === name) {
+      // Deselect
+      setSelectedName(null);
+      setTooltip(null);
+    } else {
+      setSelectedName(name);
+      setTooltip({ x: pos.x, y: pos.y, name });
+    }
+  }, [selectedName, toRelative]);
+
+  const handleMapBackgroundClick = useCallback(() => {
+    setSelectedName(null);
+    setTooltip(null);
+  }, []);
+
   const defaultFill = isDark ? '#374151' : '#e5e7eb';
   const hoverFill = isDark ? '#b9a779' : '#094239';
   const strokeColor = isDark ? '#1f2937' : '#ffffff';
 
-  const tooltipInfo = tooltip ? GOVERNORATE_NAMES[tooltip.name] : null;
+  const activeName = selectedName || hoveredName;
+  const tooltipInfo = activeName ? GOVERNORATE_NAMES[activeName] : null;
 
   return (
     <section className="relative py-16 md:py-24 overflow-hidden bg-white dark:bg-dm-bg">
-      {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
         style={{
@@ -106,7 +134,6 @@ function SyriaMap() {
       />
 
       <div className="relative z-10 container mx-auto px-4">
-        {/* Section heading */}
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-3">
             {isArabic ? 'مواقع خاصة بنا' : 'Our Locations'}
@@ -119,8 +146,8 @@ function SyriaMap() {
           <div className="mt-4 mx-auto w-20 h-1 rounded-full bg-gov-gold" />
         </div>
 
-        {/* Map container */}
-        <div className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[450px]">
+        {/* Map container - tooltip is now absolute inside this */}
+        <div ref={mapContainerRef} className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[450px]">
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
@@ -138,15 +165,23 @@ function SyriaMap() {
               minZoom={MIN_ZOOM}
               maxZoom={MAX_ZOOM}
             >
+              <rect
+                x={-1000}
+                y={-1000}
+                width={3000}
+                height={3000}
+                fill="transparent"
+                onClick={handleMapBackgroundClick}
+              />
               <Geographies geography={GEO_URL}>
                 {({ geographies }) =>
                   geographies.map((geo) => {
-                    const isHovered = hoveredName === geo.properties.name;
+                    const isActive = hoveredName === geo.properties.name || selectedName === geo.properties.name;
                     return (
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={isHovered ? hoverFill : defaultFill}
+                        fill={isActive ? hoverFill : defaultFill}
                         stroke={strokeColor}
                         strokeWidth={0.5}
                         style={{
@@ -157,6 +192,7 @@ function SyriaMap() {
                         onMouseEnter={(evt) => handleMouseEnter(geo, evt as unknown as React.MouseEvent)}
                         onMouseMove={(evt) => handleMouseMove(geo, evt as unknown as React.MouseEvent)}
                         onMouseLeave={handleMouseLeave}
+                        onClick={(evt) => handleClick(geo, evt as unknown as React.MouseEvent)}
                       />
                     );
                   })
@@ -165,10 +201,10 @@ function SyriaMap() {
             </ZoomableGroup>
           </ComposableMap>
 
-          {/* Tooltip (fixed position to avoid clipping) */}
+          {/* Tooltip - absolute inside map container so it scrolls with it */}
           {tooltip && tooltipInfo && (
             <div
-              className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full"
+              className="absolute z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y - 12 }}
             >
               <div className="bg-gov-forest dark:bg-gov-emerald text-white dark:text-gov-charcoal text-sm font-semibold px-4 py-2 rounded-lg shadow-lg whitespace-nowrap">
@@ -181,7 +217,7 @@ function SyriaMap() {
             </div>
           )}
 
-          {/* Zoom controls - bottom-right (flips in RTL) */}
+          {/* Zoom controls */}
           <div className={`absolute bottom-4 z-10 flex flex-col gap-2 ${isArabic ? 'left-4' : 'right-4'}`}>
             <button
               onClick={handleZoomIn}
@@ -201,7 +237,7 @@ function SyriaMap() {
             </button>
           </div>
 
-          {/* "View as list" link - bottom-left (flips in RTL) */}
+          {/* View as list link */}
           <div className={`absolute bottom-4 z-10 ${isArabic ? 'right-4' : 'left-4'}`}>
             <Link
               href="/directorates"

@@ -33,6 +33,9 @@ class Content extends Model
         'view_count',
         'priority',
         'directorate_id',
+        'show_in_ticker',
+        'ticker_duration',
+        'ticker_start_at',
     ];
 
     protected $casts = [
@@ -43,6 +46,8 @@ class Content extends Model
         'featured' => 'boolean',
         'view_count' => 'integer',
         'priority' => 'integer',
+        'show_in_ticker' => 'boolean',
+        'ticker_start_at' => 'datetime',
     ];
 
     /**
@@ -169,6 +174,52 @@ class Content extends Model
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * Scope to get items that are currently active in the ticker.
+     * Checks show_in_ticker flag and whether the duration has not expired.
+     */
+    public function scopeActiveTicker($query)
+    {
+        return $query->where('show_in_ticker', true)
+            ->whereNotNull('ticker_start_at')
+            ->whereNotNull('ticker_duration')
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('ticker_duration', '24h')
+                        ->where('ticker_start_at', '>', now()->subHours(24));
+                })->orWhere(function ($q2) {
+                    $q2->where('ticker_duration', '48h')
+                        ->where('ticker_start_at', '>', now()->subHours(48));
+                })->orWhere(function ($q2) {
+                    $q2->where('ticker_duration', '1w')
+                        ->where('ticker_start_at', '>', now()->subWeek());
+                })->orWhere(function ($q2) {
+                    $q2->where('ticker_duration', '1m')
+                        ->where('ticker_start_at', '>', now()->subMonth());
+                });
+            });
+    }
+
+    /**
+     * Check if the ticker display has expired for this content.
+     */
+    public function isTickerExpired(): bool
+    {
+        if (!$this->show_in_ticker || !$this->ticker_start_at || !$this->ticker_duration) {
+            return true;
+        }
+
+        $expiresAt = match ($this->ticker_duration) {
+            '24h' => $this->ticker_start_at->addHours(24),
+            '48h' => $this->ticker_start_at->addHours(48),
+            '1w'  => $this->ticker_start_at->addWeek(),
+            '1m'  => $this->ticker_start_at->addMonth(),
+            default => $this->ticker_start_at,
+        };
+
+        return now()->greaterThan($expiresAt);
     }
 
     /**

@@ -24,8 +24,8 @@ class Phase17ApiTest extends TestCase
         parent::setUp();
 
         // Create roles
-        $adminRole = Role::create(['name' => 'admin.super', 'display_name' => 'Super Admin']);
-        $staffRole = Role::create(['name' => 'staff', 'display_name' => 'Staff']);
+        $adminRole = Role::create(['name' => 'admin.super', 'label' => 'Super Admin', 'permissions' => ['*']]);
+        $staffRole = Role::create(['name' => 'staff', 'label' => 'Staff', 'permissions' => ['complaints.*', 'faq.*']]);
 
         // Create directorate
         $this->directorate = Directorate::create([
@@ -68,7 +68,7 @@ class Phase17ApiTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true]);
+            ->assertJsonFragment(['rating' => 5]);
 
         $this->assertDatabaseHas('complaints', [
             'id' => $complaint->id,
@@ -155,7 +155,7 @@ class Phase17ApiTest extends TestCase
             ]);
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true]);
+            ->assertJsonFragment(['message' => 'Complaint snoozed']);
 
         $complaint->refresh();
         $this->assertNotNull($complaint->snoozed_until);
@@ -365,16 +365,13 @@ class Phase17ApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'success',
-                'data' => [
-                    'average_rating',
-                    'total_ratings',
-                    'rating_distribution',
-                ]
+                'average_rating',
+                'total_rated',
+                'rating_distribution',
             ]);
 
-        $this->assertEquals(4, $response->json('data.average_rating'));
-        $this->assertEquals(2, $response->json('data.total_ratings'));
+        $this->assertEquals(4, $response->json('average_rating'));
+        $this->assertEquals(2, $response->json('total_rated'));
     }
 
     // ==========================================

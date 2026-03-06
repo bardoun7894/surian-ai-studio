@@ -52,7 +52,7 @@ export default function OpenDataPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-7xl mx-auto text-center">
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">

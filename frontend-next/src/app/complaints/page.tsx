@@ -5,15 +5,21 @@ import Footer from '@/components/Footer';
 import ComplaintPortal from '@/components/ComplaintPortal';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function ComplaintsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "الشكاوى" : "Complaints",
+    description: language === "ar" ? "تقديم ومتابعة الشكاوى في وزارة الاقتصاد والصناعة" : "Submit and track complaints at the Ministry of Economy and Industry",
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow pt-20 md:pt-24">
+      <main className="flex-grow">
         {/* Suggestions Navigation Banner */}
         <div className="max-w-4xl mx-auto px-4 pt-8">
           <div className="bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">

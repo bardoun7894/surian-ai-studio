@@ -82,7 +82,7 @@ const platforms = [
 ];
 
 export default function ShareMenu({ isOpen, onClose, title, url }: ShareMenuProps) {
-  const { locale } = useLanguage();
+  const { language: locale } = useLanguage();
   const [copied, setCopied] = React.useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

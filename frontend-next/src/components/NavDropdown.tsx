@@ -57,7 +57,7 @@ const NavDropdown: React.FC<NavDropdownProps> = ({ label, items }) => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className={`absolute top-full mt-2 w-64 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gov-gold/20 dark:border-dm-border py-2 z-50 ${language === 'ar' ? 'right-0' : 'left-0'}`}
+                        className={`absolute top-full mt-2 w-64 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gov-gold/20 dark:border-dm-border py-2 z-50 start-0`}
                     >
                         {items.map((item, index) => {
                             const Icon = item.icon;

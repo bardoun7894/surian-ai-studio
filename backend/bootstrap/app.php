@@ -28,6 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->throttleApi('300,1');
 
+        // Trust Docker network proxies (Next.js, nginx) for correct client IP
+        $middleware->trustProxies(at: ['172.18.0.0/16', '172.19.0.0/16', '10.0.0.0/8']);
+
         $middleware->validateCsrfTokens(except: [
             'api/v1/auth/*',
             'api/v1/complaints/*',
@@ -44,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'directorate' => \App\Http\Middleware\CheckDirectorate::class,
             'admin.ip' => \App\Http\Middleware\AdminIpRestrictionMiddleware::class, // NFR-08
+            'cache.public' => \App\Http\Middleware\CachePublicResponse::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

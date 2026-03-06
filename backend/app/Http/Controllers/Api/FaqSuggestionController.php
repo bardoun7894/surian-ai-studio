@@ -152,6 +152,7 @@ class FaqSuggestionController extends Controller
 
         // Audit log
         $this->auditService->log(
+            $request->user(),
             'faq_suggestion_approved',
             'faq_suggestion',
             $suggestion->id,
@@ -205,6 +206,7 @@ class FaqSuggestionController extends Controller
 
         // Audit log
         $this->auditService->log(
+            $request->user(),
             'faq_suggestion_rejected',
             'faq_suggestion',
             $suggestion->id,
@@ -424,6 +426,7 @@ class FaqSuggestionController extends Controller
 
         // Audit log
         $this->auditService->log(
+            $request->user(),
             'faq_suggestion_snoozed',
             'faq_suggestion',
             $suggestion->id,
@@ -462,6 +465,7 @@ class FaqSuggestionController extends Controller
 
         // Audit log
         $this->auditService->log(
+            $request->user(),
             'faq_suggestion_unsnoozed',
             'faq_suggestion',
             $suggestion->id,

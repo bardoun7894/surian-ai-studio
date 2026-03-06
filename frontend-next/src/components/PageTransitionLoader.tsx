@@ -1,47 +1,132 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useLoading } from '@/contexts/LoadingContext';
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useLoading } from "@/contexts/LoadingContext";
 
 interface PageTransitionLoaderProps {
   children: React.ReactNode;
 }
 
-const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children }) => {
+const MIN_LOADING_TIME = 600; // ms - avoid flash
+const SAFETY_TIMEOUT = 10000; // ms - never get stuck
+
+/**
+ * Returns a promise that resolves once:
+ *  1. document.readyState === 'complete'
+ *  2. All <img> elements that are at least partially in the viewport have loaded
+ */
+function waitForPageReady(): Promise<void> {
+  return new Promise((resolve) => {
+    const check = () => {
+      // 1. Document itself must be complete (sub-resources like stylesheets)
+      if (document.readyState !== "complete") {
+        const onLoad = () => {
+          // Once load fires, still check images
+          waitForVisibleImages().then(resolve);
+        };
+        window.addEventListener("load", onLoad, { once: true });
+        // Fallback if load already fired but readyState is lagging
+        setTimeout(() => {
+          window.removeEventListener("load", onLoad);
+          waitForVisibleImages().then(resolve);
+        }, 3000);
+        return;
+      }
+
+      // Document is complete, now wait for visible images
+      waitForVisibleImages().then(resolve);
+    };
+
+    // Small delay to let the new route render its initial DOM
+    setTimeout(check, 150);
+  });
+}
+
+/**
+ * Waits for all images that are in or near the viewport to finish loading.
+ */
+function waitForVisibleImages(): Promise<void> {
+  return new Promise((resolve) => {
+    const images = Array.from(document.querySelectorAll("img"));
+    const visiblePending = images.filter((img) => {
+      if (img.complete) return false;
+      if (img.naturalWidth > 0) return false;
+      // Check if image is in/near viewport
+      const rect = img.getBoundingClientRect();
+      const inViewport =
+        rect.top < window.innerHeight + 200 &&
+        rect.bottom > -200 &&
+        rect.left < window.innerWidth + 200 &&
+        rect.right > -200;
+      return inViewport;
+    });
+
+    if (visiblePending.length === 0) {
+      resolve();
+      return;
+    }
+
+    // Wait for all visible pending images (with per-image timeout)
+    let remaining = visiblePending.length;
+    const settled = new Set<HTMLImageElement>();
+    const done = (img: HTMLImageElement) => {
+      if (settled.has(img)) return;
+      settled.add(img);
+      remaining--;
+      if (remaining <= 0) resolve();
+    };
+    visiblePending.forEach((img) => {
+      img.addEventListener("load", () => done(img), { once: true });
+      img.addEventListener("error", () => done(img), { once: true });
+      // Per-image timeout so a broken image doesn't block forever
+      setTimeout(() => done(img), 4000);
+    });
+  });
+}
+
+const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
+  children,
+}) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { language } = useLanguage();
   const { isLoading, stopLoading } = useLoading();
   const [progress, setProgress] = useState(0);
   const [displayLoading, setDisplayLoading] = useState(false);
-  const routeKey = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+  const routeKey = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
 
+  // Track when loading started (wall clock) and the route at that moment
+  const loadingStartTimeRef = useRef<number>(0);
+  const loadingStartRouteRef = useRef<string | null>(null);
+  // Whether we have already scheduled a "finish" sequence for this loading cycle
+  const finishScheduledRef = useRef(false);
+
+  // -- Animated progress bar --
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
 
     if (isLoading) {
       setDisplayLoading(true);
       setProgress(0);
-
-      // Simulate progress
       progressInterval = setInterval(() => {
-        setProgress(prev => {
+        setProgress((prev) => {
           if (prev >= 90) return prev;
-          return prev + Math.random() * 15;
+          return prev + Math.random() * 12;
         });
-      }, 200);
+      }, 250);
     } else {
       // Complete animation
       setProgress(100);
       const timeout = setTimeout(() => {
         setDisplayLoading(false);
         setProgress(0);
-      }, 300);
-
+      }, 350);
       return () => clearTimeout(timeout);
     }
 
@@ -50,34 +135,54 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
     };
   }, [isLoading]);
 
-  // Stop loading when route changes (path or query) - handles both
-  // link click navigations and programmatic navigations (router.replace/push)
-  // We track the route at the time loading started to detect actual changes.
-  const loadingStartRouteRef = useRef<string | null>(null);
-
+  // -- Record when loading starts --
   useEffect(() => {
     if (isLoading && !loadingStartRouteRef.current) {
       loadingStartRouteRef.current = routeKey;
+      loadingStartTimeRef.current = Date.now();
+      finishScheduledRef.current = false;
     }
     if (!isLoading) {
       loadingStartRouteRef.current = null;
+      finishScheduledRef.current = false;
     }
   }, [isLoading, routeKey]);
 
-  // Stop loading immediately when route changes
+  // -- Finish loading gracefully --
+  const finishLoading = useCallback(async () => {
+    if (finishScheduledRef.current) return;
+    finishScheduledRef.current = true;
+
+    // Wait for page to be truly ready (images, document state)
+    await waitForPageReady();
+
+    // Enforce minimum display time so the loader doesn't flash
+    const elapsed = Date.now() - loadingStartTimeRef.current;
+    const remaining = MIN_LOADING_TIME - elapsed;
+    if (remaining > 0) {
+      await new Promise((r) => setTimeout(r, remaining));
+    }
+
+    stopLoading();
+  }, [stopLoading]);
+
+  // -- Detect route change -> begin finish sequence --
   useEffect(() => {
     if (!isLoading) return;
-    if (loadingStartRouteRef.current && routeKey !== loadingStartRouteRef.current) {
-      stopLoading();
+    if (
+      loadingStartRouteRef.current &&
+      routeKey !== loadingStartRouteRef.current
+    ) {
+      finishLoading();
     }
-  }, [routeKey, isLoading, stopLoading]);
+  }, [routeKey, isLoading, finishLoading]);
 
-  // Safety timeout: ensure loading screen never gets stuck
+  // -- Safety timeout: prevent infinite loading --
   useEffect(() => {
     if (!isLoading) return;
     const safetyTimeout = setTimeout(() => {
       stopLoading();
-    }, 4000);
+    }, SAFETY_TIMEOUT);
     return () => clearTimeout(safetyTimeout);
   }, [isLoading, stopLoading]);
 
@@ -132,12 +237,16 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                 <motion.div
                   animate={{
                     scale: [1, 1.05, 1],
-                    filter: ['brightness(1)', 'brightness(1.1)', 'brightness(1)']
+                    filter: [
+                      "brightness(1)",
+                      "brightness(1.1)",
+                      "brightness(1)",
+                    ],
                   }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                   className="relative z-10"
                 >
@@ -147,7 +256,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                     width={100}
                     height={100}
                     className="drop-shadow-2xl dark:drop-shadow-[0_0_20px_rgba(185,167,121,0.5)] w-16 h-16 md:w-[100px] md:h-[100px]"
-                    style={{ width: 'auto', height: 'auto' }}
+                    style={{ width: "auto", height: "auto" }}
                     priority
                   />
                 </motion.div>
@@ -160,14 +269,13 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({ children })
                   transition={{ duration: 2, repeat: Infinity }}
                   className="text-lg md:text-xl lg:text-2xl font-bold text-gov-forest dark:text-dm-text"
                 >
-                  {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+                  {language === "ar" ? "جاري التحميل..." : "Loading..."}
                 </motion.h3>
 
                 <p className="text-xs md:text-sm text-gov-forest/75 dark:text-dm-text-secondary font-medium tracking-[0.01em]">
-                  {language === 'ar'
-                    ? 'وزارة الاقتصاد والصناعة'
-                    : 'Ministry of Economy and Industry'
-                  }
+                  {language === "ar"
+                    ? "وزارة الاقتصاد والصناعة"
+                    : "Ministry of Economy and Industry"}
                 </p>
               </div>
 

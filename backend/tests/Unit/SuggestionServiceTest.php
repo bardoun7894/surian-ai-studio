@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Suggestion;
 use App\Models\User;
+use App\Services\AIService;
 use App\Services\SuggestionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -19,7 +20,9 @@ class SuggestionServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SuggestionService();
+        $aiService = $this->createMock(AIService::class);
+        $aiService->method('classifySuggestion')->willReturn([]);
+        $this->service = new SuggestionService($aiService);
     }
 
     public function test_it_can_store_a_suggestion_without_files()

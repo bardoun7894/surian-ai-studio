@@ -100,7 +100,7 @@ function SuggestionTrackPageContent() {
 
     const formatDate = (dateStr: string) => {
         try {
-            return new Date(dateStr).toLocaleDateString('ar-SY', {
+            return new Date(dateStr).toLocaleDateString('ar-u-nu-latn', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -184,7 +184,7 @@ function SuggestionTrackPageContent() {
                         <PrintHeader
                             documentTitle="متابعة مقترح"
                             referenceNumber={result.tracking_number}
-                            date={result.submitted_at ? new Date(result.submitted_at).toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                            date={result.submitted_at ? new Date(result.submitted_at).toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
                             language="ar"
                         />
 

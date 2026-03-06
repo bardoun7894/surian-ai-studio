@@ -12,6 +12,7 @@ import ShareMenu from '@/components/ShareMenu';
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
 import Pagination from '@/components/Pagination';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 interface Announcement {
   id: string;
@@ -125,6 +126,11 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 
 export default function AnnouncementsPage() {
   const { language, t } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "الإعلانات" : "Announcements",
+    description: language === "ar" ? "إعلانات وزارة الاقتصاد والصناعة" : "Announcements from the Ministry of Economy and Industry",
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -252,7 +258,7 @@ export default function AnnouncementsPage() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return language === 'ar'
-      ? date.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
+      ? date.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })
       : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
@@ -293,7 +299,7 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
+      <main className="flex-grow">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-16 transition-colors duration-500">
           {/* Hero Header */}
           <div className="bg-gov-forest dark:bg-gov-forest/80 py-16 mb-8 animate-fade-in-up">

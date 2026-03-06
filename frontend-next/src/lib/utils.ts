@@ -81,7 +81,7 @@ export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
   if (diffDays < 7) return lang === 'ar' ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
 
   // Use en-US for number formatting to avoid Hindi numerals
-  const formatted = date.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+  const formatted = date.toLocaleDateString(lang === 'ar' ? 'ar-u-nu-latn' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

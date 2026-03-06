@@ -2,9 +2,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles, UserRound } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Trash2, Paperclip, FileText, Image as ImageIcon, Minimize2, Sparkles, UserRound, AlertTriangle, CheckCircle, ArrowRight, Shield } from 'lucide-react';
 import { aiService } from '@/lib/aiService';
 import { ChatMessage } from '@/types';
+
+// Complaint classification data from AI
+interface ComplaintClassification {
+    directorate: string;
+    directorate_id: number | null;
+    priority: 'high' | 'medium' | 'low';
+    summary: string;
+    keywords: string[];
+    confidence: number;
+}
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Helper to render message text with clickable links for routes and URLs
@@ -67,6 +77,10 @@ const ChatBot: React.FC = () => {
     const [showWelcome, setShowWelcome] = useState(false); // Default hidden, waits for timer
     const [handoffRequested, setHandoffRequested] = useState(false);
     const [requestingHandoff, setRequestingHandoff] = useState(false);
+    const [pendingClassification, setPendingClassification] = useState<ComplaintClassification | null>(null);
+    const [showComplaintForm, setShowComplaintForm] = useState(false);
+    const [complaintFormData, setComplaintFormData] = useState({ full_name: '', phone: '', national_id: '', email: '' });
+    const [submittingComplaint, setSubmittingComplaint] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -161,6 +175,81 @@ const ChatBot: React.FC = () => {
             setRequestingHandoff(false);
         }
     };
+
+    const handleDismissClassification = () => {
+        setPendingClassification(null);
+        setShowComplaintForm(false);
+    };
+
+    const handleConvertToComplaint = async () => {
+        if (!pendingClassification || !sessionId) return;
+
+        const { full_name, phone, national_id, email } = complaintFormData;
+        if (!full_name.trim() || !phone.trim()) {
+            return; // Basic validation
+        }
+
+        setSubmittingComplaint(true);
+        try {
+            const response = await fetch('/api/v1/chat/convert-complaint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    full_name,
+                    phone,
+                    national_id: national_id || undefined,
+                    email: email || undefined,
+                    directorate_id: pendingClassification.directorate_id ?? 1,
+                    title: pendingClassification.summary,
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setPendingClassification(null);
+                setShowComplaintForm(false);
+                setComplaintFormData({ full_name: '', phone: '', national_id: '', email: '' });
+
+                // Add success message to chat
+                const successMsg: ChatMessage = {
+                    id: Date.now().toString(),
+                    text: language === 'ar'
+                        ? `\u2705 \u062a\u0645 \u062a\u0642\u062f\u064a\u0645 \u0634\u0643\u0648\u0627\u0643 \u0628\u0646\u062c\u0627\u062d! \u0631\u0642\u0645 \u0627\u0644\u062a\u062a\u0628\u0639: ${data.tracking_number}\n\u064a\u0645\u0643\u0646\u0643 \u0645\u062a\u0627\u0628\u0639\u0629 \u0634\u0643\u0648\u0627\u0643 \u0645\u0646 \u0635\u0641\u062d\u0629 /complaints`
+                        : `\u2705 Your complaint has been submitted successfully! Tracking number: ${data.tracking_number}\nYou can track your complaint at /complaints`,
+                    sender: 'bot',
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, successMsg]);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Complaint conversion failed:', errorData);
+                const errorMsg: ChatMessage = {
+                    id: Date.now().toString(),
+                    text: language === 'ar'
+                        ? '❌ فشل في تقديم الشكوى. يرجى المحاولة مرة أخرى.'
+                        : '❌ Failed to submit complaint. Please try again.',
+                    sender: 'bot',
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, errorMsg]);
+            }
+        } catch (error) {
+            console.error('Complaint conversion error:', error);
+            const errorMsg: ChatMessage = {
+                id: Date.now().toString(),
+                text: language === 'ar'
+                    ? '❌ حدث خطأ. يرجى المحاولة مرة أخرى.'
+                    : '❌ An error occurred. Please try again.',
+                sender: 'bot',
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setSubmittingComplaint(false);
+        }
+    };
+
 
     const resetChat = async () => {
         const welcomeMsg: ChatMessage = {
@@ -288,6 +377,11 @@ const ChatBot: React.FC = () => {
                 if (!response.ok) throw new Error('API request failed');
                 const data = await response.json();
                 responseText = data.response;
+
+                // Check for complaint classification
+                if (data.complaint_classification) {
+                    setPendingClassification(data.complaint_classification);
+                }
             } else {
                 // Regular chat via backend API
                 const prompt = currentInput || (currentAttachment ? (language === 'ar' ? "قم بتحليل هذا الملف المرفق." : "Analyze this attached file.") : ".");
@@ -305,6 +399,11 @@ const ChatBot: React.FC = () => {
                 if (!response.ok) throw new Error('API request failed');
                 const data = await response.json();
                 responseText = data.response;
+
+                // Check for complaint classification
+                if (data.complaint_classification) {
+                    setPendingClassification(data.complaint_classification);
+                }
             }
 
             const botMsg: ChatMessage = {
@@ -458,6 +557,118 @@ const ChatBot: React.FC = () => {
                                 <Loader2 size={16} className="animate-spin text-gov-gold" />
                             </div>
                         </div>
+                    )}
+                    {/* Complaint Classification Card */}
+                    {pendingClassification && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mx-1"
+                        >
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-3 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                                        {language === 'ar' ? '\u062a\u0645 \u0627\u0643\u062a\u0634\u0627\u0641 \u0634\u0643\u0648\u0649' : 'Complaint Detected'}
+                                    </span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                                        pendingClassification.priority === 'high'
+                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                            : pendingClassification.priority === 'medium'
+                                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    }`}>
+                                        {pendingClassification.priority === 'high'
+                                            ? (language === 'ar' ? '\u0639\u0627\u0644\u064a\u0629' : 'High')
+                                            : pendingClassification.priority === 'medium'
+                                            ? (language === 'ar' ? '\u0645\u062a\u0648\u0633\u0637\u0629' : 'Medium')
+                                            : (language === 'ar' ? '\u0645\u0646\u062e\u0641\u0636\u0629' : 'Low')}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-1 text-xs text-gray-700 dark:text-gray-300">
+                                    <div className="flex items-center gap-1.5">
+                                        <Shield size={12} className="text-gov-teal shrink-0" />
+                                        <span className="font-medium">{pendingClassification.directorate}</span>
+                                    </div>
+                                    {pendingClassification.summary && (
+                                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{pendingClassification.summary}</p>
+                                    )}
+                                </div>
+
+                                {!showComplaintForm ? (
+                                    <div className="flex gap-2 pt-1">
+                                        <button
+                                            onClick={() => setShowComplaintForm(true)}
+                                            className="flex-1 flex items-center justify-center gap-1.5 bg-gov-forest dark:bg-gov-brand text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-gov-teal transition-colors"
+                                        >
+                                            <ArrowRight size={14} className={language === 'ar' ? 'rotate-180' : ''} />
+                                            {language === 'ar' ? '\u062a\u0642\u062f\u064a\u0645 \u0634\u0643\u0648\u0649 \u0631\u0633\u0645\u064a\u0629' : 'Submit Formal Complaint'}
+                                        </button>
+                                        <button
+                                            onClick={handleDismissClassification}
+                                            className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                        >
+                                            {language === 'ar' ? '\u062a\u062c\u0627\u0647\u0644' : 'Dismiss'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="space-y-2 pt-1 border-t border-amber-200/50 dark:border-amber-700/30"
+                                    >
+                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 pt-1">
+                                            {language === 'ar' ? '\u0623\u062f\u062e\u0644 \u0628\u064a\u0627\u0646\u0627\u062a\u0643 \u0644\u062a\u0642\u062f\u064a\u0645 \u0627\u0644\u0634\u0643\u0648\u0649:' : 'Enter your details to submit:'}
+                                        </p>
+                                        <input
+                                            type="text"
+                                            placeholder={language === 'ar' ? '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644 *' : 'Full name *'}
+                                            value={complaintFormData.full_name}
+                                            onChange={(e) => setComplaintFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full text-xs border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gray-800 dark:text-white focus:outline-none focus:border-gov-gold"
+                                        />
+                                        <input
+                                            type="tel"
+                                            placeholder={language === 'ar' ? '\u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062a\u0641 *' : 'Phone number *'}
+                                            value={complaintFormData.phone}
+                                            onChange={(e) => setComplaintFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                            className="w-full text-xs border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gray-800 dark:text-white focus:outline-none focus:border-gov-gold"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder={language === 'ar' ? '\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)' : 'National ID (optional)'}
+                                            value={complaintFormData.national_id}
+                                            onChange={(e) => setComplaintFormData(prev => ({ ...prev, national_id: e.target.value }))}
+                                            className="w-full text-xs border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gray-800 dark:text-white focus:outline-none focus:border-gov-gold"
+                                        />
+                                        <input
+                                            type="email"
+                                            placeholder={language === 'ar' ? '\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)' : 'Email (optional)'}
+                                            value={complaintFormData.email}
+                                            onChange={(e) => setComplaintFormData(prev => ({ ...prev, email: e.target.value }))}
+                                            className="w-full text-xs border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-dm-surface text-gray-800 dark:text-white focus:outline-none focus:border-gov-gold"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={handleConvertToComplaint}
+                                                disabled={submittingComplaint || !complaintFormData.full_name.trim() || !complaintFormData.phone.trim()}
+                                                className="flex-1 flex items-center justify-center gap-1.5 bg-gov-forest dark:bg-gov-brand text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-gov-teal disabled:opacity-50 transition-colors"
+                                            >
+                                                {submittingComplaint ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                                                {language === 'ar' ? '\u062a\u0623\u0643\u064a\u062f' : 'Confirm'}
+                                            </button>
+                                            <button
+                                                onClick={handleDismissClassification}
+                                                className="text-xs text-gray-500 dark:text-gray-400 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                            >
+                                                {language === 'ar' ? '\u0625\u0644\u063a\u0627\u0621' : 'Cancel'}
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </motion.div>
                     )}
                     <div ref={messagesEndRef} />
                 </div>

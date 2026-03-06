@@ -97,9 +97,16 @@ class PublicApiController extends Controller
             ->map(function ($sub) {
                 return [
                     'id' => (string) $sub->id,
-                    'name' => $sub->name_ar,
+                    'name' => [
+                        'ar' => $sub->name_ar,
+                        'en' => $sub->name_en ?? $sub->name_ar,
+                    ],
                     'name_ar' => $sub->name_ar,
                     'name_en' => $sub->name_en ?? $sub->name_ar,
+                    'description' => [
+                        'ar' => $sub->description_ar ?? '',
+                        'en' => $sub->description_en ?? '',
+                    ],
                     'description_ar' => $sub->description_ar ?? '',
                     'description_en' => $sub->description_en ?? '',
                     'phone' => $sub->phone ?? '',
@@ -117,10 +124,16 @@ class PublicApiController extends Controller
             ->map(function ($member) {
                 return [
                     'id' => (string) $member->id,
-                    'name' => $member->name_ar,
+                    'name' => [
+                        'ar' => $member->name_ar ?? '',
+                        'en' => $member->name_en ?? $member->name_ar ?? '',
+                    ],
                     'name_ar' => $member->name_ar,
                     'name_en' => $member->name_en,
-                    'position' => $member->position_ar,
+                    'position' => [
+                        'ar' => $member->position_ar ?? '',
+                        'en' => $member->position_en ?? $member->position_ar ?? '',
+                    ],
                     'position_ar' => $member->position_ar,
                     'position_en' => $member->position_en,
                     'image' => $this->normalizeImageUrl($member->image),
@@ -140,10 +153,16 @@ class PublicApiController extends Controller
 
         return response()->json([
             'id' => (string) $directorate->id,
-            'name' => $directorate->name_ar ?? $directorate->name,
+            'name' => [
+                'ar' => $directorate->name_ar ?? $directorate->name,
+                'en' => $directorate->name_en ?? $directorate->name_ar ?? $directorate->name,
+            ],
             'name_ar' => $directorate->name_ar ?? $directorate->name,
             'name_en' => $directorate->name_en ?? $directorate->name,
-            'description' => $directorate->description_ar ?? $directorate->description ?? '',
+            'description' => [
+                'ar' => $directorate->description_ar ?? $directorate->description ?? '',
+                'en' => $directorate->description_en ?? $directorate->description ?? '',
+            ],
             'description_ar' => $directorate->description_ar ?? $directorate->description ?? '',
             'description_en' => $directorate->description_en ?? $directorate->description ?? '',
             'icon' => $directorate->icon ?? 'Building2',
@@ -354,31 +373,47 @@ class PublicApiController extends Controller
 
     /**
      * Get breaking news (titles only)
+     * Prioritizes items with active ticker duration, then falls back to high-priority news.
      */
     public function breakingNews(): JsonResponse
     {
         return response()->json(Cache::remember('public.breaking_news', 120, function () {
-            $newsQuery = Content::where('category', 'news')
-            ->where('status', 'published')
-            ->where('priority', '>=', 8)
-            ->orderBy('published_at', 'desc')
-            ->limit(5);
+            // First, try to get items explicitly marked for the ticker with active duration
+            $tickerItems = Content::where('category', 'news')
+                ->where('status', 'published')
+                ->activeTicker()
+                ->orderBy('ticker_start_at', 'desc')
+                ->limit(5)
+                ->get(['title_ar', 'title_en']);
 
-        $newsItems = $newsQuery->get(['title_ar', 'title_en']);
+            if ($tickerItems->isNotEmpty()) {
+                return $tickerItems->map(fn($n) => [
+                    'title_ar' => $n->title_ar,
+                    'title_en' => $n->title_en,
+                ])->toArray();
+            }
 
-        // If no breaking news, get latest news titles
-        if ($newsItems->isEmpty()) {
+            // Fallback: high-priority news (legacy behavior)
             $newsItems = Content::where('category', 'news')
                 ->where('status', 'published')
+                ->where('priority', '>=', 8)
                 ->orderBy('published_at', 'desc')
                 ->limit(5)
                 ->get(['title_ar', 'title_en']);
-        }
 
-        return $newsItems->map(fn($n) => [
-            'title_ar' => $n->title_ar,
-            'title_en' => $n->title_en,
-        ])->toArray();
+            // If no breaking news, get latest news titles
+            if ($newsItems->isEmpty()) {
+                $newsItems = Content::where('category', 'news')
+                    ->where('status', 'published')
+                    ->orderBy('published_at', 'desc')
+                    ->limit(5)
+                    ->get(['title_ar', 'title_en']);
+            }
+
+            return $newsItems->map(fn($n) => [
+                'title_ar' => $n->title_ar,
+                'title_en' => $n->title_en,
+            ])->toArray();
         }));
     }
 
@@ -945,14 +980,27 @@ class PublicApiController extends Controller
                 $query->whereIn('category', $validCategories);
             }
 
-            // Search across all language fields
-            $query->where(function ($qb) use ($safeQ) {
+            // Bug 4: Search across all language fields with word-level matching for better relevance
+            $searchWords = array_filter(explode(' ', $safeQ), fn($w) => mb_strlen(trim($w)) >= 2);
+            $query->where(function ($qb) use ($safeQ, $searchWords) {
+                // Full phrase match
                 $qb->where('title_ar', 'like', "%{$safeQ}%")
                     ->orWhere('title_en', 'like', "%{$safeQ}%")
                     ->orWhere('content_ar', 'like', "%{$safeQ}%")
                     ->orWhere('content_en', 'like', "%{$safeQ}%")
                     ->orWhere('seo_description_ar', 'like', "%{$safeQ}%")
                     ->orWhere('seo_description_en', 'like', "%{$safeQ}%");
+
+                // Bug 4: Also match individual words for multi-word queries (better Arabic search)
+                if (count($searchWords) > 1) {
+                    foreach ($searchWords as $word) {
+                        $word = trim($word);
+                        $qb->orWhere(function ($sub) use ($word) {
+                            $sub->where('title_ar', 'like', "%{$word}%")
+                                ->orWhere('title_en', 'like', "%{$word}%");
+                        });
+                    }
+                }
             });
 
             // Date filters
@@ -969,18 +1017,39 @@ class PublicApiController extends Controller
             }
 
             // M7.5: Order by relevance - title matches first, then description, then content
+            // Bug 4: Improved relevance scoring with word-boundary matching for Arabic
             $escapedQ = str_replace("'", "''", $q);
             $titleField = $lang === 'ar' ? 'title_ar' : 'title_en';
             $otherTitleField = $lang === 'ar' ? 'title_en' : 'title_ar';
             $descField = $lang === 'ar' ? 'seo_description_ar' : 'seo_description_en';
+            $contentField = $lang === 'ar' ? 'content_ar' : 'content_en';
+
+            // Build word-level matching for multi-word queries
+            $words = array_filter(explode(' ', $q), fn($w) => mb_strlen(trim($w)) >= 2);
+            $wordMatchClauses = '';
+            if (count($words) > 1) {
+                // For multi-word queries, boost results that match individual words in the title
+                $wordConditions = [];
+                foreach ($words as $word) {
+                    $escapedWord = str_replace("'", "''", trim($word));
+                    $wordConditions[] = "LOWER({$titleField}) LIKE LOWER('%{$escapedWord}%')";
+                }
+                $allWordsMatch = implode(' AND ', $wordConditions);
+                $anyWordMatch = implode(' OR ', $wordConditions);
+                $wordMatchClauses = "
+                    WHEN ({$allWordsMatch}) THEN 2
+                    WHEN ({$anyWordMatch}) THEN 4";
+            }
 
             $query->orderByRaw("CASE
                 WHEN LOWER({$titleField}) = LOWER('{$escapedQ}') THEN 1
-                WHEN LOWER({$titleField}) LIKE LOWER('{$escapedQ}%') THEN 2
-                WHEN LOWER({$titleField}) LIKE LOWER('%{$escapedQ}%') THEN 3
-                WHEN LOWER({$otherTitleField}) LIKE LOWER('%{$escapedQ}%') THEN 4
-                WHEN LOWER(COALESCE({$descField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 5
-                ELSE 6
+                {$wordMatchClauses}
+                WHEN LOWER({$titleField}) LIKE LOWER('{$escapedQ}%') THEN 3
+                WHEN LOWER({$titleField}) LIKE LOWER('%{$escapedQ}%') THEN 5
+                WHEN LOWER({$otherTitleField}) LIKE LOWER('%{$escapedQ}%') THEN 6
+                WHEN LOWER(COALESCE({$descField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 7
+                WHEN LOWER(COALESCE({$contentField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 8
+                ELSE 9
             END ASC");
 
             $results = $query->limit(30)
@@ -1351,12 +1420,16 @@ class PublicApiController extends Controller
 
     private function getContentUrl($content): string
     {
+        // Bug 3: Only generate URLs for pages that actually exist in the frontend
         return match($content->category) {
             'news' => "/news/{$content->id}",
             'announcement' => "/announcements/{$content->id}",
-            'decree' => "/decrees/{$content->id}",
+            'decree' => "/decrees",  // No individual decree pages exist
             'service' => "/services/{$content->id}",
-            default => "/{$content->category}/{$content->id}",
+            'faq' => "/faq",
+            'about' => "/about",
+            'media' => "/media",
+            default => "/search?q=" . urlencode($content->title_ar ?? $content->title_en ?? ''),
         };
     }
 
@@ -1393,11 +1466,22 @@ class PublicApiController extends Controller
     public function submitContactForm(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:5000',
-            'department' => 'nullable|string|max:255',
+            'name' => 'required|string|min:2|max:100',
+            'email' => 'required|email:rfc,dns|max:255',
+            'subject' => 'required|string|min:3|max:255',
+            'message' => 'required|string|min:10|max:5000',
+            'department' => 'required|string|max:255',
+        ], [
+            'name.required' => 'الاسم مطلوب / Name is required',
+            'name.min' => 'الاسم يجب أن يكون حرفين على الأقل / Name must be at least 2 characters',
+            'name.max' => 'الاسم يجب ألا يتجاوز 100 حرف / Name must not exceed 100 characters',
+            'email.required' => 'البريد الإلكتروني مطلوب / Email is required',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة / Invalid email format',
+            'subject.required' => 'الموضوع مطلوب / Subject is required',
+            'subject.min' => 'الموضوع يجب أن يكون 3 أحرف على الأقل / Subject must be at least 3 characters',
+            'message.required' => 'الرسالة مطلوبة / Message is required',
+            'message.min' => 'الرسالة يجب أن تكون 10 أحرف على الأقل / Message must be at least 10 characters',
+            'department.required' => 'يرجى اختيار الإدارة / الجهة / Please select an administration',
         ]);
 
         // Determine recipient email based on department/directorate selection

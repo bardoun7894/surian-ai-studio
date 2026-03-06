@@ -207,7 +207,7 @@ const GovernmentPartners: React.FC = () => {
                                 className="flex-shrink-0"
                                 onClick={() => setSelectedDirectorate(directorate)}
                             >
-                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
+                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white dark:bg-dm-bg border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 flex flex-col items-center justify-center p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
                                     {/* Glass reflection effect */}
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
 

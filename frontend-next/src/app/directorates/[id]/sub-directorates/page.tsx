@@ -36,7 +36,7 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-20 md:pt-24">
+                <main className="flex-grow flex items-center justify-center">
                     <Loader2 className="animate-spin text-gov-gold" size={40} />
                 </main>
                 <Footer />
@@ -48,7 +48,7 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-20 md:pt-24">
+                <main className="flex-grow flex items-center justify-center">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-4">
                             {language === 'ar' ? 'الإدارة غير موجودة' : 'Directorate Not Found'}
@@ -69,29 +69,10 @@ export default function SubDirectoratesPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">
-                        {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-gray-300 text-sm mb-6">
-                            <Link href="/" className="hover:text-gov-gold transition-colors">
-                                {language === 'ar' ? 'الرئيسية' : 'Home'}
-                            </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <Link href="/directorates" className="hover:text-gov-gold transition-colors">
-                                {language === 'ar' ? 'الإدارات' : 'Directorates'}
-                            </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <Link href={`/directorates/${directorate.id}`} className="hover:text-gov-gold transition-colors">
-                                {getLocalizedField(directorate, 'name', language)}
-                            </Link>
-                            <ChevronLeft size={16} className="rtl:rotate-180" />
-                            <span className="text-gov-gold">
-                                {language === 'ar' ? 'المديريات الفرعية' : 'Sub-Directorates'}
-                            </span>
-                        </div>
-
                         <div className="flex items-center gap-4 mb-4">
                             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
                                 <Building2 size={32} className="text-gov-gold" />
@@ -156,7 +137,7 @@ export default function SubDirectoratesPage() {
                                         </a>
                                     ) : (
                                         <Link
-                                            href={`/directorates/${sub.id}`}
+                                            href={`/directorates/${directorate.id}/${sub.id}`}
                                             className="inline-flex items-center gap-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
                                         >
                                             {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}

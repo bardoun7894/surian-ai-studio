@@ -280,7 +280,7 @@ export default function ProfilePage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
             <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
-            <main className="flex-grow pt-24 pb-12">
+            <main className="flex-grow pb-12">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-8">

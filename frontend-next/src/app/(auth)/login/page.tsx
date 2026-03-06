@@ -12,6 +12,7 @@ import {
     Fingerprint,
     Shield,
     AlertCircle,
+    CheckCircle2,
     ChevronRight,
     ChevronLeft
 } from 'lucide-react';
@@ -47,6 +48,8 @@ const LoginPage = () => {
     const [phoneFieldError, setPhoneFieldError] = useState<string | null>(null);
     const [nationalIdFieldError, setNationalIdFieldError] = useState<string | null>(null);
     const [emailFieldError, setEmailFieldError] = useState<string | null>(null);
+    const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+    const [formSubmitted, setFormSubmitted] = useState(false);
     const [whatsappNumber, setWhatsappNumber] = useState('963912345678');
     const formRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -80,12 +83,95 @@ const LoginPage = () => {
         }
     }, [isAuthenticated, router]);
 
+    // Helpers for field validation states
+    const isEmailValid = (email: string): boolean => {
+        return !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const isNationalIdValid = (id: string): boolean => {
+        return /^\d{11}$/.test(id.trim());
+    };
+
+    const isPhoneValid = (phone: string): boolean => {
+        return !!phone && validatePhoneWithCountryCode(phone).isValid;
+    };
+
+    const isPasswordFilled = (pw: string): boolean => {
+        return pw.length > 0;
+    };
+
+    // Get the "identifier" field validity for current login method
+    const isIdentifierValid = (): boolean => {
+        if (loginMethod === 'email') return isEmailValid(formData.email);
+        if (loginMethod === 'phone') return isPhoneValid(formData.phone);
+        return isNationalIdValid(formData.nationalId);
+    };
+
+    const validateForm = (): boolean => {
+        let valid = true;
+
+        // Validate identifier field
+        if (loginMethod === 'email') {
+            if (!formData.email.trim()) {
+                setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+                valid = false;
+            } else if (!isEmailValid(formData.email)) {
+                setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                valid = false;
+            } else {
+                setEmailFieldError(null);
+            }
+        } else if (loginMethod === 'phone') {
+            const phoneValidation = validatePhoneWithCountryCode(formData.phone);
+            if (!formData.phone || !phoneValidation.isValid) {
+                setPhoneFieldError(
+                    !formData.phone || phoneValidation.reason === 'required'
+                        ? (language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required')
+                        : (language === 'ar' ? 'رقم الهاتف غير صالح' : 'Invalid phone number')
+                );
+                valid = false;
+            } else {
+                setPhoneFieldError(null);
+            }
+        } else {
+            const nationalId = formData.nationalId.trim();
+            if (!nationalId) {
+                setNationalIdFieldError(language === 'ar' ? 'الرقم الوطني مطلوب' : 'National ID is required');
+                valid = false;
+            } else if (!/^\d{11}$/.test(nationalId)) {
+                setNationalIdFieldError(t('national_id_format_error'));
+                valid = false;
+            } else {
+                setNationalIdFieldError(null);
+            }
+        }
+
+        // Validate password
+        if (!formData.password.trim()) {
+            setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+            valid = false;
+        } else {
+            setPasswordFieldError(null);
+        }
+
+        return valid;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
+        setFormSubmitted(true);
         setError(null);
+
+        // Run full validation
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
         setPhoneFieldError(null);
         setNationalIdFieldError(null);
+        setEmailFieldError(null);
+        setPasswordFieldError(null);
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
@@ -96,27 +182,9 @@ const LoginPage = () => {
                 credentials.email = formData.email;
             } else if (loginMethod === 'phone') {
                 const phoneValidation = validatePhoneWithCountryCode(formData.phone);
-                if (!phoneValidation.isValid) {
-                    setPhoneFieldError(
-                        phoneValidation.reason === 'required'
-                            ? t('validation_required')
-                            : t('validation_phone_invalid')
-                    );
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Send phone in the same international format used during registration
                 credentials.phone = phoneValidation.normalized;
             } else {
-                const nationalId = formData.nationalId.trim();
-                if (!/^\d{11}$/.test(nationalId)) {
-                    setNationalIdFieldError(t('national_id_format_error'));
-                    setIsLoading(false);
-                    return;
-                }
-
-                credentials.national_id = nationalId;
+                credentials.national_id = formData.nationalId.trim();
             }
 
             const response = await login(credentials);
@@ -163,6 +231,43 @@ const LoginPage = () => {
 
     const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
     const BackIcon = language === 'ar' ? ChevronRight : ChevronLeft;
+
+    // Compute border classes for the identifier input (email or national ID - not phone, which is separate)
+    const getIdentifierBorderClass = (): string => {
+        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
+        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
+        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
+
+        if (hasError) {
+            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
+        }
+        if (fieldValue && fieldIsValid) {
+            return 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20';
+        }
+        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
+    };
+
+    // Password border class
+    const getPasswordBorderClass = (): string => {
+        if (passwordFieldError) {
+            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
+        }
+        if (formData.password && isPasswordFilled(formData.password)) {
+            return 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20';
+        }
+        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
+    };
+
+    // Icon color for identifier field
+    const getIdentifierIconColor = (): string => {
+        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
+        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
+        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
+
+        if (hasError) return 'text-red-500 dark:text-red-400';
+        if (fieldValue && fieldIsValid) return 'text-green-500 dark:text-gov-emerald';
+        return 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold';
+    };
 
     return (
         <div className="min-h-screen flex">
@@ -312,12 +417,11 @@ const LoginPage = () => {
                                     onClick={() => {
                                         setLoginMethod(key as typeof loginMethod);
                                         setError(null);
-                                        if (key !== 'phone') {
-                                            setPhoneFieldError(null);
-                                        }
-                                        if (key !== 'national') {
-                                            setNationalIdFieldError(null);
-                                        }
+                                        setFormSubmitted(false);
+                                        setPhoneFieldError(null);
+                                        setNationalIdFieldError(null);
+                                        setEmailFieldError(null);
+                                        setPasswordFieldError(null);
                                     }}
                                     className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
                                         ? 'bg-white dark:bg-gov-button text-gov-forest dark:text-white shadow-sm border border-gray-200/50 dark:border-white/10'
@@ -330,13 +434,14 @@ const LoginPage = () => {
                             ))}
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} noValidate className="space-y-5">
                             {/* Dynamic Input Field */}
                             <div>
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                     {loginMethod === 'email' && (language === 'ar' ? 'البريد الإلكتروني' : 'Email Address')}
                                     {loginMethod === 'phone' && (language === 'ar' ? 'رقم الهاتف' : 'Phone Number')}
                                     {loginMethod === 'national' && (language === 'ar' ? 'الرقم الوطني' : 'National ID')}
+                                    {' '}<span className="text-red-500 dark:text-red-400">*</span>
                                 </label>
                                 {loginMethod === 'phone' ? (
                                     <PhoneInput
@@ -372,8 +477,18 @@ const LoginPage = () => {
                                                 // Real-time email validation
                                                 if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
                                                     setEmailFieldError(language === 'ar' ? 'تنسيق البريد الإلكتروني غير صالح' : 'Invalid email format');
+                                                } else if (!val && formSubmitted) {
+                                                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
                                                 } else {
                                                     setEmailFieldError(null);
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                if (loginMethod === 'email' && !formData.email.trim() && formSubmitted) {
+                                                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+                                                }
+                                                if (loginMethod === 'national' && !formData.nationalId.trim() && formSubmitted) {
+                                                    setNationalIdFieldError(language === 'ar' ? 'الرقم الوطني مطلوب' : 'National ID is required');
                                                 }
                                             }}
                                             placeholder={
@@ -382,20 +497,28 @@ const LoginPage = () => {
                                                     : '12345678901'
                                             }
                                             className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
-                                                ${(loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)
-                                                    ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
-                                                    : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
-                                                }`}
-                                            required
+                                                ${getIdentifierBorderClass()}`}
                                         />
-                                        <div className={`absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 transition-colors
-                                            ${(loginMethod === 'national' && nationalIdFieldError)
-                                                ? 'text-red-500 dark:text-red-400'
-                                                : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
-                                            }`}>
+                                        <div className={`absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 transition-colors ${getIdentifierIconColor()}`}>
                                             {loginMethod === 'email' && <Mail size={18} />}
                                             {loginMethod === 'national' && <Fingerprint size={18} />}
                                         </div>
+                                        {/* Validation status icons */}
+                                        {((loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
+                                            </div>
+                                        )}
+                                        {loginMethod === 'email' && !emailFieldError && formData.email && isEmailValid(formData.email) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                            </div>
+                                        )}
+                                        {loginMethod === 'national' && !nationalIdFieldError && formData.nationalId && isNationalIdValid(formData.nationalId) && (
+                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 <div className="min-h-[1.25rem] mt-1">
@@ -417,16 +540,28 @@ const LoginPage = () => {
                             {/* Password Input */}
                             <div>
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                    {language === 'ar' ? 'كلمة المرور' : 'Password'}
+                                    {language === 'ar' ? 'كلمة المرور' : 'Password'}{' '}<span className="text-red-500 dark:text-red-400">*</span>
                                 </label>
                                 <div className="relative group">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, password: e.target.value });
+                                            if (e.target.value.trim()) {
+                                                setPasswordFieldError(null);
+                                            } else if (formSubmitted) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            if (!formData.password.trim() && formSubmitted) {
+                                                setPasswordFieldError(language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required');
+                                            }
+                                        }}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className="w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/15 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all text-sm"
-                                        required
+                                        className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                            ${getPasswordBorderClass()}`}
                                     />
                                     <button
                                         type="button"
@@ -435,6 +570,14 @@ const LoginPage = () => {
                                     >
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
+                                </div>
+                                <div className="min-h-[1.25rem] mt-1">
+                                    {passwordFieldError && (
+                                        <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                            <AlertCircle size={12} className="shrink-0" />
+                                            {passwordFieldError}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

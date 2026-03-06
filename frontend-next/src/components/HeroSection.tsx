@@ -278,7 +278,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   }
 
   return (
-    <section ref={containerRef} className={`relative pt-2 pb-16 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative pt-4 pb-20 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -301,10 +301,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
 
       <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] md:w-[300px] md:h-[300px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
 
         {/* The Golden Hawk */}
-        <div ref={eagleRef} className="mb-4 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
+        <div ref={eagleRef} className="mb-2 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
           <div className="relative w-44 h-44 md:w-[260px] md:h-[260px] lg:w-[320px] lg:h-[320px] xl:w-[350px] xl:h-[350px] flex items-center justify-center perspective-1000 flex-shrink-0">
             <div className="eagle-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gov-gold/20 rounded-full blur-[80px] dark:bg-gov-brand/30"></div>
             <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-border/15 shadow-[0_0_60px_rgba(185,167,121,0.2)]"></div>
@@ -340,11 +340,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
         </div>
 
-        <div ref={textContainerRef} className={`space-y-1 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center md:-me-6 lg:-me-10' : 'md:text-start'} min-w-0`}>
+        <div ref={textContainerRef} className={`space-y-2 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center md:-me-6 lg:-me-10' : 'md:text-start'} min-w-0`}>
 
           {/* Titles Group */}
           <div className={`flex flex-col items-center ${language === 'ar' ? 'md:items-center' : 'md:items-start'} w-full`}>
-            <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-3 opacity-0">
+            <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 dark:bg-gov-brand/10 border border-gov-gold/40 dark:border-gov-gold/30 backdrop-blur-sm shadow-sm dark:shadow-none mb-3 opacity-0">
               <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
               <span className="text-xs font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
                 {t('republic_name')}
@@ -369,7 +369,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
 
             {/* Strategic Messages - WOW Animation (appear last) */}
-            <div className="h-10 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
+            <div className="h-8 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
               <AnimatePresence mode="wait">
                 {(() => {
                   const phrases = [
@@ -416,22 +416,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
           </div>
 
-          <div className={`flex flex-col sm:flex-row items-center gap-4 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-2 md:pt-6 w-full px-4 md:px-0`}>
+          <div className={`flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-3 md:pt-6 w-full px-2 sm:px-4 md:px-0`}>
             {/* Our Services Button */}
             <Link
               href="/services"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
             >
               {/* Animated Gradient Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               {/* Shimmer Effect */}
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
               {/* Glass Border */}
-              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
 
               <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'خدماتنا' : 'Our Services'}</span>
 
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
                 <Landmark size={18} />
               </div>
             </Link>
@@ -439,15 +439,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             {/* Our News Button */}
             <Link
               href="/news"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
-              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
 
               <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'أخبارنا' : 'Our News'}</span>
 
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
                 <FileText size={18} />
               </div>
             </Link>
@@ -455,22 +455,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             {/* Complaints & Suggestions Button */}
             <Link
               href="/complaints"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-xl"
+              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
-              <div className="absolute inset-0 border border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
 
               <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}</span>
 
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
                 <MessageSquare size={18} />
               </div>
             </Link>
           </div>
 
           {/* Official Pillars - Stats Section */}
-          <div className="flex items-center justify-center gap-8 md:gap-12 mt-4 md:mt-6 border-t border-gov-charcoal/10 dark:border-gov-border/15 pt-4 w-full">
+          <div className="flex items-center justify-center gap-6 md:gap-12 mt-3 md:mt-6 border-t border-gov-charcoal/15 dark:border-gov-border/15 pt-3 md:pt-4 w-full">
             {/* 24/7 Secure Portal */}
             <div className="animate-stat text-center group cursor-default flex flex-col items-center">
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -480,7 +480,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
               <span className="text-xs text-gov-stone dark:text-gov-beige/60 font-medium">{language === 'ar' ? 'بوابة آمنة' : 'Secure Portal'}</span>
             </div>
 
-            <div className="w-px h-8 bg-gov-charcoal/10 dark:bg-gov-border/15" />
+            <div className="w-px h-8 bg-gov-charcoal/20 dark:bg-gov-border/15" />
 
             {/* 100% Transparency */}
             <div className="animate-stat text-center group cursor-default flex flex-col items-center">
@@ -498,7 +498,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
       </div>
 
       {/* News Ticker Integrated - Centered within hero */}
-      <div className="absolute bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 z-30 w-[92%] md:w-[90%]">
+      <div className="absolute bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 z-30 w-[95%] md:w-[90%]">
         <NewsTicker
           onNewsLoaded={onNewsLoaded}
           className="rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.16)] border border-gov-gold/25 dark:border-gov-gold/20"

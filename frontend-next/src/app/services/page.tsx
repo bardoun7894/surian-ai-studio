@@ -36,6 +36,7 @@ import ContentFilter from '@/components/ContentFilter';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';
 import Pagination from '@/components/Pagination';
 import FavoriteButton from '@/components/FavoriteButton';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 // Service workflow stages component
 const ServiceStages = ({ service, language }: { service: Service; language: string }) => {
@@ -77,6 +78,11 @@ const ServiceStages = ({ service, language }: { service: Service; language: stri
 
 export default function ServicesPage() {
   const { language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "الخدمات" : "Services",
+    description: language === "ar" ? "خدمات وزارة الاقتصاد والصناعة الإلكترونية" : "E-Services of the Ministry of Economy and Industry",
+  });
   const searchParams = useSearchParams();
   const initializedRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -343,9 +349,9 @@ export default function ServicesPage() {
 
                     {/* Service Footer */}
                     <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100 dark:border-gov-border/15 mt-auto">
-                      <div className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gov-gold/50">
-                        <Clock size={14} className="shrink-0 rtl:order-none ltr:order-none" />
-                        <span className="leading-none">{language === 'ar' ? 'فوري' : 'Instant'}</span>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gov-gold/50">
+                        <Clock size={14} className="shrink-0" />
+                        <span className="leading-[14px]">{language === 'ar' ? 'فوري' : 'Instant'}</span>
                       </div>
                     </div>
                   </Link>

@@ -435,7 +435,7 @@ export default function AdminFaqsPage() {
                         </td>
                         <td className="px-6 py-4">{getStatusBadge(faq.status)}</td>
                         <td className="px-6 py-4 text-sm text-gov-stone dark:text-gov-beige/60 font-mono">
-                          {new Date(faq.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                          {new Date(faq.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2 items-center">
@@ -478,7 +478,7 @@ export default function AdminFaqsPage() {
                                 <Clock size={12} />
                                 <span>
                                   {language === 'ar' ? 'مؤجل حتى' : 'Snoozed until'}{' '}
-                                  {new Date(faq.snoozed_until).toLocaleDateString()}
+                                  {new Date(faq.snoozed_until).toLocaleDateString("ar-u-nu-latn")}
                                 </span>
                               </div>
                             )}

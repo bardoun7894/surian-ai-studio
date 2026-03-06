@@ -20,6 +20,9 @@ class ChatConversation extends Model
         'handoff_assigned_to',
         'handoff_assigned_at',
         'handoff_closed_at',
+        'rating',
+        'feedback',
+        'rated_at',
     ];
 
     protected $casts = [
@@ -29,6 +32,8 @@ class ChatConversation extends Model
         'handoff_requested_at' => 'datetime',
         'handoff_assigned_at' => 'datetime',
         'handoff_closed_at' => 'datetime',
+        'rating' => 'integer',
+        'rated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

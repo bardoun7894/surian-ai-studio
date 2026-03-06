@@ -7,9 +7,15 @@ import { API } from '@/lib/repository';
 import { FAQ } from '@/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function FAQPage() {
     const { language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "الأسئلة الشائعة" : "FAQ",
+    description: language === "ar" ? "الأسئلة الشائعة حول خدمات وزارة الاقتصاد والصناعة" : "Frequently asked questions about Ministry services",
+  });
     const [openIndex, setOpenIndex] = useState<number | null>(0);
     const [searchQuery, setSearchQuery] = useState('');
     const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -45,7 +51,7 @@ export default function FAQPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
@@ -63,7 +69,7 @@ export default function FAQPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={language === 'ar' ? 'ابحث عن سؤال...' : 'Search for a question...'}
-                                className="w-full py-4 px-6 pr-14 rtl:pr-6 rtl:pl-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-gold transition-colors"
+                                className="w-full py-4 px-6 pl-14 rtl:pl-6 rtl:pr-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:border-gov-gold transition-colors"
                             />
                             <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
                         </div>
@@ -84,7 +90,7 @@ export default function FAQPage() {
                                     key={faq.id}
                                     className={`bg-white dark:bg-dm-surface rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                                         ? 'border-gov-gold/50 shadow-md'
-                                        : 'border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-gov'
+                                        : 'border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-md'
                                         }`}
                                 >
                                     <button

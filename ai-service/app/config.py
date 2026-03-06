@@ -5,6 +5,8 @@ Configuration settings for AI Service.
 from pydantic_settings import BaseSettings
 from typing import List
 from functools import lru_cache
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 
 class Settings(BaseSettings):

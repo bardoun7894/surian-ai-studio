@@ -10,9 +10,13 @@ use App\Models\SystemSetting;
 use App\Services\VectorSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\ComplaintService;
 use Illuminate\Support\Str;
+use App\Http\Middleware\ChatSessionMiddleware;
 
 class ChatController extends Controller
 {
@@ -30,9 +34,13 @@ class ChatController extends Controller
     public function sendMessage(Request $request)
     {
         $validated = $request->validate([
-            'message' => 'required|string|max:2000',
-            'session_id' => 'nullable|string',
+            'message' => 'required_without:file|nullable|string|max:2000',
+            'file' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf',
+            'session_id' => 'nullable|string|max:100|regex:/^[a-zA-Z0-9_\-]+$/',
             'language' => 'nullable|string|in:ar,en',
+        ], [
+            'file.max' => 'الحد الأقصى لحجم الملف 10 ميغابايت',
+            'file.mimes' => 'الصيغ المدعومة: صور (JPG, PNG, GIF, WebP) وملفات PDF',
         ]);
 
         $sessionId = $validated['session_id'] ?? Str::uuid()->toString();
@@ -54,40 +62,95 @@ class ChatController extends Controller
             ]);
         }
 
-        // Add user message
-        $conversation->addMessage('user', $validated['message']);
+        // BE-03: Handle file attachment
+        $fileContext = '';
+        $fileInfo = null;
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $fileInfo = $this->processFileAttachment($file, $sessionId);
+            if (isset($fileInfo['error'])) {
+                return response()->json(['error' => $fileInfo['error']], 422);
+            }
+            $fileContext = $fileInfo['extracted_text'] ?? '';
+        }
 
-        // Forward to AI service with RAG context
+        $userMessage = $validated['message'] ?? '';
+        if ($fileContext) {
+            $userMessage = $userMessage ? "{$userMessage}\n\n[محتوى الملف المرفق:]\n{$fileContext}" : $fileContext;
+        }
+        if (empty($userMessage)) {
+            return response()->json(['error' => 'الرسالة أو الملف مطلوب'], 422);
+        }
+
+        // Add user message
+        $conversation->addMessage('user', $validated['message'] ?? '[ملف مرفق]', $fileInfo ? ['file' => $fileInfo['path']] : []);
+
+                // Forward to AI service with RAG context + parallel complaint detection
         try {
             $aiServiceUrl = config('external.ai_service.url');
 
-            $ragResult = $this->buildRagContext($validated['message'], $language);
+            $ragResult = $this->buildRagContext($userMessage, $language);
             $ragContext = $ragResult['context'];
             $useGoogleSearch = $ragResult['use_google_search'];
 
-            $response = Http::timeout(30)->post("{$aiServiceUrl}/api/v1/ai/chat?provider=gemini", [
-                'prompt' => $validated['message'],
-                'system_prompt' => $ragContext,
-                'use_google_search' => $useGoogleSearch,
+            // Run chat + complaint detection in parallel
+            $responses = Http::pool(fn (Pool $pool) => [
+                $pool->as('chat')
+                    ->timeout(30)
+                    ->post("{$aiServiceUrl}/api/v1/ai/chat?provider=gemini", [
+                        'prompt' => $userMessage,
+                        'system_prompt' => $ragContext,
+                        'use_google_search' => $useGoogleSearch,
+                    ]),
+                $pool->as('classify')
+                    ->timeout(15)
+                    ->post("{$aiServiceUrl}/api/v1/ai/detect-and-classify?provider=gemini", [
+                        'message' => $userMessage,
+                    ]),
             ]);
 
-            if ($response->successful()) {
-                $aiResponse = $response->json()['response'] ?? 'عذراً، لم أتمكن من فهم سؤالك.';
-                
+            $chatResponse = $responses['chat'];
+            $classifyResponse = $responses['classify'];
+
+            // Pool returns ConnectionException for failed requests, not Response objects
+            if ($chatResponse instanceof ConnectionException) {
+                throw $chatResponse;
+            }
+
+            if ($chatResponse->successful()) {
+                $aiResponse = $chatResponse->json()['response'] ?? 'عذراً، لم أتمكن من فهم سؤالك.';
+
                 // Add AI response
                 $conversation->addMessage('assistant', $aiResponse);
 
-                return response()->json([
+                $result = [
                     'session_id' => $sessionId,
                     'response' => $aiResponse,
                     'timestamp' => now()->toIso8601String(),
-                ]);
+                    'session_token' => ChatSessionMiddleware::generateToken($sessionId),
+                ];
+
+                // Add classification data if complaint detected
+                if (!($classifyResponse instanceof ConnectionException) && $classifyResponse->successful()) {
+                    $classifyData = $classifyResponse->json();
+                    if ($classifyData['complaint_detected'] ?? false) {
+                        $result['complaint_classification'] = $classifyData['classification'];
+
+                        // Store in conversation metadata for later conversion
+                        $metadata = $conversation->metadata ?? [];
+                        $metadata['last_complaint_classification'] = $classifyData['classification'];
+                        $metadata['last_complaint_message'] = $validated['message'];
+                        $conversation->update(['metadata' => $metadata]);
+                    }
+                }
+
+                return response()->json($result);
             }
 
-            throw new \Exception('AI service error: ' . $response->body());
+            throw new \Exception('AI service error: ' . $chatResponse->body());
         } catch (\Exception $e) {
             \Log::error('Chat AI service error', ['error' => $e->getMessage()]);
-            
+
             return response()->json([
                 'session_id' => $sessionId,
                 'response' => 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.',
@@ -286,6 +349,76 @@ class ChatController extends Controller
         return response()->json([
             'message' => 'تم إغلاق المحادثة',
         ]);
+    }
+
+
+    /**
+     * Convert a chat complaint to a formal complaint
+     *
+     * POST /api/v1/chat/convert-complaint
+     */
+    public function convertToComplaint(Request $request)
+    {
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+            'title' => 'nullable|string|max:255',
+            'full_name' => 'required|string|max:255',
+            'national_id' => 'nullable|string|size:11|regex:/^[0-9]{11}$/',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'directorate_id' => 'required|integer|exists:directorates,id',
+        ]);
+
+        $conversation = ChatConversation::findBySession($validated['session_id']);
+
+        if (!$conversation) {
+            return response()->json(['error' => 'Session not found'], 404);
+        }
+
+        // Get the complaint details from stored classification metadata
+        $metadata = $conversation->metadata ?? [];
+        $complaintMessage = $metadata['last_complaint_message'] ?? null;
+        $classification = $metadata['last_complaint_classification'] ?? null;
+
+        if (!$complaintMessage) {
+            return response()->json(['error' => 'No complaint detected in this conversation'], 400);
+        }
+
+        try {
+            $complaintService = app(ComplaintService::class);
+            $complaint = $complaintService->createComplaint([
+                'user_id' => auth()->id(),
+                'directorate_id' => $validated['directorate_id'],
+                'title' => $validated['title'] ?? ($classification['summary'] ?? 'شكوى من المحادثة'),
+                'description' => $complaintMessage,
+                'full_name' => $validated['full_name'],
+                'national_id' => $validated['national_id'] ?? null,
+                'phone' => $validated['phone'],
+                'email' => $validated['email'] ?? null,
+            ]);
+
+            // Add system message to chat
+            $conversation->addMessage('system', "تم تحويل شكواك إلى شكوى رسمية. رقم التتبع: {$complaint->tracking_number}");
+
+            // Clear classification from metadata
+            $metadata['complaint_converted'] = true;
+            $metadata['complaint_tracking_number'] = $complaint->tracking_number;
+            unset($metadata['last_complaint_classification']);
+            unset($metadata['last_complaint_message']);
+            $conversation->update(['metadata' => $metadata]);
+
+            return response()->json([
+                'success' => true,
+                'tracking_number' => $complaint->tracking_number,
+                'message' => 'تم تقديم الشكوى بنجاح',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Chat complaint conversion error', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'error' => 'فشل في تحويل الشكوى. يرجى المحاولة مرة أخرى.',
+            ], 500);
+        }
     }
 
     /**
@@ -754,4 +887,176 @@ class ChatController extends Controller
             \Log::error('Failed to notify staff about handoff', ['error' => $e->getMessage()]);
         }
     }
+
+    /**
+     * BE-01: Rate a chat session
+     *
+     * POST /api/v1/chat/{sessionId}/rate
+     */
+    public function rateSession(Request $request, string $sessionId)
+    {
+        $validated = $request->validate([
+            "rating" => "required|integer|min:1|max:5",
+            "feedback" => "nullable|string|max:1000",
+        ], [
+            "rating.required" => "التقييم مطلوب",
+            "rating.min" => "التقييم يجب أن يكون بين 1 و 5",
+            "rating.max" => "التقييم يجب أن يكون بين 1 و 5",
+            "feedback.max" => "الملاحظات يجب ألا تتجاوز 1000 حرف",
+        ]);
+
+        $conversation = ChatConversation::findBySession($sessionId);
+
+        if (!$conversation) {
+            return response()->json(["error" => "الجلسة غير موجودة", "message" => "Session not found"], 404);
+        }
+
+        $conversation->update([
+            "rating" => $validated["rating"],
+            "feedback" => $validated["feedback"] ?? null,
+            "rated_at" => now(),
+        ]);
+
+        return response()->json([
+            "message" => "شكراً لتقييمك",
+            "rating" => $conversation->rating,
+        ]);
+    }
+
+    /**
+     * BE-02: Check AI service connection status
+     *
+     * GET /api/v1/chat/status
+     */
+    public function checkStatus()
+    {
+        try {
+            $aiServiceUrl = config("external.ai_service.url");
+            $startTime = microtime(true);
+
+            $response = Http::timeout(3)->get("{$aiServiceUrl}/health");
+
+            $latencyMs = round((microtime(true) - $startTime) * 1000);
+
+            if ($response->successful()) {
+                return response()->json([
+                    "online" => true,
+                    "latency_ms" => $latencyMs,
+                    "ai_provider" => $response->json("provider"),
+                ]);
+            }
+
+            return response()->json([
+                "online" => false,
+                "latency_ms" => null,
+                "error" => "AI service returned non-200 status",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "online" => false,
+                "latency_ms" => null,
+                "error" => "AI service unreachable",
+            ]);
+        }
+    }
+
+    /**
+     * BE-04: Get chatbot configuration (welcome message, etc.)
+     *
+     * GET /api/v1/chat/config
+     */
+    public function getConfig(Request $request)
+    {
+        $language = $request->get("language", "ar");
+        $isAr = $language === "ar";
+
+        $welcomeMessage = Cache::remember("chatbot_welcome_message:{$language}", 3600, function () use ($isAr) {
+            $key = $isAr ? "chatbot_welcome_message_ar" : "chatbot_welcome_message_en";
+            $message = SystemSetting::get($key);
+
+            if (!$message) {
+                return $isAr
+                    ? "مرحباً! أنا المساعد الذكي لوزارة الاقتصاد والصناعة. كيف يمكنني مساعدتك اليوم؟"
+                    : "Hello! I am the AI assistant for the Ministry of Economy and Industry. How can I help you today?";
+            }
+
+            return $message;
+        });
+
+        return response()->json([
+            "welcome_message" => $welcomeMessage,
+            "features" => [
+                "file_upload" => true,
+                "handoff" => true,
+                "rating" => true,
+                "complaint_conversion" => true,
+            ],
+        ]);
+    }
+
+    /**
+     * BE-03: Process file attachment for chat
+     * Handles images (OCR) and PDFs (text extraction)
+     */
+    private function processFileAttachment($file, string $sessionId): array
+    {
+        $mime = $file->getMimeType();
+        $extension = $file->getClientOriginalExtension();
+
+        // Store the file
+        $path = $file->store("chat-attachments/{$sessionId}", 'local');
+
+        // Image: send to AI OCR service
+        if (str_starts_with($mime, 'image/')) {
+            try {
+                $aiServiceUrl = config('external.ai_service.url');
+                $response = Http::timeout(15)
+                    ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
+                    ->post("{$aiServiceUrl}/api/v1/ai/ocr");
+
+                if ($response->successful()) {
+                    return [
+                        'path' => $path,
+                        'type' => 'image',
+                        'extracted_text' => $response->json('text', ''),
+                    ];
+                }
+            } catch (\Exception $e) {
+                Log::warning('Chat OCR failed', ['error' => $e->getMessage()]);
+            }
+
+            return ['path' => $path, 'type' => 'image', 'extracted_text' => ''];
+        }
+
+        // PDF: attempt basic text extraction
+        if ($mime === 'application/pdf' || $extension === 'pdf') {
+            try {
+                // Try sending PDF to AI service for vision-based extraction
+                $aiServiceUrl = config('external.ai_service.url');
+                $response = Http::timeout(30)
+                    ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
+                    ->post("{$aiServiceUrl}/api/v1/ai/ocr");
+
+                if ($response->successful() && !empty($response->json('text'))) {
+                    return [
+                        'path' => $path,
+                        'type' => 'pdf',
+                        'extracted_text' => $response->json('text', ''),
+                    ];
+                }
+            } catch (\Exception $e) {
+                Log::warning('Chat PDF extraction failed', ['error' => $e->getMessage()]);
+            }
+
+            return [
+                'path' => $path,
+                'type' => 'pdf',
+                'extracted_text' => '[تم إرفاق ملف PDF - لم يتمكن النظام من استخراج النص]',
+            ];
+        }
+
+        // Unsupported file type
+        return ['error' => 'نوع الملف غير مدعوم. الأنواع المدعومة: صور (JPG, PNG) وملفات PDF'];
+    }
+
 }

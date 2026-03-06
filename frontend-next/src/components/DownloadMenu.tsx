@@ -55,7 +55,7 @@ export default function DownloadMenu({ isOpen, onClose, announcement }: Download
     const title = announcement.title;
     const description = announcement.description || '';
     const date = announcement.date ? new Date(announcement.date).toLocaleDateString(
-      isRTL ? 'ar-SY' : 'en-US',
+      isRTL ? 'ar-u-nu-latn' : 'en-US',
       { year: 'numeric', month: 'long', day: 'numeric' }
     ) : '';
 

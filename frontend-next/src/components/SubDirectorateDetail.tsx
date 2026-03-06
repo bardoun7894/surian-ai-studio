@@ -18,8 +18,8 @@ import {
     FileText,
     Users
 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { getLocalizedField } from '@/lib/utils';
 
 const SubDirectorateDetail = () => {
     const { id, subId } = useParams();
@@ -83,23 +83,16 @@ const SubDirectorateDetail = () => {
     }
 
     const isAr = language === 'ar';
-    const name = typeof subDirectorate.name === 'string' ? subDirectorate.name : (isAr ? subDirectorate.name.ar : subDirectorate.name.en);
-    const description = typeof (subDirectorate as any).description === 'string' ? (subDirectorate as any).description : (isAr ? (subDirectorate as any).description?.ar : (subDirectorate as any).description?.en);
-    const parentName = typeof parentDirectorate.name === 'string' ? parentDirectorate.name : (isAr ? parentDirectorate.name.ar : parentDirectorate.name.en);
+    const name = getLocalizedField(subDirectorate, 'name', language);
+    const description = getLocalizedField(subDirectorate, 'description', language);
+    const parentName = getLocalizedField(parentDirectorate, 'name', language);
 
     return (
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20 transition-colors duration-500">
             {/* Header */}
             <div className="bg-gov-forest dark:bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
                 {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <Image
-                        src="/images/pattern-islamic.png"
-                        alt="Pattern"
-                        fill
-                        className="object-cover"
-                    />
-                </div>
+                <div className="absolute inset-0 opacity-10 bg-pattern-islamic bg-repeat"></div>
 
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-col md:flex-row items-center gap-6">

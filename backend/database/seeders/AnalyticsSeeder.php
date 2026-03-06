@@ -13,6 +13,13 @@ class AnalyticsSeeder extends Seeder
 {
     public function run(): void
     {
+        // Get a valid user ID (first admin user)
+        $userId = User::first()?->id;
+        if (!$userId) {
+            $this->command->warn('No users found, skipping AnalyticsSeeder.');
+            return;
+        }
+
         // 1. Seed Past 30 Days of Complaints (for Trend Chart)
         $statuses = ['new', 'processing', 'resolved', 'rejected'];
         $priorities = ['low', 'medium', 'high', 'urgent'];
@@ -27,9 +34,9 @@ class AnalyticsSeeder extends Seeder
             
             for ($j = 0; $j < $dailyCount; $j++) {
                 Complaint::create([
-                    'tracking_number' => 'CMP-' . $date->format('Ymd') . '-' . rand(1000, 9999),
-                    'user_id' => 1, // Admin user as dummy
-                    'directorate_id' => 'd' . rand(1, 5), // Assuming 5 directorates exist
+                    'tracking_number' => 'CMP-' . $date->format('Ymd') . '-' . strtoupper(substr(md5(rand()), 0, 5)),
+                    'user_id' => $userId,
+                    'directorate_id' => 'd' . rand(1, 5),
                     'template_id' => null,
                     'title' => 'Complaint from ' . $date->format('Y-m-d'),
                     'description' => 'Simulated complaint description for analytics testing.',

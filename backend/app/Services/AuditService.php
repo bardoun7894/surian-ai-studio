@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Request;
 
 class AuditService
 {
-    public function log($user, string $action, ?string $entityType = null, ?int $entityId = null, ?array $changes = null): AuditLog
+    public function log($user, string $action, ?string $entityType = null, mixed $entityId = null, ?array $changes = null): AuditLog
     {
         return AuditLog::create([
             'user_id' => $user ? $user->id : null,

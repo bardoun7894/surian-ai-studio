@@ -176,7 +176,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-20 md:pt-24">
+                <main className="flex-grow">
                     {/* Hero Section Skeleton */}
                     <div className="bg-gov-forest text-white py-16 px-4">
                         <div className="max-w-5xl mx-auto">
@@ -285,7 +285,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-20 md:pt-24">
+                <main className="flex-grow">
                     {/* Hero Section */}
                     <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
                         {/* Dynamic Background */}
@@ -397,7 +397,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-20 md:pt-24">
+            <main className="flex-grow">
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-5xl mx-auto">
                         <Link

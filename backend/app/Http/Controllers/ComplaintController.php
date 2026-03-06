@@ -42,10 +42,15 @@ class ComplaintController extends Controller
 
     public function sendOtp(Request $request)
     {
+        $otpLocale = str_starts_with($request->header('Accept-Language', 'ar'), 'en') ? 'en' : 'ar';
         $request->validate([
             'phone' => 'required|string',
             'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
-        ], [
+        ], $otpLocale === 'en' ? [
+            'national_id.required' => 'National ID is required',
+            'national_id.size' => 'National ID must be exactly 11 digits',
+            'national_id.regex' => 'National ID must contain only digits',
+        ] : [
             'national_id.required' => 'الرقم الوطني مطلوب',
             'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
             'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
@@ -55,7 +60,7 @@ class ComplaintController extends Controller
 
         if (RateLimiter::tooManyAttempts($key, 3)) { // 3 attempts per minute
              throw ValidationException::withMessages([
-                'phone' => ['Too many OTP requests. Try again later.'],
+                'phone' => [$otpLocale === 'en' ? 'Too many OTP requests. Try again later.' : 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً.'],
             ]);
         }
         RateLimiter::hit($key, 60);
@@ -103,29 +108,72 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        // Rate Limiting (T050): 3 complaints per day per user/national_id/IP
-        // Skip for whitelisted IPs
-        $whitelistedIps = ['196.70.75.216'];
-        if (!in_array($request->ip(), $whitelistedIps, true)) {
-            // Use user ID if authenticated, national_id if provided, fallback to IP
-            $limiterIdentifier = $request->user()
-                ? 'user_' . $request->user()->id
-                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
-            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
-            if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
-                return response()->json(['message' => 'Daily complaint limit reached.'], 429);
-            }
+        // Rate limiting handled by ComplaintRateLimitMiddleware (Bug #315 fix)
+
+        // Bug #350: Server-side validation for all required fields
+        // Determine if this is an anonymous submission (no personal info required)
+        $isAnonymous = !$request->filled('full_name') && !$request->filled('national_id') && !$request->user();
+
+        $rules = [
+            'directorate_id' => 'nullable|exists:directorates,id',
+            'description' => 'required|string|min:10|max:5000',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
+            'attachments' => 'nullable|array|max:5', // Max 5 files
+            'attachment_ids' => 'nullable|array|max:5', // Bug #316: pre-uploaded temp attachment IDs
+            'attachment_ids.*' => 'string|uuid',
+            'recaptcha_token' => 'nullable|string',
+            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number',
+            'template_id' => 'nullable|exists:complaint_templates,id',
+            'template_fields' => 'nullable',
+        ];
+
+        // Non-anonymous submissions require personal info
+        if (!$isAnonymous) {
+            $rules['full_name'] = 'required|string|min:3|max:255';
+            $rules['national_id'] = 'required|string|size:11|regex:/^\d{11}$/';
+            $rules['phone'] = 'required|string|min:10|max:20';
+            $rules['email'] = 'nullable|email|max:255';
         }
 
-        // Validate Request including CAPTCHA
-        $request->validate([
-            'directorate_id' => 'nullable|exists:directorates,id',
-            'description' => 'required|string|min:10',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
-            'attachments' => 'max:5', // Max 5 files
-            'recaptcha_token' => 'nullable|string', // Optional pending Config
-            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
-        ]);
+        // If previous complaint is indicated, tracking number is required
+        if ($request->boolean('has_previous_complaint') || $request->filled('previous_tracking_number')) {
+            $rules['previous_tracking_number'] = 'required|string|exists:complaints,tracking_number';
+        }
+
+        // Determine locale from Accept-Language header for bilingual validation messages
+        $locale = str_starts_with($request->header('Accept-Language', 'ar'), 'en') ? 'en' : 'ar';
+
+        $validationMessages = $locale === 'en' ? [
+            'full_name.required' => 'Full name is required',
+            'full_name.min' => 'Full name must be at least 3 characters',
+            'national_id.required' => 'National ID is required',
+            'national_id.size' => 'National ID must be exactly 11 digits',
+            'national_id.regex' => 'National ID must contain only digits',
+            'phone.required' => 'Phone number is required',
+            'phone.min' => 'Invalid phone number',
+            'description.required' => 'Complaint details are required',
+            'description.min' => 'Complaint details must be at least 10 characters',
+            'description.max' => 'Complaint details must not exceed 5000 characters',
+            'previous_tracking_number.required' => 'Previous complaint tracking number is required',
+            'previous_tracking_number.exists' => 'Previous complaint tracking number not found in system',
+            'template_id.exists' => 'Complaint template not found',
+        ] : [
+            'full_name.required' => 'الاسم الكامل مطلوب',
+            'full_name.min' => 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل',
+            'national_id.required' => 'الرقم الوطني مطلوب',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
+            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
+            'phone.required' => 'رقم الهاتف مطلوب',
+            'phone.min' => 'رقم الهاتف غير صالح',
+            'description.required' => 'تفاصيل الشكوى مطلوبة',
+            'description.min' => 'تفاصيل الشكوى يجب أن تكون 10 أحرف على الأقل',
+            'description.max' => 'تفاصيل الشكوى يجب ألا تتجاوز 5000 حرف',
+            'previous_tracking_number.required' => 'رقم الشكوى السابقة مطلوب عند الإشارة إلى شكوى سابقة',
+            'previous_tracking_number.exists' => 'رقم الشكوى السابقة غير موجود في النظام',
+            'template_id.exists' => 'نموذج الشكوى غير موجود',
+        ];
+
+        $request->validate($rules, $validationMessages);
 
         // Verify CAPTCHA (T060)
         if ($request->filled('recaptcha_token')) {
@@ -211,16 +259,29 @@ class ComplaintController extends Controller
 
         $files = $request->file('attachments', []);
 
+        // Bug #316: Resolve pre-uploaded temp attachment IDs to files
+        $attachmentIds = $request->input('attachment_ids', []);
+        if (!empty($attachmentIds) && is_array($attachmentIds)) {
+            foreach ($attachmentIds as $tempId) {
+                $metadata = \Illuminate\Support\Facades\Cache::get("temp_attachment_{$tempId}");
+                if ($metadata && \Illuminate\Support\Facades\Storage::disk('public')->exists($metadata['path'])) {
+                    $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($metadata['path']);
+                    $files[] = new \Illuminate\Http\UploadedFile(
+                        $fullPath,
+                        $metadata['original_name'],
+                        $metadata['mime_type'],
+                        null,
+                        true // test mode to skip is_uploaded_file check
+                    );
+                    // Clean up temp cache entry (file will be moved by service)
+                    \Illuminate\Support\Facades\Cache::forget("temp_attachment_{$tempId}");
+                }
+            }
+        }
+
         $complaint = $this->complaintService->createComplaint($data, $files);
 
-        // Hit rate limiter for non-whitelisted IPs
-        if (!in_array($request->ip(), ['196.70.75.216'], true)) {
-            $limiterIdentifier = $request->user()
-                ? 'user_' . $request->user()->id
-                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
-            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
-            RateLimiter::hit($limiterKey, 86400); // 1 day decay
-        }
+        // Rate limit counter incremented by ComplaintRateLimitMiddleware (Bug #315 fix)
 
         // Audit Log
         $actorId = $user ? $user->id : null;
@@ -569,6 +630,55 @@ class ComplaintController extends Controller
         return response()->json(['message' => 'Complaint deleted successfully']);
     }
 
+
+    /**
+     * Delete complaint by tracking number (FR-22 - Public)
+     * Allows both authenticated and anonymous users to delete their own complaints
+     * Only allowed if status is 'new' or 'received'
+     * DELETE /api/v1/complaints/by-tracking/{trackingNumber}
+     */
+    public function destroyByTracking(Request $request, $trackingNumber)
+    {
+        $complaint = Complaint::where('tracking_number', $trackingNumber)->first();
+
+        if (!$complaint) {
+            return response()->json(['message' => 'Complaint not found'], 404);
+        }
+
+        // FR-22: Only allow deletion if status is 'new' or 'received'
+        $allowedStatuses = ['new', 'received'];
+        if (!in_array($complaint->status, $allowedStatuses)) {
+            return response()->json([
+                'message' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
+                'current_status' => $complaint->status
+            ], 400);
+        }
+
+        // Verify ownership
+        $user = $request->user();
+
+        if ($complaint->user_id) {
+            // Identified complaint: must be the owner or match national_id
+            if (!$user || $complaint->user_id !== $user->id) {
+                $providedNationalId = $request->input('national_id');
+                if (!$providedNationalId || $complaint->national_id !== $providedNationalId) {
+                    return response()->json(['message' => 'Unauthorized'], 403);
+                }
+            }
+        }
+        // Anonymous complaints (no user_id): allow deletion by tracking number alone
+        // The user proved ownership by having the tracking number
+
+        // Soft delete the complaint
+        $complaint->delete();
+
+        $this->auditService->log($user, 'complaint_deleted', 'complaint', $complaint->id, [
+            'tracking_number' => $complaint->tracking_number
+        ]);
+
+        return response()->json(['message' => 'Complaint deleted successfully']);
+    }
+
     /**
      * FR-25: Rate a complaint (1-5 stars)
      * POST /api/v1/complaints/{trackingNumber}/rate
@@ -734,5 +844,102 @@ class ComplaintController extends Controller
 
         $satisfied = (clone $query)->where('rating', '>=', 4)->count();
         return round(($satisfied / $total) * 100, 1);
+    }
+
+    /**
+     * BE-06: Send email verification OTP for complaint submission
+     *
+     * POST /api/v1/complaints/email-otp/send
+     */
+    public function sendEmailOtp(Request $request)
+    {
+        $validated = $request->validate([
+            "email" => "required|email|max:255",
+            "tracking_number" => "nullable|string",
+        ], [
+            "email.required" => "البريد الإلكتروني مطلوب",
+            "email.email" => "البريد الإلكتروني غير صالح",
+        ]);
+
+        $email = $validated["email"];
+        $key = "complaint_email_otp_" . md5($email);
+
+        if (RateLimiter::tooManyAttempts($key . "_limit", 3)) {
+            return response()->json([
+                "message" => "تم تجاوز الحد المسموح. حاول لاحقاً.",
+            ], 429);
+        }
+        RateLimiter::hit($key . "_limit", 600); // 10 min window
+
+        $otp = (string) random_int(100000, 999999);
+        Cache::put($key, $otp, 600); // 10 min expiry
+
+        // Send email with OTP
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "رمز التحقق الخاص بك هو: {$otp}\nYour verification code is: {$otp}\n\nصالح لمدة 10 دقائق / Valid for 10 minutes.",
+                function ($message) use ($email) {
+                    $message->to($email)
+                        ->subject("رمز التحقق - وزارة الاقتصاد والصناعة | Verification Code");
+                }
+            );
+
+            Log::info("Email OTP sent", ["email" => $email]);
+        } catch (\Exception $e) {
+            Log::error("Failed to send email OTP", ["email" => $email, "error" => $e->getMessage()]);
+            // Still return success to prevent email enumeration
+        }
+
+        return response()->json([
+            "message" => "تم إرسال رمز التحقق إلى بريدك الإلكتروني",
+        ]);
+    }
+
+    /**
+     * BE-06: Verify email OTP for complaint
+     *
+     * POST /api/v1/complaints/email-otp/verify
+     */
+    public function verifyEmailOtp(Request $request)
+    {
+        $validated = $request->validate([
+            "email" => "required|email",
+            "otp" => "required|string|size:6",
+            "tracking_number" => "nullable|string",
+        ]);
+
+        $email = $validated["email"];
+        $key = "complaint_email_otp_" . md5($email);
+        $cachedOtp = Cache::get($key);
+
+        if (!$cachedOtp || $cachedOtp !== $validated["otp"]) {
+            return response()->json([
+                "message" => "رمز التحقق غير صحيح أو منتهي الصلاحية",
+                "error" => "invalid_otp",
+            ], 422);
+        }
+
+        // If tracking number provided, update the complaint
+        if (!empty($validated["tracking_number"])) {
+            $complaint = \App\Models\Complaint::where("tracking_number", $validated["tracking_number"])
+                ->where("email", $email)
+                ->first();
+
+            if ($complaint) {
+                $complaint->update(["email_verified_at" => now()]);
+            }
+        }
+
+        Cache::forget($key);
+
+        // Generate a verified email token for use during complaint submission
+        $verifiedToken = \Illuminate\Support\Str::random(60);
+        Cache::put("verified_email_{$verifiedToken}", $email, 3600); // 1 hour
+
+        return response()->json([
+            "message" => "تم التحقق من البريد الإلكتروني بنجاح",
+            "verified" => true,
+            "email_token" => $verifiedToken,
+        ]);
     }
 }

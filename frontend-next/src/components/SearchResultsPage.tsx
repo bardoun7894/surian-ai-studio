@@ -67,9 +67,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Detect if text contains Arabic characters
+    const isArabicText = (text: string) => /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+
     // Fetch autocomplete suggestions as user types
     useEffect(() => {
-        if (query.trim().length < 2) {
+        // Bug 2 fix: For Arabic text, allow single character searches
+        const minLength = isArabicText(query) ? 1 : 2;
+        if (query.trim().length < minLength) {
             setSuggestions([]);
             setShowSuggestions(false);
             return;
@@ -94,7 +99,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                         url: '/faq'
                     }));
                 // Valid route prefixes to filter out broken suggestions
-                const validRoutes = ['/news/', '/services/', '/announcements/', '/directorates/', '/complaints', '/suggestions', '/media', '/faq', '/contact', '/about', '/search', '/decrees/'];
+                const validRoutes = ['/news/', '/news', '/services/', '/services', '/announcements/', '/announcements', '/directorates/', '/directorates', '/complaints', '/suggestions', '/media', '/faq', '/contact', '/about', '/search', '/decrees', '/dashboard', '/login', '/register', '/investment', '/open-data', '/sitemap', '/privacy-policy', '/terms'];
 
                 // Merge API suggestions with FAQ suggestions (deduplicate by text)
                 const allSuggestions = [...results];

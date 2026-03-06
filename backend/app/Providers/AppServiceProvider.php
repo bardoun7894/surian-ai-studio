@@ -58,6 +58,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Prevent destructive database commands (migrate:fresh, migrate:refresh, db:wipe)
+        // Protects against accidental data loss in ALL environments
+        \Illuminate\Support\Facades\DB::prohibitDestructiveCommands();
+
         // Register policies
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);

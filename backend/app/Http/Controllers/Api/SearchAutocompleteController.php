@@ -24,7 +24,7 @@ class SearchAutocompleteController extends Controller
     public function autocomplete(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'q' => 'required|string|min:2',
+            'q' => 'required|string|min:1',
             'lang' => 'nullable|string|in:ar,en',
         ]);
 
@@ -33,6 +33,12 @@ class SearchAutocompleteController extends Controller
         $q = trim($validated['q']);
         // M7.1: Detect language - if explicitly provided use it, otherwise auto-detect
         $lang = $validated['lang'] ?? $this->detectLanguage($q);
+
+        // Bug 2: For English, require at least 2 characters; for Arabic, allow 1 character
+        $minLength = ($lang === 'ar') ? 1 : 2;
+        if (mb_strlen($q) < $minLength) {
+            return response()->json(['suggestions' => []]);
+        }
 
         // Sanitize the query for LIKE usage
         $searchTerm = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
@@ -52,12 +58,22 @@ class SearchAutocompleteController extends Controller
 
             // 1. Search Content titles (limit 5) - news, announcements, decrees
             // M7.4: Filter to only published + active content with valid categories
+            // Bug 4: Also match individual words for multi-word Arabic queries
+            $searchWords = array_filter(explode(' ', $q), fn($w) => mb_strlen(trim($w)) >= 2);
             $contents = Content::published()
                 ->active()
                 ->whereIn('category', $validCategories)
-                ->where(function ($query) use ($searchTerm) {
+                ->where(function ($query) use ($searchTerm, $searchWords) {
                     $query->where('title_ar', 'like', $searchTerm)
                         ->orWhere('title_en', 'like', $searchTerm);
+                    // Word-level matching for multi-word queries
+                    if (count($searchWords) > 1) {
+                        foreach ($searchWords as $word) {
+                            $wordTerm = '%' . str_replace(['%', '_'], ['\%', '\_'], trim($word)) . '%';
+                            $query->orWhere('title_ar', 'like', $wordTerm)
+                                  ->orWhere('title_en', 'like', $wordTerm);
+                        }
+                    }
                 })
                 ->select('id', 'title_ar', 'title_en', 'category', 'slug')
                 ->orderByRaw($this->titleRelevanceOrder($q, $lang))
@@ -84,10 +100,18 @@ class SearchAutocompleteController extends Controller
 
             // 2. Search Service names (limit 3)
             // M7.4: Only active services
+            // Bug 4: Also match individual words for multi-word Arabic queries
             $services = Service::active()
-                ->where(function ($query) use ($searchTerm) {
+                ->where(function ($query) use ($searchTerm, $searchWords) {
                     $query->where('name_ar', 'like', $searchTerm)
                         ->orWhere('name_en', 'like', $searchTerm);
+                    if (count($searchWords) > 1) {
+                        foreach ($searchWords as $word) {
+                            $wordTerm = '%' . str_replace(['%', '_'], ['\%', '\_'], trim($word)) . '%';
+                            $query->orWhere('name_ar', 'like', $wordTerm)
+                                  ->orWhere('name_en', 'like', $wordTerm);
+                        }
+                    }
                 })
                 ->select('id', 'name_ar', 'name_en')
                 ->limit(3)
@@ -112,11 +136,19 @@ class SearchAutocompleteController extends Controller
 
             // 3. Search FAQ questions (limit 2)
             // M7.4: Only published + active FAQs
+            // Bug 4: Also match individual words for multi-word Arabic queries
             $faqs = Faq::where('is_published', true)
                 ->where('is_active', true)
-                ->where(function ($query) use ($searchTerm) {
+                ->where(function ($query) use ($searchTerm, $searchWords) {
                     $query->where('question_ar', 'like', $searchTerm)
                         ->orWhere('question_en', 'like', $searchTerm);
+                    if (count($searchWords) > 1) {
+                        foreach ($searchWords as $word) {
+                            $wordTerm = '%' . str_replace(['%', '_'], ['\%', '\_'], trim($word)) . '%';
+                            $query->orWhere('question_ar', 'like', $wordTerm)
+                                  ->orWhere('question_en', 'like', $wordTerm);
+                        }
+                    }
                 })
                 ->select('id', 'question_ar', 'question_en')
                 ->limit(2)
@@ -202,7 +234,7 @@ class SearchAutocompleteController extends Controller
         return match ($content->category) {
             Content::CATEGORY_NEWS => '/news/' . $id,
             Content::CATEGORY_ANNOUNCEMENT => '/announcements/' . $id,
-            Content::CATEGORY_DECREE => '/decrees/' . $id,
+            Content::CATEGORY_DECREE => '/decrees',  // No individual decree pages exist
             Content::CATEGORY_FAQ => '/faq',
             default => '/search?q=' . urlencode($content->title_ar ?? ''),
         };

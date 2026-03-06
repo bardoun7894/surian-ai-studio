@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 interface AboutValue {
     icon: string;
@@ -41,6 +42,11 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function AboutPage() {
     const { language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "عن الوزارة" : "About the Ministry",
+    description: language === "ar" ? "نبذة عن وزارة الاقتصاد والصناعة - الرؤية والرسالة والقيم" : "About the Ministry of Economy and Industry - Vision, Mission, and Values",
+  });
     const [data, setData] = useState<AboutData>({});
     const [loading, setLoading] = useState(true);
 

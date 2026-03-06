@@ -232,6 +232,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [rejectedFiles, setRejectedFiles] = useState<RejectedAttachment[]>([]);
+    const [uploadedAttachmentIds, setUploadedAttachmentIds] = useState<Record<string, string>>({}); // Bug #316: file.name+size -> temp attachment ID
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Tracking State
@@ -256,15 +257,54 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const validateField = (name: string, value: string) => {
         let error = '';
-        if (name === 'nationalId' && !/^\d{11}$/.test(value)) {
-            error = t('complaint_national_id_invalid');
-        } else if (name === 'phone') {
-            const phoneResult = validatePhoneWithCountryCode(value);
-            if (!phoneResult.isValid) {
-                error = t('complaint_phone_invalid');
-            }
-        } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            error = t('validation_email_invalid') || 'Invalid email address';
+        switch (name) {
+            case 'nationalId':
+                if (!isAnonymous && !/^\d{11}$/.test(value)) {
+                    error = t('complaint_national_id_invalid');
+                }
+                break;
+            case 'phone':
+                if (!isAnonymous) {
+                    if (!value || value.length < 5) {
+                        error = t('complaint_phone_required');
+                    } else {
+                        const phoneResult = validatePhoneWithCountryCode(value);
+                        if (!phoneResult.isValid) {
+                            error = t('complaint_phone_invalid');
+                        }
+                    }
+                }
+                break;
+            case 'email':
+                if (!isAnonymous && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    error = t('validation_email_invalid');
+                }
+                break;
+            case 'firstName':
+                if (!isAnonymous && !value.trim()) {
+                    error = t('complaint_name_required');
+                }
+                break;
+            case 'fatherName':
+                if (!isAnonymous && !value.trim()) {
+                    error = t('complaint_father_name_required');
+                }
+                break;
+            case 'lastName':
+                if (!isAnonymous && !value.trim()) {
+                    error = t('complaint_last_name_required');
+                }
+                break;
+            case 'details':
+                if (value && value.trim().length > 0 && value.trim().length < 10) {
+                    error = t('complaint_description_min');
+                }
+                break;
+            case 'previousTrackingNumber':
+                if (formData.hasPreviousComplaint && !value.trim()) {
+                    error = t('complaint_prev_tracking_required');
+                }
+                break;
         }
 
         setErrors(prev => ({ ...prev, [name]: error }));
@@ -375,7 +415,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         setIsDeleting(true);
         try {
-            const success = await API.complaints.delete(trackingResult.id);
+            const success = await API.complaints.delete(trackingResult.tracking_number || trackingResult.id);
             if (success) {
                 toast.success(t('complaint_delete_success'));
                 setTrackingResult(null);
@@ -388,6 +428,31 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         } finally {
             setIsDeleting(false);
         }
+    };
+
+    // Bug #316: Upload file immediately to temp endpoint
+    // Bug #316: Upload file immediately to temp endpoint
+    const uploadFileInstantly = async (file: File) => {
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('context', 'complaint');
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+            const res = await fetch(`${apiBase}/attachments/temp`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include',
+            });
+            if (res.ok) {
+                const result = await res.json();
+                const fileKey = `${file.name}_${file.size}`;
+                setUploadedAttachmentIds(prev => ({ ...prev, [fileKey]: result.data.id }));
+                return result.data.id;
+            }
+        } catch (err) {
+            console.error('Instant upload failed for', file.name, err);
+        }
+        return null;
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -588,14 +653,73 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const nationalIdError = !isAnonymous && !/^\d{11}$/.test(formData.nationalId)
-            ? t('complaint_national_id_invalid')
-            : '';
+        // Comprehensive frontend validation for all fields
+        const newErrors: Record<string, string> = {};
+        const allTouched: Record<string, boolean> = {};
 
-        if (nationalIdError) {
-            setTouched(prev => ({ ...prev, nationalId: true }));
-            setErrors(prev => ({ ...prev, nationalId: nationalIdError }));
-            setSubmitError(nationalIdError);
+        // Template/complaint type required
+        if (!selectedTemplateId) {
+            newErrors.template = t('complaint_template_required');
+        }
+
+        // Personal info validation (non-anonymous only)
+        if (!isAnonymous) {
+            if (!formData.firstName.trim()) {
+                newErrors.firstName = t('complaint_name_required');
+                allTouched.firstName = true;
+            }
+            if (!formData.fatherName.trim()) {
+                newErrors.fatherName = t('complaint_father_name_required');
+                allTouched.fatherName = true;
+            }
+            if (!formData.lastName.trim()) {
+                newErrors.lastName = t('complaint_last_name_required');
+                allTouched.lastName = true;
+            }
+            if (!/^\d{11}$/.test(formData.nationalId)) {
+                newErrors.nationalId = t('complaint_national_id_invalid');
+                allTouched.nationalId = true;
+            }
+            if (!formData.phone || formData.phone.length < 5) {
+                newErrors.phone = t('complaint_phone_required');
+                allTouched.phone = true;
+            } else {
+                const phoneResult = validatePhoneWithCountryCode(formData.phone);
+                if (!phoneResult.isValid) {
+                    newErrors.phone = t('complaint_phone_invalid');
+                    allTouched.phone = true;
+                }
+            }
+            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                newErrors.email = t('validation_email_invalid');
+                allTouched.email = true;
+            }
+        }
+
+        // Description validation (for open template type)
+        const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
+        if (!selectedTemplateId || selectedTmpl?.type === 'open') {
+            if (!formData.details.trim()) {
+                newErrors.details = t('complaint_description_required');
+            } else if (formData.details.trim().length < 10) {
+                newErrors.details = t('complaint_description_min');
+            }
+        }
+
+        // Previous tracking number validation
+        if (formData.hasPreviousComplaint && !formData.previousTrackingNumber.trim()) {
+            newErrors.previousTrackingNumber = t('complaint_prev_tracking_required');
+        }
+
+        // If there are validation errors, show them and abort
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(prev => ({ ...prev, ...newErrors }));
+            setTouched(prev => ({ ...prev, ...allTouched }));
+            const firstError = Object.values(newErrors)[0];
+            setSubmitError(firstError);
+            toast.error(t('complaint_validation_fix_errors'), {
+                description: firstError,
+            });
             return;
         }
 
@@ -622,6 +746,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 ...formData,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
+                attachment_ids: Object.values(uploadedAttachmentIds).filter(Boolean),
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };
@@ -642,6 +767,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
             setUploadStatus('completed');
             setSubmittedTicket(ticketId);
+            setUploadedAttachmentIds({});
             toast.success(t('complaint_success'), {
                 description: ticketId
                     ? `${t('complaint_ticket_number')}: ${ticketId}`
@@ -778,7 +904,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const formatDate = (value?: string) => {
         if (!value) return isAr ? 'غير متوفر' : 'N/A';
-        return new Date(value).toLocaleString(isAr ? 'ar-SY' : 'en-US');
+        return new Date(value).toLocaleString(isAr ? 'ar-u-nu-latn' : 'en-US');
     };
 
     const getDirectorateName = (directorate: Ticket['directorate']) => {
@@ -812,6 +938,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             'الرقم الوطني مطلوب': 'National ID is required.',
             'الوصف مطلوب': 'Description is required.',
             'الوصف يجب ان يكون على الأقل 10 أحرف': 'Description must be at least 10 characters.',
+            'تم تجاوز الحد المسموح من الشكاوى اليومية': 'You have exceeded the daily complaint limit. Please try again tomorrow.',
+            'لقد تجاوزت الحد المسموح': 'You have exceeded the daily limit. Please try again tomorrow.',
+            'الاسم الكامل مطلوب': 'Full name is required.',
+            'الاسم الكامل يجب أن يكون 3 أحرف على الأقل': 'Full name must be at least 3 characters.',
+            'الرقم الوطني يجب أن يتكون من 11 رقماً': 'National ID must be exactly 11 digits.',
+            'الرقم الوطني يجب أن يحتوي على أرقام فقط': 'National ID must contain only digits.',
+            'رقم الهاتف مطلوب': 'Phone number is required.',
+            'رقم الهاتف غير صالح': 'Invalid phone number.',
+            'تفاصيل الشكوى مطلوبة': 'Complaint details are required.',
+            'تفاصيل الشكوى يجب أن تكون 10 أحرف على الأقل': 'Complaint details must be at least 10 characters.',
+            'تفاصيل الشكوى يجب ألا تتجاوز 5000 حرف': 'Complaint details must not exceed 5000 characters.',
+            'رقم الشكوى السابقة مطلوب عند الإشارة إلى شكوى سابقة': 'Previous complaint tracking number is required.',
+            'رقم الشكوى السابقة غير موجود في النظام': 'Previous complaint tracking number not found.',
+            'نموذج الشكوى غير موجود': 'Complaint template not found.',
         };
         for (const [ar, en] of Object.entries(translations)) {
             if (msg.includes(ar)) return en;
@@ -988,6 +1128,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting} className="space-y-6">
 
 
                             {/* Anonymous / Known User Toggle */}
@@ -1146,6 +1287,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                                 {/* Hidden required input for form validation */}
                                 <input type="hidden" required value={selectedTemplateId} />
+                                {errors.template && (
+                                    <p className="text-gov-cherry text-xs font-bold px-4 pb-3 flex items-center gap-1">
+                                        <AlertCircle size={14} />
+                                        {errors.template}
+                                    </p>
+                                )}
                             </div>
 
                             {/* T027: Display receiving entity/department with full hierarchy */}
@@ -1498,9 +1645,21 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         label={t('complaint_details')}
                                         required
                                         value={formData.details}
-                                        onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, details: e.target.value });
+                                            if (touched.details) validateField('details', e.target.value);
+                                        }}
+                                        onBlur={() => {
+                                            setTouched(prev => ({ ...prev, details: true }));
+                                            validateField('details', formData.details);
+                                        }}
                                         rows={6}
-                                        placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
+                                        minLength={10}
+                                        maxLength={5000}
+                                        showCharCount
+                                        error={touched.details ? errors.details : undefined}
+                                        isValid={touched.details && !errors.details && formData.details.trim().length >= 10}
+                                        placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا (10 أحرف على الأقل)...' : 'Please write the complaint details here (at least 10 characters)...'}
                                         containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
                                     />
                                 )}
@@ -1534,12 +1693,25 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     type="text"
                                                     required={formData.hasPreviousComplaint}
                                                     value={formData.previousTrackingNumber || ''}
-                                                    onChange={(e) => setFormData({ ...formData, previousTrackingNumber: e.target.value })}
+                                                    onChange={(e) => {
+                                                        setFormData({ ...formData, previousTrackingNumber: e.target.value });
+                                                        if (errors.previousTrackingNumber) validateField('previousTrackingNumber', e.target.value);
+                                                    }}
+                                                    onBlur={() => {
+                                                        setTouched(prev => ({ ...prev, previousTrackingNumber: true }));
+                                                        validateField('previousTrackingNumber', formData.previousTrackingNumber);
+                                                    }}
                                                     placeholder={t('complaint_prev_ticket_placeholder')}
-                                                    className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
+                                                    className={`w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono ${errors.previousTrackingNumber ? 'border-gov-cherry focus:border-gov-cherry' : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold'}`}
                                                 />
                                                 <History className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             </div>
+                                            {errors.previousTrackingNumber && (
+                                                <p className="text-gov-cherry text-xs font-bold mt-1 flex items-center gap-1">
+                                                    <AlertCircle size={12} />
+                                                    {errors.previousTrackingNumber}
+                                                </p>
+                                            )}
                                             <p className="text-xs text-gray-500 dark:text-white/70 mt-2">
                                                 {t('complaint_prev_ticket_hint')}
                                             </p>
@@ -1563,6 +1735,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </p>
                                 )}
                             </div>
+                            </fieldset>
                         </form>
                     </div>
                 )
@@ -1707,7 +1880,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <PrintHeader
                                         documentTitle={isAr ? 'متابعة شكوى' : 'Complaint Tracking'}
                                         referenceNumber={trackingResult.tracking_number || trackingResult.id}
-                                        date={trackingResult.created_at ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                                        date={trackingResult.created_at ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
                                         language={isAr ? 'ar' : 'en'}
                                     />
                                     <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">
@@ -1821,7 +1994,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || t('complaint_responses_subtitle')}</span>
-                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString('ar-SY')}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString('ar-u-nu-latn')}</span>
                                                         </div>
                                                         <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
                                                     </div>

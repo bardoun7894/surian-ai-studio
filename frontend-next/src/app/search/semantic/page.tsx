@@ -136,7 +136,7 @@ function SemanticSearchPageContent() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
       <Navbar onSearch={(q) => router.push(`/search?q=${encodeURIComponent(q)}`)} />
 
-      <main className="flex-grow pt-24 pb-12">
+      <main className="flex-grow pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
@@ -351,7 +351,7 @@ function SemanticSearchPageContent() {
                   {result.published_at && (
                     <div className="flex items-center gap-1.5">
                       <Calendar size={12} />
-                      <span>{new Date(result.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span>{new Date(result.published_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}</span>
                     </div>
                   )}
 

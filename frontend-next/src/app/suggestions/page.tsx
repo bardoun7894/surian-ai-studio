@@ -5,15 +5,21 @@ import Footer from '@/components/Footer';
 import SuggestionPortal from '@/components/SuggestionsForm';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function SuggestionsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "المقترحات" : "Suggestions",
+    description: language === "ar" ? "شاركنا مقترحاتك لتطوير خدمات الوزارة" : "Share your suggestions to improve Ministry services",
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow pt-20 md:pt-24">
+      <main className="flex-grow">
         {/* Complaints Navigation Banner */}
         <div className="max-w-4xl mx-auto px-4 pt-8">
           <div className="bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">

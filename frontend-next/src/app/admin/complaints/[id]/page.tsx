@@ -381,7 +381,7 @@ export default function ComplaintDetailPage() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-gray-900">{response.user?.full_name || 'Staff'}</span>
                         <span className="text-xs text-gray-500">
-                          {new Date(response.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                          {new Date(response.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                         </span>
                       </div>
                       <p className="text-gray-700">{response.content}</p>
@@ -440,7 +440,7 @@ export default function ComplaintDetailPage() {
                           <span className="font-medium">{log.user?.full_name}</span> - {log.action}
                         </p>
                         <span className="text-xs text-gray-500">
-                          {new Date(log.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                          {new Date(log.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
                         </span>
                       </div>
                     </div>
@@ -536,7 +536,7 @@ export default function ComplaintDetailPage() {
                   <Clock className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-700">
                     {complaint.created_at
-                      ? new Date(complaint.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
+                      ? new Date(complaint.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')
                       : '-'}
                   </span>
                 </div>

@@ -88,7 +88,7 @@ export default function ContentFilter({
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 {/* Tabs */}
                 {tabs.length > 0 && (
-                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <div className="grid grid-cols-4 gap-2 w-full md:w-auto md:flex md:overflow-x-visible md:flex-wrap pb-2 md:pb-0 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.key;
@@ -96,7 +96,7 @@ export default function ContentFilter({
                                 <button
                                     key={tab.key}
                                     onClick={() => onTabChange?.(tab.key)}
-                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
+                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 flex-shrink-0 whitespace-nowrap ${isActive
                                             ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-lg shadow-gov-forest/20 dark:shadow-gov-button/20'
                                             : 'bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white/70 border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
                                         }`}
@@ -134,9 +134,9 @@ export default function ContentFilter({
 
             {/* Secondary Filters Row (Date, Extras, Count) */}
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
-                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
 
-                    <div className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
 
                         {/* Date Filters */}
                         {showDateFilter && (
@@ -236,7 +236,7 @@ export default function ContentFilter({
                         {extraFilters && (
                             <>
                                 {showDateFilter && <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>}
-                                <div className="flex w-full sm:w-auto flex-wrap items-stretch sm:items-center gap-2">
+                                <div className="flex w-auto flex-wrap items-center gap-2 ml-auto sm:ml-0">
                                     {extraFilters}
                                 </div>
                             </>
@@ -245,7 +245,7 @@ export default function ContentFilter({
 
                     {/* Results Count */}
                     {totalCount !== undefined && (
-                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-full sm:w-auto text-center sm:text-start">
+                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-auto text-start">
                             {totalCount} {countLabel || (isAr ? 'عنصر' : 'items')}
                         </div>
                     )}

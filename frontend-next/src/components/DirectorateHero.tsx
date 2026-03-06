@@ -199,7 +199,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
 
               {/* Directorate Logo */}
               <div className="relative w-[95%] h-[95%] flex items-center justify-center">
-                {directorate.logo && !imageError ? (
+                {directorate.logo && directorate.logo.trim() !== "" && !imageError ? (
                   <Image
                     id="directorate-logo"
                     src={directorate.logo}
@@ -273,7 +273,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
             )}
 
             <Link
-              href="#services"
+              href="/services"
               className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-gold/10 text-gov-forest dark:text-gov-gold border border-gov-gold/30 font-bold text-base hover:bg-gov-gold/20 transition-all flex items-center justify-center gap-2 rounded-xl backdrop-blur-sm"
             >
               <FileCheck size={18} />

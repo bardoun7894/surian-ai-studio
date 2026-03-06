@@ -166,17 +166,38 @@ const RegisterPage = () => {
         const errors: Record<string, string> = {};
 
         if (step === 1) {
+            // National ID is validated by the NationalIdField component, but check birthDate
             const birthDateError = validateBirthDate(formData.birthDate);
             if (birthDateError) {
                 errors.birthDate = birthDateError;
             }
         }
 
+        if (step === 2) {
+            // Validate required text fields
+            if (!formData.firstName.trim()) {
+                errors.firstName = language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required';
+            }
+            if (!formData.fatherName.trim()) {
+                errors.fatherName = language === 'ar' ? 'اسم الأب مطلوب' : 'Father name is required';
+            }
+            if (!formData.lastName.trim()) {
+                errors.lastName = language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required';
+            }
+            if (!formData.governorate) {
+                errors.governorate = language === 'ar' ? 'المحافظة مطلوبة' : 'Governorate is required';
+            }
+        }
+
         if (step === 3) {
             // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (formData.email && !emailRegex.test(formData.email)) {
-                errors.email = t('validation_email_invalid');
+            if (!formData.email.trim()) {
+                errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email)) {
+                    errors.email = t('validation_email_invalid');
+                }
             }
 
             const phoneError = getPhoneValidationError(formData.phone);
@@ -186,11 +207,18 @@ const RegisterPage = () => {
         }
 
         if (step === 4) {
-            if (!isPasswordValid(formData.password)) {
+            if (!formData.password) {
+                errors.password = language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required';
+            } else if (!isPasswordValid(formData.password)) {
                 errors.password = t('validation_password_weak');
             }
-            if (formData.password !== formData.confirmPassword) {
+            if (!formData.confirmPassword) {
+                errors.confirmPassword = language === 'ar' ? 'تأكيد كلمة المرور مطلوب' : 'Please confirm your password';
+            } else if (formData.password !== formData.confirmPassword) {
                 errors.confirmPassword = t('validation_password_mismatch');
+            }
+            if (!formData.agreeTerms) {
+                errors.agreeTerms = language === 'ar' ? 'يجب الموافقة على الشروط والأحكام' : 'You must agree to the terms and conditions';
             }
         }
 
@@ -206,9 +234,26 @@ const RegisterPage = () => {
             errors.birthDate = birthDateError;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!formData.email || !emailRegex.test(formData.email)) {
-            errors.email = t('validation_email_invalid');
+        if (!formData.firstName.trim()) {
+            errors.firstName = language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required';
+        }
+        if (!formData.fatherName.trim()) {
+            errors.fatherName = language === 'ar' ? 'اسم الأب مطلوب' : 'Father name is required';
+        }
+        if (!formData.lastName.trim()) {
+            errors.lastName = language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required';
+        }
+        if (!formData.governorate) {
+            errors.governorate = language === 'ar' ? 'المحافظة مطلوبة' : 'Governorate is required';
+        }
+
+        if (!formData.email.trim()) {
+            errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                errors.email = t('validation_email_invalid');
+            }
         }
 
         const phoneError = getPhoneValidationError(formData.phone);
@@ -216,12 +261,20 @@ const RegisterPage = () => {
             errors.phone = phoneError;
         }
 
-        if (!isPasswordValid(formData.password)) {
+        if (!formData.password) {
+            errors.password = language === 'ar' ? 'كلمة المرور مطلوبة' : 'Password is required';
+        } else if (!isPasswordValid(formData.password)) {
             errors.password = t('validation_password_weak');
         }
 
-        if (formData.password !== formData.confirmPassword) {
+        if (!formData.confirmPassword) {
+            errors.confirmPassword = language === 'ar' ? 'تأكيد كلمة المرور مطلوب' : 'Please confirm your password';
+        } else if (formData.password !== formData.confirmPassword) {
             errors.confirmPassword = t('validation_password_mismatch');
+        }
+
+        if (!formData.agreeTerms) {
+            errors.agreeTerms = language === 'ar' ? 'يجب الموافقة على الشروط والأحكام' : 'You must agree to the terms and conditions';
         }
 
         setFieldErrors(errors);
@@ -260,8 +313,9 @@ const RegisterPage = () => {
 
         if (!validateBeforeSubmit()) {
             const birthDateError = validateBirthDate(formData.birthDate);
-            const hasPasswordError = !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
-            setCurrentStep(birthDateError ? 1 : hasPasswordError ? 4 : 3);
+            const hasStep2Error = !formData.firstName.trim() || !formData.fatherName.trim() || !formData.lastName.trim() || !formData.governorate;
+            const hasPasswordError = !formData.password || !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
+            setCurrentStep(birthDateError ? 1 : hasStep2Error ? 2 : hasPasswordError ? 4 : 3);
             return;
         }
 
@@ -323,6 +377,24 @@ const RegisterPage = () => {
         { num: 3, title: t('reg_step_contact') },
         { num: 4, title: t('reg_step_password') }
     ];
+
+    // Helper to get text input border class with validation states
+    const getTextFieldBorderClass = (fieldName: string, value: string): string => {
+        if (fieldErrors[fieldName]) {
+            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
+        }
+        if (value.trim()) {
+            return 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20';
+        }
+        return 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
+    };
+
+    // Helper to get icon color based on validation state
+    const getTextFieldIconColor = (fieldName: string, value: string): string => {
+        if (fieldErrors[fieldName]) return 'text-red-500 dark:text-red-400';
+        if (value.trim()) return 'text-green-500 dark:text-gov-emerald';
+        return 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold';
+    };
 
     return (
         <div className="min-h-screen flex">
@@ -476,7 +548,7 @@ const RegisterPage = () => {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-3">
+                        <form onSubmit={handleSubmit} noValidate className="space-y-3">
 
                             {/* Step 1: Identity */}
                             {currentStep === 1 && (
@@ -542,7 +614,6 @@ const RegisterPage = () => {
                                                             ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
-                                                required
                                             />
                                             <Calendar className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
                                                 ${fieldErrors.birthDate
@@ -587,12 +658,41 @@ const RegisterPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.firstName}
-                                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, firstName: e.target.value });
+                                                    if (fieldErrors.firstName && e.target.value.trim()) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.firstName; return next; });
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    if (!formData.firstName.trim() && fieldErrors.firstName !== undefined) {
+                                                        // Keep existing error
+                                                    }
+                                                }}
                                                 placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
-                                                required
+                                                className={`w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${getTextFieldBorderClass('firstName', formData.firstName)}`}
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                            <User className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors ${getTextFieldIconColor('firstName', formData.firstName)}`} size={20} />
+                                            {/* Validation icons */}
+                                            {fieldErrors.firstName && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.firstName && formData.firstName.trim() && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.firstName && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.firstName}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -605,12 +705,35 @@ const RegisterPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.fatherName}
-                                                onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, fatherName: e.target.value });
+                                                    if (fieldErrors.fatherName && e.target.value.trim()) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.fatherName; return next; });
+                                                    }
+                                                }}
                                                 placeholder={language === 'ar' ? 'اسم الأب' : 'Father Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
-                                                required
+                                                className={`w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${getTextFieldBorderClass('fatherName', formData.fatherName)}`}
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                            <User className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors ${getTextFieldIconColor('fatherName', formData.fatherName)}`} size={20} />
+                                            {fieldErrors.fatherName && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.fatherName && formData.fatherName.trim() && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.fatherName && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.fatherName}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -623,12 +746,35 @@ const RegisterPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.lastName}
-                                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, lastName: e.target.value });
+                                                    if (fieldErrors.lastName && e.target.value.trim()) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.lastName; return next; });
+                                                    }
+                                                }}
                                                 placeholder={language === 'ar' ? 'الكنية' : 'Last Name'}
-                                                className="w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
-                                                required
+                                                className={`w-full py-3.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                    ${getTextFieldBorderClass('lastName', formData.lastName)}`}
                                             />
-                                            <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                            <User className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors ${getTextFieldIconColor('lastName', formData.lastName)}`} size={20} />
+                                            {fieldErrors.lastName && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.lastName && formData.lastName.trim() && (
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.lastName && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.lastName}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -640,13 +786,19 @@ const RegisterPage = () => {
                                         <div className="relative group">
                                             <select
                                                 value={formData.governorate}
-                                                onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, governorate: e.target.value });
+                                                    if (fieldErrors.governorate && e.target.value) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.governorate; return next; });
+                                                    }
+                                                }}
                                                 className={`w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
-                                                    ${formData.governorate
-                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
-                                                        : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    ${fieldErrors.governorate
+                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
+                                                        : formData.governorate
+                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
-                                                required
                                             >
                                                 <option value="" className="dark:bg-dm-surface dark:text-white">{t('reg_select_governorate')}</option>
                                                 {governorates.map((gov) => (
@@ -654,15 +806,30 @@ const RegisterPage = () => {
                                                 ))}
                                             </select>
                                             <MapPin className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${formData.governorate
-                                                    ? 'text-green-500 dark:text-gov-emerald'
-                                                    : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
+                                                ${fieldErrors.governorate
+                                                    ? 'text-red-500 dark:text-red-400'
+                                                    : formData.governorate
+                                                        ? 'text-green-500 dark:text-gov-emerald'
+                                                        : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                                                 }`} size={20} />
                                             <ChevronDown className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                                            {formData.governorate && (
+                                            {fieldErrors.governorate && (
+                                                <div className="absolute ltr:right-8 rtl:left-8 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <AlertCircle size={16} className="text-red-500 dark:text-red-400" />
+                                                </div>
+                                            )}
+                                            {!fieldErrors.governorate && formData.governorate && (
                                                 <div className="absolute ltr:right-8 rtl:left-8 top-1/2 -translate-y-1/2 pointer-events-none">
                                                     <CheckCircle2 size={16} className="text-green-500 dark:text-gov-emerald" />
                                                 </div>
+                                            )}
+                                        </div>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.governorate && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.governorate}
+                                                </p>
                                             )}
                                         </div>
                                     </div>
@@ -695,7 +862,6 @@ const RegisterPage = () => {
                                                             ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
-                                                required
                                             />
                                             <Mail className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
                                                 ${fieldErrors.email ? 'text-red-500 dark:text-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
@@ -767,7 +933,12 @@ const RegisterPage = () => {
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.password}
-                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, password: e.target.value });
+                                                    if (fieldErrors.password && e.target.value) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.password; return next; });
+                                                    }
+                                                }}
                                                 placeholder={t('reg_password_placeholder')}
                                                 className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-16 rtl:pr-12 rtl:pl-16 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.password
@@ -776,8 +947,6 @@ const RegisterPage = () => {
                                                             ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
-                                                required
-                                                minLength={8}
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                                                 ${fieldErrors.password ? 'text-red-500 dark:text-red-400' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
@@ -798,6 +967,18 @@ const RegisterPage = () => {
                                                 </p>
                                             )}
                                         </div>
+
+                                        {/* Password Strength Indicator */}
+                                        {formData.password && (
+                                            <div className="mt-2 flex gap-1">
+                                                {passwordRules.map((rule, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`h-1 flex-1 rounded-full transition-colors ${rule.test(formData.password) ? 'bg-green-500' : 'bg-gray-200 dark:bg-white/10'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Confirm Password */}
@@ -809,7 +990,12 @@ const RegisterPage = () => {
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.confirmPassword}
-                                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, confirmPassword: e.target.value });
+                                                    if (fieldErrors.confirmPassword && e.target.value) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.confirmPassword; return next; });
+                                                    }
+                                                }}
                                                 placeholder={t('reg_reenter_password')}
                                                 className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.confirmPassword
@@ -818,7 +1004,6 @@ const RegisterPage = () => {
                                                             ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
-                                                required
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                                                 ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-red-400' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
@@ -870,18 +1055,32 @@ const RegisterPage = () => {
                                     </div>
 
                                     {/* Terms Agreement */}
-                                    <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.agreeTerms}
-                                            onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
-                                            className="w-5 h-5 mt-0.5 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer"
-                                            required
-                                        />
-                                        <span className="text-sm text-gray-600 dark:text-white/70">
-                                            {t('reg_agree_terms')}
-                                        </span>
-                                    </label>
+                                    <div>
+                                        <label className="flex items-start gap-3 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.agreeTerms}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, agreeTerms: e.target.checked });
+                                                    if (fieldErrors.agreeTerms && e.target.checked) {
+                                                        setFieldErrors(prev => { const next = { ...prev }; delete next.agreeTerms; return next; });
+                                                    }
+                                                }}
+                                                className={`w-5 h-5 mt-0.5 rounded border-gray-300 text-gov-teal focus:ring-gov-teal cursor-pointer ${fieldErrors.agreeTerms ? 'border-red-500 ring-2 ring-red-500/20' : ''}`}
+                                            />
+                                            <span className={`text-sm ${fieldErrors.agreeTerms ? 'text-red-500 dark:text-red-400' : 'text-gray-600 dark:text-white/70'}`}>
+                                                {t('reg_agree_terms')}
+                                            </span>
+                                        </label>
+                                        <div className="min-h-[1.25rem] mt-1">
+                                            {fieldErrors.agreeTerms && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    {fieldErrors.agreeTerms}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 

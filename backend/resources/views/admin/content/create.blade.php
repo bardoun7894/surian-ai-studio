@@ -100,7 +100,35 @@
                             <p class="text-[10px] text-slate-400 mt-1">اختر الإدارة المركزية التابع لها هذا الخبر</p>
                         </div>
 
-                         <!-- Service Fields (Hidden by default) -->
+                         <!-- Ticker Settings (for news items) -->
+                        <div id="tickerFields" class="hidden flex-col gap-3 pt-4 mt-4 border-t border-slate-100 dark:border-slate-700">
+                            <h4 class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">breaking_news</span>
+                                شريط الأخبار العاجلة
+                            </h4>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <label for="show_in_ticker" class="text-xs font-bold text-slate-700 dark:text-slate-300">عرض في شريط الأخبار</label>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="show_in_ticker" id="show_in_ticker" value="1" class="sr-only peer" {{ old('show_in_ticker') ? 'checked' : '' }}>
+                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                                </label>
+                            </div>
+                            <div id="tickerDurationField" class="hidden">
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5">مدة العرض</label>
+                                <select name="ticker_duration" id="ticker_duration" class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                    <option value="">-- اختر المدة --</option>
+                                    <option value="24h" {{ old('ticker_duration') == '24h' ? 'selected' : '' }}>24 ساعة</option>
+                                    <option value="48h" {{ old('ticker_duration') == '48h' ? 'selected' : '' }}>48 ساعة</option>
+                                    <option value="1w" {{ old('ticker_duration') == '1w' ? 'selected' : '' }}>أسبوع واحد</option>
+                                    <option value="1m" {{ old('ticker_duration') == '1m' ? 'selected' : '' }}>شهر واحد</option>
+                                </select>
+                                <p class="text-[10px] text-amber-500 mt-1">سيظهر الخبر في شريط الأخبار العاجلة للمدة المحددة من لحظة الحفظ</p>
+                            </div>
+                        </div>
+
+                        <!-- Service Fields (Hidden by default) -->
                          <div id="serviceFields" class="hidden flex-col gap-4 pt-4 mt-4 border-t border-slate-100 dark:border-slate-700">
                              <h4 class="text-xs font-bold text-gov-teal uppercase tracking-wider mb-2">معلومات الخدمة</h4>
 
@@ -269,6 +297,10 @@
         const serviceFields = document.getElementById('serviceFields');
         const directorateField = document.getElementById('directorateField');
 
+        const tickerFields = document.getElementById('tickerFields');
+        const showInTickerCheckbox = document.getElementById('show_in_ticker');
+        const tickerDurationField = document.getElementById('tickerDurationField');
+
         function toggleFields() {
             if (categorySelect.value === 'service') {
                 serviceFields.classList.remove('hidden');
@@ -280,13 +312,27 @@
 
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
+                tickerFields.classList.remove('hidden');
+                tickerFields.classList.add('flex');
             } else {
                 directorateField.classList.add('hidden');
+                tickerFields.classList.add('hidden');
+                tickerFields.classList.remove('flex');
+            }
+        }
+
+        function toggleTickerDuration() {
+            if (showInTickerCheckbox.checked) {
+                tickerDurationField.classList.remove('hidden');
+            } else {
+                tickerDurationField.classList.add('hidden');
             }
         }
 
         categorySelect.addEventListener('change', toggleFields);
+        showInTickerCheckbox.addEventListener('change', toggleTickerDuration);
         toggleFields(); // Initial check
+        toggleTickerDuration(); // Initial check
 
         // Auto-translate on form submit
         const contentForm = document.getElementById('contentForm');

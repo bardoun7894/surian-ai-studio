@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Send, MapPin, Phone, Mail, Clock, Loader2, CheckCircle, User, Building2, Tag, ArrowRight, MessageSquare, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,6 +12,66 @@ import Textarea from '@/components/ui/Textarea';
 import Select from '@/components/ui/Select';
 import { SkeletonList, SkeletonText } from '@/components/SkeletonLoader';
 
+// ── Validation helpers ──────────────────────────────────────────────
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  directorate?: string;
+  subject?: string;
+  message?: string;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function validateForm(
+  data: { name: string; email: string; subject: string; directorate: string; message: string },
+  isAr: boolean
+): FieldErrors {
+  const errors: FieldErrors = {};
+
+  // Name: required, 2-100 chars
+  if (!data.name.trim()) {
+    errors.name = isAr ? 'الاسم مطلوب' : 'Name is required';
+  } else if (data.name.trim().length < 2) {
+    errors.name = isAr ? 'الاسم يجب أن يكون حرفين على الأقل' : 'Name must be at least 2 characters';
+  } else if (data.name.trim().length > 100) {
+    errors.name = isAr ? 'الاسم يجب ألا يتجاوز 100 حرف' : 'Name must not exceed 100 characters';
+  }
+
+  // Email: required, valid format
+  if (!data.email.trim()) {
+    errors.email = isAr ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+  } else if (!EMAIL_RE.test(data.email.trim())) {
+    errors.email = isAr ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email format';
+  }
+
+  // Directorate: required
+  if (!data.directorate) {
+    errors.directorate = isAr ? 'يرجى اختيار الإدارة / الجهة' : 'Please select an administration';
+  }
+
+  // Subject: required, 3-255 chars
+  if (!data.subject.trim()) {
+    errors.subject = isAr ? 'عنوان الرسالة مطلوب' : 'Subject is required';
+  } else if (data.subject.trim().length < 3) {
+    errors.subject = isAr ? 'عنوان الرسالة يجب أن يكون 3 أحرف على الأقل' : 'Subject must be at least 3 characters';
+  } else if (data.subject.trim().length > 255) {
+    errors.subject = isAr ? 'عنوان الرسالة يجب ألا يتجاوز 255 حرف' : 'Subject must not exceed 255 characters';
+  }
+
+  // Message: required, 10-5000 chars
+  if (!data.message.trim()) {
+    errors.message = isAr ? 'نص الرسالة مطلوب' : 'Message is required';
+  } else if (data.message.trim().length < 10) {
+    errors.message = isAr ? 'الرسالة يجب أن تكون 10 أحرف على الأقل' : 'Message must be at least 10 characters';
+  } else if (data.message.trim().length > 5000) {
+    errors.message = isAr ? 'الرسالة يجب ألا تتجاوز 5000 حرف' : 'Message must not exceed 5000 characters';
+  }
+
+  return errors;
+}
+
+// ── Component ───────────────────────────────────────────────────────
 const ContactSection: React.FC = () => {
   const { language, t } = useLanguage();
   const isAr = language === 'ar';
@@ -59,6 +119,33 @@ const ContactSection: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Mark field as touched on blur
+  const handleBlur = useCallback((field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  }, []);
+
+  // Re-validate touched fields on every change
+  useEffect(() => {
+    const allErrors = validateForm(formData, isAr);
+    // Only show errors for touched fields
+    const visibleErrors: FieldErrors = {};
+    for (const key of Object.keys(allErrors) as (keyof FieldErrors)[]) {
+      if (touched[key]) {
+        visibleErrors[key] = allErrors[key];
+      }
+    }
+    setFieldErrors(visibleErrors);
+  }, [formData, touched, isAr]);
+
+  // Check if entire form is valid (for button disable)
+  const isFormValid = useMemo(() => {
+    const allErrors = validateForm(formData, isAr);
+    return Object.keys(allErrors).length === 0;
+  }, [formData, isAr]);
 
   const recipientEmail = useMemo(() => {
     if (!formData.directorate) return defaultEmail;
@@ -86,9 +173,6 @@ const ContactSection: React.FC = () => {
     let name = selectedDirectorate ? getLocalizedName(selectedDirectorate.name, language) : (isAr ? 'الإدارة' : 'Administration');
 
     if (formData.subDirectorate) {
-      // Check if subDirectorate is a sub-directorate OR a child directorate (for General option)
-      // For 'general', formData.subDirectorate is an ID representing a Directorate (e.g. Legal Affairs)
-      // For others, it is an ID representing a SubDirectorate.
       const selectedDirSub = selectedDirectorate?.subDirectorates?.find(s => s.id === formData.subDirectorate);
       const childDir = directorates.find(d => d.id === formData.subDirectorate);
 
@@ -106,6 +190,7 @@ const ContactSection: React.FC = () => {
   const handleDirectorateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setFormData({ ...formData, directorate: value, subDirectorate: '' });
+    setTouched(prev => ({ ...prev, directorate: true }));
   };
 
   const handleSubDirectorateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -114,12 +199,24 @@ const ContactSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
+
+    // Touch all fields to show all errors
+    setTouched({ name: true, email: true, directorate: true, subject: true, message: true });
+
+    // Full validation
+    const allErrors = validateForm(formData, isAr);
+    if (Object.keys(allErrors).length > 0) {
+      setFieldErrors(allErrors);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await API.settings.submitContactForm({
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
         message: formData.subDirectorate
           ? `${isAr ? 'المديرية: ' : 'Target Directorate: '}${recipientName}\n\n${formData.message}`
           : formData.message,
@@ -127,9 +224,11 @@ const ContactSection: React.FC = () => {
       });
       setIsSuccess(true);
       setFormData({ name: '', email: '', subject: '', directorate: '', subDirectorate: '', message: '' });
+      setTouched({});
+      setFieldErrors({});
       setTimeout(() => setIsSuccess(false), 5000);
     } catch {
-      // Silently handle - the form UI will reset
+      setSubmitError(isAr ? 'حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.' : 'An error occurred while sending. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -215,7 +314,6 @@ const ContactSection: React.FC = () => {
   }
 
   // Filter main administrations (Featured + Fallback IDs)
-  // We assume 'featured' is populated by backend. If not, fallback to IDs d1,d2,d3.
   const mainAdministrations = directorates.filter(d => d.featured || ['d1', 'd2', 'd3'].includes(d.id));
 
   return (
@@ -413,14 +511,26 @@ const ContactSection: React.FC = () => {
                   </p>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                  {/* General submit error */}
+                  {submitError && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-xl text-sm">
+                      {submitError}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Input
                       label={isAr ? 'الاسم الكامل' : 'Full Name'}
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onBlur={() => handleBlur('name')}
                       icon={User}
+                      error={fieldErrors.name}
+                      isValid={touched.name && !fieldErrors.name && formData.name.trim().length >= 2}
+                      maxLength={100}
+                      placeholder={isAr ? 'أدخل اسمك الكامل' : 'Enter your full name'}
                     />
                     <Input
                       label={isAr ? 'البريد الإلكتروني' : 'Email Address'}
@@ -428,18 +538,27 @@ const ContactSection: React.FC = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onBlur={() => handleBlur('email')}
                       icon={Mail}
+                      error={fieldErrors.email}
+                      isValid={touched.email && !fieldErrors.email && EMAIL_RE.test(formData.email.trim())}
+                      maxLength={255}
+                      placeholder={isAr ? 'example@domain.com' : 'example@domain.com'}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Select
-                      label={isAr ? 'الإدارة' : 'Administration'}
+                      label={isAr ? 'الإدارة / الجهة' : 'Administration / Entity'}
+                      required
                       value={formData.directorate}
                       onChange={handleDirectorateChange}
+                      onBlur={() => handleBlur('directorate')}
                       icon={Building2}
+                      error={fieldErrors.directorate}
+                      isValid={touched.directorate && !fieldErrors.directorate && !!formData.directorate}
                       options={[
-                        { value: '', label: isAr ? '-- اختر الإدارة --' : '-- Select Administration --' },
+                        { value: '', label: isAr ? '-- اختر الإدارة / الجهة --' : '-- Select Administration --' },
                         { value: 'general', label: isAr ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry' },
                         ...mainAdministrations.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
                       ]}
@@ -464,7 +583,12 @@ const ContactSection: React.FC = () => {
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      onBlur={() => handleBlur('subject')}
                       icon={Tag}
+                      error={fieldErrors.subject}
+                      isValid={touched.subject && !fieldErrors.subject && formData.subject.trim().length >= 3}
+                      maxLength={255}
+                      placeholder={isAr ? 'موضوع رسالتك' : 'Your message subject'}
                       className="md:col-span-2"
                     />
                   </div>
@@ -503,15 +627,20 @@ const ContactSection: React.FC = () => {
                       rows={4}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      onBlur={() => handleBlur('message')}
+                      error={fieldErrors.message}
+                      isValid={touched.message && !fieldErrors.message && formData.message.trim().length >= 10}
+                      maxLength={5000}
+                      placeholder={isAr ? 'اكتب رسالتك هنا (10 أحرف على الأقل)' : 'Write your message here (at least 10 characters)'}
                     />
                   </div>
 
                   <motion.button
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={isFormValid && !isSubmitting ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={isFormValid && !isSubmitting ? { scale: 0.98 } : {}}
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50"
+                    disabled={isSubmitting || !isFormValid}
+                    className="w-full py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} className="rtl:-scale-x-100" />}
                     {isSubmitting

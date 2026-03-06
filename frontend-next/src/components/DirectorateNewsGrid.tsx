@@ -60,7 +60,7 @@ const DirectorateNewsGrid: React.FC<DirectorateNewsGridProps> = ({ directorateId
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+    return date.toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

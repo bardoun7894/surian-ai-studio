@@ -24,19 +24,32 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
         setIsSubmitting(true);
         setError(null);
 
-        try {
-            const success = await API.complaints.rate(trackingNumber, rating, comment);
-            if (success) {
-                setIsSubmitted(true);
-                if (onSubmitted) onSubmitted();
-            } else {
-                setError(t('rating_error'));
+        // Bug fix: Retry logic for timing issues after submission (matching SuggestionRating pattern)
+        const maxRetries = 3;
+        let lastError: any = null;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const success = await API.complaints.rate(trackingNumber, rating, comment);
+                if (success) {
+                    setIsSubmitted(true);
+                    if (onSubmitted) onSubmitted();
+                    return; // Success - exit the retry loop
+                } else {
+                    lastError = new Error('Rating failed');
+                }
+            } catch (err) {
+                lastError = err;
+                if (attempt < maxRetries - 1) {
+                    // Wait before retrying (1s, then 2s)
+                    await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 1000));
+                }
             }
-        } catch (err) {
-            setError(t('rating_connection_error'));
-        } finally {
-            setIsSubmitting(false);
         }
+
+        // All retries failed
+        setError(t('rating_error'));
+        setIsSubmitting(false);
     };
 
     if (isSubmitted) {

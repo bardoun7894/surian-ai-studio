@@ -80,7 +80,9 @@ class SuggestionService
                 $updateData['ai_confidence'] = (float) $analysis['confidence'];
             }
             if (isset($analysis['suggested_directorate_id'])) {
-                $updateData['ai_suggested_directorate_id'] = $analysis['suggested_directorate_id'];
+                if (\App\Models\Directorate::where('id', $analysis['suggested_directorate_id'])->exists()) {
+                    $updateData['ai_suggested_directorate_id'] = $analysis['suggested_directorate_id'];
+                }
             }
 
             if (!empty($updateData)) {
@@ -94,6 +96,12 @@ class SuggestionService
             ]);
         } catch (\Exception $e) {
             Log::error("AI classification failed for suggestion #{$suggestion->tracking_number}: {$e->getMessage()}");
+            // Reset PostgreSQL connection state after failed transaction
+            try {
+                \Illuminate\Support\Facades\DB::reconnect();
+            } catch (\Exception $reconnectEx) {
+                // Ignore reconnect failures
+            }
         }
     }
 

@@ -30,18 +30,26 @@ import Image from 'next/image';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
 import ContentFilter from '@/components/ContentFilter';
 import Pagination from '@/components/Pagination';
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 type MediaType = 'all' | 'video' | 'photo' | 'infographic';
 type ViewMode = 'grid' | 'list';
 
 export default function MediaPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+
+  usePageMeta({
+    title: language === "ar" ? "المركز الإعلامي" : "Media Center",
+    description: language === "ar" ? "المركز الإعلامي لوزارة الاقتصاد والصناعة" : "Media Center of the Ministry of Economy and Industry",
+  });
   const isAr = language === 'ar';
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [showVideoControls, setShowVideoControls] = useState<string | null>(null);
+  const [downloadingItems, setDownloadingItems] = useState<Set<string>>(new Set());
   const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
   const [expandedAlbum, setExpandedAlbum] = useState<MediaItem | null>(null);
@@ -102,15 +110,12 @@ export default function MediaPage() {
   };
 
   const getTypeLabel = (type: string) => {
-    if (isAr) {
-      switch (type) {
-        case 'video': return 'فيديو';
-        case 'photo': return 'صور';
-        case 'infographic': return 'إنفوجرافيك';
-        default: return type;
-      }
+    switch (type) {
+      case 'video': return t('media_video');
+      case 'photo': return t('media_photos');
+      case 'infographic': return t('media_infographic');
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
-    return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   const getYouTubeId = (url: string): string | null => {
@@ -147,8 +152,14 @@ export default function MediaPage() {
       return;
     }
 
+    // Prevent duplicate downloads
+    if (downloadingItems.has(item.id)) return;
+
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
+
+    // Show downloading state immediately (Bug 2 fix)
+    setDownloadingItems(prev => new Set(prev).add(item.id));
 
     try {
       const response = await fetch(url);
@@ -166,6 +177,12 @@ export default function MediaPage() {
     } catch {
       // Fallback: open in new tab
       window.open(url, '_blank');
+    } finally {
+      setDownloadingItems(prev => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
     }
   };
 
@@ -195,11 +212,32 @@ export default function MediaPage() {
   };
 
   const filters: { key: MediaType; label: string; icon: React.ElementType }[] = [
-    { key: 'all', label: isAr ? 'الكل' : 'All', icon: Grid },
-    { key: 'video', label: isAr ? 'فيديو' : 'Videos', icon: Play },
-    { key: 'photo', label: isAr ? 'صور' : 'Photos', icon: ImageIcon },
-    { key: 'infographic', label: isAr ? 'إنفوجرافيك' : 'Infographics', icon: BarChart3 },
+    { key: 'all', label: t('media_all'), icon: Grid },
+    { key: 'video', label: t('media_videos'), icon: Play },
+    { key: 'photo', label: t('media_photos'), icon: ImageIcon },
+    { key: 'infographic', label: t('media_infographics'), icon: BarChart3 },
   ];
+
+  // Handle video area click to toggle controls (Bug 1 fix)
+  const handleVideoAreaClick = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (showVideoControls === item.id) {
+      setShowVideoControls(null);
+    } else {
+      setShowVideoControls(item.id);
+      // Auto-hide controls after 3 seconds
+      setTimeout(() => setShowVideoControls(prev => prev === item.id ? null : prev), 3000);
+    }
+  };
+
+  // Handle double-click/tap to go fullscreen (Bug 3 fix)
+  const handleVideoDoubleClick = (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setExpandedVideo(item);
+    setPlayingVideo(null);
+    setShowVideoControls(null);
+  };
 
   // Render inline video player
   const renderInlinePlayer = (item: MediaItem) => {
@@ -209,13 +247,18 @@ export default function MediaPage() {
       const ytId = getYouTubeId(item.url);
       if (!ytId) return null;
       return (
-        <iframe
-          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-          title={item.title}
-          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="absolute inset-0 w-full h-full border-0 z-10"
-        />
+        <div
+          className="absolute inset-0 z-10"
+          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
+        >
+          <iframe loading="lazy"
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+            title={item.title}
+            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full border-0"
+          />
+        </div>
       );
     }
 
@@ -226,6 +269,7 @@ export default function MediaPage() {
         controls
         autoPlay
         playsInline
+        onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
         className="absolute inset-0 w-full h-full object-contain bg-black z-10"
       >
         {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
@@ -237,18 +281,16 @@ export default function MediaPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-20 md:pt-24">
+      <main className="flex-grow">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-                {isAr ? 'المركز الإعلامي' : 'Media Center'}
+                {t('media_center')}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
-                {isAr
-                  ? 'مكتبة الفيديو والصور والإنفوجرافيك الرسمية من وزارة الاقتصاد والصناعة'
-                  : 'Official video, photo, and infographic library from the Ministry of Economy and Industry'}
+                {t('media_subtitle')}
               </p>
             </div>
           </div>
@@ -264,7 +306,7 @@ export default function MediaPage() {
               selectedYear={selectedYear}
               onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
               totalCount={filteredMedia.length}
-              countLabel={isAr ? 'عنصر' : 'items'}
+              countLabel={t('media_items')}
               extraFilters={
                 <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
                   <button
@@ -358,35 +400,46 @@ export default function MediaPage() {
                         </span>
                       </div>
 
-                      {/* Play / Pause Button for Videos */}
-                      {isVideo && (
+                      {/* Play Button for Videos (not playing) */}
+                      {isVideo && !isPlaying && (
                         <button
                           onClick={(e) => handlePlayInline(item, e)}
+                          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
                           className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
                         >
-                          <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-                            isPlaying
-                              ? 'bg-black/60 backdrop-blur-sm scale-75 opacity-0 hover:opacity-100'
-                              : 'bg-white/90 group-hover:scale-110 group-hover:bg-white'
-                          }`}>
-                            {isPlaying ? (
-                              <Pause size={24} className="text-white" fill="currentColor" />
-                            ) : (
-                              <Play size={28} className="text-gov-forest ltr:ml-1 rtl:mr-1" fill="currentColor" />
-                            )}
+                          <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
+                            <Play size={28} className="text-gov-forest ltr:ml-1 rtl:mr-1" fill="currentColor" />
                           </div>
                         </button>
                       )}
 
-                      {/* Expand button (visible on hover when playing) */}
+                      {/* Controls overlay for playing videos (Bug 1: show on click/tap) */}
                       {isPlaying && isVideo && (
-                        <button
-                          onClick={(e) => handleExpand(item, e)}
-                          className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-30 w-8 h-8 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
-                          title={isAr ? 'توسيع' : 'Expand'}
+                        <div
+                          onClick={(e) => handleVideoAreaClick(item, e)}
+                          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
+                          className="absolute inset-0 z-20 cursor-pointer"
                         >
-                          <Maximize2 size={14} />
-                        </button>
+                          {/* Controls bar - visible on hover or tap */}
+                          <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
+                            showVideoControls === item.id ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+                          }`}>
+                            <button
+                              onClick={(e) => handlePlayInline(item, e)}
+                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/40 transition-colors"
+                              title={t('media_pause')}
+                            >
+                              <Pause size={18} fill="currentColor" />
+                            </button>
+                            <button
+                              onClick={(e) => handleExpand(item, e)}
+                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/40 transition-colors"
+                              title={t('media_expand')}
+                            >
+                              <Maximize2 size={18} />
+                            </button>
+                          </div>
+                        </div>
                       )}
 
                       {/* Duration/Count Badge */}
@@ -401,7 +454,7 @@ export default function MediaPage() {
                             ) : (
                               <>
                                 <ImageIcon size={12} />
-                                {item.count} {isAr ? 'صورة' : 'photos'}
+                                {item.count} {t('media_photos_count')}
                               </>
                             )}
                           </span>
@@ -429,18 +482,25 @@ export default function MediaPage() {
                           <button
                             onClick={(e) => handleShare(item, e)}
                             className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                            title={isAr ? 'مشاركة' : 'Share'}
+                            title={t('media_share')}
                           >
                             <Share2 size={14} />
                           </button>
-                          {/* Hide download button for YouTube videos */}
-                          {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
+                          {/* Hide download for YouTube videos and albums (Bug 5) */}
+                          {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && !(item.count && item.count > 1) && (
                             <button
                               onClick={(e) => handleDownload(item, e)}
-                              className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                              title={isAr ? 'تحميل' : 'Download'}
+                              disabled={downloadingItems.has(item.id)}
+                              className={`w-8 h-8 rounded-full backdrop-blur-sm text-white flex items-center justify-center transition-colors ${
+                                downloadingItems.has(item.id) ? 'bg-gov-gold/60 cursor-wait' : 'bg-white/20 hover:bg-white/40'
+                              }`}
+                              title={downloadingItems.has(item.id) ? t('media_downloading') : t('media_download')}
                             >
-                              <Download size={14} />
+                              {downloadingItems.has(item.id) ? (
+                                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Download size={14} />
+                              )}
                             </button>
                           )}
                         </div>
@@ -481,7 +541,7 @@ export default function MediaPage() {
                                 className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Play size={14} />
-                                {isAr ? 'تشغيل' : 'Play'}
+                                {t('media_play')}
                               </button>
                             )}
                             <button
@@ -489,16 +549,28 @@ export default function MediaPage() {
                               className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                             >
                               <Share2 size={14} />
-                              {isAr ? 'مشاركة' : 'Share'}
+                              {t('media_share')}
                             </button>
-                            {/* Hide download button for YouTube videos */}
-                            {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
+                            {/* Hide download for YouTube videos and albums (Bug 5) */}
+                            {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && !(item.count && item.count > 1) && (
                               <button
                                 onClick={(e) => handleDownload(item, e)}
-                                className="flex items-center gap-1 hover:text-gov-teal transition-colors"
+                                disabled={downloadingItems.has(item.id)}
+                                className={`flex items-center gap-1 transition-colors ${
+                                  downloadingItems.has(item.id) ? 'text-gov-gold cursor-wait' : 'hover:text-gov-teal'
+                                }`}
                               >
-                                <Download size={14} />
-                                {isAr ? 'تحميل' : 'Download'}
+                                {downloadingItems.has(item.id) ? (
+                                  <>
+                                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                    {t('media_downloading')}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Download size={14} />
+                                    {t('media_download')}
+                                  </>
+                                )}
                               </button>
                             )}
                           </div>
@@ -530,12 +602,10 @@ export default function MediaPage() {
                   <ImageIcon size={32} className="text-gray-400" />
                 </div>
                 <h3 className="text-xl font-bold text-gov-charcoal dark:text-gov-gold mb-2">
-                  {isAr ? 'لا توجد عناصر' : 'No Items Found'}
+                  {t('media_no_items')}
                 </h3>
                 <p className="text-gray-500 dark:text-gov-gold/60">
-                  {isAr
-                    ? 'لا يوجد محتوى في هذه الفئة حالياً'
-                    : 'No content in this category currently'}
+                  {t('media_no_content')}
                 </p>
               </div>
             )}
@@ -555,14 +625,14 @@ export default function MediaPage() {
               <button
                 onClick={() => setExpandedVideo(null)}
                 className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                aria-label={isAr ? 'إغلاق' : 'Close'}
+                aria-label={t('media_close')}
               >
                 <X size={20} />
               </button>
 
               <div className="aspect-video w-full">
                 {isYouTubeUrl(expandedVideo.url) ? (
-                  <iframe
+                  <iframe loading="lazy"
                     src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
                     title={expandedVideo.title}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -633,7 +703,7 @@ export default function MediaPage() {
                     className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/40 text-white rounded-full text-sm font-bold transition-colors backdrop-blur-sm"
                   >
                     <ChevronLeft size={16} className={isAr ? 'rotate-180' : ''} />
-                    {isAr ? 'العودة للألبوم' : 'Back to Album'}
+                    {t('media_back_to_album')}
                   </button>
                 ) : (
                   <div />
@@ -644,7 +714,7 @@ export default function MediaPage() {
                     setSourceAlbum(null);
                   }}
                   className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                  aria-label={t('media_close')}
                 >
                   <X size={20} />
                 </button>
@@ -670,10 +740,22 @@ export default function MediaPage() {
                 </div>
                 <button
                   onClick={(e) => handleDownload(expandedImage, e)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-bold transition-colors"
+                  disabled={downloadingItems.has(expandedImage.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
+                    downloadingItems.has(expandedImage.id) ? 'bg-gov-gold/40 cursor-wait' : 'bg-white/20 hover:bg-white/30'
+                  }`}
                 >
-                  <Download size={16} />
-                  {isAr ? 'تحميل' : 'Download'}
+                  {downloadingItems.has(expandedImage.id) ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {t('media_downloading')}
+                    </>
+                  ) : (
+                    <>
+                      <Download size={16} />
+                      {t('media_download')}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -700,14 +782,14 @@ export default function MediaPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <ImageIcon size={14} />
-                      {albumData?.count || expandedAlbum.count} {isAr ? 'صورة' : 'photos'}
+                      {albumData?.count || expandedAlbum.count} {t('media_photos_count')}
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={handleCloseAlbum}
                   className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                  aria-label={t('media_close')}
                 >
                   <X size={20} />
                 </button>
@@ -748,16 +830,23 @@ export default function MediaPage() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs font-medium">
-                            <span>{isAr ? 'صورة' : 'Photo'} {index + 1}</span>
+                            <span>{t('media_photo')} {index + 1}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDownload({ id: photo.id, title: photo.title, type: 'photo', thumbnailUrl: photo.url, url: photo.url, date: albumData.date } as MediaItem, e);
                               }}
-                              className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"
-                              title={isAr ? 'تحميل' : 'Download'}
+                              disabled={downloadingItems.has(photo.id)}
+                              className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
+                                downloadingItems.has(photo.id) ? 'bg-gov-gold/60 cursor-wait' : 'bg-white/20 hover:bg-white/40'
+                              }`}
+                              title={downloadingItems.has(photo.id) ? t('media_downloading') : t('media_download')}
                             >
-                              <Download size={12} />
+                              {downloadingItems.has(photo.id) ? (
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Download size={12} />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -766,7 +855,7 @@ export default function MediaPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-white">
-                    <p>{isAr ? 'لا توجد صور في هذا الألبوم' : 'No photos in this album'}</p>
+                    <p>{t('media_no_album_photos')}</p>
                   </div>
                 )}
               </div>
@@ -783,6 +872,16 @@ export default function MediaPage() {
         title={shareData?.title || ''}
         url={shareData?.url || ''}
       />
+
+      {/* Download progress toast (Bug 2 fix) */}
+      {downloadingItems.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 bg-gov-forest text-white rounded-xl shadow-2xl flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-bold">
+            {t('media_downloading')}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

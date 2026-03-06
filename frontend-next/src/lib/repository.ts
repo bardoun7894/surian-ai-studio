@@ -9,6 +9,44 @@ function getXsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+
+// --- Simple In-Memory API Cache (TTL-based) ---
+const apiCache = new Map<string, { data: any; expiry: number }>();
+const DEFAULT_CACHE_TTL = 60_000; // 60 seconds
+
+function getCached<T>(key: string): T | null {
+  const entry = apiCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiry) {
+    apiCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCache(key: string, data: any, ttl: number = DEFAULT_CACHE_TTL): void {
+  apiCache.set(key, { data, expiry: Date.now() + ttl });
+  if (apiCache.size > 200) {
+    const now = Date.now();
+    for (const [k, v] of apiCache) {
+      if (now > v.expiry) apiCache.delete(k);
+    }
+  }
+}
+
+async function cachedFetch(url: string, ttl: number = DEFAULT_CACHE_TTL): Promise<Response> {
+  const cached = getCached<any>(url);
+  if (cached !== null) {
+    return new Response(JSON.stringify(cached), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
+  const res = await fetch(url);
+  if (res.ok) {
+    const data = await res.clone().json();
+    setCache(url, data, ttl);
+  }
+  return res;
+}
+
 // --- Configuration ---
 const USE_MOCK_DATA = false; // Set to FALSE to use real API calls
 // Use relative URL to leverage Next.js rewrites for proper proxying
@@ -214,7 +252,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve({
         id: ticketId,
         status: 'in_progress',
-        lastUpdate: new Date().toLocaleDateString('ar-SY'),
+        lastUpdate: new Date().toLocaleDateString('ar-u-nu-latn'),
         notes: 'الطلب قيد المراجعة من قبل القسم الفني (بيانات محاكاة).'
       }), 1000);
     });
@@ -525,31 +563,31 @@ class ApiDirectorateRepository implements IDirectorateRepository {
   }
 
   async getAll(): Promise<Directorate[]> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates`);
     if (!res.ok) return [];
     const data = await res.json();
     const directorates = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
     return directorates.map((item: any) => this.normalizeDirectorate(item));
   }
   async getById(id: string): Promise<Directorate | null> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates/${id}`);
     if (!res.ok) return null;
     const data = await res.json();
     return this.normalizeDirectorate(data);
   }
   async getServicesByDirectorate(id: string): Promise<Service[]> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/services`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates/${id}/services`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
   async getNewsByDirectorate(id: string): Promise<NewsItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates/${id}/news`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates/${id}/news`);
     if (!res.ok) return [];
     return res.json();
   }
   async getFeatured(): Promise<Directorate[]> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates/featured`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates/featured`);
     if (!res.ok) return [];
     const data = await res.json();
     const directorates = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
@@ -559,7 +597,7 @@ class ApiDirectorateRepository implements IDirectorateRepository {
 
 class ApiNewsRepository implements INewsRepository {
   async getOfficialNews(): Promise<NewsItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/news`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
@@ -567,34 +605,34 @@ class ApiNewsRepository implements INewsRepository {
   async getPaginated(page: number = 1, perPage: number = 12, directorateId?: string): Promise<PaginatedResponse<NewsItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (directorateId) params.append('directorate_id', directorateId);
-    const res = await fetch(`${API_BASE_URL}/public/news?${params.toString()}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     const data = await res.json();
     return data;
   }
   async getById(id: string): Promise<NewsItem | null> {
-    const res = await fetch(`${API_BASE_URL}/public/news/${id}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
   async getGroupedByDirectorate(): Promise<{ directorate: { id: string, name: string, icon: string }, news: NewsItem[] }[]> {
-    const res = await fetch(`${API_BASE_URL}/public/news/by-directorate`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news/by-directorate`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
   }
   async getBreakingNews(): Promise<string[]> {
-    const res = await fetch(`${API_BASE_URL}/public/news/breaking`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news/breaking`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   }
   async getHeroArticle(): Promise<Article> {
-    const res = await fetch(`${API_BASE_URL}/public/news/hero`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news/hero`);
     return res.json();
   }
   async getGridArticles(): Promise<Article[]> {
-    const res = await fetch(`${API_BASE_URL}/public/news/grid`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/news/grid`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -603,7 +641,7 @@ class ApiNewsRepository implements INewsRepository {
 
 class ApiDecreeRepository implements IDecreeRepository {
   async getAll(): Promise<Decree[]> {
-    const res = await fetch(`${API_BASE_URL}/public/decrees`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/decrees`);
     if (!res.ok) return [];
     return res.json();
   }
@@ -611,7 +649,7 @@ class ApiDecreeRepository implements IDecreeRepository {
     const params = new URLSearchParams({ q: query });
     if (type) params.append('type', type);
     if (directorateId) params.append('directorate_id', directorateId);
-    const res = await fetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/decrees?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
   }
@@ -671,6 +709,13 @@ class ApiComplaintRepository implements IComplaintRepository {
       formData.append('attachments[]', data.file);
     }
 
+    // Bug #316: Send pre-uploaded attachment IDs
+    if ((data as any).attachment_ids && Array.isArray((data as any).attachment_ids)) {
+      (data as any).attachment_ids.forEach((id: string) => {
+        formData.append('attachment_ids[]', id);
+      });
+    }
+
     // Fetch CSRF cookie before submitting
     await getCsrfCookie();
 
@@ -696,8 +741,11 @@ class ApiComplaintRepository implements IComplaintRepository {
           try {
             const err = JSON.parse(xhr.responseText);
             console.error('Complaint submission error:', xhr.status, err);
+            // Detect current locale for bilingual error messages
+            const currentLang = typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'ar' : 'en';
+            // Use locale-specific message if available (e.g., rate limit responses)
+            let errorMessage = (currentLang === 'ar' ? err.message_ar : err.message_en) || err.message || `HTTP ${xhr.status}`;
             // Include validation field errors if present
-            let errorMessage = err.message || `HTTP ${xhr.status}`;
             if (err.errors && typeof err.errors === 'object') {
               const fieldMessages = Object.values(err.errors as Record<string, string[]>).flat().join('\n');
               if (fieldMessages) errorMessage = fieldMessages;
@@ -729,6 +777,9 @@ class ApiComplaintRepository implements IComplaintRepository {
         xhr.setRequestHeader('X-Guest-Token', (data as any).guest_token);
       }
       xhr.setRequestHeader('Accept', 'application/json');
+      // Send locale for bilingual error messages
+      const docLang = typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'ar' : 'en';
+      xhr.setRequestHeader('Accept-Language', docLang);
 
       xhr.send(formData);
     });
@@ -1424,6 +1475,13 @@ class ApiSuggestionRepository implements ISuggestionRepository {
       data.files.forEach(file => formData.append('files[]', file));
     }
 
+    // Bug #316: Send pre-uploaded attachment IDs
+    if ((data as any).attachment_ids && Array.isArray((data as any).attachment_ids)) {
+      (data as any).attachment_ids.forEach((id: string) => {
+        formData.append('attachment_ids[]', id);
+      });
+    }
+
     // Fetch CSRF cookie before submitting
     await getCsrfCookie();
 
@@ -1500,7 +1558,7 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/public/suggestions/rating`, {
+    const res = await cachedFetch(`${API_BASE_URL}/public/suggestions/rating`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1542,26 +1600,26 @@ class ApiSuggestionRepository implements ISuggestionRepository {
 
 class ApiAnnouncementsRepository implements IAnnouncementsRepository {
   async getAll(): Promise<Announcement[]> {
-    const res = await fetch(`${API_BASE_URL}/public/announcements`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/announcements`);
     return res.json();
   }
 
   async getPaginated(page: number = 1, perPage: number = 9, filter?: string): Promise<PaginatedResponse<any>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (filter && filter !== 'all') params.append('filter', filter);
-    const res = await fetch(`${API_BASE_URL}/public/announcements?${params.toString()}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/announcements?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
   }
 
   async getById(id: string): Promise<Announcement | null> {
-    const res = await fetch(`${API_BASE_URL}/public/announcements/${id}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/announcements/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
 
   async getByDirectorate(directorateId: string): Promise<Announcement[]> {
-    const res = await fetch(`${API_BASE_URL}/public/directorates/${directorateId}/announcements`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/directorates/${directorateId}/announcements`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
@@ -1644,24 +1702,24 @@ class MockMediaRepository implements IMediaRepository {
 
 class ApiMediaRepository implements IMediaRepository {
   async getAll(): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/media`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/media`);
     if (!res.ok) return [];
     return res.json();
   }
   async getByType(type: string): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/media?type=${type}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/media?type=${type}`);
     if (!res.ok) return [];
     return res.json();
   }
   async getPaginated(page: number = 1, perPage: number = 12, type?: string): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
-    const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
   }
   async getAlbumPhotos(id: string): Promise<AlbumData> {
-    const res = await fetch(`${API_BASE_URL}/public/media/${id}/photos`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/media/${id}/photos`);
     if (!res.ok) throw new Error('Album not found');
     return res.json();
   }
@@ -1765,7 +1823,7 @@ class MockServicesRepository implements IServicesRepository {
 
 class ApiServicesRepository implements IServicesRepository {
   async getAll(): Promise<Service[]> {
-    const res = await fetch(`${API_BASE_URL}/public/services`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/services`);
     if (!res.ok) return [];
     return res.json();
   }
@@ -1774,12 +1832,12 @@ class ApiServicesRepository implements IServicesRepository {
     if (directorateId) params.append('directorate_id', directorateId);
     if (q) params.append('q', q);
     if (isDigital !== undefined) params.append('is_digital', String(isDigital));
-    const res = await fetch(`${API_BASE_URL}/public/services?${params.toString()}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/services?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
   }
   async getById(id: string): Promise<Service | null> {
-    const res = await fetch(`${API_BASE_URL}/public/services/${id}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/services/${id}`);
     if (!res.ok) return null;
     return res.json();
   }
@@ -1842,7 +1900,7 @@ class ApiInvestmentRepository implements IInvestmentRepository {
   }
   async getByCategory(category: string): Promise<Investment[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/investments/category/${category}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/investments/category/${category}`);
       if (!res.ok) return [];
       const json = await res.json();
       return json.data || json;
@@ -1852,7 +1910,7 @@ class ApiInvestmentRepository implements IInvestmentRepository {
   }
   async getById(id: number): Promise<Investment | null> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/investments/${id}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/investments/${id}`);
       if (!res.ok) return null;
       const json = await res.json();
       return json.data || json;
@@ -1862,7 +1920,7 @@ class ApiInvestmentRepository implements IInvestmentRepository {
   }
   async getStats(): Promise<InvestmentStats> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/investments/stats`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/investments/stats`);
       if (!res.ok) {
         return { total_opportunities: 0, available_count: 0, total_investment_value: 0, sectors_count: 0, labels: {} } as InvestmentStats;
       }
@@ -1950,7 +2008,7 @@ class MockPromotionalSectionsRepository implements IPromotionalSectionsRepositor
 class ApiPromotionalSectionsRepository implements IPromotionalSectionsRepository {
   async getAll(): Promise<PromotionalSection[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/promotional-sections`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/promotional-sections`);
       if (!res.ok) return [];
       const json = await res.json();
       return json.data || json;
@@ -1961,7 +2019,7 @@ class ApiPromotionalSectionsRepository implements IPromotionalSectionsRepository
 
   async getByPosition(position: string): Promise<PromotionalSection[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/promotional-sections/position/${position}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/promotional-sections/position/${position}`);
       if (!res.ok) return [];
       const json = await res.json();
       return json.data || json;
@@ -1972,7 +2030,7 @@ class ApiPromotionalSectionsRepository implements IPromotionalSectionsRepository
 
   async getById(id: number): Promise<PromotionalSection | null> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/promotional-sections/${id}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/promotional-sections/${id}`);
       if (!res.ok) return null;
       const json = await res.json();
       return json.data || json;
@@ -1998,7 +2056,7 @@ class MockNewsletterRepository implements INewsletterRepository {
 class ApiNewsletterRepository implements INewsletterRepository {
   async subscribe(email: string, recaptchaToken?: string | null): Promise<{ success: boolean; message?: string }> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/newsletter/subscribe`, {
+      const res = await cachedFetch(`${API_BASE_URL}/public/newsletter/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, recaptcha_token: recaptchaToken }),
@@ -2054,7 +2112,7 @@ class ApiSearchRepository implements ISearchRepository {
       if (dateTo) params.append('date_to', dateTo);
       if (entity) params.append('entity', entity);
       if (lang) params.append('lang', lang);
-      const res = await fetch(`${API_BASE_URL}/public/search?${params.toString()}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/search?${params.toString()}`);
       if (!res.ok) return empty;
       const json = await res.json();
 
@@ -2108,7 +2166,7 @@ class ApiSearchRepository implements ISearchRepository {
 export async function getComplaintTemplates(anonymous?: boolean): Promise<any[]> {
   const params = anonymous ? '?anonymous=true' : '';
   try {
-    const res = await fetch(`${API_BASE_URL}/public/complaint-templates${params}`);
+    const res = await cachedFetch(`${API_BASE_URL}/public/complaint-templates${params}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
@@ -2121,7 +2179,7 @@ export async function getComplaintTemplates(anonymous?: boolean): Promise<any[]>
 const openDataApi = {
   async getAll(): Promise<Array<{ id: string; title_ar: string; title_en: string; description_ar: string; description_en: string; date: string; format: string; size: string; category_label: string; download_url: string | null }>> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/open-data`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/open-data`);
       if (!res.ok) return [];
       return res.json();
     } catch {
@@ -2134,7 +2192,7 @@ const openDataApi = {
 const settingsApi = {
   async getByGroup(group: string): Promise<Record<string, unknown>> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/settings/group/${group}`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/settings/group/${group}`);
       if (!res.ok) return {};
       const json = await res.json();
       return json.settings || {};
@@ -2144,7 +2202,7 @@ const settingsApi = {
   },
   async getPublic(): Promise<Record<string, unknown>> {
     try {
-      const res = await fetch(`${API_BASE_URL}/public/settings`);
+      const res = await cachedFetch(`${API_BASE_URL}/public/settings`);
       if (!res.ok) return {};
       const json = await res.json();
       return json.settings || {};
@@ -2153,7 +2211,7 @@ const settingsApi = {
     }
   },
   async submitContactForm(data: { name: string; email: string; subject: string; message: string; department?: string }): Promise<{ success: boolean; message: string; message_en: string }> {
-    const res = await fetch(`${API_BASE_URL}/public/contact`, {
+    const res = await cachedFetch(`${API_BASE_URL}/public/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(data),
@@ -2231,7 +2289,7 @@ export const API = {
   governmentPartners: {
     async getAll(): Promise<any[]> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/government-partners`);
+        const res = await cachedFetch(`${API_BASE_URL}/public/government-partners`);
         if (!res.ok) return [];
         const data = await res.json();
         return data.data || [];
@@ -2317,7 +2375,7 @@ export const API = {
   quickLinks: {
     async getBySection(section: string = 'homepage'): Promise<any[]> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/quick-links?section=${section}`);
+        const res = await cachedFetch(`${API_BASE_URL}/public/quick-links?section=${section}`);
         if (!res.ok) return [];
         return res.json();
       } catch { return []; }
@@ -2326,7 +2384,7 @@ export const API = {
   pages: {
     async getBySlug(slug: string): Promise<any | null> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/pages/${slug}`);
+        const res = await cachedFetch(`${API_BASE_URL}/public/pages/${slug}`);
         if (!res.ok) return null;
         return res.json();
       } catch { return null; }
@@ -2337,7 +2395,7 @@ export const API = {
   happiness: {
     async submit(rating: number, page?: string): Promise<boolean> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/happiness-feedback`, {
+        const res = await cachedFetch(`${API_BASE_URL}/public/happiness-feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ rating, page }),
@@ -2347,7 +2405,7 @@ export const API = {
     },
     async getStats(): Promise<any> {
       try {
-        const res = await fetch(`${API_BASE_URL}/public/happiness-feedback/stats`);
+        const res = await cachedFetch(`${API_BASE_URL}/public/happiness-feedback/stats`);
         if (!res.ok) return null;
         return res.json();
       } catch { return null; }
@@ -2538,7 +2596,7 @@ export const API = {
   // --- National ID Verification ---
   nationalId: {
     verify: async (data: { national_id: string; first_name?: string; father_name?: string; last_name?: string; birth_date?: string }): Promise<any> => {
-      const res = await fetch(`${API_BASE_URL}/public/verify-national-id`, {
+      const res = await cachedFetch(`${API_BASE_URL}/public/verify-national-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(data),
@@ -2546,7 +2604,7 @@ export const API = {
       return res.json();
     },
     validateFormat: async (national_id: string): Promise<any> => {
-      const res = await fetch(`${API_BASE_URL}/public/validate-national-id`, {
+      const res = await cachedFetch(`${API_BASE_URL}/public/validate-national-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ national_id }),
@@ -2751,7 +2809,7 @@ export const API = {
         if (query.length < 2) return [];
         const params = new URLSearchParams({ q: query });
         if (lang) params.append('lang', lang);
-        const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?${params.toString()}`, {
+        const res = await cachedFetch(`${API_BASE_URL}/public/search/autocomplete?${params.toString()}`, {
           headers: { 'Accept': 'application/json' }
         });
         if (!res.ok) return [];

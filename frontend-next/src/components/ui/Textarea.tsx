@@ -6,10 +6,20 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
     error?: string;
     isValid?: boolean;
     containerClassName?: string;
+    /** Bug #349: Show character counter with min/max hints */
+    showCharCount?: boolean;
+    /** Custom character count label format. Receives (current, min, max) */
+    charCountLabel?: string;
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ className, label, error, isValid, containerClassName, ...props }, ref) => {
+    ({ className, label, error, isValid, containerClassName, showCharCount, charCountLabel, ...props }, ref) => {
+        const currentLength = typeof props.value === 'string' ? props.value.length : 0;
+        const minLen = props.minLength;
+        const maxLen = props.maxLength;
+        const isBelowMin = minLen !== undefined && currentLength > 0 && currentLength < minLen;
+        const isNearMax = maxLen !== undefined && currentLength > maxLen * 0.9;
+
         return (
             <div className={`w-full ${containerClassName || ''}`}>
                 {label && (
@@ -39,6 +49,31 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                         </div>
                     )}
                 </div>
+                {/* Bug #349: Character counter */}
+                {(showCharCount || minLen || maxLen) && (
+                    <div className="flex items-center justify-between mt-1 px-1">
+                        <div className="text-xs">
+                            {isBelowMin && (
+                                <span className="text-amber-500 dark:text-amber-400">
+                                    {minLen !== undefined && (currentLength < minLen) && (
+                                        charCountLabel || `${minLen - currentLength} حرف إضافي مطلوب`
+                                    )}
+                                </span>
+                            )}
+                        </div>
+                        <span className={`text-xs font-mono ${
+                            isBelowMin
+                                ? 'text-amber-500 dark:text-amber-400'
+                                : isNearMax
+                                    ? 'text-red-500 dark:text-red-400'
+                                    : 'text-gray-400 dark:text-white/50'
+                        }`}>
+                            {currentLength}
+                            {minLen !== undefined && currentLength < minLen && ` / ${minLen}`}
+                            {maxLen !== undefined && ` / ${maxLen}`}
+                        </span>
+                    </div>
+                )}
                 {/* Validation message below field - min-height prevents layout shift */}
                 <div className="min-h-[1.25rem] mt-1">
                     {error && (

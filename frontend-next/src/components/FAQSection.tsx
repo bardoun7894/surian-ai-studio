@@ -226,13 +226,13 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
             className="relative max-w-xl mx-auto"
           >
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isAr ? 'ابحث في الأسئلة الشائعة...' : 'Search FAQs...'}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-gov-forest dark:text-white placeholder:text-gray-400"
+                className="w-full pl-12 pr-4 rtl:pl-4 rtl:pr-12 py-4 rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-gov-forest dark:text-white placeholder:text-gray-400"
               />
             </div>
           </motion.div>
@@ -244,7 +244,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth"
+          className="space-y-4 overflow-visible"
           data-faq-list
           role="list"
         >
@@ -257,7 +257,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                 layout
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                   ? 'bg-white dark:bg-white/10 border-gov-gold shadow-lg shadow-gov-gold/10'
-                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-gov'
+                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-md'
                   }`}
               >
                 <motion.button

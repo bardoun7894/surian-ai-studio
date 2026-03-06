@@ -90,6 +90,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
+    const [uploadedAttachmentIds, setUploadedAttachmentIds] = useState<Record<string, string>>({}); // Bug #316: instant upload IDs
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
 
@@ -108,8 +109,19 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     // Copy state
     const [copied, setCopied] = useState(false);
 
+    // Bug #318 fix: When a new ticket is submitted, delay rating availability
+    useEffect(() => {
+        if (submittedTicket && formStep === 3) {
+            setRatingReady(false);
+            const timer = setTimeout(() => setRatingReady(true), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [submittedTicket, formStep]);
+
     // Rating state - track if user already rated
     const [hasRated, setHasRated] = useState(false);
+    // Bug #318 fix: delay rating availability to avoid timing issue after submission
+    const [ratingReady, setRatingReady] = useState(false);
 
     // File upload visual progress
     const [fileUploadStatus, setFileUploadStatus] = useState<'ready' | 'uploading' | 'completed'>('ready');
@@ -207,6 +219,30 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         const inputs = formRef.current.querySelectorAll('input, textarea, select');
         inputs.forEach(el => focusPulse(el as any));
     }, [activeTab]);
+
+    // Bug #316: Upload file immediately to temp endpoint
+    const uploadFileInstantly = async (file: File) => {
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('context', 'suggestion');
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+            const res = await fetch(`${apiBase}/attachments/temp`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include',
+            });
+            if (res.ok) {
+                const result = await res.json();
+                const fileKey = `${file.name}_${file.size}`;
+                setUploadedAttachmentIds(prev => ({ ...prev, [fileKey]: result.data.id }));
+                return result.data.id;
+            }
+        } catch (err) {
+            console.error('Instant upload failed for', file.name, err);
+        }
+        return null;
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -398,6 +434,10 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             return true;
         }
         if (step === 2) {
+            if (!formData.directorate_id) {
+                toast.error(isAr ? 'يرجى اختيار الجهة المستهدفة' : 'Please select a target entity');
+                return false;
+            }
             if (!formData.description.trim()) {
                 toast.error(t('suggestion_required_fields'));
                 return false;
@@ -442,7 +482,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
 
             const submitData = isAnonymous
-                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken }
+                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken, attachment_ids: Object.values(uploadedAttachmentIds).filter(Boolean) }
                 : {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -454,6 +494,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     directorate_id: formData.directorate_id,
                     description: formData.description,
                     files: formData.files,
+                    attachment_ids: Object.values(uploadedAttachmentIds).filter(Boolean),
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
@@ -476,6 +517,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                 duration: 8000,
             });
             setFormData({ firstName: '', lastName: '', fatherName: '', nationalId: '', dob: '', email: '', phone: '', directorate_id: '', description: '', files: [] });
+            setUploadedAttachmentIds({});
             setUploadProgress(0);
             setOtpStep('none');
             setOtpCode('');
@@ -548,7 +590,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             {/* Tabs */}
             <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
-                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setFormStep(0); setHasAgreedToTerms(false); }}
+                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setFormStep(0); setHasAgreedToTerms(false); setHasRated(false); setRatingReady(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
                         ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
                         : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -717,6 +759,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting} className="space-y-6">
                             {formStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Anonymous / Known Identity Toggle */}
@@ -870,6 +913,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             value={formData.directorate_id}
                                             onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
                                             label={t('complaint_entity')}
+                                            required
                                             options={[
                                                 { value: '', label: t('complaint_select_entity') },
                                                 ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
@@ -895,8 +939,27 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 focus:ring-green-500/20'
                                                         : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold focus:ring-gov-teal/20'
                                             }`}
+                                            minLength={10}
+                                            maxLength={5000}
                                             placeholder={t('suggestion_description_placeholder')}
                                         />
+                                        {/* Bug #349: Character counter */}
+                                        <div className="flex items-center justify-between mt-1 px-1">
+                                            <span className="text-xs text-gray-400">
+                                                {formData.description.length > 0 && formData.description.length < 10 && (
+                                                    <span className="text-amber-500">{isAr ? `${10 - formData.description.length} حرف إضافي مطلوب` : `${10 - formData.description.length} more characters needed`}</span>
+                                                )}
+                                            </span>
+                                            <span className={`text-xs font-mono ${
+                                                formData.description.length > 0 && formData.description.length < 10
+                                                    ? 'text-amber-500'
+                                                    : formData.description.length > 4500
+                                                        ? 'text-red-500'
+                                                        : 'text-gray-400 dark:text-white/50'
+                                            }`}>
+                                                {formData.description.length}{formData.description.length < 10 ? ' / 10' : ''} / 5000
+                                            </span>
+                                        </div>
                                         {touched.description && errors.description && (
                                             <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 mt-1 animate-fade-in">
                                                 <AlertCircle size={12} className="shrink-0" />
@@ -976,6 +1039,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     </button>
                                 </div>
                             )}
+                            </fieldset>
                         </form>
                     </div>
                 )}
@@ -1002,15 +1066,23 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             </div>
                         </div>
 
-                        {/* Rating Component */}
-                        {submittedTicket && (
+                        {/* Rating Component - Bug #318 fix: delay rating to avoid timing issues, Bug #273 fix: disable after rating */}
+                        {submittedTicket && !hasRated && ratingReady && (
                             <div className="w-full max-w-md mb-8">
                                 <SuggestionRating
                                     trackingNumber={submittedTicket}
                                     language={language as 'ar' | 'en'}
-                                    onClose={() => {}}
+                                    onClose={() => setHasRated(true)}
                                     hideHelpfulQuestion={true}
                                 />
+                            </div>
+                        )}
+                        {submittedTicket && hasRated && (
+                            <div className="w-full max-w-md mb-8 text-center">
+                                <p className="text-sm text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
+                                    <CheckCircle size={16} />
+                                    {isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!'}
+                                </p>
                             </div>
                         )}
 
@@ -1018,7 +1090,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="px-6 py-2.5 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors">
                                 {t('suggestion_track_now')}
                             </button>
-                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('submit'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline text-sm">
+                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('submit'); setHasRated(false); setRatingReady(false); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline text-sm">
                                 {isAr ? 'تقديم مقترح جديد' : 'Submit New Suggestion'}
                             </button>
                         </div>
@@ -1069,7 +1141,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'تاريخ التقديم' : 'Submission Date'}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {(trackingResult.created_at) ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.created_at) ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>
@@ -1080,7 +1152,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>
@@ -1149,7 +1221,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                     <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || (isAr ? 'فريق المراجعة' : 'Review Team')}</span>
-                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY' : 'en-US')}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-u-nu-latn' : 'en-US')}</span>
                                                         </div>
                                                         <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
                                                     </div>

@@ -86,7 +86,7 @@ const VideoModal: React.FC<{
 
                 {isYoutube ? (
                     <div className="aspect-video rounded-xl overflow-hidden">
-                        <iframe
+                        <iframe loading="lazy"
                             src={youtubeEmbedUrl}
                             title={title || 'Video'}
                             allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -177,6 +177,15 @@ export default function VideoCard({
     const [isHovered, setIsHovered] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [isTouch, setIsTouch] = useState(false);
+
+    useEffect(() => {
+        setIsTouch(window.matchMedia('(hover: none)').matches);
+        return () => {
+            if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        };
+    }, []);
 
     const aspectClasses = {
         video: 'aspect-video',
@@ -225,28 +234,84 @@ export default function VideoCard({
 
     const [ytMuted, setYtMuted] = useState(true);
 
-    const openPlayer = () => {
-        if (!isYoutube) setShowModal(true);
-    };
+    const handleDoubleClick = useCallback(() => {
+        if (!isYoutube && videoRef.current) {
+            const videoEl = videoRef.current;
+            if (videoEl.requestFullscreen) {
+                videoEl.requestFullscreen();
+            } else if ((videoEl as any).webkitEnterFullscreen) {
+                (videoEl as any).webkitEnterFullscreen();
+            } else if ((videoEl as any).webkitRequestFullscreen) {
+                (videoEl as any).webkitRequestFullscreen();
+            }
+        } else if (isYoutube) {
+            setShowModal(true);
+        }
+    }, [isYoutube]);
+
+    const handleContainerClick = useCallback(() => {
+        // Desktop (hover device): original behavior - open modal on click
+        if (!isTouch) {
+            if (!isYoutube) setShowModal(true);
+            return;
+        }
+
+        // Touch device: single tap = play/pause, double tap = modal/fullscreen
+        if (tapTimerRef.current) {
+            // Second tap within 300ms → double tap
+            clearTimeout(tapTimerRef.current);
+            tapTimerRef.current = null;
+            if (isYoutube) {
+                setShowModal(true);
+            } else if (videoRef.current) {
+                const videoEl = videoRef.current;
+                if (videoEl.requestFullscreen) {
+                    videoEl.requestFullscreen();
+                } else if ((videoEl as any).webkitEnterFullscreen) {
+                    (videoEl as any).webkitEnterFullscreen();
+                } else {
+                    setShowModal(true);
+                }
+            }
+        } else {
+            // First tap → wait for potential second tap
+            tapTimerRef.current = setTimeout(() => {
+                tapTimerRef.current = null;
+                if (isYoutube) {
+                    setShowModal(true);
+                } else if (videoRef.current) {
+                    if (isPlaying) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                    } else {
+                        videoRef.current.muted = false;
+                        videoRef.current.play().catch(() => {});
+                        setIsPlaying(true);
+                    }
+                }
+            }, 300);
+        }
+    }, [isTouch, isYoutube, isPlaying, handleDoubleClick]);
 
     return (
         <>
             <div
                 className={`relative overflow-hidden rounded-xl group cursor-pointer ${aspectClasses[aspectRatio]} ${className}`}
-                onMouseEnter={(e) => {
+                onMouseEnter={() => {
                     handleMouseEnter();
                     if (isYoutube && autoPlayOnHover) {
                         setYoutubeActive(true);
                     }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={() => {
                     handleMouseLeave();
                     if (isYoutube) {
                         setYoutubeActive(false);
                         setYtMuted(true);
                     }
                 }}
-                onClick={openPlayer}
+                onClick={handleContainerClick}
+                onDoubleClick={!isTouch ? handleDoubleClick : undefined}
             >
                 {isYoutube ? (
                     <>
@@ -259,13 +324,13 @@ export default function VideoCard({
 
                         {/* YouTube iframe on hover */}
                         {youtubeActive && youtubeId && (
-                            <iframe
+                            <iframe loading="lazy"
                                 ref={ytIframeRef}
                                 src={youtubeEmbedUrl}
                                 title={title || 'Video'}
                                 allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                className="absolute inset-0 w-full h-full border-0 z-10"
+                                className="absolute inset-0 w-full h-full border-0 z-10 pointer-events-none"
                             />
                         )}
 
@@ -283,7 +348,7 @@ export default function VideoCard({
 
                         {/* Sound toggle + title when YouTube active */}
                         {youtubeActive && (
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-20 flex items-center justify-between">
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-20 items-center justify-between hidden md:flex">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -294,16 +359,9 @@ export default function VideoCard({
                                 >
                                     {ytMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                                 </button>
-                                {title && <span className="text-white text-sm font-medium truncate max-w-[60%]">{title}</span>}
                             </div>
                         )}
 
-                        {/* Title when not active */}
-                        {!youtubeActive && title && (
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
-                                <span className="text-white text-sm font-medium truncate block">{title}</span>
-                            </div>
-                        )}
                     </>
                 ) : (
                     <>
@@ -327,7 +385,7 @@ export default function VideoCard({
                             </div>
                         )}
                         {title && (
-                            <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 ${isPlaying ? 'opacity-0 pointer-events-none' : isHovered ? 'opacity-100' : 'opacity-0'}`}>
                                 <span className="text-white text-sm font-medium truncate block">{title}</span>
                             </div>
                         )}

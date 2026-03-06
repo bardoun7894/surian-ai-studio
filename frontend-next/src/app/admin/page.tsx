@@ -158,7 +158,7 @@ export default function AdminDashboard() {
               <TrendingUp className="text-gov-teal" size={20} />
             </div>
             <p className="text-3xl font-bold text-gov-charcoal dark:text-white">
-              {stats.complaints.total.toLocaleString()}
+              {stats.complaints.total.toLocaleString('en-US')}
             </p>
             <p className="text-sm text-gray-500 dark:text-white/70">
               {language === 'ar' ? 'إجمالي الشكاوى' : 'Total Complaints'}

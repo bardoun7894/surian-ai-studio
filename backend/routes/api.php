@@ -3,6 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// M11: Sitemap & robots.txt
+Route::get('sitemap.xml', [\App\Http\Controllers\Api\SitemapController::class, 'sitemap']);
+Route::get('robots.txt', [\App\Http\Controllers\Api\SitemapController::class, 'robots']);
+
 Route::prefix('v1')->group(function () {
     Route::get('/health', function () {
         return response()->json(['status' => 'ok', 'version' => '1.0']);
@@ -37,6 +41,8 @@ Route::prefix('v1')->group(function () {
         Route::get('templates', [\App\Http\Controllers\ComplaintController::class, 'indexTemplates']);
         Route::post('otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendOtp']);
         Route::post('otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyOtp']);
+        Route::post('email-otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendEmailOtp'])->middleware('throttle:5,10'); // BE-06
+        Route::post('email-otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyEmailOtp'])->middleware('throttle:10,10'); // BE-06
 
         // FR-27: Rate limit complaint submissions (3 per day)
         Route::post('/', [\App\Http\Controllers\ComplaintController::class, 'store'])
@@ -46,13 +52,14 @@ Route::prefix('v1')->group(function () {
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\ComplaintController::class, 'print']); // FR-28
         Route::get('{trackingNumber}/pdf', [\App\Http\Controllers\ComplaintController::class, 'printPdf']); // FR-28: PDF Download
         Route::post('{trackingNumber}/rate', [\App\Http\Controllers\ComplaintController::class, 'rate']); // FR-25: User satisfaction rating
+        Route::delete('by-tracking/{trackingNumber}', [\App\Http\Controllers\ComplaintController::class, 'destroyByTracking']); // FR-22: Public delete by tracking number
     });
 
     // Content Public Routes
     Route::get('content', [\App\Http\Controllers\ContentController::class, 'index']);
 
     // Public API Routes (for Next.js frontend)
-    Route::prefix('public')->group(function () {
+    Route::prefix('public')->middleware('cache.public:120')->group(function () {
         // Directorates
         Route::get('directorates', [\App\Http\Controllers\Api\PublicApiController::class, 'directorates']);
         Route::get('directorates/featured', [\App\Http\Controllers\Api\PublicApiController::class, 'featuredDirectorates']); // FR-49-51
@@ -153,6 +160,9 @@ Route::prefix('v1')->group(function () {
             Route::post('unsubscribe', [\App\Http\Controllers\Api\NewsletterController::class, 'unsubscribe']);
         });
 
+        // BE-11: Analytics Tracking
+        Route::post('analytics/track', [\App\Http\Controllers\Api\AnalyticsController::class, 'track'])->middleware('throttle:60,1');
+
         // AI Assistant
         Route::prefix('ai')->group(function () {
             Route::post('summarize', [\App\Http\Controllers\Api\PublicApiController::class, 'summarize'])->middleware('throttle:5,1');
@@ -167,17 +177,27 @@ Route::prefix('v1')->group(function () {
 
     // Suggestions Routes (FR-52 to FR-56)
     Route::prefix('suggestions')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store']); // Public submission
+        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store'])->middleware(\App\Http\Middleware\SuggestionRateLimitMiddleware::class); // Public submission (Bug #315: per-user rate limit)
         Route::get('track/{trackingNumber}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'track']); // FR-55: Track suggestion status
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'printView']); // T-SRS2-10: Print view
     });
 
+    // Bug #316: Temporary attachment upload (instant upload on file select)
+    Route::prefix('attachments')->group(function () {
+        Route::post('temp', [\App\Http\Controllers\Api\TempAttachmentController::class, 'store'])->middleware('throttle:20,1'); // Max 20 uploads per minute
+        Route::delete('temp/{id}', [\App\Http\Controllers\Api\TempAttachmentController::class, 'destroy']);
+    });
+
     // Chat Routes (Public - FR-31 to FR-35)
     Route::prefix('chat')->group(function () {
-        Route::post('message', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
-        Route::get('history/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);
-        Route::delete('session/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'clearSession']);
-        Route::post('handoff', [\App\Http\Controllers\Api\ChatController::class, 'requestHandoff']); // FR-35
+        Route::post('message', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage'])->middleware('throttle:30,1');
+        Route::get('history/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'getHistory'])->middleware(\App\Http\Middleware\ChatSessionMiddleware::class); // SEC-01
+        Route::delete('session/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'clearSession'])->middleware(\App\Http\Middleware\ChatSessionMiddleware::class); // SEC-01
+        Route::post('handoff', [\App\Http\Controllers\Api\ChatController::class, 'requestHandoff'])->middleware('throttle:3,60'); // FR-35
+        Route::post('convert-complaint', [\App\Http\Controllers\Api\ChatController::class, 'convertToComplaint'])->middleware('throttle:3,1440'); // Chat-to-complaint
+        Route::get("status", [\App\Http\Controllers\Api\ChatController::class, "checkStatus"]); // BE-02: AI health check
+        Route::get("config", [\App\Http\Controllers\Api\ChatController::class, "getConfig"]); // BE-04: Chat config
+        Route::post("{sessionId}/rate", [\App\Http\Controllers\Api\ChatController::class, "rateSession"])->middleware("throttle:5,1"); // BE-01: Rate session
     });
 
     // FR-53: WhatsApp Webhook Routes (Public - for Meta/Facebook callbacks)
@@ -343,6 +363,11 @@ Route::prefix('v1')->group(function () {
                 Route::delete('subscribers/{id}', [\App\Http\Controllers\Api\NewsletterController::class, 'destroy']);
                 Route::get('export', [\App\Http\Controllers\Api\NewsletterController::class, 'export']);
                 Route::post('send', [\App\Http\Controllers\Api\NewsletterController::class, 'send']);
+            });
+
+            // BE-11: Admin Analytics
+            Route::middleware('role:reports.view,reports.*,admin.*')->prefix('analytics')->group(function () {
+                Route::get('content-engagement', [\App\Http\Controllers\Api\AnalyticsController::class, 'contentEngagement']);
             });
 
             // Government Partners Management (Admin) - M11.9

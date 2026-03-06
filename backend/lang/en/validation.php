@@ -8,6 +8,9 @@ return [
     */
     'attributes' => [
         'name' => 'name',
+        'first_name' => 'first name',
+        'father_name' => 'father name',
+        'last_name' => 'last name',
         'email' => 'email',
         'password' => 'password',
         'password_confirmation' => 'password confirmation',

@@ -43,7 +43,7 @@ class ContentAttachmentController extends Controller
         $content = Content::findOrFail($contentId);
 
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|max:51200', // 50MB max
+            'file' => ['required', 'file', 'max:51200', 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,mp3,zip', new \App\Rules\ValidFileMagicBytes], // 50MB max
             'title_ar' => 'nullable|string|max:255',
             'title_en' => 'nullable|string|max:255',
             'description_ar' => 'nullable|string',

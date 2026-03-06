@@ -39,3 +39,5 @@ venv/
 /storage/*.key
 .env.backup
 .env.production
+*.bak
+*.env.backup*

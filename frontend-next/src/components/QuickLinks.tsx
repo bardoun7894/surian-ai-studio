@@ -21,7 +21,7 @@ interface QuickLinkItem {
 }
 
 const FALLBACK_LINKS = [
-  { id: 1, label_ar: 'القوانين والمراسيم', label_en: 'Laws & Decrees', url: '/decrees', icon: 'Scale' },
+  { id: 1, label_ar: 'القوانين والتشريعات', label_en: 'Laws & Legislation', url: '/decrees', icon: 'Scale' },
   { id: 2, label_ar: 'الأخبار', label_en: 'News', url: '/news', icon: 'Newspaper' },
   { id: 3, label_ar: 'الإعلانات', label_en: 'Announcements', url: '/#announcements', icon: 'Megaphone' },
   { id: 4, label_ar: 'الخدمات', label_en: 'Services', url: '/services', icon: 'Briefcase' },

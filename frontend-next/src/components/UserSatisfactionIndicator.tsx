@@ -36,7 +36,7 @@ const UserSatisfactionIndicator: React.FC = () => {
     if (!isVisible) return null;
 
     return (
-        <div className={`fixed bottom-24 md:bottom-36 z-[55] ${language === 'ar' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}>
+        <div className={`fixed bottom-20 md:bottom-24 z-[55] ${language === 'ar' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}>
             <AnimatePresence mode="wait">
                 {hasSubmitted ? (
                     /* Thank You */
@@ -72,7 +72,7 @@ const UserSatisfactionIndicator: React.FC = () => {
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setIsExpanded(true)}
-                        className="cursor-pointer drop-shadow-lg hover:drop-shadow-2xl transition-all duration-300 bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-full p-2.5 md:p-3 flex items-center justify-center text-gov-gold"
+                        className="cursor-pointer drop-shadow-lg hover:drop-shadow-2xl transition-all duration-300 bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-full w-14 h-14 flex items-center justify-center text-gov-gold"
                         title={language === 'ar' ? 'قيّم تجربتك' : 'Rate your experience'}
                     >
                         <Smile size={32} className="w-6 h-6 md:w-8 md:h-8" />

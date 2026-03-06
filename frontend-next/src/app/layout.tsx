@@ -33,8 +33,14 @@ export const metadata: Metadata = {
   keywords: ["وزارة الاقتصاد", "الصناعة", "التجارة الداخلية", "سوريا", "خدمات حكومية", "تراخيص صناعية"],
   authors: [{ name: "Ministry of Economy and Industry" }],
   icons: {
-    icon: "/assets/logo/11.png",
-    apple: "/assets/logo/11.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/assets/logo/11.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     title: "وزارة الاقتصاد والصناعة",
@@ -63,6 +69,9 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <link rel="preload" href="/fonts/itfQomraArabic-Regular.otf" as="font" type="font/otf" crossOrigin="anonymous" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/assets/logo/11.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <script

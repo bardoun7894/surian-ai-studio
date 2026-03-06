@@ -293,10 +293,19 @@ const RegisterPage = () => {
             // Redirect to dashboard
             router.replace('/dashboard');
         } catch (err) {
+            // Map known backend Arabic errors to bilingual translations
+            const translateBackendError = (msg: string): string => {
+                const errorMap: Record<string, string> = {
+                    'الرقم الوطني مسجل مسبقاً في النظام': t('national_id_already_registered'),
+                    'الرقم الوطني مطلوب': t('validation_required'),
+                    'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط': t('national_id_format_error'),
+                };
+                return errorMap[msg] || msg;
+            };
             if (err instanceof ApiError) {
-                setError(err.message);
+                setError(translateBackendError(err.message));
             } else if (err instanceof Error) {
-                setError(err.message);
+                setError(translateBackendError(err.message));
             } else {
                 setError(t('error_generic'));
             }
@@ -350,9 +359,9 @@ const RegisterPage = () => {
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Ministry of Economy and Industry"
-                            width={100}
-                            height={100}
-                            className="relative z-10 drop-shadow-2xl max-w-[100px] max-h-[100px]"
+                            width={140}
+                            height={140}
+                            className="relative z-10 drop-shadow-2xl max-w-[140px] max-h-[140px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
@@ -461,7 +470,7 @@ const RegisterPage = () => {
                     {/* Register Card */}
                     <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-5">
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                                 {error}
                             </div>
@@ -496,7 +505,7 @@ const RegisterPage = () => {
                                     {/* Birth Date */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('reg_birth_date')} <span className="text-gov-cherry">*</span>
+                                            {t('reg_birth_date')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -528,35 +537,35 @@ const RegisterPage = () => {
                                                 max={maxBirthDate}
                                                 className={`w-full py-2.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white text-sm focus:outline-none transition-all
                                                     ${fieldErrors.birthDate
-                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                                 required
                                             />
                                             <Calendar className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
                                                 ${fieldErrors.birthDate
-                                                    ? 'text-red-500 dark:text-gov-cherry'
+                                                    ? 'text-red-500 dark:text-red-400'
                                                     : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                        ? 'text-green-500 dark:text-gov-emerald'
+                                                        ? 'text-green-500 dark:text-emerald-400'
                                                         : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                                                 }`} size={20} />
                                             {/* Validation icon */}
                                             {fieldErrors.birthDate && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                                 </div>
                                             )}
                                             {formData.birthDate && !validateBirthDate(formData.birthDate) && !fieldErrors.birthDate && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="min-h-[1.25rem] mt-1">
                                             {fieldErrors.birthDate && (
-                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                                                     <AlertCircle size={12} className="shrink-0" />
                                                     {fieldErrors.birthDate}
                                                 </p>
@@ -572,7 +581,7 @@ const RegisterPage = () => {
                                     {/* First Name */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-gov-cherry">*</span>
+                                            {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -590,7 +599,7 @@ const RegisterPage = () => {
                                     {/* Father Name */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-gov-cherry">*</span>
+                                            {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -608,7 +617,7 @@ const RegisterPage = () => {
                                     {/* Last Name */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-gov-cherry">*</span>
+                                            {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -626,7 +635,7 @@ const RegisterPage = () => {
                                     {/* Governorate */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('reg_governorate')} <span className="text-gov-cherry">*</span>
+                                            {t('reg_governorate')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <select
@@ -634,7 +643,7 @@ const RegisterPage = () => {
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
                                                 className={`w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
                                                     ${formData.governorate
-                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                        ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                         : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                                 required
@@ -646,13 +655,13 @@ const RegisterPage = () => {
                                             </select>
                                             <MapPin className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
                                                 ${formData.governorate
-                                                    ? 'text-green-500 dark:text-gov-emerald'
+                                                    ? 'text-green-500 dark:text-emerald-400'
                                                     : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                                                 }`} size={20} />
                                             <ChevronDown className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                                             {formData.governorate && (
                                                 <div className="absolute ltr:right-8 rtl:left-8 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={16} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={16} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
@@ -666,7 +675,7 @@ const RegisterPage = () => {
                                     {/* Email */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('auth_email')} <span className="text-gov-cherry">*</span>
+                                            {t('auth_email')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -681,30 +690,30 @@ const RegisterPage = () => {
                                                 placeholder="example@email.com"
                                                 className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.email
-                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                                 required
                                             />
                                             <Mail className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
-                                                ${fieldErrors.email ? 'text-red-500 dark:text-gov-cherry' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.email ? 'text-red-500 dark:text-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             {/* Validation icons */}
                                             {fieldErrors.email && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                                 </div>
                                             )}
                                             {!fieldErrors.email && formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="min-h-[1.25rem] mt-1">
                                             {fieldErrors.email && (
-                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                                                     <AlertCircle size={12} className="shrink-0" />
                                                     {fieldErrors.email}
                                                 </p>
@@ -715,7 +724,7 @@ const RegisterPage = () => {
                                     {/* Phone */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('auth_phone')} <span className="text-gov-cherry">*</span>
+                                            {t('auth_phone')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <PhoneInput
@@ -752,7 +761,7 @@ const RegisterPage = () => {
                                     {/* Password */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('auth_password')} <span className="text-gov-cherry">*</span>
+                                            {t('auth_password')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -762,16 +771,16 @@ const RegisterPage = () => {
                                                 placeholder={t('reg_password_placeholder')}
                                                 className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-16 rtl:pr-12 rtl:pl-16 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.password
-                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.password && isPasswordValid(formData.password)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                                 required
                                                 minLength={8}
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${fieldErrors.password ? 'text-red-500 dark:text-gov-cherry' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.password ? 'text-red-500 dark:text-red-400' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
@@ -783,7 +792,7 @@ const RegisterPage = () => {
                                         </div>
                                         <div className="min-h-[1.25rem] mt-1">
                                             {fieldErrors.password && (
-                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                                                     <AlertCircle size={12} className="shrink-0" />
                                                     {fieldErrors.password}
                                                 </p>
@@ -794,7 +803,7 @@ const RegisterPage = () => {
                                     {/* Confirm Password */}
                                     <div>
                                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
-                                            {t('reg_confirm_password')} <span className="text-gov-cherry">*</span>
+                                            {t('reg_confirm_password')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <input
@@ -804,30 +813,30 @@ const RegisterPage = () => {
                                                 placeholder={t('reg_reenter_password')}
                                                 className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.confirmPassword
-                                                        ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                                 required
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-gov-cherry' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-red-400' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             {/* Validation icons */}
                                             {fieldErrors.confirmPassword && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />
+                                                    <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                                 </div>
                                             )}
                                             {!fieldErrors.confirmPassword && formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="min-h-[1.25rem] mt-1">
                                             {fieldErrors.confirmPassword && (
-                                                <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 animate-fade-in">
+                                                <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 animate-fade-in">
                                                     <AlertCircle size={12} className="shrink-0" />
                                                     {fieldErrors.confirmPassword}
                                                 </p>

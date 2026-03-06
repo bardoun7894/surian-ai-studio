@@ -9,6 +9,8 @@ use App\Services\AuditService;
 use App\Services\RecaptchaService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -209,9 +211,38 @@ class ComplaintController extends Controller
             $data['email'] = $request->input('email');
         }
 
-        $files = $request->file('attachments', []);
+        $files = $request->file("attachments", []);
+
+        // Support staged uploads: move temp files to attachments
+        $consumedTempPaths = [];
+        if ($request->has("staged_attachment_ids")) {
+            $stagedIds = $request->input("staged_attachment_ids", []);
+            $tempFiles = Storage::disk("local")->files("temp-uploads");
+            foreach ($stagedIds as $stagedId) {
+                // Validate UUID format
+                if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $stagedId)) {
+                    continue;
+                }
+                foreach ($tempFiles as $tempFile) {
+                    $stem = pathinfo(basename($tempFile), PATHINFO_FILENAME);
+                    if ($stem === $stagedId) {
+                        $fullPath = storage_path("app/" . $tempFile);
+                        if (file_exists($fullPath)) {
+                            $files[] = new UploadedFile($fullPath, basename($tempFile), null, null, true);
+                            $consumedTempPaths[] = $tempFile;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
         $complaint = $this->complaintService->createComplaint($data, $files);
+
+        // Clean up consumed temp files
+        foreach ($consumedTempPaths as $tempPath) {
+            Storage::disk("local")->delete($tempPath);
+        }
 
         // Hit rate limiter for non-whitelisted IPs
         if (!in_array($request->ip(), ['196.70.75.216'], true)) {
@@ -347,6 +378,37 @@ class ComplaintController extends Controller
         // Only proceed if status actually changed
         if ($oldStatus === $newStatus) {
             return response()->json(['message' => 'Status unchanged', 'complaint' => $complaint]);
+        }
+
+        // T-M2-10: Enforce sequential complaint status flow:
+        // واردة (new/received) → قيد المعالجة (in_progress) → منتهية (completed/resolved/closed/rejected)
+        $allowedTransitions = [
+            'new'         => ['received', 'in_progress'],
+            'received'    => ['in_progress'],
+            'in_progress' => ['completed', 'resolved', 'rejected', 'closed'],
+            'completed'   => ['closed'],   // Allow closing a completed complaint
+            'resolved'    => ['closed'],   // Allow closing a resolved complaint
+            'rejected'    => [],           // Terminal state
+            'closed'      => [],           // Terminal state
+        ];
+
+        $allowed = $allowedTransitions[$oldStatus] ?? [];
+        if (!in_array($newStatus, $allowed)) {
+            $statusLabels = [
+                'new' => 'واردة', 'received' => 'واردة',
+                'in_progress' => 'قيد المعالجة',
+                'completed' => 'منتهية', 'resolved' => 'منتهية',
+                'rejected' => 'مرفوضة', 'closed' => 'مغلقة',
+            ];
+            $fromLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+            $toLabel = $statusLabels[$newStatus] ?? $newStatus;
+            return response()->json([
+                'message' => "لا يمكن تغيير الحالة من \"{$fromLabel}\" ({$oldStatus}) إلى \"{$toLabel}\" ({$newStatus}). يرجى اتباع التسلسل الصحيح: واردة → قيد المعالجة → منتهية",
+                'error' => 'invalid_status_transition',
+                'current_status' => $oldStatus,
+                'requested_status' => $newStatus,
+                'allowed_statuses' => $allowed,
+            ], 422);
         }
 
         $complaint->status = $newStatus;
@@ -551,10 +613,10 @@ class ComplaintController extends Controller
         }
 
         // FR-22: Only allow deletion if status is 'new' or 'received'
-        $allowedStatuses = ['new', 'received'];
+        $allowedStatuses = ['new', 'pending'];
         if (!in_array($complaint->status, $allowedStatuses)) {
             return response()->json([
-                'message' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
+                'message' => 'Cannot delete complaint. Only complaints with status "new" or "pending" can be deleted.',
                 'current_status' => $complaint->status
             ], 400);
         }

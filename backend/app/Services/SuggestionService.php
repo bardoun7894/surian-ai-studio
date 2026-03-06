@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\Storage;
 class SuggestionService
 {
     protected AIService $aiService;
+    protected VirusScanService $virusScanService;
 
-    public function __construct(AIService $aiService)
+    public function __construct(AIService $aiService, VirusScanService $virusScanService)
     {
         $this->aiService = $aiService;
+        $this->virusScanService = $virusScanService;
     }
 
     /**
@@ -23,6 +25,14 @@ class SuggestionService
      */
     public function store(array $data, array $files = []): Suggestion
     {
+        // Virus scan uploaded files before storing
+        $infected = $this->virusScanService->scanFiles($files);
+        if (!empty($infected)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'files' => ['Potentially malicious files detected: ' . implode(', ', $infected)],
+            ]);
+        }
+
         $suggestion = DB::transaction(function () use ($data, $files) {
             // Create the suggestion
             $suggestion = Suggestion::create([
@@ -155,7 +165,7 @@ class SuggestionService
     {
         $errors = [];
         $maxFiles = 5;
-        $maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        $maxSize = 5 * 1024 * 1024; // 5MB in bytes
         $allowedTypes = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
 
         if (count($files) > $maxFiles) {
@@ -165,7 +175,7 @@ class SuggestionService
         foreach ($files as $index => $file) {
             if ($file instanceof UploadedFile) {
                 if ($file->getSize() > $maxSize) {
-                    $errors[] = "File {$file->getClientOriginalName()} exceeds 10MB limit";
+                    $errors[] = "File {$file->getClientOriginalName()} exceeds 5MB limit";
                 }
 
                 $extension = strtolower($file->getClientOriginalExtension());

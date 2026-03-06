@@ -31,17 +31,17 @@ export default function FeaturedDirectorates() {
 
     if (loading) {
         return (
-            <section className="py-20 bg-gradient-to-br from-gov-beige/30 via-white to-gov-gold/10 dark:from-dm-bg dark:via-dm-bg dark:to-dm-surface relative overflow-hidden transition-colors">
+            <section className="py-12 md:py-20 bg-gradient-to-br from-gov-beige/30 via-white to-gov-gold/10 dark:from-dm-bg dark:via-dm-bg dark:to-dm-surface relative overflow-hidden transition-colors">
                 <div className="container mx-auto px-4 z-10 relative">
-                    <div className="text-center mb-16">
-                        <div className="h-8 w-40 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-6 animate-pulse" />
-                        <div className="h-12 w-80 max-w-full bg-gray-200 dark:bg-dm-surface rounded-2xl mx-auto mb-4 animate-pulse" />
-                        <div className="h-1.5 w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto animate-pulse" />
+                    <div className="text-center mb-10 md:mb-16">
+                        <div className="h-6 md:h-8 w-32 md:w-40 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 md:mb-6 animate-pulse" />
+                        <div className="h-8 md:h-12 w-64 md:w-80 max-w-full bg-gray-200 dark:bg-dm-surface rounded-xl md:rounded-2xl mx-auto mb-3 md:mb-4 animate-pulse" />
+                        <div className="h-1 md:h-1.5 w-24 md:w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto animate-pulse" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-                        <SkeletonCard className="h-72 rounded-3xl" />
-                        <SkeletonCard className="h-72 rounded-3xl hidden md:block" />
-                        <SkeletonCard className="h-72 rounded-3xl hidden lg:block" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
+                        <SkeletonCard className="h-64 md:h-72 rounded-2xl md:rounded-3xl" />
+                        <SkeletonCard className="h-64 md:h-72 rounded-2xl md:rounded-3xl hidden md:block" />
+                        <SkeletonCard className="h-64 md:h-72 rounded-2xl md:rounded-3xl hidden lg:block" />
                     </div>
                 </div>
             </section>
@@ -67,26 +67,26 @@ export default function FeaturedDirectorates() {
     };
 
     return (
-        <section id="featured-directorates" className="py-10 md:py-20 bg-gradient-to-br from-gov-beige/30 via-white to-gov-gold/10 dark:from-dm-bg dark:via-dm-bg dark:to-dm-surface relative overflow-hidden scroll-mt-24">
+        <section id="featured-directorates" className="py-8 md:py-20 bg-gradient-to-br from-gov-beige/30 via-white to-gov-gold/10 dark:from-dm-bg dark:via-dm-bg dark:to-dm-surface relative overflow-hidden scroll-mt-16 md:scroll-mt-24">
             {/* Animated Background Orbs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
                     animate={{ rotate: 360, scale: [1, 1.2, 1] }}
                     transition={{ rotate: { duration: 80, repeat: Infinity, ease: "linear" }, scale: { duration: 10, repeat: Infinity, ease: "easeInOut" } }}
-                    className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[400px] h-[400px] md:w-[800px] md:h-[800px] opacity-[0.03] dark:opacity-[0.02]"
+                    className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[300px] h-[300px] md:w-[800px] md:h-[800px] opacity-[0.03] dark:opacity-[0.02]"
                     style={{ background: 'radial-gradient(circle, #b9a779 0%, transparent 60%)' }}
                 />
                 <motion.div
                     animate={{ rotate: -360, scale: [1, 1.3, 1] }}
                     transition={{ rotate: { duration: 90, repeat: Infinity, ease: "linear" }, scale: { duration: 15, repeat: Infinity, ease: "easeInOut" } }}
-                    className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-[300px] h-[300px] md:w-[600px] md:h-[600px] opacity-[0.03] dark:opacity-[0.02]"
+                    className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-[250px] h-[250px] md:w-[600px] md:h-[600px] opacity-[0.03] dark:opacity-[0.02]"
                     style={{ background: 'radial-gradient(circle, #1a4a38 0%, transparent 60%)' }}
                 />
             </div>
 
             {/* Glowing Grid Pattern */}
             <div className="absolute inset-0 pointer-events-none opacity-5 dark:opacity-[0.02]"
-                style={{ backgroundImage: 'linear-gradient(#b9a779 1px, transparent 1px), linear-gradient(90deg, #b9a779 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+                style={{ backgroundImage: 'linear-gradient(#b9a779 1px, transparent 1px), linear-gradient(90deg, #b9a779 1px, transparent 1px)', backgroundSize: '30px 30px' }}
             />
 
             <div className="container mx-auto px-4 relative z-10">
@@ -94,7 +94,7 @@ export default function FeaturedDirectorates() {
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
+                    viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="text-center mb-8 md:mb-16 relative"
                 >
@@ -103,25 +103,25 @@ export default function FeaturedDirectorates() {
                         whileInView={{ scale: 1, opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-dm-surface/80 backdrop-blur-md border border-gov-gold/30 shadow-sm text-gov-gold text-sm md:text-base font-bold mb-6"
+                        className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full bg-white/80 dark:bg-dm-surface/80 backdrop-blur-md border border-gov-gold/30 shadow-sm text-gov-gold text-[10px] md:text-sm font-bold mb-4 md:mb-6"
                     >
-                        <span className="relative flex h-3 w-3">
+                        <span className="relative flex h-2 w-2 md:h-3 md:w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gov-gold opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-gov-gold pt-0"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 md:h-3 md:w-3 bg-gov-gold pt-0"></span>
                         </span>
                         <span>{t('dir_title_compact')}</span>
                     </motion.div>
 
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gov-forest dark:text-white mb-4 md:mb-6 leading-tight drop-shadow-sm px-4">
+                    <h2 className="text-xl md:text-3xl lg:text-4xl font-extrabold text-gov-forest dark:text-white mb-3 md:mb-6 leading-tight drop-shadow-sm px-4">
                         {t('dir_subtitle_compact')}
                     </h2>
 
                     <motion.div
                         initial={{ width: 0 }}
-                        whileInView={{ width: 120 }}
+                        whileInView={{ width: 80 }}
                         viewport={{ once: true }}
                         transition={{ duration: 1, delay: 0.4, ease: "circOut" }}
-                        className="h-1.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mx-auto rounded-full"
+                        className="h-1 md:h-1.5 bg-gradient-to-r from-transparent via-gov-gold to-transparent mx-auto rounded-full md:w-[120px]"
                     />
                 </motion.div>
 
@@ -131,7 +131,7 @@ export default function FeaturedDirectorates() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: "-50px" }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-6xl mx-auto"
                 >
                     {directorates.map((directorate, index) => (
                         <motion.div
@@ -150,11 +150,11 @@ export default function FeaturedDirectorates() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.8 }}
-                    className="text-center mt-12 md:mt-20 relative z-10"
+                    className="text-center mt-10 md:mt-20 relative z-10"
                 >
                     <Link
                         href="/directorates"
-                        className="group relative inline-flex items-center gap-3 md:gap-4 px-6 md:px-10 py-3 md:py-5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[2rem] hover:text-white transition-colors duration-500 overflow-hidden shadow-xl border border-gov-gold/20"
+                        className="group relative inline-flex items-center gap-2 md:gap-4 px-4 py-2 md:px-10 md:py-5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[2rem] hover:text-white transition-colors duration-500 overflow-hidden shadow-lg md:shadow-xl border border-gov-gold/20"
                     >
                         {/* Animated Gradient Background */}
                         <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
@@ -165,14 +165,14 @@ export default function FeaturedDirectorates() {
                         {/* Glass Border */}
                         <div className="absolute inset-0 border border-gov-gold/30 rounded-[2rem] group-hover:border-transparent transition-colors duration-500 -z-10" />
 
-                        <span className="text-[14px] md:text-[17px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'عرض دليل الجهات الكامل' : 'View Full Directorates Guide'}</span>
+                        <span className="text-[12px] md:text-[17px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'عرض دليل الجهات الكامل' : 'View Full Directorates Guide'}</span>
 
-                        <div className="relative z-10 w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
+                        <div className="relative z-10 w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
                             <motion.span
                                 animate={{ x: language === 'ar' ? [-3, 3, -3] : [3, -3, 3] }}
                                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                             >
-                                {language === 'ar' ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
+                                {language === 'ar' ? <ArrowLeft className="w-3.5 h-3.5 md:w-[18px] md:h-[18px]" /> : <ArrowRight className="w-3.5 h-3.5 md:w-[18px] md:h-[18px]" />}
                             </motion.span>
                         </div>
                     </Link>

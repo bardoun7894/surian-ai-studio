@@ -1,5 +1,6 @@
 'use client';
 
+import { usePageLoading } from "@/hooks/usePageLoading";
 import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import { Service, Directorate } from '@/types';
@@ -91,6 +92,7 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     const [service, setService] = useState<Service | null>(null);
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
     const [isCategory, setIsCategory] = useState(false);
 
     const slug = params.id;
@@ -144,12 +146,27 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
             try {
                 const s = await API.services.getById(params.id);
                 if (s) {
+                    // Normalize requirements: ensure it is always an array or null
+                    if (s.requirements && typeof s.requirements === 'string') {
+                        // Split text by newlines and filter empty lines
+                        s.requirements = (s.requirements as string)
+                            .split(/\r?\n/)
+                            .map((r: string) => r.trim())
+                            .filter((r: string) => r.length > 0);
+                    } else if (s.requirements && !Array.isArray(s.requirements)) {
+                        s.requirements = [];
+                    }
                     setService(s);
-                    const d = await API.directorates.getById(s.directorateId);
-                    setDirectorate(d);
+                    try {
+                        const d = await API.directorates.getById(s.directorateId);
+                        setDirectorate(d);
+                    } catch (dirErr) {
+                        console.error('Failed to fetch directorate:', dirErr);
+                        // Continue without directorate info
+                    }
                 }
             } catch (e) {
-                console.error(e);
+                console.error('Failed to fetch service:', e);
             } finally {
                 setLoading(false);
             }
@@ -161,11 +178,11 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-16 md:pt-[5.75rem]">
+                <main className="flex-grow pt-20 md:pt-24">
                     {/* Hero Section Skeleton */}
-                    <div className="bg-gov-forest text-white py-16 px-4">
+                    <div className="bg-gov-forest text-white py-10 md:py-16 px-4">
                         <div className="max-w-5xl mx-auto">
-                            <div className="inline-flex items-center gap-2 mb-8">
+                            <div className="inline-flex items-center gap-2 mb-6 md:mb-8">
                                 <div className="w-5 h-5 rounded-full bg-white/10 animate-pulse" />
                                 <div className="h-5 w-40 bg-white/10 rounded animate-pulse" />
                             </div>
@@ -189,10 +206,10 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                     </div>
 
                     {/* Content Section Skeleton */}
-                    <div className="max-w-5xl mx-auto px-4 py-12">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
                             {/* Main Info Skeleton */}
-                            <div className="lg:col-span-2 space-y-12">
+                            <div className="lg:col-span-2 space-y-8 md:space-y-12">
                                 {/* About Service */}
                                 <section>
                                     <div className="h-8 w-40 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse mb-6" />
@@ -270,9 +287,9 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-16 md:pt-[5.75rem]">
+                <main className="flex-grow pt-20 md:pt-24">
                     {/* Hero Section */}
-                    <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-16 md:py-24 px-4 relative overflow-hidden">
                         {/* Dynamic Background */}
                         <div className="absolute inset-0 opacity-10">
                             <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
@@ -294,8 +311,8 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                             <div className="flex flex-col md:flex-row items-center gap-10">
                                 <div className="relative group">
                                     <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20 shadow-2xl relative z-10 group-hover:border-gov-gold/50 transition-all duration-500">
-                                        <IconComponent size={60} className="filter drop-shadow-lg" />
+                                    <div className="w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20 shadow-2xl relative z-10 group-hover:border-gov-gold/50 transition-all duration-500">
+                                        <IconComponent className="filter drop-shadow-lg w-10 h-10 md:w-[60px] md:h-[60px]" />
                                     </div>
                                 </div>
                                 <div className="flex-1 text-center md:text-right">
@@ -311,10 +328,10 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                     </div>
 
                     {/* Services in this category */}
-                    <div className="max-w-6xl mx-auto px-4 py-20">
-                        <div className="flex items-center gap-4 mb-10">
-                            <div className="w-1.5 h-10 bg-gradient-to-b from-gov-gold to-gov-orange rounded-full"></div>
-                            <h2 className="text-3xl font-display font-bold text-gov-forest dark:text-white">
+                    <div className="max-w-6xl mx-auto px-4 py-12 md:py-20">
+                        <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-10">
+                            <div className="w-1.5 h-8 md:h-10 bg-gradient-to-b from-gov-gold to-gov-orange rounded-full"></div>
+                            <h2 className="text-2xl md:text-3xl font-display font-bold text-gov-forest dark:text-white">
                                 {language === 'ar' ? 'الخدمات المتوفرة' : 'Available Services'}
                             </h2>
                         </div>
@@ -328,15 +345,15 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                         </div>
 
                         {/* Contact Section */}
-                        <div className="mt-20 bg-gradient-to-r from-gov-forest to-gov-emerald dark:from-gov-gold/10 dark:to-gov-forest/10 p-1 rounded-3xl shadow-2xl">
-                            <div className="bg-white dark:bg-dm-surface p-10 rounded-[22px] backdrop-blur-sm">
-                                <div className="flex flex-col md:flex-row items-center gap-10">
-                                    <div className="w-24 h-24 rounded-full bg-gov-gold/10 flex items-center justify-center shrink-0 border border-gov-gold/30 relative">
+                        <div className="mt-12 md:mt-20 bg-gradient-to-r from-gov-forest to-gov-emerald dark:from-gov-gold/10 dark:to-gov-forest/10 p-1 rounded-2xl md:rounded-3xl shadow-2xl">
+                            <div className="bg-white dark:bg-dm-surface p-6 md:p-10 rounded-[20px] md:rounded-[22px] backdrop-blur-sm">
+                                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                                    <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gov-gold/10 flex items-center justify-center shrink-0 border border-gov-gold/30 relative">
                                         <div className="absolute inset-0 bg-gov-gold/20 rounded-full blur-xl animate-pulse"></div>
-                                        <Shield size={40} className="text-gov-gold relative z-10" />
+                                        <Shield className="text-gov-gold relative z-10 w-8 h-8 md:w-10 md:h-10" />
                                     </div>
                                     <div className="flex-1 text-center md:text-right">
-                                        <h3 className="text-2xl font-bold text-gov-forest dark:text-white mb-3">
+                                        <h3 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-white mb-2 md:mb-3">
                                             {language === 'ar' ? 'هل تحتاج إلى مساعدة إضافية؟' : 'Need Additional Assistance?'}
                                         </h3>
                                         <p className="text-gray-600 dark:text-white/70 text-lg">
@@ -382,22 +399,22 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow pt-16 md:pt-[5.75rem]">
-                <div className="bg-gov-forest text-white py-16 px-4">
+            <main className="flex-grow pt-20 md:pt-24">
+                <div className="bg-gov-forest text-white py-10 md:py-16 px-4">
                     <div className="max-w-5xl mx-auto">
                         <Link
                             href="/services"
-                            className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-8 transition-colors"
+                            className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 md:mb-8 transition-colors"
                         >
                             {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                             {language === 'ar' ? 'العودة لدليل الخدمات' : 'Back to Services Guide'}
                         </Link>
 
-                        <div className="flex flex-col md:flex-row items-start gap-8">
-                            <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
+                        <div className="flex flex-col md:flex-row items-start gap-6 md:gap-8">
+                            <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-gov-gold border border-white/20">
                                 {(() => {
                                     const DirectorateIcon = directorate ? (iconMap[directorate.icon] || Building) : Building;
-                                    return <DirectorateIcon size={40} />;
+                                    return <DirectorateIcon className="w-8 h-8 md:w-10 md:h-10" />;
                                 })()}
                             </div>
                             <div className="flex-1">
@@ -407,11 +424,11 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                 <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
                                     {getLocalizedField(service, 'title', language as 'ar' | 'en')}
                                 </h1>
-                                <p className="text-white/80 text-lg max-w-3xl leading-relaxed">
+                                <p className="text-white/80 text-base md:text-lg max-w-3xl leading-relaxed">
                                     {getLocalizedField(service, 'content', language as 'ar' | 'en') || getLocalizedField(service, 'description', language as 'ar' | 'en')}
                                 </p>
                             </div>
-                            <div className="flex flex-col items-center gap-3 text-center shrink-0">
+                            <div className="flex flex-row md:flex-col items-center gap-3 text-center shrink-0 w-full md:w-auto mt-4 md:mt-0 justify-between md:justify-start">
                                 <FavoriteButton
                                     contentType="service"
                                     contentId={String(service.id)}
@@ -419,7 +436,11 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                                     variant="default"
                                     metadata={{
                                         title: getLocalizedField(service, 'title', language as 'ar' | 'en'),
+                                        title_ar: getLocalizedField(service, 'title', 'ar'),
+                                        title_en: getLocalizedField(service, 'title', 'en'),
                                         description: getLocalizedField(service, 'description', language as 'ar' | 'en'),
+                                        description_ar: getLocalizedField(service, 'description', 'ar'),
+                                        description_en: getLocalizedField(service, 'description', 'en'),
                                         url: `/services/${service.id}`
                                     }}
                                 />
@@ -439,10 +460,10 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
                     </div>
                 </div>
 
-                <div className="max-w-5xl mx-auto px-4 py-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
                         {/* Main Info */}
-                        <div className="lg:col-span-2 space-y-12">
+                        <div className="lg:col-span-2 space-y-8 md:space-y-12">
                             <section>
                                 <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-6 border-r-4 border-gov-gold pr-4">
                                     {language === 'ar' ? 'حول الخدمة' : 'About the Service'}

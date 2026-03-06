@@ -154,6 +154,9 @@ return [
     */
     'attributes' => [
         'name' => 'الاسم',
+        'first_name' => 'الاسم الأول',
+        'father_name' => 'اسم الأب',
+        'last_name' => 'الكنية',
         'email' => 'البريد الإلكتروني',
         'password' => 'كلمة المرور',
         'password_confirmation' => 'تأكيد كلمة المرور',

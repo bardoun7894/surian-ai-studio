@@ -12,6 +12,7 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
+    // Respect prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
@@ -25,13 +26,16 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
 
     lenisRef.current = lenis;
 
+    // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
+    // Use GSAP ticker for Lenis RAF loop
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
     gsap.ticker.lagSmoothing(0);
 
+    // Listen for reduced motion preference changes
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleMotionChange = (e: MediaQueryListEvent) => {
       if (e.matches) {
@@ -43,7 +47,6 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
 
     return () => {
       mql.removeEventListener('change', handleMotionChange);
-      gsap.ticker.remove(lenis.raf);
       lenis.destroy();
       lenisRef.current = null;
     };

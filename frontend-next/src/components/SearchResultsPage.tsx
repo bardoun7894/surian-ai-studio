@@ -77,7 +77,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
         setSuggestionsLoading(true);
         const timer = setTimeout(async () => {
             try {
-                const results = await API.searchAutocomplete.suggest(query);
+                // M7.1: Pass language to get suggestions in the correct language
+                const results = await API.searchAutocomplete.suggest(query, language);
                 // Also add client-side FAQ matches as suggestions
                 const faqSuggestions: AutocompleteSuggestion[] = allFaqs
                     .filter(faq => {
@@ -108,7 +109,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                     return validRoutes.some(route => s.url!.startsWith(route)) || s.url === '/';
                 });
                 setSuggestions(validSuggestions.slice(0, 8));
-                setShowSuggestions(allSuggestions.length > 0);
+                // M7.4: Only show dropdown if there are valid suggestions (not broken URLs)
+                setShowSuggestions(validSuggestions.length > 0);
                 setSelectedSuggestionIndex(-1);
             } catch {
                 setSuggestions([]);

@@ -280,13 +280,30 @@
 
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
+                document.getElementById('tickerField').classList.remove('hidden');
             } else {
                 directorateField.classList.add('hidden');
+                document.getElementById('tickerField').classList.add('hidden');
             }
         }
 
         categorySelect.addEventListener('change', toggleFields);
         toggleFields(); // Initial check
+
+        // Ticker checkbox toggle
+        const tickerEnabled = document.getElementById('tickerEnabled');
+        const tickerDurationField = document.getElementById('tickerDurationField');
+        function toggleTickerDuration() {
+            if (tickerEnabled && tickerEnabled.checked) {
+                tickerDurationField.classList.remove('hidden');
+            } else {
+                tickerDurationField.classList.add('hidden');
+            }
+        }
+        if (tickerEnabled) {
+            tickerEnabled.addEventListener('change', toggleTickerDuration);
+            toggleTickerDuration();
+        }
 
         // Auto-translate on form submit
         const contentForm = document.getElementById('contentForm');

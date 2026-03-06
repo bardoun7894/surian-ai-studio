@@ -9,6 +9,8 @@ use App\Services\AuditService;
 use App\Services\RecaptchaService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -103,52 +105,28 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        // Rate limiting is handled by ComplaintRateLimitMiddleware (FR-27)
-        // 3 complaints per day per user_id / national_id / IP
-
-        // Determine if submission is anonymous (no personal data required)
-        $isAnonymous = !$request->filled('full_name') && !$request->filled('national_id') && !$request->user();
-
-        // Validate Request including CAPTCHA
-        $rules = [
-            'directorate_id' => 'nullable|exists:directorates,id',
-            'template_id' => 'nullable|exists:complaint_templates,id',
-            'description' => 'required|string|min:10|max:5000',
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,pdf,doc,docx', 'max:5120', new \App\Rules\ValidFileMagicBytes], // 5MB max
-            'attachments' => 'max:5', // Max 5 files
-            // M1-T3: Accept pre-uploaded staged file IDs (alternative to direct upload)
-            'staged_attachment_ids' => 'nullable|array|max:5',
-            'staged_attachment_ids.*' => 'uuid',
-            'session_token' => 'nullable|string|size:64',
-            'recaptcha_token' => 'nullable|string', // Optional pending Config
-            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
-        ];
-
-        // Require personal info when not anonymous
-        if (!$isAnonymous) {
-            $rules['full_name'] = 'required|string|max:100';
-            $rules['national_id'] = 'required|string|digits:11';
-            $rules['phone'] = ['required', 'string', 'regex:/^(\+?[0-9]{7,15})$/'];
-            $rules['email'] = 'required|email|max:255';
-        } else {
-            $rules['full_name'] = 'nullable|string|max:100';
-            $rules['national_id'] = 'nullable|string|digits:11';
-            $rules['phone'] = ['nullable', 'string', 'regex:/^(\+?[0-9]{7,15})$/'];
-            $rules['email'] = 'nullable|email|max:255';
+        // Rate Limiting (T050): 3 complaints per day per user/national_id/IP
+        // Skip for whitelisted IPs
+        $whitelistedIps = ['196.70.75.216'];
+        if (!in_array($request->ip(), $whitelistedIps, true)) {
+            // Use user ID if authenticated, national_id if provided, fallback to IP
+            $limiterIdentifier = $request->user()
+                ? 'user_' . $request->user()->id
+                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
+            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
+            if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
+                return response()->json(['message' => 'Daily complaint limit reached.'], 429);
+            }
         }
 
-        $request->validate($rules, [
-            'full_name.required' => 'الاسم الكامل مطلوب',
-            'full_name.max' => 'الاسم الكامل يجب ألا يتجاوز 100 حرف',
-            'national_id.required' => 'الرقم الوطني مطلوب',
-            'national_id.digits' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
-            'phone.required' => 'رقم الهاتف مطلوب',
-            'phone.regex' => 'رقم الهاتف غير صالح',
-            'email.required' => 'البريد الإلكتروني مطلوب',
-            'email.email' => 'البريد الإلكتروني غير صالح',
-            'description.min' => 'الوصف يجب أن يكون على الأقل 10 أحرف',
-            'description.max' => 'الوصف يجب ألا يتجاوز 5000 حرف',
-            'template_id.exists' => 'قالب الشكوى غير موجود',
+        // Validate Request including CAPTCHA
+        $request->validate([
+            'directorate_id' => 'nullable|exists:directorates,id',
+            'description' => 'required|string|min:10',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
+            'attachments' => 'max:5', // Max 5 files
+            'recaptcha_token' => 'nullable|string', // Optional pending Config
+            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
         ]);
 
         // Verify CAPTCHA (T060)
@@ -233,24 +211,47 @@ class ComplaintController extends Controller
             $data['email'] = $request->input('email');
         }
 
-        // Sanitize string inputs
-        if (isset($data['full_name'])) {
-            $data['full_name'] = strip_tags(trim($data['full_name']));
-        }
-        if (isset($data['description'])) {
-            $data['description'] = strip_tags($data['description']);
-        }
-        if (isset($data['title'])) {
-            $data['title'] = strip_tags(trim($data['title']));
+        $files = $request->file("attachments", []);
+
+        // Support staged uploads: move temp files to attachments
+        $consumedTempPaths = [];
+        if ($request->has("staged_attachment_ids")) {
+            $stagedIds = $request->input("staged_attachment_ids", []);
+            $tempFiles = Storage::disk("local")->files("temp-uploads");
+            foreach ($stagedIds as $stagedId) {
+                // Validate UUID format
+                if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $stagedId)) {
+                    continue;
+                }
+                foreach ($tempFiles as $tempFile) {
+                    $stem = pathinfo(basename($tempFile), PATHINFO_FILENAME);
+                    if ($stem === $stagedId) {
+                        $fullPath = storage_path("app/" . $tempFile);
+                        if (file_exists($fullPath)) {
+                            $files[] = new UploadedFile($fullPath, basename($tempFile), null, null, true);
+                            $consumedTempPaths[] = $tempFile;
+                        }
+                        break;
+                    }
+                }
+            }
         }
 
-        $files = $request->file('attachments', []);
+        $complaint = $this->complaintService->createComplaint($data, $files);
 
-        // M1-T3: Collect staged attachment IDs (pre-uploaded files)
-        $stagedIds = $request->input('staged_attachment_ids', []);
-        $sessionToken = $request->input('session_token');
+        // Clean up consumed temp files
+        foreach ($consumedTempPaths as $tempPath) {
+            Storage::disk("local")->delete($tempPath);
+        }
 
-        $complaint = $this->complaintService->createComplaint($data, $files, $stagedIds, $sessionToken);
+        // Hit rate limiter for non-whitelisted IPs
+        if (!in_array($request->ip(), ['196.70.75.216'], true)) {
+            $limiterIdentifier = $request->user()
+                ? 'user_' . $request->user()->id
+                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
+            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
+            RateLimiter::hit($limiterKey, 86400); // 1 day decay
+        }
 
         // Audit Log
         $actorId = $user ? $user->id : null;

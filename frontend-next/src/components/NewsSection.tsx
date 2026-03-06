@@ -199,7 +199,11 @@ const NewsSection: React.FC = () => {
                             className="!p-1.5 !bg-white/80 dark:!bg-gov-forest/80 !backdrop-blur-md"
                             metadata={{
                               title: language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title),
+                              title_ar: (item as any).title_ar || item.title,
+                              title_en: (item as any).title_en || item.title,
                               description: language === 'ar' ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary),
+                              description_ar: (item as any).summary_ar || item.summary,
+                              description_en: (item as any).summary_en || item.summary,
                               image: item.imageUrl || '',
                               url: `/news/${item.id}`
                             }}

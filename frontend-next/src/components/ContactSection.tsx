@@ -59,14 +59,6 @@ const ContactSection: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const handleFieldBlur = (field: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-  };
 
   const recipientEmail = useMemo(() => {
     if (!formData.directorate) return defaultEmail;
@@ -122,34 +114,6 @@ const ContactSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mark all fields as touched on submit attempt
-    setTouched({ name: true, email: true, subject: true, directorate: true, message: true });
-
-    // Validate required fields
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) {
-      newErrors.name = isAr ? 'الاسم الكامل مطلوب' : 'Full name is required';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = isAr ? 'البريد الإلكتروني مطلوب' : 'Email address is required';
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = isAr ? 'البريد الإلكتروني غير صالح' : 'Invalid email address';
-    }
-    if (!formData.directorate) {
-      newErrors.directorate = isAr ? 'يجب تحديد الجهة المستلمة' : 'Please select a recipient administration';
-    }
-    if (!formData.subject.trim()) {
-      newErrors.subject = isAr ? 'عنوان الرسالة مطلوب' : 'Message subject is required';
-    }
-    if (!formData.message.trim()) {
-      newErrors.message = isAr ? 'نص الرسالة مطلوب' : 'Message content is required';
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setFormErrors(newErrors);
-      return;
-    }
-    setFormErrors({});
     setIsSubmitting(true);
     try {
       await API.settings.submitContactForm({
@@ -163,8 +127,6 @@ const ContactSection: React.FC = () => {
       });
       setIsSuccess(true);
       setFormData({ name: '', email: '', subject: '', directorate: '', subDirectorate: '', message: '' });
-      setTouched({});
-      setFormErrors({});
       setTimeout(() => setIsSuccess(false), 5000);
     } catch {
       // Silently handle - the form UI will reset
@@ -236,10 +198,10 @@ const ContactSection: React.FC = () => {
       <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg" id="contact">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 md:mb-16">
-            <SkeletonText lines={1} className="max-w-xs mx-auto mb-4 md:mb-6" />
+            <SkeletonText lines={1} className="max-w-xs mx-auto mb-6" />
             <SkeletonText lines={2} className="max-w-3xl mx-auto" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
             <div className="space-y-4">
               <SkeletonList rows={4} />
             </div>
@@ -278,7 +240,7 @@ const ContactSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-16"
         >
           {/* Decorative Line */}
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -320,7 +282,7 @@ const ContactSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="text-2xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 md:mb-6 leading-tight px-4"
+            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
           >
             {isAr ? 'نحن هنا لخدمتك' : 'We Are Here to Serve You'}
           </motion.h2>
@@ -330,7 +292,7 @@ const ContactSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="text-sm md:text-xl text-gov-charcoal/70 dark:text-gov-gold/70 max-w-3xl mx-auto leading-relaxed px-4"
+            className="text-lg md:text-xl text-gov-charcoal/70 dark:text-gov-gold/70 max-w-3xl mx-auto leading-relaxed"
           >
             {isAr
               ? 'يمكنك التواصل معنا عبر النموذج الإلكتروني الموحد أو عبر قنوات الاتصال الرسمية.'
@@ -338,7 +300,7 @@ const ContactSection: React.FC = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
           {/* Contact Info Card */}
           <motion.div
             variants={containerVariants}
@@ -348,7 +310,7 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-gov-forest dark:bg-gov-forest/90 rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-2xl h-full"
+              className="bg-gov-forest dark:bg-gov-forest/90 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-2xl h-full"
             >
               {/* Background Effects */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gov-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -363,14 +325,14 @@ const ContactSection: React.FC = () => {
                 </motion.h3>
                 <motion.p
                   variants={itemVariants}
-                  className="text-sm md:text-base text-white/70 leading-relaxed mb-6 md:mb-8"
+                  className="text-white/70 leading-relaxed mb-8"
                 >
                   {isAr
                     ? 'للاستفسارات العاجلة، يرجى الاتصال بمركز خدمة المواطن الموحد. فريقنا جاهز للرد على استفساراتكم على مدار الساعة.'
                     : 'For urgent inquiries, please contact the unified citizen service center. Our team is ready to respond to your inquiries 24/7.'}
                 </motion.p>
 
-                <div className="space-y-3 md:space-y-4">
+                <div className="space-y-4">
                   {contactCards.map((card, idx) => (
                     <motion.div
                       key={idx}
@@ -381,27 +343,27 @@ const ContactSection: React.FC = () => {
                       {card.href ? (
                         <a
                           href={card.href}
-                          className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gov-gold/30 transition-all duration-300"
+                          className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gov-gold/30 transition-all duration-300"
                         >
-                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ${card.bgColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-                            <card.icon className="text-gov-gold w-5 h-5 md:w-6 md:h-6" />
+                          <div className={`w-12 h-12 rounded-xl ${card.bgColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+                            <card.icon className="text-gov-gold" size={24} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="block text-xs md:text-sm text-white/50 mb-1">{card.label}</span>
-                            <span className="text-sm md:text-lg font-bold text-white hover:text-gov-gold transition-colors break-words">
+                            <span className="block text-sm text-white/50 mb-1">{card.label}</span>
+                            <span className="text-lg font-bold text-white hover:text-gov-gold transition-colors break-words">
                               {card.value}
                             </span>
                           </div>
-                          <ArrowRight className="text-gov-gold/50 group-hover:text-gov-gold transition-colors rtl:rotate-180 w-4 h-4 md:w-5 md:h-5" />
+                          <ArrowRight className="text-gov-gold/50 group-hover:text-gov-gold transition-colors rtl:rotate-180" size={20} />
                         </a>
                       ) : (
-                        <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl bg-white/5 border border-white/10">
-                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ${card.bgColor} flex items-center justify-center shrink-0`}>
-                            <card.icon className="text-gov-gold w-5 h-5 md:w-6 md:h-6" />
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+                          <div className={`w-12 h-12 rounded-xl ${card.bgColor} flex items-center justify-center shrink-0`}>
+                            <card.icon className="text-gov-gold" size={24} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="block text-xs md:text-sm text-white/50 mb-1">{card.label}</span>
-                            <span className="text-sm md:text-lg font-bold text-white break-words">
+                            <span className="block text-sm text-white/50 mb-1">{card.label}</span>
+                            <span className="text-lg font-bold text-white break-words">
                               {card.value}
                             </span>
                           </div>
@@ -423,11 +385,11 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-white dark:bg-dm-surface rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 shadow-xl border border-gov-gold/10 dark:border-gov-border/15 h-full"
+              className="bg-white dark:bg-dm-surface rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 shadow-xl border border-gov-gold/10 dark:border-gov-border/15 h-full"
             >
-              <div className="flex items-center gap-3 mb-5 md:mb-6">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
-                  <MessageSquare className="text-gov-forest dark:text-gov-gold w-5 h-5 md:w-6 md:h-6" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
+                  <MessageSquare className="text-gov-forest dark:text-gov-gold" size={24} />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-gov-gold">
                   {isAr ? 'نموذج المراسلة الإلكتروني' : 'Electronic Contact Form'}
@@ -457,53 +419,30 @@ const ContactSection: React.FC = () => {
                       label={isAr ? 'الاسم الكامل' : 'Full Name'}
                       required
                       value={formData.name}
-                      onChange={(e) => {
-                        setFormData({ ...formData, name: e.target.value });
-                        if (formErrors.name && e.target.value.trim()) setFormErrors(prev => ({ ...prev, name: '' }));
-                      }}
-                      onBlur={() => handleFieldBlur('name')}
-                      error={touched.name && !formData.name.trim() ? (formErrors.name || (isAr ? 'الاسم الكامل مطلوب' : 'Full name is required')) : undefined}
-                      isValid={touched.name && !!formData.name.trim()}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       icon={User}
-                      disabled={isSubmitting}
                     />
                     <Input
                       label={isAr ? 'البريد الإلكتروني' : 'Email Address'}
                       required
                       type="email"
                       value={formData.email}
-                      onChange={(e) => {
-                        setFormData({ ...formData, email: e.target.value });
-                        if (formErrors.email) setFormErrors(prev => ({ ...prev, email: '' }));
-                      }}
-                      onBlur={() => handleFieldBlur('email')}
-                      error={touched.email ? (!formData.email.trim() ? (isAr ? 'البريد الإلكتروني مطلوب' : 'Email address is required') : !isValidEmail(formData.email) ? (isAr ? 'البريد الإلكتروني غير صالح' : 'Invalid email address') : undefined) : undefined}
-                      isValid={touched.email && !!formData.email.trim() && isValidEmail(formData.email)}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       icon={Mail}
-                      dir="ltr"
-                      disabled={isSubmitting}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Select
                       label={isAr ? 'الإدارة' : 'Administration'}
-                      required
                       value={formData.directorate}
-                      onChange={(e) => {
-                        handleDirectorateChange(e);
-                        if (e.target.value) setFormErrors(prev => ({ ...prev, directorate: '' }));
-                      }}
-                      onBlur={() => handleFieldBlur('directorate')}
-                      error={touched.directorate && !formData.directorate ? (formErrors.directorate || (isAr ? 'يجب تحديد الجهة المستلمة' : 'Please select a recipient administration')) : undefined}
-                      isValid={touched.directorate && !!formData.directorate}
+                      onChange={handleDirectorateChange}
                       icon={Building2}
                       options={[
                         { value: '', label: isAr ? '-- اختر الإدارة --' : '-- Select Administration --' },
                         { value: 'general', label: isAr ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry' },
                         ...mainAdministrations.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
                       ]}
-                      disabled={isSubmitting}
                     />
 
                     <Select
@@ -511,7 +450,7 @@ const ContactSection: React.FC = () => {
                       value={formData.subDirectorate}
                       onChange={handleSubDirectorateChange}
                       icon={Building2}
-                      disabled={!availableSubDirectorates.length || isSubmitting}
+                      disabled={!availableSubDirectorates.length}
                       options={[
                         { value: '', label: isAr ? '-- اختر المديرية --' : '-- Select Directorate --' },
                         ...availableSubDirectorates.map(s => ({ value: s.id, label: getLocalizedName(s.name, language) }))
@@ -524,16 +463,9 @@ const ContactSection: React.FC = () => {
                       label={isAr ? 'عنوان الرسالة' : 'Message Subject'}
                       required
                       value={formData.subject}
-                      onChange={(e) => {
-                        setFormData({ ...formData, subject: e.target.value });
-                        if (formErrors.subject && e.target.value.trim()) setFormErrors(prev => ({ ...prev, subject: '' }));
-                      }}
-                      onBlur={() => handleFieldBlur('subject')}
-                      error={touched.subject && !formData.subject.trim() ? (formErrors.subject || (isAr ? 'عنوان الرسالة مطلوب' : 'Message subject is required')) : undefined}
-                      isValid={touched.subject && !!formData.subject.trim()}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       icon={Tag}
                       className="md:col-span-2"
-                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -570,14 +502,7 @@ const ContactSection: React.FC = () => {
                       required
                       rows={4}
                       value={formData.message}
-                      onChange={(e) => {
-                        setFormData({ ...formData, message: e.target.value });
-                        if (formErrors.message && e.target.value.trim()) setFormErrors(prev => ({ ...prev, message: '' }));
-                      }}
-                      onBlur={() => handleFieldBlur('message')}
-                      error={touched.message && !formData.message.trim() ? (formErrors.message || (isAr ? 'نص الرسالة مطلوب' : 'Message content is required')) : undefined}
-                      isValid={touched.message && !!formData.message.trim()}
-                      disabled={isSubmitting}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     />
                   </div>
 
@@ -586,9 +511,9 @@ const ContactSection: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3 md:py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 text-sm md:text-base mt-2"
+                    className="w-full py-4 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50"
                   >
-                    {isSubmitting ? <Loader2 className="animate-spin w-4 h-4 md:w-5 md:h-5" /> : <Send className="rtl:-scale-x-100 w-4 h-4 md:w-5 md:h-5" />}
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} className="rtl:-scale-x-100" />}
                     {isSubmitting
                       ? (isAr ? 'جاري الإرسال...' : 'Sending...')
                       : (isAr ? 'إرسال الرسالة' : 'Send Message')

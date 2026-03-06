@@ -91,6 +91,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [isUploading, setIsUploading] = useState(false);
 
     // Tracking State
@@ -208,7 +209,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         inputs.forEach(el => focusPulse(el as any));
     }, [activeTab]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
 
         const incomingFiles = Array.from(e.target.files);
@@ -260,18 +261,34 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
 
         if (filesToAdd.length > 0) {
             setFormData(prev => ({ ...prev, files: [...prev.files, ...filesToAdd] }));
-            // Show upload animation immediately on file selection
+            // Stage upload immediately on file selection
             setFileUploadStatus('uploading');
             setFileUploadProgress(0);
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 20;
-                setFileUploadProgress(Math.min(progress, 100));
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setFileUploadStatus('completed');
+            const totalFiles = filesToAdd.length;
+            let completed = 0;
+
+            const failedFiles: string[] = [];
+            for (const file of filesToAdd) {
+                try {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    const res = await fetch('/api/v1/complaints/attachments/stage', {
+                        method: 'POST',
+                        body: fd,
+                        credentials: 'include',
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
+                    }
+                } catch (err) {
+                    console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
                 }
-            }, 150);
+                completed++;
+                setFileUploadProgress(Math.round((completed / totalFiles) * 100));
+            }
+            setFileUploadStatus(failedFiles.length > 0 ? 'ready' : 'completed');
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -440,7 +457,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
 
             const submitData = isAnonymous
-                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken }
+                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken, staged_attachment_ids: Object.values(stagedIds).filter(Boolean) }
                 : {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -455,6 +472,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
+                    staged_attachment_ids: Object.values(stagedIds).filter(Boolean),
                 };
 
             const result = await API.suggestions.submitWithProgress(

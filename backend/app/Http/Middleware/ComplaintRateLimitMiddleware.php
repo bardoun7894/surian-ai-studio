@@ -37,12 +37,15 @@ class ComplaintRateLimitMiddleware
             $availableAt = RateLimiter::availableIn($key);
             $hours = ceil($availableAt / 3600);
 
+
+            $isSuggestion = str_contains($request->path(), 'suggestion');
+            $label = $isSuggestion ? 'اقتراحات' : 'شكاوى';
+
             return response()->json([
-                'error' => 'تم تجاوز الحد المسموح من الشكاوى اليومية',
-                'message' => "لقد تجاوزت الحد المسموح (3 شكاوى في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
+                'error' => "تم تجاوز الحد المسموح من ال{$label} اليومية",
+                'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
                 'retry_after' => $availableAt,
             ], 429);
-        }
 
         // Process the request
         $response = $next($request);
@@ -61,12 +64,15 @@ class ComplaintRateLimitMiddleware
      */
     private function getRateLimitKey(Request $request): string
     {
+        // Determine prefix based on route (complaints vs suggestions)
+        $prefix = str_contains($request->path(), 'suggestion') ? 'suggestion_limit' : 'complaint_limit';
+
         // Prefer user ID for authenticated users
         if ($request->user()) {
-            return 'complaint_limit_user_' . $request->user()->id;
+            return $prefix . '_user_' . $request->user()->id;
         }
 
         // Fall back to IP address for guests
-        return 'complaint_limit_ip_' . $request->ip();
+        return $prefix . '_ip_' . $request->ip();
     }
 }

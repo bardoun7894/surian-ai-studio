@@ -982,6 +982,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                         </div>
 
                         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                            <fieldset disabled={isSubmitting}>
 
 
                             {/* Anonymous / Known User Toggle */}
@@ -1557,6 +1558,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     </p>
                                 )}
                             </div>
+                        </fieldset>
                         </form>
                     </div>
                 )

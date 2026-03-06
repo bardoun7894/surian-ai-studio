@@ -37,9 +37,11 @@ Route::prefix('v1')->group(function () {
         Route::get('templates', [\App\Http\Controllers\ComplaintController::class, 'indexTemplates']);
         Route::post('otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendOtp']);
         Route::post('otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyOtp']);
-n        // Staged file uploads (immediate upload on selection)
-        Route::post("attachments/stage", [AppHttpControllersStagedUploadController::class, "store"]);
-        Route::delete("attachments/stage/{stagedId}", [AppHttpControllersStagedUploadController::class, "destroy"]);
+        // Staged file uploads (immediate upload on selection)
+        Route::post("attachments/stage", [\App\Http\Controllers\StagedUploadController::class, "store"])
+            ->middleware('throttle:10,1');
+        Route::delete("attachments/stage/{stagedId}", [\App\Http\Controllers\StagedUploadController::class, "destroy"])
+            ->middleware('throttle:10,1');
 
         // FR-27: Rate limit complaint submissions (3 per day)
         Route::post('/', [\App\Http\Controllers\ComplaintController::class, 'store'])

@@ -267,6 +267,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             const totalFiles = filesToAdd.length;
             let completed = 0;
 
+            const failedFiles: string[] = [];
             for (const file of filesToAdd) {
                 try {
                     const fd = new FormData();
@@ -278,15 +279,16 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     });
                     if (res.ok) {
                         const result = await res.json();
-                        setStagedIds(prev => ({ ...prev, [file.name]: result.staged_id }));
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
                     }
                 } catch (err) {
                     console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
                 }
                 completed++;
                 setFileUploadProgress(Math.round((completed / totalFiles) * 100));
             }
-            setFileUploadStatus('completed');
+            setFileUploadStatus(failedFiles.length > 0 ? 'ready' : 'completed');
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -451,7 +453,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             const recaptchaToken = await executeRecaptcha('submit_suggestion');
 
             const submitData = isAnonymous
-                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken }
+                ? { description: formData.description, directorate_id: formData.directorate_id, files: formData.files, is_anonymous: true as const, recaptcha_token: recaptchaToken, staged_attachment_ids: Object.values(stagedIds).filter(Boolean) }
                 : {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -466,6 +468,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
+                    staged_attachment_ids: Object.values(stagedIds).filter(Boolean),
                 };
 
             const result = await API.suggestions.submitWithProgress(

@@ -440,6 +440,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             const totalFiles = filesToAdd.length;
             let completed = 0;
 
+            const failedFiles: string[] = [];
             for (const file of filesToAdd) {
                 try {
                     const formData = new FormData();
@@ -451,15 +452,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                     });
                     if (res.ok) {
                         const result = await res.json();
-                        setStagedIds(prev => ({ ...prev, [file.name]: result.staged_id }));
+                        setStagedIds(prev => ({ ...prev, [`${file.name}:${file.size}:${file.lastModified}`]: result.staged_id }));
                     }
                 } catch (err) {
                     console.error('Staged upload failed for', file.name, err);
+                    failedFiles.push(file.name);
                 }
                 completed++;
                 setUploadProgress(Math.round((completed / totalFiles) * 100));
             }
-            setUploadStatus('ready');
+            if (failedFiles.length > 0) {
+                setUploadStatus('error');
+            } else {
+                setUploadStatus('ready');
+            }
         }
 
         const rejectionItems: RejectedAttachment[] = [
@@ -631,7 +637,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 ...formData,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
-                staged_attachment_ids: Object.values(stagedIds).length > 0 ? Object.values(stagedIds) : undefined,
+                staged_attachment_ids: selectedFiles.length > 0 ? selectedFiles.map(f => stagedIds[`${f.name}:${f.size}:${f.lastModified}`]).filter(Boolean) : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };

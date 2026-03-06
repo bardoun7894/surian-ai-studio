@@ -15,7 +15,7 @@ class StagedUploadController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png,gif,webp',
+            'file' => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
         ]);
 
         $file = $request->file('file');
@@ -42,7 +42,7 @@ class StagedUploadController extends Controller
         // Find and delete the temp file
         $files = Storage::disk('local')->files('temp-uploads');
         foreach ($files as $file) {
-            if (str_starts_with(basename($file), $stagedId)) {
+            if (pathinfo(basename($file), PATHINFO_FILENAME) === $stagedId) {
                 Storage::disk('local')->delete($file);
                 return response()->json(['message' => 'Deleted'], 200);
             }

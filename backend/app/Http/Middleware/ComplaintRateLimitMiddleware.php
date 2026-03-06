@@ -37,12 +37,15 @@ class ComplaintRateLimitMiddleware
             $availableAt = RateLimiter::availableIn($key);
             $hours = ceil($availableAt / 3600);
 
+
+            $isSuggestion = str_contains($request->path(), 'suggestion');
+            $label = $isSuggestion ? 'اقتراحات' : 'شكاوى';
+
             return response()->json([
-                'error' => 'تم تجاوز الحد المسموح من الشكاوى اليومية',
-                'message' => "لقد تجاوزت الحد المسموح (3 شكاوى في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
+                'error' => "تم تجاوز الحد المسموح من ال{$label} اليومية",
+                'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
                 'retry_after' => $availableAt,
             ], 429);
-        }
 
         // Process the request
         $response = $next($request);

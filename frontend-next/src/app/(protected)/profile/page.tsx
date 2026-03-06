@@ -18,6 +18,7 @@ import {
     X,
     Send,
     KeyRound,
+    AlertCircle,
     Heart,
     ChevronDown,
     ArrowRight,
@@ -259,6 +260,13 @@ export default function ProfilePage() {
 
             await API.users.updateProfile(updateData);
             await refreshUser();
+            // Clear password fields after success
+            setFormData(prev => ({
+                ...prev,
+                current_password: '',
+                password: '',
+                password_confirmation: ''
+            }));
             setSuccess(true);
             setTimeout(() => setSuccess(false), 5000);
         } catch (err: any) {
@@ -330,7 +338,7 @@ export default function ProfilePage() {
                     {activeTab === 'profile' && (
                         <div className="bg-white dark:bg-gov-card/10 rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100 dark:border-gov-border/15 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {success && (
-                                <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl flex items-center gap-3 animate-in fade-in duration-300">
+                                <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl flex items-center gap-3 animate-in fade-in duration-300">
                                     <CheckCircle size={20} />
                                     <span className="font-bold">
                                         {language === 'ar' ? 'تم تحديث البيانات بنجاح' : 'Profile updated successfully'}
@@ -339,7 +347,7 @@ export default function ProfilePage() {
                             )}
 
                             {error && (
-                                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-3 animate-in fade-in duration-300">
+                                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-3 animate-in fade-in duration-300">
                                     <Shield size={20} />
                                     <span className="font-bold">{error}</span>
                                 </div>
@@ -448,14 +456,14 @@ export default function ProfilePage() {
                                                 </div>
 
                                                 {emailError && (
-                                                    <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                    <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold flex items-center gap-2">
                                                         <Shield size={16} />
                                                         {emailError}
                                                     </div>
                                                 )}
 
                                                 {emailSuccess && (
-                                                    <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                    <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl text-sm font-bold flex items-center gap-2">
                                                         <CheckCircle size={16} />
                                                         {emailSuccess}
                                                     </div>
@@ -693,7 +701,14 @@ export default function ProfilePage() {
                                                     placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
                                                     className="w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all"
                                                 />
-                                                <Lock className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                                    className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
+                                                >
+                                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                </button>
                                             </div>
                                             <p className="text-xs text-gray-400 mt-1">
                                                 {language === 'ar' ? 'مطلوبة فقط عند تغيير كلمة المرور' : 'Required only when changing password'}
@@ -711,15 +726,16 @@ export default function ProfilePage() {
                                                     placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
                                                     className={`w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
                                                         ${formData.password && formData.password.length >= 8
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : formData.password && formData.password.length > 0 && formData.password.length < 8
-                                                                ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                                ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                                 : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                         }`}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                                     className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
                                                 >
                                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -738,17 +754,43 @@ export default function ProfilePage() {
                                                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
                                                     className={`w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
                                                         ${formData.password_confirmation && formData.password_confirmation === formData.password && formData.password.length >= 8
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : formData.password_confirmation && formData.password_confirmation !== formData.password
-                                                                ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
+                                                                ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                                 : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                         }`}
                                                 />
-                                                <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                                    className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors"
+                                                >
+                                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Password Rules */}
+                                {formData.password && (
+                                    <div className="mt-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                        <p className="text-sm font-bold text-gov-charcoal dark:text-white mb-2">
+                                            {language === 'ar' ? 'متطلبات كلمة المرور:' : 'Password requirements:'}
+                                        </p>
+                                        <ul className="space-y-1 text-xs">
+                                            <li className={`flex items-center gap-2 ${formData.password.length >= 8 ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {formData.password.length >= 8 ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? '8 أحرف على الأقل' : 'At least 8 characters'}
+                                            </li>
+                                            <li className={`flex items-center gap-2 ${formData.password === formData.password_confirmation && formData.password_confirmation ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {formData.password === formData.password_confirmation && formData.password_confirmation ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? 'تأكيد كلمة المرور متطابق' : 'Password confirmation matches'}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
 
                                 {/* Submit Button */}
                                 <div className="pt-6 border-t border-gray-100 dark:border-gov-border/15 flex justify-end">

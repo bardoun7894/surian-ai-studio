@@ -263,30 +263,18 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
           </motion.h2>
         </motion.div>
 
-        {/* Scroll Arrows - positioned alongside the scroll container */}
-        <div className="relative">
-          {/* Left Arrow - absolutely positioned on the left side of the scroll area */}
+        {/* Scroll Arrows + Cards - flex layout with arrows outside */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Left Arrow - outside the scroll area */}
           <motion.button
             initial={{ opacity: 0, x: -10 }}
             animate={isInView ? { opacity: canScrollLeft ? 1 : 0, x: 0 } : {}}
             transition={{ delay: 0.5, duration: 0.3 }}
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
+            className="flex-shrink-0 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
             {language === 'ar' ? <ChevronRight size={20} className="md:w-6 md:h-6" /> : <ChevronLeft size={20} className="md:w-6 md:h-6" />}
-          </motion.button>
-
-          {/* Right Arrow - absolutely positioned on the right side of the scroll area */}
-          <motion.button
-            initial={{ opacity: 0, x: 10 }}
-            animate={isInView ? { opacity: canScrollRight ? 1 : 0, x: 0 } : {}}
-            transition={{ delay: 0.5, duration: 0.3 }}
-            onClick={() => scroll('right')}
-            disabled={!canScrollRight}
-            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
-          >
-            {language === 'ar' ? <ChevronLeft size={20} className="md:w-6 md:h-6" /> : <ChevronRight size={20} className="md:w-6 md:h-6" />}
           </motion.button>
 
         {/* Links Grid */}
@@ -295,7 +283,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className={`flex flex-nowrap overflow-x-auto gap-4 md:gap-6 py-6 md:py-8 px-10 sm:px-14 snap-x snap-mandatory ql-scroll-container ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
+          className={`flex-1 flex flex-nowrap overflow-x-auto gap-4 md:gap-6 py-6 md:py-8 px-2 sm:px-4 snap-x snap-mandatory ql-scroll-container ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
@@ -362,6 +350,18 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
             );
           })}
         </motion.div>
+
+          {/* Right Arrow - outside the scroll area */}
+          <motion.button
+            initial={{ opacity: 0, x: 10 }}
+            animate={isInView ? { opacity: canScrollRight ? 1 : 0, x: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            onClick={() => scroll('right')}
+            disabled={!canScrollRight}
+            className="flex-shrink-0 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
+          >
+            {language === 'ar' ? <ChevronLeft size={20} className="md:w-6 md:h-6" /> : <ChevronRight size={20} className="md:w-6 md:h-6" />}
+          </motion.button>
         </div>
       </div>
     </section>

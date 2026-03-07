@@ -466,17 +466,17 @@ const LoginPage = () => {
                                         </div>
                                         {/* Validation status icons */}
                                         {((loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)) && (
-                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <div className="absolute left-10 rtl:left-auto rtl:right-10 top-1/2 -translate-y-1/2 pointer-events-none">
                                                 <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                             </div>
                                         )}
                                         {loginMethod === 'email' && !emailFieldError && formData.email && isEmailValid(formData.email) && (
-                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <div className="absolute left-10 rtl:left-auto rtl:right-10 top-1/2 -translate-y-1/2 pointer-events-none">
                                                 <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                             </div>
                                         )}
                                         {loginMethod === 'national' && !nationalIdFieldError && formData.nationalId && isNationalIdValid(formData.nationalId) && (
-                                            <div className="absolute left-4 rtl:left-auto rtl:right-12 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <div className="absolute left-10 rtl:left-auto rtl:right-10 top-1/2 -translate-y-1/2 pointer-events-none">
                                                 <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                             </div>
                                         )}

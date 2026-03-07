@@ -183,6 +183,12 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
           {/* Home */}
           <Link
             href="/"
+            onClick={(e) => {
+              if (window.location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
             className={`${language === 'en' ? 'px-2 text-xs' : 'px-3 text-sm'} py-2 font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 whitespace-nowrap`}
             onMouseEnter={() => handleMenuEnter('home')}
             onMouseLeave={handleMenuLeave}
@@ -226,9 +232,12 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 ]
               },
               {
-                title: language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation',
+                title: language === 'ar' ? 'التشريعات' : 'Legislation',
                 items: [
-                  { label: language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation', href: '/decrees', icon: Scale, description: language === 'ar' ? 'التشريعات والقوانين الصادرة' : 'Published laws and decrees' },
+                  { label: language === 'ar' ? 'قوانين الوزارة' : 'Ministry Laws', href: '/decrees?dept=ministry', icon: Scale },
+                  { label: language === 'ar' ? 'قوانين الصناعة' : 'Industry Laws', href: '/decrees?dept=industry', icon: Building2 },
+                  { label: language === 'ar' ? 'قوانين التجارة الداخلية' : 'Internal Trade Laws', href: '/decrees?dept=trade', icon: Scale },
+                  { label: language === 'ar' ? 'قوانين الاقتصاد' : 'Economy Laws', href: '/decrees?dept=economy', icon: TrendingUp },
                 ]
               }
             ]}
@@ -300,7 +309,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 }}
                 className={`absolute top-0 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full text-white hover:bg-gov-gold transition-colors ${isSearchExpanded ? (language === 'ar' ? 'left-0' : 'right-0') : 'left-0 right-0'}`}
               >
-                <Search size={16} className="md:w-[18px] md:h-[18px]" />
+                {isSearching ? <Loader2 size={16} className="md:w-[18px] md:h-[18px] animate-spin" /> : <Search size={16} className="md:w-[18px] md:h-[18px]" />}
               </button>
             </form>
 
@@ -367,7 +376,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               href="/dashboard"
               className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <LayoutDashboard size={16} />
+              <span className="shrink-0"><LayoutDashboard size={16} /></span>
               <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
             </Link>
           ) : (
@@ -375,7 +384,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               href="/login"
               className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold bg-gov-gold text-gov-forest rounded-lg hover:bg-gov-gold/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <User size={16} />
+              <span className="shrink-0"><User size={16} /></span>
               <span>{language === 'ar' ? 'دخول' : 'Login'}</span>
             </Link>
           )}
@@ -419,7 +428,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
                     >
-                      <LayoutDashboard size={18} />
+                      <span className="shrink-0"><LayoutDashboard size={18} /></span>
                       <span>{language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}</span>
                     </Link>
                   ) : (
@@ -429,7 +438,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center gap-2.5 w-full px-4 py-3 bg-gov-gold text-gov-forest font-bold rounded-xl text-center shadow-md hover:bg-gov-gold/90 transition-colors"
                       >
-                        <User size={18} />
+                        <span className="shrink-0"><User size={18} /></span>
                         <span>{t('nav_login')}</span>
                       </Link>
                       <Link
@@ -437,7 +446,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center gap-2.5 w-full px-4 py-2.5 border-2 border-gov-forest/20 dark:border-gov-gold/30 bg-gov-forest/5 dark:bg-transparent text-gov-forest dark:text-gov-gold font-bold rounded-xl text-center hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors"
                       >
-                        <User size={18} />
+                        <span className="shrink-0"><User size={18} /></span>
                         <span>{t('sitemap_register')}</span>
                       </Link>
                     </div>
@@ -449,7 +458,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   {/* Home */}
                   <Link
                     href="/"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      setIsMobileMenuOpen(false);
+                      if (window.location.pathname === '/') {
+                        e.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors ${pathname === '/' ? 'bg-gov-beige/70 dark:bg-white/10 text-gov-forest dark:text-gov-gold border-s-4 border-gov-gold' : ''}`}
                   >
                     <div className="w-8 h-8 rounded-lg bg-gov-forest/10 dark:bg-gov-gold/15 flex items-center justify-center flex-shrink-0">
@@ -488,11 +503,29 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         </Link>
                       );
                     })}
-                    <Link href="/decrees" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                    <Link href="/decrees?dept=ministry" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
                       <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
                         <Scale size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
                       </div>
-                      <span>{language === 'ar' ? 'القوانين والتشريعات' : 'Laws & Legislation'}</span>
+                      <span>{language === 'ar' ? 'قوانين الوزارة' : 'Ministry Laws'}</span>
+                    </Link>
+                    <Link href="/decrees?dept=industry" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <Building2 size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'قوانين الصناعة' : 'Industry Laws'}</span>
+                    </Link>
+                    <Link href="/decrees?dept=trade" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <Scale size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'قوانين التجارة الداخلية' : 'Internal Trade Laws'}</span>
+                    </Link>
+                    <Link href="/decrees?dept=economy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
+                      </div>
+                      <span>{language === 'ar' ? 'قوانين الاقتصاد' : 'Economy Laws'}</span>
                     </Link>
                   </div>
 

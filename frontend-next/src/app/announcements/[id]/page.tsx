@@ -9,6 +9,7 @@ import ArticleDetail from '@/components/ArticleDetail';
 import { SkeletonText, SkeletonCard } from '@/components/SkeletonLoader';
 import { AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import FavoriteButton from '@/components/FavoriteButton';
 
@@ -20,10 +21,7 @@ const isExpired = (expiresAt?: string): boolean => {
 };
 
 const formatDate = (dateStr: string, lang: string) => {
-    const date = new Date(dateStr);
-    return lang === 'ar'
-        ? date.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
-        : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return formatDateUtil(dateStr, lang as 'ar' | 'en');
 };
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
@@ -59,7 +57,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-20 md:pt-24 pb-20">
+                <main className="flex-grow pt-0 pb-20">
                     <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                         <div className="max-w-5xl mx-auto">
                             {/* Article Skeleton */}
@@ -156,7 +154,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     return (
         <div className={`min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg ${expired ? 'opacity-60' : ''}`}>
             <Navbar />
-            <main className="flex-grow pt-20 md:pt-24 print:pt-0">
+            <main className="flex-grow pt-0 print:pt-0">
                 <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                     {/* Expired Banner */}
                     {expired && (

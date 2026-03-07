@@ -3,7 +3,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+// Inline SVG icons to avoid Lucide SSR hydration mismatch
+const HomeIcon = ({ size = 15 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+);
+const ChevronLeftIcon = ({ size = 14 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+);
+const ChevronRightIcon = ({ size = 14 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+);
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const routeLabels: Record<string, { ar: string; en: string }> = {
@@ -103,7 +112,6 @@ export default function Breadcrumbs() {
   const { language, direction } = useLanguage();
   const isAr = language === 'ar';
   const isRtl = direction === 'rtl';
-
   // Don't render on homepage or excluded paths
   if (!pathname || excludedPaths.includes(pathname)) return null;
 
@@ -113,7 +121,7 @@ export default function Breadcrumbs() {
 
   if (segments.length === 0) return null;
 
-  const Separator = isRtl ? ChevronLeft : ChevronRight;
+  const Separator = isRtl ? ChevronLeftIcon : ChevronRightIcon;
 
   const crumbs = segments.map((segment, index) => {
     const path = '/' + segments.slice(0, index + 1).join('/');
@@ -165,23 +173,23 @@ export default function Breadcrumbs() {
     <nav
       aria-label="Breadcrumb"
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="pt-[80px] md:pt-[96px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10"
+      className="pt-[60px] md:pt-[90px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10"
     >
-      <ol className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-[13px] leading-none max-w-7xl mx-auto py-3">
+      <ol className="flex items-center flex-nowrap md:flex-wrap gap-1 sm:gap-1.5 md:gap-2 text-[11px] md:text-[13px] leading-none max-w-7xl mx-auto py-2.5 md:py-3 overflow-x-auto">
         <li className="inline-flex items-center">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
           >
-            <Home size={15} className="shrink-0" />
+            <span className="shrink-0"><HomeIcon size={15} /></span>
             <span className="font-semibold">{isAr ? 'الرئيسية' : 'Home'}</span>
           </Link>
         </li>
         {crumbs.map((crumb) => (
-          <li key={crumb.path} className="inline-flex items-center gap-1.5">
-            <Separator size={14} className="shrink-0 text-gray-400/60 dark:text-white/30" />
+          <li key={crumb.path} className="inline-flex items-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0">
+            <span className="shrink-0 text-gray-400/60 dark:text-white/30"><Separator size={14} /></span>
             {crumb.isLast ? (
-              <span className="text-gov-stone dark:text-white/60 font-medium">{crumb.label}</span>
+              <span className="text-gov-stone dark:text-white/60 font-medium truncate max-w-[150px] md:max-w-none">{crumb.label}</span>
             ) : (
               <Link
                 href={crumb.path}

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import SuggestionRating from '@/components/SuggestionRating';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
+import { formatDate as formatDateUtil, localizeDigits } from '@/lib/utils';
 
 interface SuggestionStatus {
     tracking_number: string;
@@ -100,7 +101,7 @@ function SuggestionTrackPageContent() {
 
     const formatDate = (dateStr: string) => {
         try {
-            return new Date(dateStr).toLocaleDateString('ar-SY', {
+            return formatDateUtil(dateStr, 'ar', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -117,7 +118,7 @@ function SuggestionTrackPageContent() {
     };
 
     return (
-        <div className="min-h-screen bg-gov-beige dark:bg-dm-bg py-12 px-4">
+        <div className="min-h-screen bg-gov-beige dark:bg-dm-bg py-8 md:py-12 px-4">
             <div className="max-w-2xl mx-auto">
                 {/* Back Link */}
                 <Link
@@ -129,11 +130,11 @@ function SuggestionTrackPageContent() {
                 </Link>
 
                 {/* Header */}
-                <div className="text-center mb-10">
-                    <div className="w-16 h-16 bg-gov-forest dark:bg-gov-gold rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Search size={28} className="text-white dark:text-gov-forest" />
+                <div className="text-center mb-6 md:mb-10">
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-gov-forest dark:bg-gov-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search size={22} className="text-white dark:text-gov-forest" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gov-forest dark:text-white mb-2">
+                    <h1 className="text-xl md:text-3xl font-bold text-gov-forest dark:text-white mb-2">
                         متابعة حالة المقترح
                     </h1>
                     <p className="text-gray-600 dark:text-white/70">
@@ -143,7 +144,7 @@ function SuggestionTrackPageContent() {
 
                 {/* Search Form */}
                 <form onSubmit={handleSearch} className="mb-8 print:hidden">
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-6 shadow-lg border border-gov-gold/20 space-y-4">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl p-4 md:p-6 shadow-lg border border-gov-gold/20 space-y-4">
                         <div>
                             <label className="block text-sm font-bold text-gov-forest dark:text-white/70 mb-2">
                                 رقم المتابعة
@@ -153,7 +154,7 @@ function SuggestionTrackPageContent() {
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
                                 placeholder="SUG-XXXXXXXX"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-lg"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gov-border/15 bg-gray-50 dark:bg-gov-card/10 focus:ring-2 focus:ring-gov-gold focus:border-transparent outline-none transition-all font-mono text-base md:text-lg"
                                 required
                             />
                         </div>
@@ -184,7 +185,7 @@ function SuggestionTrackPageContent() {
                         <PrintHeader
                             documentTitle="متابعة مقترح"
                             referenceNumber={result.tracking_number}
-                            date={result.submitted_at ? new Date(result.submitted_at).toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                            date={result.submitted_at ? formatDateUtil(result.submitted_at, 'ar') : undefined}
                             language="ar"
                         />
 
@@ -196,7 +197,7 @@ function SuggestionTrackPageContent() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-600 dark:text-white/70 mb-1">حالة المقترح</p>
-                                    <h2 className={`text-2xl font-bold ${getStatusInfo(result.status).color}`}>
+                                    <h2 className={`text-lg md:text-2xl font-bold ${getStatusInfo(result.status).color}`}>
                                         {getStatusInfo(result.status).label}
                                     </h2>
                                 </div>

@@ -100,8 +100,8 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
 
             return result;
         } catch (err) {
-            setVerificationStatus('error');
-            setVerificationMessage(isAr ? 'حدث خطأ أثناء الاتصال بخدمة السجل المدني. يرجى المحاولة مرة أخرى.' : 'An error occurred while connecting to the civil registry service. Please try again.');
+            setVerificationStatus('idle');
+            setVerificationMessage('');
             return null;
         }
     }, [validateFormat]);

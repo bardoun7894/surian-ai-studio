@@ -258,6 +258,12 @@ function NewsPageContent() {
     return sorted[0] || null;
   }, [allNews, initialFeaturedNews]);
 
+  // Recent news (3 most recent, excluding featured) for the hero grid
+  const recentNews = useMemo(() => {
+    const sorted = [...allNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return sorted.filter(n => featuredNews && n.id !== featuredNews.id).slice(0, 3);
+  }, [allNews, featuredNews]);
+
   // News card component
   const NewsCard = ({ item, index = 0, compact = false }: { item: NewsItem; index?: number; compact?: boolean }) => (
     <div className="bg-white dark:bg-dm-surface rounded-2xl overflow-hidden border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
@@ -340,7 +346,7 @@ function NewsPageContent() {
 
     return (
       <div className="space-y-16">
-        {/* 1. Featured / Hero News */}
+        {/* 1. Featured / Hero News - Main article + 3 recent */}
         {featuredNews && (
           <ScrollAnimation>
             <section>
@@ -353,47 +359,55 @@ function NewsPageContent() {
                 </h2>
               </div>
 
-              <Link href={`/news/${featuredNews.id}`} className="block group">
-                <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px]">
-                  {featuredNews.imageUrl ? (
-                    <Image
-                      src={featuredNews.imageUrl}
-                      alt={featuredNews.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      priority
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main featured article - spans 2 columns */}
+                <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-2 lg:row-span-3">
+                  <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px] lg:h-full lg:min-h-[420px]">
+                    {featuredNews.imageUrl ? (
+                      <Image
+                        src={featuredNews.imageUrl}
+                        alt={featuredNews.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        priority
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                    {featuredNews.isUrgent && (
-                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
-                        {t('ui_breaking')}
-                      </span>
-                    )}
-                    {(featuredNews as any).directorate_name && (
-                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
-                        {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
-                      </span>
-                    )}
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
-                      {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
-                    </h3>
-                    <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
-                      {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
-                    </p>
-                    <div className="flex items-center gap-4 text-white/60 text-sm">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
-                      </span>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                      {featuredNews.isUrgent && (
+                        <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
+                          {t('ui_breaking')}
+                        </span>
+                      )}
+                      {(featuredNews as any).directorate_name && (
+                        <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
+                          {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
+                        </span>
+                      )}
+                      <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                        {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
+                      </h3>
+                      <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
+                        {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
+                      </p>
+                      <div className="flex items-center gap-4 text-white/60 text-sm">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+
+                {/* 3 Recent articles stacked on the right */}
+                {recentNews.map((item, idx) => (
+                  <NewsCard key={`recent-${item.id}`} item={item} index={idx} compact />
+                ))}
+              </div>
             </section>
           </ScrollAnimation>
         )}

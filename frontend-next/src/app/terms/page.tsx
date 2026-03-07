@@ -13,7 +13,7 @@ export default function TermsOfUsePage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-16 md:pt-[5.75rem]">
+            <main className="flex-grow pt-0">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-4xl mx-auto text-center animate-fade-in-up">

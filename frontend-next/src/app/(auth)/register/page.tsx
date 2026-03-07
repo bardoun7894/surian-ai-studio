@@ -173,9 +173,11 @@ const RegisterPage = () => {
         }
 
         if (step === 3) {
-            // Email validation
+            // Email validation - required and format check
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (formData.email && !emailRegex.test(formData.email)) {
+            if (!formData.email.trim()) {
+                errors.email = t('validation_required');
+            } else if (!emailRegex.test(formData.email)) {
                 errors.email = t('validation_email_invalid');
             }
 
@@ -300,7 +302,13 @@ const RegisterPage = () => {
                     'الرقم الوطني مطلوب': t('validation_required'),
                     'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط': t('national_id_format_error'),
                 };
-                return errorMap[msg] || msg;
+                // If no direct map match, check for generic English network/request errors
+                if (errorMap[msg]) return errorMap[msg];
+                const lowerMsg = msg.toLowerCase();
+                if (lowerMsg.includes("request failed") || lowerMsg.includes("network") || lowerMsg.includes("failed to fetch") || lowerMsg.includes("timeout")) {
+                    return language === "ar" ? "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة لاحقاً." : "An error occurred while creating the account. Please try again later.";
+                }
+                return msg;
             };
             if (err instanceof ApiError) {
                 setError(translateBackendError(err.message));

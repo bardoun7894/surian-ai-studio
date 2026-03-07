@@ -244,7 +244,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth"
+          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth pb-4"
           data-faq-list
           role="list"
         >
@@ -257,7 +257,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                 layout
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                   ? 'bg-white dark:bg-white/10 border-gov-gold shadow-lg shadow-gov-gold/10'
-                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-[5px_5px_10px_#b9a779]'
+                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-lg hover:shadow-gov-gold/10'
                   }`}
               >
                 <motion.button

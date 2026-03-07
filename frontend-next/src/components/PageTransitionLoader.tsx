@@ -94,7 +94,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
       stopLoading();
       setDisplayLoading(false);
       setProgress(0);
-    }, 12000);
+    }, 6000);
     return () => clearTimeout(safetyTimeout);
   }, [displayLoading, stopLoading]);
 

@@ -108,12 +108,12 @@ export default function ContentFilter({
                                     key={tab.key}
                                     data-active={isActive ? "true" : "false"}
                                     onClick={() => onTabChange?.(tab.key)}
-                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 snap-start whitespace-nowrap flex-shrink-0 ${isActive
+                                    className={`inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 snap-start whitespace-nowrap flex-shrink-0 ${isActive
                                             ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-lg shadow-gov-forest/20 dark:shadow-gov-button/20'
                                             : 'bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white/70 border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
                                         }`}
                                 >
-                                    {Icon && <Icon size={16} className={isActive ? '' : 'text-gov-teal dark:text-gov-gold'} />}
+                                    {Icon && <Icon size={16} className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isActive ? '' : 'text-gov-teal dark:text-gov-gold'}`} />}
                                     <span>{tab.label}</span>
                                 </button>
                             );
@@ -148,7 +148,7 @@ export default function ContentFilter({
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
                 <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
 
-                    <div className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
 
                         {/* Date Filters */}
                         {showDateFilter && (
@@ -257,7 +257,7 @@ export default function ContentFilter({
 
                     {/* Results Count */}
                     {totalCount !== undefined && (
-                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-full sm:w-auto text-center sm:text-start">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs md:text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-full sm:w-auto">
                             {totalCount} {countLabel || (isAr ? 'عنصر' : 'items')}
                         </div>
                     )}

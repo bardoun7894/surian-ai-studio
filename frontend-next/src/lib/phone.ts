@@ -120,6 +120,17 @@ export const validatePhoneWithCountryCode = (value: string): PhoneValidationResu
     };
   }
 
+  // Syrian mobile numbers must start with 9
+  if (countryRule.code === '+963' && !normalizedNationalNumber.startsWith('9')) {
+    return {
+      isValid: false,
+      normalized: normalizedWithCountryCode,
+      reason: 'invalid_format',
+      countryCode: countryRule.code,
+      maxDigits: countryRule.maxDigits,
+    };
+  }
+
   return {
     isValid: true,
     normalized: normalizedWithCountryCode,

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Download, FileText, Paperclip, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 
 interface DownloadMenuProps {
   isOpen: boolean;
@@ -54,10 +55,7 @@ export default function DownloadMenu({ isOpen, onClose, announcement }: Download
     const isRTL = language === 'ar';
     const title = announcement.title;
     const description = announcement.description || '';
-    const date = announcement.date ? new Date(announcement.date).toLocaleDateString(
-      isRTL ? 'ar-SY' : 'en-US',
-      { year: 'numeric', month: 'long', day: 'numeric' }
-    ) : '';
+    const date = announcement.date ? formatDateUtil(announcement.date, isRTL ? 'ar' : 'en') : '';
 
     printWindow.document.write(`
       <!DOCTYPE html>

@@ -62,7 +62,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                     >
                         <div className={`${isMultiSection ? 'flex divide-x rtl:divide-x-reverse divide-gray-100 dark:divide-white/5' : ''}`}>
                             {sections.map((section, idx) => (
-                                <div key={idx} className={`py-2.5 ${isMultiSection ? 'flex-1 min-w-[200px]' : ''}`}>
+                                <div key={idx} className={`py-2.5 pb-4 ${isMultiSection ? 'flex-1 min-w-[200px]' : ''}`}>
                                     {section.title && (
                                         <div className="px-4 pt-3 pb-2 mb-1">
                                             <span className="text-[10px] font-bold text-gov-sand dark:text-gov-gold/70 uppercase tracking-wider">

@@ -244,7 +244,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth"
+          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth pb-4"
           data-faq-list
           role="list"
         >

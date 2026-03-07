@@ -272,7 +272,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
             transition={{ delay: 0.5, duration: 0.3 }}
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
+            className="absolute left-0 sm:-left-1 md:-left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
             {language === 'ar' ? <ChevronRight size={20} className="md:w-6 md:h-6" /> : <ChevronLeft size={20} className="md:w-6 md:h-6" />}
           </motion.button>
@@ -284,7 +284,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
             transition={{ delay: 0.5, duration: 0.3 }}
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
+            className="absolute right-0 sm:-right-1 md:-right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
             {language === 'ar' ? <ChevronLeft size={20} className="md:w-6 md:h-6" /> : <ChevronRight size={20} className="md:w-6 md:h-6" />}
           </motion.button>

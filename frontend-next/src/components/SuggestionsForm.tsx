@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
-import { getLocalizedName, copyToClipboard } from '@/lib/utils';
+import { getLocalizedName, copyToClipboard, formatDate as formatDateUtil } from '@/lib/utils';
 import { focusPulse } from '@/lib/animations';
 import { validatePhoneWithCountryCode } from '@/lib/phone';
 import { toast } from 'sonner';
@@ -1090,7 +1090,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{isAr ? 'تاريخ التقديم' : 'Submission Date'}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {(trackingResult.created_at) ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.created_at) ? formatDateUtil(trackingResult.created_at, isAr ? 'ar' : 'en') : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>
@@ -1101,7 +1101,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             <div>
                                                 <span className="block text-xs text-gray-500 dark:text-white/70 mb-1">{t('complaint_last_update')}</span>
                                                 <span className="text-sm font-medium text-gov-charcoal dark:text-white">
-                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? new Date(trackingResult.last_updated || trackingResult.updated_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (isAr ? 'غير متوفر' : 'N/A')}
+                                                    {(trackingResult.last_updated || trackingResult.updated_at) ? formatDateUtil(trackingResult.last_updated || trackingResult.updated_at, isAr ? 'ar' : 'en') : (isAr ? 'غير متوفر' : 'N/A')}
                                                 </span>
                                             </div>
                                         </div>

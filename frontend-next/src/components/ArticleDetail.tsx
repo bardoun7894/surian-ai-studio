@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
-import { formatRelativeTime, copyToClipboard } from '@/lib/utils';
+import { formatRelativeTime, formatDate as formatDateUtil, copyToClipboard } from '@/lib/utils';
 import { toast } from 'sonner';
 import ShareMenu from '@/components/ShareMenu';
 import PrintHeader from '@/components/PrintHeader';

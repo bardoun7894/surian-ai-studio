@@ -8,6 +8,7 @@ import Link from 'next/link';
 import SuggestionRating from '@/components/SuggestionRating';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
+import { formatDate as formatDateUtil, localizeDigits } from '@/lib/utils';
 
 interface SuggestionStatus {
     tracking_number: string;
@@ -100,7 +101,7 @@ function SuggestionTrackPageContent() {
 
     const formatDate = (dateStr: string) => {
         try {
-            return new Date(dateStr).toLocaleDateString('ar-SY', {
+            return formatDateUtil(dateStr, 'ar', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -184,7 +185,7 @@ function SuggestionTrackPageContent() {
                         <PrintHeader
                             documentTitle="متابعة مقترح"
                             referenceNumber={result.tracking_number}
-                            date={result.submitted_at ? new Date(result.submitted_at).toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                            date={result.submitted_at ? formatDateUtil(result.submitted_at, 'ar') : undefined}
                             language="ar"
                         />
 

@@ -1,15 +1,25 @@
 'use client';
 
-import LoadingSpinner from '@/components/LoadingSpinner';
-
+/**
+ * Next.js page-level loading fallback.
+ *
+ * The PageTransitionLoader (splash screen) already provides a rich branded
+ * loading experience during route transitions.  This fallback only appears
+ * when Suspense boundaries resolve *after* the splash has gone, so we keep
+ * it deliberately minimal (a simple spinner) to avoid the eagle emblem badge
+ * persisting / flashing a second time.
+ */
 export default function Loading() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gov-beige dark:bg-dm-bg transition-colors">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-5 dark:opacity-5 pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col items-center gap-6">
-        <LoadingSpinner size={80} />
+    <div className="min-h-screen flex items-center justify-center bg-gov-beige dark:bg-dm-bg transition-colors">
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="w-2.5 h-2.5 rounded-full bg-gov-gold animate-bounce"
+            style={{ animationDelay: `${i * 150}ms` }}
+          />
+        ))}
       </div>
     </div>
   );

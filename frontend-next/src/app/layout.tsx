@@ -43,10 +43,38 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
   },
   openGraph: {
-    title: "وزارة الاقتصاد والصناعة",
-    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة",
+    title: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
+    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+    url: "https://moe.gov.sy",
+    siteName: "وزارة الاقتصاد والصناعة",
     locale: "ar_SY",
     type: "website",
+    images: [
+      {
+        url: "/assets/logo/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
+    description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+    images: ["/assets/logo/og-image.png"],
+  },
+  metadataBase: new URL("https://moe.gov.sy"),
+  alternates: {
+    canonical: "https://moe.gov.sy",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 

@@ -1,4 +1,5 @@
 import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults, Favorite, AutocompleteSuggestion, Investment, InvestmentStats, PaginatedResponse } from '../types';
+export type { Investment, InvestmentStats };
 import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 import { getCsrfCookie } from '@/lib/api';
 

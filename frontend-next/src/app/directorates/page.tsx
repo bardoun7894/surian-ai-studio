@@ -7,7 +7,7 @@ export default function DirectoratesPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-16 md:pt-[5.75rem] animate-fade-in-up">
+            <main className="flex-grow pt-0 animate-fade-in-up">
                 <DirectoratesList />
             </main>
 

@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { API, getComplaintTemplates } from '@/lib/repository';
 import { Directorate } from '@/types';
-import { getLocalizedName, copyToClipboard } from '@/lib/utils';
+import { getLocalizedName, copyToClipboard, formatDate as formatDateUtil } from '@/lib/utils';
 import ComplaintPrintButton from './ComplaintPrintButton';
 import PrintHeader from './PrintHeader';
 import PrintFooter from './PrintFooter';
@@ -798,7 +798,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const formatDate = (value?: string) => {
         if (!value) return isAr ? 'غير متوفر' : 'N/A';
-        return new Date(value).toLocaleString(isAr ? 'ar-SY' : 'en-US');
+        return formatDateUtil(value, isAr ? 'ar' : 'en');
     };
 
     const getDirectorateName = (directorate: Ticket['directorate']) => {
@@ -1740,7 +1740,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     <PrintHeader
                                         documentTitle={isAr ? 'متابعة شكوى' : 'Complaint Tracking'}
                                         referenceNumber={trackingResult.tracking_number || trackingResult.id}
-                                        date={trackingResult.created_at ? new Date(trackingResult.created_at).toLocaleDateString(isAr ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined}
+                                        date={trackingResult.created_at ? formatDateUtil(trackingResult.created_at, isAr ? 'ar' : 'en') : undefined}
                                         language={isAr ? 'ar' : 'en'}
                                     />
                                     <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gov-border/15">

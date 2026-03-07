@@ -348,7 +348,7 @@ export default function MediaPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-16 md:pt-[5.75rem]">
+      <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4">

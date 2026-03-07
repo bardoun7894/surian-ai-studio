@@ -96,7 +96,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
           </div>
         </div>
         {/* Duration selector (shown even while loading) */}
-        <div className="flex-shrink-0 flex items-center gap-0.5 px-1.5 md:px-2 h-full z-20">
+        <div className="hidden flex-shrink-0 flex items-center gap-0.5 px-1.5 md:px-2 h-full z-20">
           {DURATION_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -156,7 +156,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
       </div>
 
       {/* Duration selector buttons */}
-      <div className="flex-shrink-0 flex items-center gap-0.5 px-1.5 md:px-2 h-full z-20 border-s border-gov-gold/20">
+      <div className="hidden flex-shrink-0 flex items-center gap-0.5 px-1.5 md:px-2 h-full z-20 border-s border-gov-gold/20">
         {DURATION_OPTIONS.map((opt) => (
           <button
             key={opt.value}

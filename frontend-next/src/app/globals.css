@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide native browser password reveal toggle icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
 
 
 /* Qomra Font (Official Government Font) */
@@ -695,22 +704,55 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   /* --- Images in Print --- */
   img {
     max-width: 100% !important;
+    width: auto !important;
     height: auto !important;
+    float: none !important;
+    position: static !important;
+    display: block !important;
+    margin: 0.5rem auto !important;
+    object-fit: contain !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
     break-inside: avoid !important;
-    display: block !important;
+    page-break-inside: avoid !important;
     visibility: visible !important;
   }
 
-  /* Ensure Next.js Image wrappers are visible */
+  /* Ensure Next.js Image wrappers are visible and properly laid out */
   img[src],
   picture,
-  [data-nimg] {
+  [data-nimg],
+  [data-nimg] img {
     visibility: visible !important;
     display: block !important;
     opacity: 1 !important;
+    float: none !important;
+    position: static !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Prose/article image containers */
+  .prose img,
+  article img,
+  .news-content img,
+  [class*="article"] img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    float: none !important;
+    position: static !important;
+    margin: 0.75rem 0 !important;
+    object-fit: contain !important;
+  }
+
+  /* Fix relative/absolute image wrappers in print */
+  .relative:has(img),
+  .absolute:has(img) {
+    position: static !important;
+    float: none !important;
+    overflow: visible !important;
   }
 
   /* --- Borders for Print Cards/Sections --- */

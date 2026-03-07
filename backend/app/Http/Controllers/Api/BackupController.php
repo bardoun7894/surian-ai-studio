@@ -178,7 +178,8 @@ class BackupController extends Controller
      */
     public function export(Request $request)
     {
-        $tables = $request->input('tables', ['users', 'complaints', 'contents', 'faqs', 'directorates']);
+        $allowedTables = ['complaints', 'contents', 'faqs', 'directorates', 'categories', 'settings'];
+        $tables = array_intersect($request->input('tables', $allowedTables), $allowedTables);
         $timestamp = now()->format('Y-m-d_H-i-s');
         $filename = "export_{$timestamp}.json";
 

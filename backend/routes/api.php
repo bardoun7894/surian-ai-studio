@@ -11,10 +11,12 @@ Route::prefix('v1')->group(function () {
     // Public Auth Routes
     Route::prefix('auth')->group(function () {
         Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
-        Route::post('verify-2fa', [\App\Http\Controllers\AuthController::class, 'verify2fa']);
+        Route::post('verify-2fa', [\App\Http\Controllers\AuthController::class, 'verify2fa'])
+            ->middleware('throttle:5,15');
         Route::post('resend-2fa', [\App\Http\Controllers\AuthController::class, 'resend2fa'])
             ->middleware('throttle:3,10');
-        Route::post('register', [\App\Http\Controllers\UserController::class, 'register']);
+        Route::post('register', [\App\Http\Controllers\UserController::class, 'register'])
+            ->middleware('throttle:5,1');
 
         // T-NX-07: CSRF route for Next.js Sanctum integration
         Route::get('csrf', function () {
@@ -28,7 +30,8 @@ Route::prefix('v1')->group(function () {
         });
 
         // Password reset routes
-        Route::post('forgot-password', [\App\Http\Controllers\AuthController::class, 'forgotPassword']);
+        Route::post('forgot-password', [\App\Http\Controllers\AuthController::class, 'forgotPassword'])
+            ->middleware('throttle:3,15');
         Route::post('reset-password', [\App\Http\Controllers\AuthController::class, 'resetPassword']);
     });
 
@@ -140,6 +143,13 @@ Route::prefix('v1')->group(function () {
             Route::get('stats', [\App\Http\Controllers\Api\InvestmentController::class, 'stats']);
             Route::get('category/{category}', [\App\Http\Controllers\Api\InvestmentController::class, 'byCategory']);
             Route::get('{id}', [\App\Http\Controllers\Api\InvestmentController::class, 'show']);
+        });
+
+        // Investment Application Routes (Public)
+        Route::prefix("investment-applications")->group(function () {
+            Route::post("/", [\App\Http\Controllers\Api\InvestmentApplicationController::class, "store"])
+                ->middleware("throttle:10,1");
+            Route::get("track/{trackingNumber}", [\App\Http\Controllers\Api\InvestmentApplicationController::class, "track"]);
         });
 
         // Promotional Sections Routes
@@ -259,6 +269,13 @@ Route::prefix('v1')->group(function () {
                 Route::put('{id}/assign', [\App\Http\Controllers\Api\ChatController::class, 'assignHandoff']);
                 Route::post('{id}/respond', [\App\Http\Controllers\Api\ChatController::class, 'respondToHandoff']);
                 Route::put('{id}/close', [\App\Http\Controllers\Api\ChatController::class, 'closeHandoff']);
+            });
+
+            // Investment Applications (Staff)
+            Route::prefix("investment-applications")->group(function () {
+                Route::get("/", [\App\Http\Controllers\Api\InvestmentApplicationController::class, "listAll"]);
+                Route::get("{id}", [\App\Http\Controllers\Api\InvestmentApplicationController::class, "show"]);
+                Route::put("{id}/status", [\App\Http\Controllers\Api\InvestmentApplicationController::class, "updateStatus"]);
             });
         });
 

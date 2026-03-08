@@ -232,7 +232,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isAr ? 'ابحث في الأسئلة الشائعة...' : 'Search FAQs...'}
-                className="w-full pl-9 md:pl-12 pr-4 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-sm md:text-base text-gov-forest dark:text-white placeholder:text-gray-400"
+                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-sm md:text-base text-gov-forest dark:text-white placeholder:text-gray-400"
               />
             </div>
           </motion.div>

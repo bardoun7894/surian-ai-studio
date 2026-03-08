@@ -31,6 +31,8 @@ import { Ticket, Suggestion, Favorite } from '@/types';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import dynamic from "next/dynamic";
+const GovernmentPartners = dynamic(() => import("@/components/GovernmentPartners"));
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getPhoneHelperText, detectCountryRule, normalizePhoneWithCountryCode } from '@/lib/phone';
@@ -1456,6 +1458,8 @@ export default function UserDashboard() {
         )}
       </AnimatePresence>
 
+      {/* Government Partners Section */}
+      <GovernmentPartners />
       <Footer
         onIncreaseFont={() => { }}
         onDecreaseFont={() => { }}

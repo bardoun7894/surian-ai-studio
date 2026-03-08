@@ -202,7 +202,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
                 {directorate.logo && directorate.logo.trim() !== '' && !imageError ? (
                   <Image
                     id="directorate-logo"
-                    src={directorate.logo.startsWith('http') ? directorate.logo : directorate.logo}
+                    src={directorate.logo.startsWith('http') ? directorate.logo : directorate.logo.startsWith('/storage') ? (process.env.NEXT_PUBLIC_BACKEND_URL || '') + directorate.logo : directorate.logo}
                     alt={loc(directorate, 'name')}
                     fill
                     priority

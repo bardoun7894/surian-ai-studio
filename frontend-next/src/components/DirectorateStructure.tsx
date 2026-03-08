@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Directorate, DirectorateTeam } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
-import { User, Crown, Briefcase, Users } from 'lucide-react';
+import { User, Crown, Briefcase, Users, ChevronDown } from 'lucide-react';
 
 interface DirectorateStructureProps {
     team: DirectorateTeam[];
@@ -107,6 +107,7 @@ const HorizontalBranch: React.FC<{ count: number }> = ({ count }) => {
 };
 
 const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, directorate }) => {
+    const [expandedSection, setExpandedSection] = useState<string>("deputies");
     const { t, language } = useLanguage();
     const isAr = language === 'ar';
 
@@ -177,10 +178,11 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                             <VerticalLine height="h-10 md:h-12" />
 
                             {/* ── Level 1: Deputies ── */}
-                            <div className="mb-2 text-xs font-bold text-gov-forest/70 dark:text-gov-teal uppercase tracking-wider">
+                            <button onClick={() => setExpandedSection(expandedSection === 'deputies' ? '' : 'deputies')} className="mb-2 text-xs font-bold text-gov-forest/70 dark:text-gov-teal uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-gov-gold transition-colors">
                                 {isAr ? 'المستوى الإشرافي' : 'Supervisory Level'}
-                            </div>
-                            <div className="w-full">
+                            <ChevronDown size={14} className={expandedSection === "deputies" ? "rotate-180 transition-transform" : "transition-transform"} /></button>
+                            {expandedSection === 'deputies' && (
+                            <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
                                 {/* Horizontal branch line (desktop) */}
                                 <HorizontalBranch count={deputies.length} />
 
@@ -203,6 +205,7 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                                     ))}
                                 </div>
                             </div>
+                            )}
                         </>
                     )}
 
@@ -212,10 +215,11 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                             <VerticalLine height="h-8 md:h-10" className="mt-6" />
 
                             {/* ── Level 2: Department Members ── */}
-                            <div className="mb-2 text-xs font-bold text-gov-charcoal/50 dark:text-white/50 uppercase tracking-wider">
+                            <button onClick={() => setExpandedSection(expandedSection === "members" ? "" : "members")} className="mb-2 text-xs font-bold text-gov-charcoal/50 dark:text-white/50 uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-gov-gold transition-colors">
                                 {isAr ? 'المستوى التنفيذي - الأقسام' : 'Operational Level - Departments'}
-                            </div>
-                            <div className="w-full">
+                            <ChevronDown size={14} className={expandedSection === "members" ? "rotate-180 transition-transform" : "transition-transform"} /></button>
+                            {expandedSection === 'members' && (
+                            <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
                                 <HorizontalBranch count={members.length} />
 
                                 <div className={`
@@ -231,6 +235,7 @@ const DirectorateStructure: React.FC<DirectorateStructureProps> = ({ team, direc
                                     ))}
                                 </div>
                             </div>
+                            )}
                         </>
                     )}
                 </div>

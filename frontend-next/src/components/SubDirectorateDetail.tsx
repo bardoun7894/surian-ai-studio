@@ -118,7 +118,7 @@ const SubDirectorateDetail = () => {
                                     {parentName}
                                 </Link>
                             </div>
-                            <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{name}</h1>
+                            <h1 className="text-base sm:text-xl md:text-3xl lg:text-4xl font-display font-bold mb-4">{name}</h1>
                         </div>
 
                         {/* Navigation arrows between sibling sub-directorates */}

@@ -178,7 +178,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
             {/* Administrations & Sub-Directorates Hierarchical View */}
             <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 -mt-6 md:-mt-8 relative z-20">
                 <div className="flex flex-col gap-5 md:gap-8">
-                    {directorates.slice(0, 3).map((admin, index) => (
+                    {directorates.map((admin, index) => (
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}

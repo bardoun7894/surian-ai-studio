@@ -42,6 +42,13 @@ type ViewMode = 'grid' | 'list';
 export default function MediaPage() {
   const { language, t } = useLanguage();
   const isAr = language === 'ar';
+
+  // Helper to get localized media title
+  const getMediaTitle = (item: MediaItem) => {
+    if (language === 'en' && item.title_en) return item.title_en;
+    if (item.title_ar) return item.title_ar;
+    return item.title;
+  };
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -163,7 +170,7 @@ export default function MediaPage() {
       const response = await fetch(url);
       const blob = await response.blob();
       const ext = blob.type.split('/')[1]?.split('+')[0] || url.split('.').pop()?.split('?')[0] || 'jpg';
-      const filename = `${item.title || 'download'}.${ext}`;
+      const filename = `${getMediaTitle(item) || 'download'}.${ext}`;
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
@@ -243,7 +250,7 @@ export default function MediaPage() {
 
   const handleShare = (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    setShareData({ title: item.title, url: window.location.href });
+    setShareData({ title: getMediaTitle(item), url: window.location.href });
   };
 
   const handleOpenAlbum = async (item: MediaItem) => {
@@ -281,7 +288,7 @@ export default function MediaPage() {
       return (
         <iframe
           src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
-          title={item.title}
+          title={getMediaTitle(item)}
           allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className="absolute inset-0 w-full h-full border-0 z-10"
@@ -429,14 +436,14 @@ export default function MediaPage() {
                       }
                     }}
                     className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
-                      viewMode === 'list' ? 'flex' : ''
+                      viewMode === 'list' ? 'flex items-center' : ''
                     } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
                       item.type !== 'video' ? 'cursor-pointer' : ''
                     }`}
                   >
                     {/* Thumbnail / Inline Video Player */}
                     <div className={`relative overflow-hidden ${
-                      viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
+                      viewMode === 'list' ? 'w-40 sm:w-48 md:w-56 aspect-video flex-shrink-0' : 'w-full aspect-video'
                     } bg-black`}>
 
                       {/* Show inline player when playing */}
@@ -452,7 +459,7 @@ export default function MediaPage() {
                           )}
                           <Image
                             src={item.thumbnailUrl}
-                            alt={item.title}
+                            alt={getMediaTitle(item)}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
@@ -533,7 +540,7 @@ export default function MediaPage() {
                             size={14}
                             className="!w-8 !h-8"
                             metadata={{
-                              title: item.title,
+                              title: getMediaTitle(item),
                               description: '',
                               image: item.thumbnailUrl || '',
                               url: `/media#${item.id}`
@@ -563,7 +570,7 @@ export default function MediaPage() {
                     {/* Content */}
                     <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
                       <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2">
-                        {item.title}
+                        {getMediaTitle(item)}
                       </h3>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gov-gold/50">
@@ -580,7 +587,7 @@ export default function MediaPage() {
                               variant="compact"
                               size={14}
                               metadata={{
-                                title: item.title,
+                                title: getMediaTitle(item),
                                 description: '',
                                 image: item.thumbnailUrl || '',
                                 url: `/media#${item.id}`
@@ -673,7 +680,7 @@ export default function MediaPage() {
                 {isYouTubeUrl(expandedVideo.url) ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
-                    title={expandedVideo.title}
+                    title={getMediaTitle(expandedVideo)}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full border-0"
@@ -731,7 +738,7 @@ export default function MediaPage() {
               </div>
 
               <div className="p-4 bg-gov-forest text-white">
-                <h3 className="text-lg font-bold">{expandedVideo.title}</h3>
+                <h3 className="text-lg font-bold">{getMediaTitle(expandedVideo)}</h3>
                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-300">
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />
@@ -800,7 +807,7 @@ export default function MediaPage() {
               <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden bg-black">
                 <Image
                   src={expandedImage.thumbnailUrl || expandedImage.url || ''}
-                  alt={expandedImage.title}
+                  alt={getMediaTitle(expandedImage)}
                   fill
                   className="object-contain"
                   sizes="100vw"
@@ -809,7 +816,7 @@ export default function MediaPage() {
 
               <div className="mt-4 flex items-center justify-between text-white">
                 <div>
-                  <h3 className="text-lg font-bold">{expandedImage.title}</h3>
+                  <h3 className="text-lg font-bold">{getMediaTitle(expandedImage)}</h3>
                   <span className="text-sm text-gray-300 flex items-center gap-1 mt-1">
                     <Calendar size={14} />
                     {expandedImage.date}
@@ -839,7 +846,7 @@ export default function MediaPage() {
             >
               <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gov-gold/20">
                 <div className="text-white">
-                  <h3 className="text-lg font-bold">{albumData?.title || expandedAlbum.title}</h3>
+                  <h3 className="text-lg font-bold">{(language === 'en' && albumData?.title_en ? albumData.title_en : albumData?.title) || getMediaTitle(expandedAlbum)}</h3>
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-300">
                     <span className="flex items-center gap-1">
                       <Calendar size={14} />

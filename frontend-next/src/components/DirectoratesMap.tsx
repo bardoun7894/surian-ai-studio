@@ -143,6 +143,7 @@ function DirectoratesMap() {
                     fill={geoFill}
                     stroke={geoStroke}
                     strokeWidth={0.5}
+                    onClick={() => setSelectedDirectorate(null)}
                     style={{
                       default: { outline: "none" },
                       hover: {
@@ -171,6 +172,7 @@ function DirectoratesMap() {
                     setTooltip(null);
                   }}
                   onClick={() => {
+                    if (selectedDirectorate?.id === d.id) { setSelectedDirectorate(null); return; }
                     setSelectedDirectorate(d);
                   }}
                 >

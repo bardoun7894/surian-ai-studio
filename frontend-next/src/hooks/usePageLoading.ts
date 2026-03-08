@@ -19,6 +19,8 @@ import { useLoading } from "@/contexts/LoadingContext";
 export function usePageLoading(isDataLoading: boolean) {
   const { registerPageLoad, completePageLoad } = useLoading();
   const registeredRef = useRef(false);
+  const completeRef = useRef(completePageLoad);
+  completeRef.current = completePageLoad;
 
   useEffect(() => {
     if (isDataLoading && !registeredRef.current) {
@@ -31,11 +33,12 @@ export function usePageLoading(isDataLoading: boolean) {
       completePageLoad();
     }
 
-    // Cleanup: if the component unmounts while still loading, complete the load
+    // Cleanup: if the component unmounts while still loading, complete the load.
+    // Use ref to avoid stale closure during hydration recovery teardown.
     return () => {
       if (registeredRef.current) {
         registeredRef.current = false;
-        completePageLoad();
+        completeRef.current?.();
       }
     };
   }, [isDataLoading, registerPageLoad, completePageLoad]);

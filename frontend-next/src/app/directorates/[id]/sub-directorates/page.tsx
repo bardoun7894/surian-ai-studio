@@ -36,7 +36,7 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-16 md:pt-[5.75rem]">
+                <main className="flex-grow flex items-center justify-center pt-0">
                     <Loader2 className="animate-spin text-gov-gold" size={40} />
                 </main>
                 <Footer />
@@ -48,7 +48,7 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center pt-16 md:pt-[5.75rem]">
+                <main className="flex-grow flex items-center justify-center pt-0">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-4">
                             {language === 'ar' ? 'الإدارة غير موجودة' : 'Directorate Not Found'}
@@ -69,7 +69,7 @@ export default function SubDirectoratesPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-16 md:pt-[5.75rem]">
+            <main className="flex-grow pt-0">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">

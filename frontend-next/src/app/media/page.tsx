@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
@@ -156,6 +157,7 @@ export default function MediaPage() {
 
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
+    toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
 
     try {
       const response = await fetch(url);
@@ -346,7 +348,7 @@ export default function MediaPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-16 md:pt-[5.75rem]">
+      <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4">

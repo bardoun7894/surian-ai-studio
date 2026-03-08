@@ -34,6 +34,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PhoneInput from '@/components/ui/PhoneInput';
 import { useRouter } from 'next/navigation';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 
 export default function ProfilePage() {
     const { language, t } = useLanguage();
@@ -305,7 +306,7 @@ export default function ProfilePage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
             <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
-            <main className="flex-grow pt-24 pb-12">
+            <main className="flex-grow pt-0 pb-12">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-8">
@@ -877,7 +878,7 @@ export default function ProfilePage() {
                                             ? (language === 'ar' ? (complaint.directorate.name_ar || complaint.directorate.name) : (complaint.directorate.name_en || complaint.directorate.name))
                                             : (typeof complaint.directorate === 'string' ? complaint.directorate : null);
                                         const formattedDate = complaint.created_at
-                                            ? new Date(complaint.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                            ? formatDateUtil(complaint.created_at, language as 'ar' | 'en')
                                             : '';
                                         return (
                                             <div
@@ -965,7 +966,7 @@ export default function ProfilePage() {
                                         };
                                         const suggInfo = suggStatusMap[suggestion.status] || suggStatusMap['pending'];
                                         const formattedDate = suggestion.created_at
-                                            ? new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                            ? formatDateUtil(suggestion.created_at, language as 'ar' | 'en')
                                             : '';
                                         return (
                                             <div

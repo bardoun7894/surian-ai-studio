@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Map as MapIcon, Loader2, CheckCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Map as MapIcon, Loader2, CheckCircle, Building2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Navbar from '@/components/Navbar';
@@ -28,7 +28,8 @@ export default function ContactPage() {
         name: '',
         email: '',
         subject: '',
-        message: ''
+        message: '',
+        department: 'general'
     });
 
     useEffect(() => {
@@ -50,9 +51,16 @@ export default function ContactPage() {
         try {
             await API.settings.submitContactForm(formData);
             setIsSuccess(true);
-            setFormData({ name: '', email: '', subject: '', message: '' });
-        } catch {
-            setError(language === 'ar' ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'An error occurred. Please try again.');
+            setFormData({ name: '', email: '', subject: '', message: '', department: 'general' });
+        } catch (err: any) {
+            const msg = err?.message || '';
+            if (msg.includes('mail') || msg.includes('Mail') || msg.includes('SMTP')) {
+                setError(language === 'ar'
+                    ? 'تم حفظ رسالتك بنجاح ولكن تعذر إرسال إشعار بالبريد الإلكتروني. سيتم الرد عليك قريباً.'
+                    : 'Your message was saved but email notification could not be sent. We will respond to you shortly.');
+            } else {
+                setError(language === 'ar' ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'An error occurred. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -210,6 +218,24 @@ export default function ContactPage() {
                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                                 className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Building2 size={14} className="text-gov-gold" />
+                                                    {language === 'ar' ? 'القسم' : 'Department'}
+                                                </span>
+                                            </label>
+                                            <select
+                                                required
+                                                value={formData.department}
+                                                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white"
+                                            >
+                                                <option value="general">{language === 'ar' ? 'الإدارة العامة' : 'General Administration'}</option>
+                                                <option value="complaints">{language === 'ar' ? 'قسم الشكاوى' : 'Complaints Department'}</option>
+                                                <option value="media">{language === 'ar' ? 'الإدارة الإعلامية' : 'Media Department'}</option>
+                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الرسالة' : 'Message'}</label>

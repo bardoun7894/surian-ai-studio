@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ContactSection from '@/components/ContactSection';
 
 const SubDirectorateDetail = () => {
     const { id, subId } = useParams();
@@ -102,10 +103,10 @@ const SubDirectorateDetail = () => {
                 </div>
 
                 <div className="container mx-auto px-6 relative z-10">
-                    <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex flex-row items-start md:items-center gap-4 md:gap-6">
                         <Link
                             href={`/directorates/${id}`}
-                            className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0"
+                            className="p-2 md:p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0 self-start mt-1 md:mt-0"
                         >
                             <ChevronLeft size={24} className={isAr ? "rotate-180" : ""} />
                         </Link>
@@ -285,14 +286,19 @@ const SubDirectorateDetail = () => {
                                 </div>
                             </div>
 
-                            <button className="w-full mt-8 py-3 bg-gov-teal text-white rounded-xl hover:bg-gov-emerald transition-colors font-bold shadow-lg shadow-gov-teal/20">
+                            <a href="#contact-section" className="block w-full mt-8 py-3 bg-gov-teal text-white rounded-xl hover:bg-gov-emerald transition-colors font-bold shadow-lg shadow-gov-teal/20 text-center">
                                 {t('contact_us')}
-                            </button>
+                            </a>
                         </div>
                             );
                         })()}
                     </div>
                 </div>
+            </div>
+
+            {/* Contact Form */}
+            <div id="contact-section" className="mt-12">
+                <ContactSection />
             </div>
         </div>
     );

@@ -47,7 +47,7 @@ export default function FAQPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-16 md:pt-[5.75rem]">
+            <main className="flex-grow pt-0">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">

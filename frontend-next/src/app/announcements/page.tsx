@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, ChevronDown, Loader2, X, Share2, RotateCcw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
-import { getLocalizedField } from '@/lib/utils';
+import { getLocalizedField, formatDate as formatDateUtil } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ShareMenu from '@/components/ShareMenu';
@@ -252,11 +252,8 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return language === 'ar'
-      ? date.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
-      : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatDate = (dateStr: string): string => {
+    return formatDateUtil(dateStr, language as "ar" | "en");
   };
 
   // Clear all filters
@@ -289,7 +286,7 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
+      <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-16 transition-colors duration-500">
           {/* Hero Header */}
           <div className="bg-gov-forest dark:bg-gov-forest/80 py-10 md:py-16 mb-6 md:mb-8 animate-fade-in-up">

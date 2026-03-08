@@ -113,7 +113,7 @@ export default function NationalIdField({
             case 'verified':
                 return 'border-emerald-500 dark:border-gov-emerald focus-within:border-emerald-500 dark:focus-within:border-gov-emerald';
             case 'error':
-                return 'border-gov-red focus-within:border-gov-red';
+                return 'border-red-500 dark:border-red-400 focus-within:border-red-500 dark:focus-within:border-red-400';
             case 'mismatch':
                 return 'border-orange-400 focus-within:border-orange-500';
             default:
@@ -147,7 +147,7 @@ export default function NationalIdField({
             case 'verified':
                 return 'text-emerald-600 dark:text-emerald-400';
             case 'error':
-                return 'text-gov-red';
+                return 'text-red-500 dark:text-red-400';
             case 'mismatch':
                 return 'text-orange-600 dark:text-orange-400';
             default:

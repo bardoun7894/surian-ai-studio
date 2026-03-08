@@ -239,7 +239,7 @@ export default function ProfilePage() {
         setPhoneError(null);
         setPhoneSuccess(null);
         try {
-            await API.profile.update({ phone: newPhone });
+            await API.users.updateProfile({ phone: newPhone });
             await refreshUser();
             setPhoneSuccess(language === 'ar' ? 'تم تحديث رقم الهاتف بنجاح' : 'Phone number updated successfully');
             setPhoneEditMode(false);
@@ -263,6 +263,34 @@ export default function ProfilePage() {
         setIsLoading(true);
         setSuccess(false);
         setError(null);
+
+        // Validate required fields
+            if (!formData.first_name.trim()) {
+                setError(language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required');
+                setIsLoading(false);
+                return;
+            }
+            if (!formData.last_name.trim()) {
+                setError(language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required');
+                setIsLoading(false);
+                return;
+            }
+            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                setError(language === 'ar' ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email format');
+                setIsLoading(false);
+                return;
+            }
+            // Validate password match
+            if (formData.password && formData.password !== formData.password_confirmation) {
+                setError(language === 'ar' ? 'كلمة المرور وتأكيدها غير متطابقين' : 'Password and confirmation do not match');
+                setIsLoading(false);
+                return;
+            }
+            if (formData.password && formData.password.length < 8) {
+                setError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+                setIsLoading(false);
+                return;
+            }
 
         try {
             const updateData: any = { ...formData };
@@ -657,7 +685,7 @@ export default function ProfilePage() {
                                                 <div className="space-y-3">
                                                     <PhoneInput
                                                         value={newPhone}
-                                                        onChange={(e) => setNewPhone(e.target.value)}
+                                                        onChange={(val) => setNewPhone(val)}
                                                         placeholder={language === 'ar' ? 'أدخل رقم الهاتف الجديد' : 'Enter new phone number'}
                                                     />
                                                     <div className="flex gap-3">
@@ -790,7 +818,7 @@ export default function ProfilePage() {
                                                     type={showPassword ? 'text' : 'password'}
                                                     value={formData.password_confirmation}
                                                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-                                                    className={`w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
+                                                    className={`w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
                                                         ${formData.password_confirmation && formData.password_confirmation === formData.password && formData.password.length >= 8
                                                             ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : formData.password_confirmation && formData.password_confirmation !== formData.password
@@ -807,6 +835,12 @@ export default function ProfilePage() {
                                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                                 </button>
                                             </div>
+                                            {formData.password_confirmation && formData.password_confirmation !== formData.password && (
+                                                <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                                                    <AlertCircle size={12} />
+                                                    {language === 'ar' ? 'كلمة المرور غير متطابقة' : 'Passwords do not match'}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -1143,11 +1177,7 @@ export default function ProfilePage() {
                 </div>
             </main>
 
-            <Footer
-                onIncreaseFont={() => { }}
-                onDecreaseFont={() => { }}
-                onToggleContrast={() => { }}
-            />
+            <Footer />
         </div>
     );
 }

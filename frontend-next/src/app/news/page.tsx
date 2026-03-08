@@ -521,7 +521,7 @@ function NewsPageContent() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow pt-[4.5rem] md:pt-[5.5rem]">
+      <main className="flex-grow pt-0">
         {/* Hero Header */}
         <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
           <div className="max-w-7xl mx-auto">

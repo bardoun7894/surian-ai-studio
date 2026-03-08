@@ -1515,7 +1515,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                 return (!selectedTemplateId || selectedTmpl?.type === 'open');
                             })() && (
-                                    // {/* Complaint Details */}
+                                    <>
+                                    {/* Complaint Details */}
                                     <Textarea
                                         label={t('complaint_details')}
                                         required
@@ -1525,6 +1526,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
                                         containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
                                     />
+                                    <p className={`text-xs mt-1 ${formData.details.length < 20 ? 'text-gray-400 dark:text-white/50' : 'text-green-500 dark:text-emerald-400'}`}>
+                                        {isAr
+                                            ? `${formData.details.length}/20 حرف (الحد الأدنى 20 حرف)`
+                                            : `${formData.details.length}/20 characters (minimum 20 characters)`}
+                                    </p>
+                                    </>
                                 )}
 
 
@@ -1580,7 +1587,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     {isSubmitting ? t('complaint_sending') : t('complaint_submit')}
                                 </button>
                                 {submitError && (
-                                    <p className="mt-3 text-sm text-gov-cherry font-medium" role="alert">
+                                    <p className="mt-3 text-sm text-red-600 dark:text-red-300 font-bold" role="alert">
                                         {submitError}
                                     </p>
                                 )}
@@ -1728,7 +1735,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>
                                 </button>
-                                {trackError && <p className="text-gov-cherry text-sm mt-2 text-center">{trackError}</p>}
+                                {trackError && <p className="text-red-600 dark:text-red-300 text-sm mt-2 text-center font-bold">{trackError}</p>}
                             </form>
 
                             {trackingResult && (

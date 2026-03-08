@@ -416,11 +416,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
           </div>
 
-          <div className={`flex flex-row items-center justify-center gap-2 sm:gap-4 pt-4 md:pt-6 w-full px-2 sm:px-0 mx-auto md:mx-0`}>
+          <div className={`grid grid-cols-3 sm:flex sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 md:pt-6 w-full px-2 sm:px-0 mx-auto md:mx-0`}>
             {/* Our Services Button */}
             <Link
               href="/services"
-              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-sm sm:shadow-xl border border-gov-gold/10 sm:border-gov-gold/30"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
@@ -438,7 +438,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             {/* Our News Button */}
             <Link
               href="/news"
-              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-sm sm:shadow-xl border border-gov-gold/10 sm:border-gov-gold/30"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
@@ -456,7 +456,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             {/* Complaints & Suggestions Button */}
             <Link
               href="/complaints"
-              className="animate-btn group relative flex-[1.4] sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-sm sm:shadow-xl border border-gov-gold/10 sm:border-gov-gold/30"
+              className="animate-btn group relative flex-[1.4] sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />

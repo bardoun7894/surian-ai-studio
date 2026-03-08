@@ -84,6 +84,17 @@ const nextConfig = {
     ];
   },
 
+  // #523: Retry failed chunk loads
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.output = {
+        ...config.output,
+        chunkLoadTimeout: 30000, // 30s timeout instead of default 120s
+      };
+    }
+    return config;
+  },
+
   // Headers for security and CORS
   async headers() {
     return [

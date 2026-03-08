@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import LayoutExtras from "@/components/LayoutExtras";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
+import ChunkErrorHandler from "@/components/ChunkErrorHandler";
 
 // Google Fonts
 const cairo = Cairo({
@@ -140,6 +141,7 @@ export default function RootLayout({
         <Providers>
           <ClientLayoutWrapper>
             <LayoutExtras />
+            <ChunkErrorHandler />
             {children}
           </ClientLayoutWrapper>
         </Providers>

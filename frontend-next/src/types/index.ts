@@ -148,6 +148,8 @@ export interface Decree {
 export interface MediaItem {
   id: string;
   title: string;
+  title_ar?: string;
+  title_en?: string;
   type: 'video' | 'photo' | 'infographic';
   thumbnailUrl: string;
   url?: string;

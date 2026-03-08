@@ -18,7 +18,12 @@ class CheckRole
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         if (! $request->user()) {
-            return response()->json(['message' => 'Unauthorized action.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصادق. يرجى تسجيل الدخول.',
+                'message_en' => 'Unauthenticated. Please log in.',
+                'error_code' => 'UNAUTHENTICATED',
+            ], 401);
         }
 
         foreach ($permissions as $permission) {
@@ -27,6 +32,11 @@ class CheckRole
             }
         }
 
-        return response()->json(['message' => 'Unauthorized action.'], 403);
+        return response()->json([
+            'success' => false,
+            'message' => 'غير مصرح لك بتنفيذ هذا الإجراء.',
+            'message_en' => 'Unauthorized action.',
+            'error_code' => 'FORBIDDEN',
+        ], 403);
     }
 }

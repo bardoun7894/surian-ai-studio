@@ -141,10 +141,20 @@ export default function AnnouncementsPage() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const isAr = language === 'ar';
+
+  // Debounce searchQuery into debouncedSearch
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, [searchQuery]);
 
   // Debounce search input
   useEffect(() => {

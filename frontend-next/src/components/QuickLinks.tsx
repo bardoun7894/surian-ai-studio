@@ -339,7 +339,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
                   </div>
 
                   {/* Label */}
-                  <span className="text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-nowrap leading-tight transition-colors z-10 flex items-center pr-2">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-normal leading-tight transition-colors z-10 flex items-center pr-2">
                     {label}
                   </span>
 

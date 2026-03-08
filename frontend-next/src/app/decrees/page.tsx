@@ -125,15 +125,27 @@ export default function DecreesPage() {
     }
   };
 
-  // M7.11: Download handler
-  const handleDownload = (decree: Decree) => {
+  // M7.11: Download handler (#531 fix: use fetch+blob for proper download)
+  const handleDownload = async (decree: Decree) => {
     if (decree.attachments && decree.attachments.length > 0) {
-      // Download first attachment (usually the PDF)
       const attachment = decree.attachments[0];
-      window.open(attachment.download_url, "_blank");
+      try {
+        const response = await fetch(attachment.download_url);
+        if (!response.ok) throw new Error("Download failed");
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = attachment.file_name || `decree-${decree.number || decree.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } catch {
+        // Fallback: open in new tab
+        window.open(attachment.download_url, "_blank");
+      }
     } else {
-      // Fallback: if no attachments, show a message or open content in new window
-      // For now, open the detail modal so user can see the full text
       setDetailModal({ isOpen: true, decree });
     }
   };
@@ -335,7 +347,7 @@ export default function DecreesPage() {
                   <Calendar size={12} />
                 </button>
                 {showMonthDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => {
                         setSelectedMonth(null);
@@ -419,7 +431,7 @@ export default function DecreesPage() {
                     setSelectedYear(null);
                     setFilterDirectorate("all");
                   }}
-                  className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
+                  className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry dark:text-red-400 hover:bg-gov-cherry/10 dark:hover:bg-red-400/10 transition-all flex items-center gap-1"
                 >
                   <X size={12} />
                   {isAr ? "مسح" : "Clear"}
@@ -647,9 +659,9 @@ export default function DecreesPage() {
 
       <Footer />
 
-      {/* AI Summary Modal */}
+      {/* AI Summary Modal (#530 fix: z-[60] so it appears above detail modal z-50) */}
       {summaryModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15">
               <div className="flex items-center gap-2 text-gov-gold">

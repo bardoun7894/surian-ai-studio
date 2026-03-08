@@ -170,12 +170,12 @@ export default function Breadcrumbs() {
   });
 
   return (
-    <nav
+    <><style dangerouslySetInnerHTML={{ __html: `.bc-scroll::-webkit-scrollbar { display: none; }` }} /><nav
       aria-label="Breadcrumb"
       dir={isRtl ? 'rtl' : 'ltr'}
       className="pt-[60px] md:pt-[90px] px-4 sm:px-6 lg:px-8 bg-gov-beige dark:bg-dm-bg border-b border-gray-200/60 dark:border-gov-border/10"
     >
-      <ol className="flex items-center flex-nowrap md:flex-wrap gap-1 sm:gap-1.5 md:gap-2 text-[11px] md:text-[13px] leading-none max-w-7xl mx-auto py-2.5 md:py-3 overflow-x-auto">
+      <ol className="flex items-center flex-nowrap md:flex-wrap gap-1 sm:gap-1.5 md:gap-2 text-[11px] md:text-[13px] leading-normal max-w-7xl mx-auto py-2.5 md:py-3 overflow-x-auto bc-scroll" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <li className="inline-flex items-center">
           <Link
             href="/"
@@ -189,7 +189,7 @@ export default function Breadcrumbs() {
           <li key={crumb.path} className="inline-flex items-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0">
             <span className="shrink-0 text-gray-400/60 dark:text-white/30"><Separator size={14} /></span>
             {crumb.isLast ? (
-              <span className="text-gov-stone dark:text-white/60 font-medium truncate max-w-[150px] md:max-w-none">{crumb.label}</span>
+              <span className="text-gov-stone dark:text-white/60 font-medium truncate max-w-[150px] md:max-w-none py-0.5">{crumb.label}</span>
             ) : (
               <Link
                 href={crumb.path}
@@ -201,6 +201,6 @@ export default function Breadcrumbs() {
           </li>
         ))}
       </ol>
-    </nav>
+    </nav></>
   );
 }

@@ -46,6 +46,7 @@ class ComplaintRateLimitMiddleware
                 'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
                 'retry_after' => $availableAt,
             ], 429);
+        }
 
         // Process the request
         $response = $next($request);

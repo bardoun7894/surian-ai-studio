@@ -235,9 +235,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 title: language === 'ar' ? 'التشريعات' : 'Legislation',
                 items: [
                   { label: language === 'ar' ? 'قوانين الوزارة' : 'Ministry Laws', href: '/decrees?dept=ministry', icon: Scale },
-                  { label: language === 'ar' ? 'قوانين الصناعة' : 'Industry Laws', href: '/decrees?dept=industry', icon: Building2 },
-                  { label: language === 'ar' ? 'قوانين التجارة الداخلية' : 'Internal Trade Laws', href: '/decrees?dept=trade', icon: Scale },
-                  { label: language === 'ar' ? 'قوانين الاقتصاد' : 'Economy Laws', href: '/decrees?dept=economy', icon: TrendingUp },
+                  { label: language === 'ar' ? 'قوانين الإدارة العامة للصناعة' : 'Industry Laws', href: '/decrees?dept=industry', icon: Building2 },
+                  { label: language === 'ar' ? 'قوانين الإدارة العامة للتجارة الداخلية' : 'Internal Trade Laws', href: '/decrees?dept=trade', icon: Scale },
+                  { label: language === 'ar' ? 'قوانين الإدارة العامة للاقتصاد' : 'Economy Laws', href: '/decrees?dept=economy', icon: TrendingUp },
                 ]
               }
             ]}
@@ -513,19 +513,19 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                       <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
                         <Building2 size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
                       </div>
-                      <span>{language === 'ar' ? 'قوانين الصناعة' : 'Industry Laws'}</span>
+                      <span>{language === 'ar' ? 'قوانين الإدارة العامة للصناعة' : 'Industry Laws'}</span>
                     </Link>
                     <Link href="/decrees?dept=trade" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
                       <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
                         <Scale size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
                       </div>
-                      <span>{language === 'ar' ? 'قوانين التجارة الداخلية' : 'Internal Trade Laws'}</span>
+                      <span>{language === 'ar' ? 'قوانين الإدارة العامة للتجارة الداخلية' : 'Internal Trade Laws'}</span>
                     </Link>
                     <Link href="/decrees?dept=economy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gov-charcoal dark:text-white/90 hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors">
                       <div className="w-8 h-8 rounded-lg bg-gov-forest/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
                         <TrendingUp size={16} className="text-gov-forest/70 dark:text-gov-gold/70" />
                       </div>
-                      <span>{language === 'ar' ? 'قوانين الاقتصاد' : 'Economy Laws'}</span>
+                      <span>{language === 'ar' ? 'قوانين الإدارة العامة للاقتصاد' : 'Economy Laws'}</span>
                     </Link>
                   </div>
 

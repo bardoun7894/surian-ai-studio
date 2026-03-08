@@ -24,7 +24,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                             ${error
                                 ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 dark:focus:border-gov-cherry focus:ring-2 focus:ring-red-500/20 dark:focus:ring-gov-cherry/20'
                                 : isValid
-                                    ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                    ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                     : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                             }
                             ${className || ''}`}
@@ -35,7 +35,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                     {(error || isValid) && (
                         <div className={`absolute top-3 right-3 rtl:right-auto rtl:left-3 pointer-events-none`}>
                             {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
-                            {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />}
+                            {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                         </div>
                     )}
                 </div>

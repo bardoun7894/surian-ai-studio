@@ -57,12 +57,12 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.97 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className={`absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gray-200/80 dark:border-gov-border/25 z-50 overflow-hidden ${language === 'ar' ? 'right-0' : 'left-0'
-                            } ${isMultiSection ? 'w-auto min-w-[420px]' : 'w-auto min-w-[220px]'}`}
+                        className={`absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-2xl border border-gray-200/80 dark:border-gov-border/25 z-50 overflow-visible ${language === 'ar' ? 'right-0' : 'left-0'
+                            } ${isMultiSection ? 'w-auto min-w-[520px]' : 'w-auto min-w-[220px]'}`}
                     >
                         <div className={`${isMultiSection ? 'flex divide-x rtl:divide-x-reverse divide-gray-100 dark:divide-white/5' : ''}`}>
                             {sections.map((section, idx) => (
-                                <div key={idx} className={`py-2.5 pb-4 ${isMultiSection ? 'flex-1 min-w-[200px]' : ''}`}>
+                                <div key={idx} className={`py-2.5 pb-5 ${isMultiSection ? "flex-1 min-w-[200px]" : ""}`}>
                                     {section.title && (
                                         <div className="px-4 pt-3 pb-2 mb-1">
                                             <span className="text-[10px] font-bold text-gov-sand dark:text-gov-gold/70 uppercase tracking-wider">
@@ -86,11 +86,11 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ label, sections, active, onMouseEnt
                                                     </div>
                                                 )}
                                                 <div className="min-w-0">
-                                                    <span className="block font-semibold text-sm leading-tight group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors whitespace-nowrap">
+                                                    <span className="block font-semibold text-sm leading-tight group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors ">
                                                         {item.label}
                                                     </span>
                                                     {item.description && (
-                                                        <span className="block text-xs text-gray-400 dark:text-white/40 mt-0.5 whitespace-nowrap">
+                                                        <span className="block text-xs text-gray-400 dark:text-white/40 mt-0.5 ">
                                                             {item.description}
                                                         </span>
                                                     )}

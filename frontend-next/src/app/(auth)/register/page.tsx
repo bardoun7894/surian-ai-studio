@@ -148,6 +148,24 @@ const RegisterPage = () => {
             return t('validation_required');
         }
 
+        if (phoneValidation.reason === 'invalid_length' && phoneValidation.countryCode === '+963') {
+            return language === 'ar'
+                ? `يجب أن يتكون رقم الهاتف السوري من ${phoneValidation.maxDigits} أرقام`
+                : `Syrian phone number must be ${phoneValidation.maxDigits} digits`;
+        }
+
+        if (phoneValidation.reason === 'invalid_format' && phoneValidation.countryCode === '+963') {
+            return language === 'ar'
+                ? 'يجب أن يبدأ رقم الهاتف السوري بالرقم 9 ويتكون من 9 أرقام'
+                : 'Syrian phone number must start with 9 and be 9 digits';
+        }
+
+        if (phoneValidation.reason === 'invalid_length' && phoneValidation.maxDigits) {
+            return language === 'ar'
+                ? `رقم الهاتف يجب أن يتكون من ${phoneValidation.maxDigits} أرقام`
+                : `Phone number must be ${phoneValidation.maxDigits} digits`;
+        }
+
         return t('validation_phone_invalid');
     };
 
@@ -166,9 +184,29 @@ const RegisterPage = () => {
         const errors: Record<string, string> = {};
 
         if (step === 1) {
+            // #507: Validate national ID and birth date
+            if (!formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim())) {
+                errors.nationalId = language === 'ar' ? '\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a \u064a\u062c\u0628 \u0623\u0646 \u064a\u062a\u0643\u0648\u0646 \u0645\u0646 11 \u0631\u0642\u0645\u0627\u064b' : 'National ID must be exactly 11 digits';
+            }
             const birthDateError = validateBirthDate(formData.birthDate);
             if (birthDateError) {
                 errors.birthDate = birthDateError;
+            }
+        }
+
+        if (step === 2) {
+            // #507: Validate names and governorate
+            if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
+                errors.firstName = language === 'ar' ? '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0623\u0648\u0644 \u0645\u0637\u0644\u0648\u0628 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'First name is required (min 2 characters)';
+            }
+            if (!formData.fatherName.trim() || formData.fatherName.trim().length < 2) {
+                errors.fatherName = language === 'ar' ? '\u0627\u0633\u0645 \u0627\u0644\u0623\u0628 \u0645\u0637\u0644\u0648\u0628 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'Father name is required (min 2 characters)';
+            }
+            if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
+                errors.lastName = language === 'ar' ? '\u0627\u0644\u0643\u0646\u064a\u0629 \u0645\u0637\u0644\u0648\u0628\u0629 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'Last name is required (min 2 characters)';
+            }
+            if (!formData.governorate) {
+                errors.governorate = language === 'ar' ? '\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0645\u062d\u0627\u0641\u0638\u0629' : 'Please select a governorate';
             }
         }
 
@@ -203,9 +241,27 @@ const RegisterPage = () => {
     const validateBeforeSubmit = (): boolean => {
         const errors: Record<string, string> = {};
 
+        // Step 1 fields
+        if (!formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim())) {
+            errors.nationalId = language === 'ar' ? '\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a \u064a\u062c\u0628 \u0623\u0646 \u064a\u062a\u0643\u0648\u0646 \u0645\u0646 11 \u0631\u0642\u0645\u0627\u064b' : 'National ID must be exactly 11 digits';
+        }
         const birthDateError = validateBirthDate(formData.birthDate);
         if (birthDateError) {
             errors.birthDate = birthDateError;
+        }
+
+        // Step 2 fields
+        if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
+            errors.firstName = language === 'ar' ? '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0623\u0648\u0644 \u0645\u0637\u0644\u0648\u0628' : 'First name is required';
+        }
+        if (!formData.fatherName.trim() || formData.fatherName.trim().length < 2) {
+            errors.fatherName = language === 'ar' ? '\u0627\u0633\u0645 \u0627\u0644\u0623\u0628 \u0645\u0637\u0644\u0648\u0628' : 'Father name is required';
+        }
+        if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
+            errors.lastName = language === 'ar' ? '\u0627\u0644\u0643\u0646\u064a\u0629 \u0645\u0637\u0644\u0648\u0628\u0629' : 'Last name is required';
+        }
+        if (!formData.governorate) {
+            errors.governorate = language === 'ar' ? '\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0645\u062d\u0627\u0641\u0638\u0629' : 'Please select a governorate';
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -262,8 +318,10 @@ const RegisterPage = () => {
 
         if (!validateBeforeSubmit()) {
             const birthDateError = validateBirthDate(formData.birthDate);
+            const hasNationalIdError = !formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim());
+            const hasNameError = !formData.firstName.trim() || !formData.fatherName.trim() || !formData.lastName.trim() || !formData.governorate;
             const hasPasswordError = !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
-            setCurrentStep(birthDateError ? 1 : hasPasswordError ? 4 : 3);
+            setCurrentStep(hasNationalIdError || birthDateError ? 1 : hasNameError ? 2 : hasPasswordError ? 4 : 3);
             return;
         }
 
@@ -450,10 +508,10 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="flex items-start justify-center gap-1 sm:gap-3 mb-4 px-2">
                         {steps.map((step, index) => (
                             <React.Fragment key={step.num}>
-                                <div className="flex flex-col items-center cursor-pointer" onClick={() => step.num < currentStep && setCurrentStep(step.num)}>
+                                <div className="flex flex-col items-center cursor-pointer min-w-[3.5rem] md:min-w-[4.5rem]" onClick={() => step.num < currentStep && setCurrentStep(step.num)}>
                                     <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${currentStep > step.num
                                         ? 'bg-gov-gold text-gov-forest'
                                         : currentStep === step.num
@@ -462,13 +520,13 @@ const RegisterPage = () => {
                                         }`}>
                                         {currentStep > step.num ? <CheckCircle size={18} /> : step.num}
                                     </div>
-                                    <span className={`text-[10px] md:text-xs mt-1 font-medium ${currentStep >= step.num ? 'text-gov-teal dark:text-gov-gold' : 'text-gray-400'
+                                    <span className={`text-[10px] md:text-xs mt-1 font-medium text-center whitespace-nowrap ${currentStep >= step.num ? 'text-gov-teal dark:text-gov-gold' : 'text-gray-400'
                                         }`}>
                                         {step.title}
                                     </span>
                                 </div>
                                 {index < steps.length - 1 && (
-                                    <div className={`flex-1 h-0.5 rounded ${currentStep > step.num ? 'bg-gov-gold' : 'bg-gray-200 dark:bg-white/10'
+                                    <div className={`flex-1 h-0.5 rounded self-start mt-[14px] md:mt-[16px] ${currentStep > step.num ? 'bg-gov-gold' : 'bg-gray-200 dark:bg-white/10'
                                         }`} style={{ minWidth: '2rem' }} />
                                 )}
                             </React.Fragment>

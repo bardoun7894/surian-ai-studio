@@ -29,8 +29,33 @@ export default function ContactPage() {
         email: '',
         subject: '',
         message: '',
-        department: 'general'
+        department: ''
     });
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+    // #425/#348: Validate all contact form fields
+    const validateForm = (): boolean => {
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim() || formData.name.trim().length < 3) {
+            errors.name = language === 'ar' ? 'الاسم مطلوب (3 أحرف على الأقل)' : 'Name is required (min 3 characters)';
+        }
+        if (!formData.email.trim()) {
+            errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            errors.email = language === 'ar' ? 'البريد الإلكتروني غير صالح' : 'Invalid email address';
+        }
+        if (!formData.subject.trim() || formData.subject.trim().length < 5) {
+            errors.subject = language === 'ar' ? 'الموضوع مطلوب (5 أحرف على الأقل)' : 'Subject is required (min 5 characters)';
+        }
+        if (!formData.department) {
+            errors.department = language === 'ar' ? 'يرجى اختيار القسم المعني' : 'Please select a department';
+        }
+        if (!formData.message.trim() || formData.message.trim().length < 10) {
+            errors.message = language === 'ar' ? 'الرسالة مطلوبة (10 أحرف على الأقل)' : 'Message is required (min 10 characters)';
+        }
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     useEffect(() => {
         const fetchContactInfo = async () => {
@@ -46,8 +71,10 @@ export default function ContactPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
         setIsSubmitting(true);
         setError('');
+        setFieldErrors({});
         try {
             await API.settings.submitContactForm(formData);
             setIsSuccess(true);
@@ -80,7 +107,7 @@ export default function ContactPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow pt-16 md:pt-[5.75rem]">
+            <main className="flex-grow pt-0">
                 {/* Header */}
                 <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-10 md:py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
@@ -194,9 +221,10 @@ export default function ContactPage() {
                                                     type="text"
                                                     required
                                                     value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
+                                                    onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setFieldErrors(prev => ({ ...prev, name: '' })); }}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.name ? 'border-red-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors`}
                                                 />
+                                                {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
@@ -204,9 +232,10 @@ export default function ContactPage() {
                                                     type="email"
                                                     required
                                                     value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
+                                                    onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setFieldErrors(prev => ({ ...prev, email: '' })); }}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.email ? 'border-red-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors`}
                                                 />
+                                                {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                                             </div>
                                         </div>
                                         <div>
@@ -215,9 +244,10 @@ export default function ContactPage() {
                                                 type="text"
                                                 required
                                                 value={formData.subject}
-                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors"
+                                                onChange={(e) => { setFormData({ ...formData, subject: e.target.value }); setFieldErrors(prev => ({ ...prev, subject: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.subject ? 'border-red-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors`}
                                             />
+                                            {fieldErrors.subject && <p className="text-red-500 text-xs mt-1">{fieldErrors.subject}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">
@@ -229,13 +259,16 @@ export default function ContactPage() {
                                             <select
                                                 required
                                                 value={formData.department}
-                                                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white"
+                                                onChange={(e) => { setFormData({ ...formData, department: e.target.value }); setFieldErrors(prev => ({ ...prev, department: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.department ? 'border-red-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white`}
                                             >
+                                                <option value="">{language === 'ar' ? '-- اختر القسم المعني --' : '-- Select Department --'}</option>
                                                 <option value="general">{language === 'ar' ? 'الإدارة العامة' : 'General Administration'}</option>
                                                 <option value="complaints">{language === 'ar' ? 'قسم الشكاوى' : 'Complaints Department'}</option>
                                                 <option value="media">{language === 'ar' ? 'الإدارة الإعلامية' : 'Media Department'}</option>
+                                                <option value="investment">{language === 'ar' ? 'قسم الاستثمار' : 'Investment Department'}</option>
                                             </select>
+                                            {fieldErrors.department && <p className="text-red-500 text-xs mt-1">{fieldErrors.department}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الرسالة' : 'Message'}</label>
@@ -243,9 +276,10 @@ export default function ContactPage() {
                                                 required
                                                 rows={5}
                                                 value={formData.message}
-                                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                                className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 focus:border-gov-teal outline-none transition-colors resize-none"
+                                                onChange={(e) => { setFormData({ ...formData, message: e.target.value }); setFieldErrors(prev => ({ ...prev, message: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.message ? 'border-red-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors resize-none`}
                                             />
+                                            {fieldErrors.message && <p className="text-red-500 text-xs mt-1">{fieldErrors.message}</p>}
                                         </div>
                                         <button
                                             type="submit"

@@ -105,28 +105,33 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        // Rate Limiting (T050): 3 complaints per day per user/national_id/IP
-        // Skip for whitelisted IPs
-        $whitelistedIps = ['196.70.75.216'];
-        if (!in_array($request->ip(), $whitelistedIps, true)) {
-            // Use user ID if authenticated, national_id if provided, fallback to IP
-            $limiterIdentifier = $request->user()
-                ? 'user_' . $request->user()->id
-                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
-            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
-            if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
-                return response()->json(['message' => 'Daily complaint limit reached.'], 429);
-            }
-        }
+        // Rate Limiting: Handled by ComplaintRateLimitMiddleware (per-user/IP, #487 fix)
 
-        // Validate Request including CAPTCHA
+        // Validate Request including CAPTCHA (#488: Full form validation)
         $request->validate([
-            'directorate_id' => 'nullable|exists:directorates,id',
-            'description' => 'required|string|min:10',
+            'full_name' => 'required|string|min:3|max:255',
+            'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
+            'phone' => 'required|string|min:7|max:20',
+            'email' => 'nullable|email:rfc|max:255',
+            'directorate_id' => 'required|exists:directorates,id',
+            'description' => 'required|string|min:10|max:5000',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
             'attachments' => 'max:5', // Max 5 files
             'recaptcha_token' => 'nullable|string', // Optional pending Config
             'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
+        ], [
+            'full_name.required' => "الاسم الكامل مطلوب",
+            'full_name.min' => "الاسم يجب أن يتكون من 3 أحرف على الأقل",
+            'national_id.required' => "الرقم الوطني مطلوب",
+            'national_id.size' => "الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط",
+            'national_id.regex' => "الرقم الوطني يجب أن يحتوي على أرقام فقط",
+            'phone.required' => "رقم الهاتف مطلوب",
+            'phone.min' => "رقم الهاتف غير صالح",
+            'directorate_id.required' => "يرجى تحديد الجهة المختصة",
+            'directorate_id.exists' => "الجهة المختصة غير موجودة",
+            'description.required' => "وصف الشكوى مطلوب",
+            'description.min' => "وصف الشكوى يجب أن يتكون من 10 أحرف على الأقل",
+            'description.max' => "وصف الشكوى يجب ألا يتجاوز 5000 حرف",
         ]);
 
         // Verify CAPTCHA (T060)
@@ -242,15 +247,6 @@ class ComplaintController extends Controller
         // Clean up consumed temp files
         foreach ($consumedTempPaths as $tempPath) {
             Storage::disk("local")->delete($tempPath);
-        }
-
-        // Hit rate limiter for non-whitelisted IPs
-        if (!in_array($request->ip(), ['196.70.75.216'], true)) {
-            $limiterIdentifier = $request->user()
-                ? 'user_' . $request->user()->id
-                : ($request->input('national_id') ? 'nid_' . $request->input('national_id') : 'ip_' . $request->ip());
-            $limiterKey = 'complaint_submit_' . $limiterIdentifier;
-            RateLimiter::hit($limiterKey, 86400); // 1 day decay
         }
 
         // Audit Log
@@ -612,11 +608,12 @@ class ComplaintController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // FR-22: Only allow deletion if status is 'new' or 'received'
-        $allowedStatuses = ['new', 'pending'];
+        // FR-22: Only allow deletion if status is 'new' or 'received' (#185 fix)
+        $allowedStatuses = ['new', 'received'];
         if (!in_array($complaint->status, $allowedStatuses)) {
             return response()->json([
-                'message' => 'Cannot delete complaint. Only complaints with status "new" or "pending" can be deleted.',
+                'message' => "لا يمكن حذف الشكوى. يمكن حذف الشكاوى الواردة فقط.",
+                'message_en' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
                 'current_status' => $complaint->status
             ], 400);
         }

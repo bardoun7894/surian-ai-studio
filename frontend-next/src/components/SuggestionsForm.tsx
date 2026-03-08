@@ -381,36 +381,53 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
         }
         if (step === 1) {
             if (!isAnonymous) {
-                if (!formData.firstName.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
+                    toast.error(isAr ? 'الاسم الأول مطلوب (حرفان على الأقل)' : 'First name is required (at least 2 characters)');
                     return false;
                 }
-                if (!formData.lastName.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
+                    toast.error(isAr ? 'الكنية مطلوبة (حرفان على الأقل)' : 'Last name is required (at least 2 characters)');
                     return false;
                 }
-                if (!formData.fatherName.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                if (!formData.fatherName.trim() || formData.fatherName.trim().length < 2) {
+                    toast.error(isAr ? 'اسم الأب مطلوب (حرفان على الأقل)' : 'Father name is required (at least 2 characters)');
                     return false;
                 }
-                if (!formData.nationalId.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                if (!formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim())) {
+                    toast.error(isAr ? 'الرقم الوطني يجب أن يتكون من 11 رقماً' : 'National ID must be exactly 11 digits');
                     return false;
                 }
                 if (!formData.phone.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                    toast.error(isAr ? 'رقم الهاتف مطلوب' : 'Phone number is required');
+                    return false;
+                }
+                const phoneCheck = validatePhoneWithCountryCode(formData.phone);
+                if (!phoneCheck.isValid) {
+                    toast.error(isAr ? 'رقم الهاتف غير صالح' : 'Invalid phone number');
                     return false;
                 }
                 if (!formData.email.trim()) {
-                    toast.error(t('suggestion_required_fields'));
+                    toast.error(isAr ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+                    return false;
+                }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+                    toast.error(isAr ? 'البريد الإلكتروني غير صالح' : 'Invalid email address');
                     return false;
                 }
             }
             return true;
         }
         if (step === 2) {
+            if (!formData.directorate_id) {
+                toast.error(isAr ? 'يرجى تحديد الجهة المختصة' : 'Please select a target entity');
+                return false;
+            }
             if (!formData.description.trim()) {
                 toast.error(t('suggestion_required_fields'));
+                return false;
+            }
+            if (formData.description.trim().length < 10) {
+                toast.error(isAr ? 'الوصف يجب أن يكون 10 أحرف على الأقل' : 'Description must be at least 10 characters');
                 return false;
             }
             return true;

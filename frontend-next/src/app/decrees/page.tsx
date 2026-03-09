@@ -125,26 +125,12 @@ export default function DecreesPage() {
     }
   };
 
-  // M7.11: Download handler (#531 fix: use fetch+blob for proper download)
+  // M7.11: PDF handler - opens in new tab for viewing/printing
   const handleDownload = async (decree: Decree) => {
     if (decree.attachments && decree.attachments.length > 0) {
       const attachment = decree.attachments[0];
-      try {
-        const response = await fetch(attachment.download_url);
-        if (!response.ok) throw new Error("Download failed");
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = attachment.file_name || `decree-${decree.number || decree.id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      } catch {
-        // Fallback: open in new tab
-        window.open(attachment.download_url, "_blank");
-      }
+      // Open PDF in new tab for viewing/printing
+      window.open(attachment.download_url, "_blank");
     } else {
       setDetailModal({ isOpen: true, decree });
     }

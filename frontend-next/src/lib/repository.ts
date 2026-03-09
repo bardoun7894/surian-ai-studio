@@ -215,7 +215,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve({
         id: ticketId,
         status: 'in_progress',
-        lastUpdate: new Date().toLocaleDateString('ar-SY'),
+        lastUpdate: new Date().toLocaleDateString('ar-SY-u-nu-latn'),
         notes: 'الطلب قيد المراجعة من قبل القسم الفني (بيانات محاكاة).'
       }), 1000);
     });

@@ -194,7 +194,7 @@ export default function BackupManagementPage() {
                   <td className="p-4 text-sm text-gray-600 dark:text-white/70">
                     <div className="flex items-center gap-1">
                       <Clock size={14} />
-                      {new Date(backup.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                      {new Date(backup.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                     </div>
                   </td>
                   <td className="p-4">

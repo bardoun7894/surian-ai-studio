@@ -163,13 +163,13 @@ const NewsSection: React.FC = () => {
             /* Horizontal scroll carousel */
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-4 px-4 scrollbar-hide"
+              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {allNews.map((item) => (
                 <article
                   key={item.id}
-                  className="news-card group flex-shrink-0 w-[65vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-lg md:rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  className="news-card group flex-shrink-0 w-[65vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-lg md:rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col first:ms-0 last:me-0"
                 >
                   {item.imageUrl && (
                     <div className="h-28 md:h-40 overflow-hidden relative">

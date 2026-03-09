@@ -146,13 +146,13 @@ export default function ContentFilter({
 
             {/* Secondary Filters Row (Date, Extras, Count) */}
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
-                <div className="flex flex-row flex-wrap items-center justify-between gap-2 sm:gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-2 sm:p-4">
+                <div className="flex flex-row flex-wrap items-center justify-between gap-1.5 sm:gap-4 bg-white dark:bg-gov-card/10 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gov-border/15 p-1.5 sm:p-4">
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-auto">
 
                         {/* Date Filters */}
                         {showDateFilter && (
-                            <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5 sm:gap-3 flex-wrap">
                                 <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
                                     <Clock size={16} />
                                     <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>

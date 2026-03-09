@@ -167,7 +167,7 @@ export default function WebhookManagementPage() {
                   )}
                   {webhook.last_triggered_at && (
                     <p className="text-xs text-gray-400 mt-2">
-                      {language === 'ar' ? 'آخر تشغيل:' : 'Last triggered:'} {new Date(webhook.last_triggered_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                      {language === 'ar' ? 'آخر تشغيل:' : 'Last triggered:'} {new Date(webhook.last_triggered_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                     </p>
                   )}
                 </div>

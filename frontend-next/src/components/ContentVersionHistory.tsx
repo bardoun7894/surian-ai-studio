@@ -205,7 +205,7 @@ export default function ContentVersionHistory({ contentId, isOpen, onClose, onRe
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat(language === 'ar' ? 'ar-SY' : 'en-US', {
+    return new Intl.DateTimeFormat(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

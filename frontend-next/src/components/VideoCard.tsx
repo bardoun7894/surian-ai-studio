@@ -425,8 +425,8 @@ export default function VideoCard({
                             </div>
                         )}
                         {/* M6.10: On mobile, show a tap hint when playing */}
-                        {title && !(isMobile && isPlaying) && (
-                            <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                        {title && (
+                            <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-10 ${(isMobile && isPlaying) ? 'opacity-0 pointer-events-none' : isHovered ? 'opacity-100' : isMobile ? 'opacity-100' : 'opacity-0'}`}>
                                 <span className="text-white text-sm font-medium truncate block">{title}</span>
                             </div>
                         )}

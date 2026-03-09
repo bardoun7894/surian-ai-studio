@@ -351,7 +351,7 @@ function SemanticSearchPageContent() {
                   {result.published_at && (
                     <div className="flex items-center gap-1.5">
                       <Calendar size={12} />
-                      <span>{new Date(result.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span>{new Date(result.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}</span>
                     </div>
                   )}
 

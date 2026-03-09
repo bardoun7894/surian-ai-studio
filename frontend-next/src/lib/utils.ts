@@ -120,8 +120,8 @@ export function formatNumber(
   const formatted = new Intl.NumberFormat('en-US', options).format(n);
 
   if (locale === 'ar') {
-    // Convert digits AND swap comma separators to the Arabic comma
-    return toArabicIndic(formatted).replace(/,/g, '٬');
+    // Use Latin digits consistently, just swap comma to Arabic comma
+    return formatted.replace(/,/g, '٬');
   }
   return formatted;
 }
@@ -135,7 +135,8 @@ export function formatNumber(
  */
 export function localizeDigits(str: string, locale: 'ar' | 'en'): string {
   if (!str) return '';
-  if (locale === 'ar') return toArabicIndic(str);
+  // Keep Latin digits consistently in both languages
+  if (locale === 'ar') return str;
   return str;
 }
 
@@ -166,10 +167,8 @@ export function formatDate(
   const formatted = date.toLocaleDateString('en-US', opts);
 
   if (locale === 'ar') {
-    // Get the Arabic month names by formatting with ar locale
-    const arFormatted = date.toLocaleDateString('ar-EG', opts);
-    // Replace any leftover Latin digits with Arabic-Indic
-    return toArabicIndic(arFormatted);
+    // Use Latin digits consistently (ar-u-nu-latn gives Arabic month names + Latin digits)
+    return date.toLocaleDateString('ar-EG-u-nu-latn', opts);
   }
   return formatted;
 }

@@ -184,7 +184,7 @@ export default function ChatHandoffsPage() {
                       {t.statuses[h.status] || h.status}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {new Date(h.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                      {new Date(h.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                     </span>
                   </div>
                   <p className="font-bold text-gov-charcoal dark:text-white text-sm">
@@ -264,7 +264,7 @@ export default function ChatHandoffsPage() {
                       >
                         <p className="text-sm text-gray-800 dark:text-white/70">{msg.content}</p>
                         <span className="text-xs text-gray-400 mt-1 block">
-                          {new Date(msg.created_at).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
+                          {new Date(msg.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                         </span>
                       </div>
                     ))

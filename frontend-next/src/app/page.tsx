@@ -13,7 +13,7 @@ import ScrollAnimation from '@/components/ui/ScrollAnimation';
 
 // Dynamic imports for below-fold components
 const SectionSkeleton = () => <div className="w-full py-12"><div className="max-w-7xl mx-auto px-4"><div className="h-64 bg-gray-100 dark:bg-dm-surface rounded-2xl animate-pulse" /></div></div>;
-const NewsSection = dynamic(() => import('@/components/NewsSection'), { loading: () => <SectionSkeleton /> });
+const NewsSection = dynamic(() => import('@/components/NewsSection'), { ssr: false, loading: () => <SectionSkeleton /> });
 const Announcements = dynamic(() => import('@/components/Announcements'), { loading: () => <SectionSkeleton /> });
 const HomeComplaintsSection = dynamic(() => import('@/components/HomeComplaintsSection'), { loading: () => <SectionSkeleton /> });
 const QuickLinks = dynamic(() => import('@/components/QuickLinks'), { loading: () => <SectionSkeleton /> });

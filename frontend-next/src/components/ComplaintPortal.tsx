@@ -1489,8 +1489,12 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             value={formData.phone}
                                             onChange={(val) => {
                                                 setFormData({ ...formData, phone: val });
+                                                if (val.length > 4) {
+                                                    setTouched(prev => ({ ...prev, phone: true }));
+                                                    validateField('phone', val);
+                                                }
                                             }}
-                                            onBlur={() => validateField('phone', formData.phone)}
+                                            onBlur={() => { setTouched(prev => ({ ...prev, phone: true })); validateField('phone', formData.phone); }}
                                             error={touched.phone ? errors.phone : undefined}
                                             isValid={touched.phone && !errors.phone && formData.phone.length > 10}
                                             disabled={shouldLockPersonalInfo}

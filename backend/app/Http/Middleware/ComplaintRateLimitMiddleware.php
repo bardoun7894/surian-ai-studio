@@ -58,14 +58,14 @@ class ComplaintRateLimitMiddleware
                 ],
             ];
 
+
+            $isSuggestion = str_contains($request->path(), 'suggestion');
+            $label = $isSuggestion ? 'اقتراحات' : 'شكاوى';
+
             return response()->json([
-                'error' => $errorMessages[$locale]['error'],
-                'error_ar' => $errorMessages['ar']['error'],
-                'error_en' => $errorMessages['en']['error'],
-                'message' => $errorMessages[$locale]['message'],
-                'message_ar' => $errorMessages['ar']['message'],
-                'message_en' => $errorMessages['en']['message'],
-                'retry_after' => $secondsUntilMidnight,
+                'error' => "تم تجاوز الحد المسموح من ال{$label} اليومية",
+                'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
+                'retry_after' => $availableAt,
             ], 429);
         }
 
@@ -88,20 +88,15 @@ class ComplaintRateLimitMiddleware
      */
     private function getRateLimitKey(Request $request): string
     {
-        $today = Carbon::today()->toDateString(); // e.g. 2026-03-05
+        // Determine prefix based on route (complaints vs suggestions)
+        $prefix = str_contains($request->path(), 'suggestion') ? 'suggestion_limit' : 'complaint_limit';
 
         // Prefer user ID for authenticated users
         if ($request->user()) {
-            return "complaint_daily_{$today}_user_" . $request->user()->id;
+            return $prefix . '_user_' . $request->user()->id;
         }
 
-        // Use national_id if provided (for guest submissions)
-        $nationalId = $request->input('national_id');
-        if ($nationalId) {
-            return "complaint_daily_{$today}_nid_{$nationalId}";
-        }
-
-        // Fall back to IP address for anonymous guests
-        return "complaint_daily_{$today}_ip_" . $request->ip();
+        // Fall back to IP address for guests
+        return $prefix . '_ip_' . $request->ip();
     }
 }

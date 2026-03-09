@@ -35,6 +35,7 @@ class QuickLinkController extends Controller
             'url' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
             'section' => 'nullable|string|max:255',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
         ]);
@@ -58,6 +59,7 @@ class QuickLinkController extends Controller
             'url' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
             'section' => 'nullable|string|max:255',
+            'directorate_id' => 'nullable|string|exists:directorates,id',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
         ]);

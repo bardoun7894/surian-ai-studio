@@ -155,7 +155,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                         {/* Status Icons */}
                         {(error || isValid) && (
                             <div className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none`}>
-                                {error && <AlertCircle size={18} className="text-red-500 dark:text-red-400" />}
+                                {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
                                 {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                             </div>
                         )}

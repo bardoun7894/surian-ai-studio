@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide native browser password reveal toggle icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+
+
 /* Qomra Font (Official Government Font) */
 @font-face {
   font-family: 'Qomra';
@@ -257,6 +268,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @layer utilities {
+  /* Utility: hide scrollbar for horizontal scroll containers */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
@@ -684,22 +704,82 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   /* --- Images in Print --- */
   img {
     max-width: 100% !important;
+    width: auto !important;
     height: auto !important;
+    float: none !important;
+    position: static !important;
+    display: block !important;
+    margin: 0.5rem auto !important;
+    object-fit: contain !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
     break-inside: avoid !important;
-    display: block !important;
+    page-break-inside: avoid !important;
     visibility: visible !important;
   }
 
-  /* Ensure Next.js Image wrappers are visible */
+  /* Ensure Next.js Image wrappers are visible and properly laid out */
   img[src],
   picture,
-  [data-nimg] {
+  [data-nimg],
+  [data-nimg] img {
     visibility: visible !important;
     display: block !important;
     opacity: 1 !important;
+    float: none !important;
+    position: static !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Prose/article image containers */
+  .prose img,
+  article img,
+  .news-content img,
+  [class*="article"] img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    float: none !important;
+    position: static !important;
+    margin: 0.75rem 0 !important;
+    object-fit: contain !important;
+  }
+
+  /* --- Featured Article Image: preserve dimensions in print --- */
+  .print-featured-image {
+    position: relative !important;
+    height: 300pt !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-featured-image img,
+  .print-featured-image [data-nimg] {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .print-featured-image > div:not(:has(img)) {
+    display: none !important;
+  }
+
+  /* Fix relative/absolute image wrappers in print */
+  .relative:has(img),
+  .absolute:has(img) {
+    position: static !important;
+    float: none !important;
+    overflow: visible !important;
   }
 
   /* --- News Article Images in Print --- */
@@ -1139,11 +1219,16 @@ body.high-contrast {
   fill: #FFFF00 !important;
 }
 
-/* Hide scrollbar utility for horizontal scroll containers */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* Lenis Smooth Scroll */
+html.lenis, html.lenis body {
+  height: auto;
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }

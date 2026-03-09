@@ -194,7 +194,7 @@ class UserController extends Controller
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
-            'password' => 'nullable|min:8|confirmed',
+            'password' => ['nullable', 'min:8', 'confirmed', 'regex:/[0-9]/'],
         ];
 
         // Require current_password when changing password
@@ -202,7 +202,12 @@ class UserController extends Controller
             $rules['current_password'] = 'required|string';
         }
 
-        $request->validate($rules);
+        $request->validate($rules, [
+            'password.min' => __('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+            'password.confirmed' => __('تأكيد كلمة المرور غير مطابق'),
+            'password.regex' => __('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل'),
+            'current_password.required' => __('يجب إدخال كلمة المرور الحالية'),
+        ]);
 
         // Verify current password before allowing change
         if ($request->filled('password')) {
@@ -233,11 +238,20 @@ class UserController extends Controller
         
         $this->auditService->log($user, 'profile_updated', 'user', $user->id, [
             'old' => $oldData,
-            'new' => $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate'])
+            'new' => $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate']),
+            'password_changed' => $request->filled('password'),
         ]);
 
+        $message = $request->filled('password')
+            ? 'تم تحديث البيانات وكلمة المرور بنجاح'
+            : 'تم تحديث البيانات بنجاح';
+
         return response()->json([
-            'message' => 'Profile updated.',
+            'message' => $message,
+            'message_en' => $request->filled('password')
+                ? 'Profile and password updated successfully.'
+                : 'Profile updated successfully.',
+            'password_changed' => $request->filled('password'),
             'user' => $user->load('role', 'directorate')
         ]);
     }
@@ -470,21 +484,57 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'father_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
+            'first_name' => 'required|string|min:2|max:255',
+            'father_name' => 'required|string|min:2|max:255',
+            'last_name' => 'required|string|min:2|max:255',
+            'email' => 'required|email:rfc,dns|unique:users,email',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/[A-Z]/',      // At least one uppercase letter
+                'regex:/[a-z]/',      // At least one lowercase letter
+                'regex:/[0-9]/',      // At least one number
+                'regex:/[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?`~]/', // At least one special character
+            ],
             'national_id' => 'required|string|size:11|regex:/^\d{11}$/|unique:users,national_id',
-            'phone' => 'required|string',
-            'birth_date' => 'required|date',
+            'phone' => 'required|string|min:7|max:20',
+            'birth_date' => 'required|date|before:today',
             'governorate' => 'required|string|max:255',
             'recaptcha_token' => 'nullable|string',
         ], [
+            // Name fields
+            'first_name.required' => __('validation.required', ['attribute' => __('validation.attributes.first_name', [], 'ar') ?: 'الاسم الأول']),
+            'first_name.min' => __('validation.min.string', ['attribute' => __('validation.attributes.first_name', [], 'ar') ?: 'الاسم الأول', 'min' => 2]),
+            'father_name.required' => __('validation.required', ['attribute' => __('validation.attributes.father_name', [], 'ar') ?: 'اسم الأب']),
+            'father_name.min' => __('validation.min.string', ['attribute' => __('validation.attributes.father_name', [], 'ar') ?: 'اسم الأب', 'min' => 2]),
+            'last_name.required' => __('validation.required', ['attribute' => __('validation.attributes.last_name', [], 'ar') ?: 'الكنية']),
+            'last_name.min' => __('validation.min.string', ['attribute' => __('validation.attributes.last_name', [], 'ar') ?: 'الكنية', 'min' => 2]),
+            // Email
+            'email.required' => __('validation.required', ['attribute' => __('validation.attributes.email')]),
+            'email.email' => __('validation.email', ['attribute' => __('validation.attributes.email')]),
+            'email.unique' => __('validation.unique', ['attribute' => __('validation.attributes.email')]),
+            // Password
+            'password.required' => __('validation.required', ['attribute' => __('validation.attributes.password')]),
+            'password.min' => __('validation.min.string', ['attribute' => __('validation.attributes.password'), 'min' => 8]),
+            'password.confirmed' => __('validation.confirmed', ['attribute' => __('validation.attributes.password')]),
+            'password.regex' => __('validation.regex', ['attribute' => __('validation.attributes.password')]),
+            // National ID
             'national_id.required' => 'الرقم الوطني مطلوب',
             'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
             'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
             'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
+            // Phone
+            'phone.required' => __('validation.required', ['attribute' => __('validation.attributes.phone')]),
+            'phone.min' => __('validation.min.string', ['attribute' => __('validation.attributes.phone'), 'min' => 7]),
+            'phone.max' => __('validation.max.string', ['attribute' => __('validation.attributes.phone'), 'max' => 20]),
+            // Birth date
+            'birth_date.required' => __('validation.required', ['attribute' => __('validation.attributes.birth_date')]),
+            'birth_date.date' => __('validation.date', ['attribute' => __('validation.attributes.birth_date')]),
+            'birth_date.before' => __('validation.before', ['attribute' => __('validation.attributes.birth_date'), 'date' => 'today']),
+            // Governorate
+            'governorate.required' => __('validation.required', ['attribute' => __('validation.attributes.governorate')]),
         ]);
 
         $citizenRole = Role::where('name', 'citizen')->first();

@@ -397,11 +397,11 @@ export default function AdminNewslettersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 dark:text-white/70">
-                        {new Date(subscriber.subscribed_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                        {new Date(subscriber.subscribed_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 dark:text-white/70">
                         {subscriber.unsubscribed_at
-                          ? new Date(subscriber.unsubscribed_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')
+                          ? new Date(subscriber.unsubscribed_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')
                           : '-'}
                       </td>
                       <td className="px-6 py-4">

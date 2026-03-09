@@ -1,4 +1,5 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search, HelpCircle, Loader2 } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function FAQPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
 
     useEffect(() => {
         const fetchFaqs = async () => {
@@ -51,7 +53,7 @@ export default function FAQPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow">
+            <main className="flex-grow pt-0">
                 <div className="bg-gov-forest text-white py-16 px-4 animate-fade-in-up">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">

@@ -31,6 +31,8 @@ import { Ticket, Suggestion, Favorite } from '@/types';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import dynamic from "next/dynamic";
+const GovernmentPartners = dynamic(() => import("@/components/GovernmentPartners"));
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getPhoneHelperText, detectCountryRule, normalizePhoneWithCountryCode } from '@/lib/phone';
@@ -175,7 +177,7 @@ export default function UserDashboard() {
             id: n.id,
             title: n.data?.title || (language === 'ar' ? 'إشعار' : 'Notification'),
             message: n.data?.message || n.data?.body || '',
-            time: new Date(n.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US'),
+            time: new Date(n.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US'),
             read: !!n.read_at
           })));
         }
@@ -858,7 +860,7 @@ export default function UserDashboard() {
                               <span className="font-mono bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs">#{complaint.tracking_number}</span>
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
-                                {complaint.created_at ? new Date(complaint.created_at).toLocaleDateString('ar-u-nu-latn') : '-'}
+                                {complaint.created_at ? new Date(complaint.created_at).toLocaleDateString('ar-SY-u-nu-latn') : '-'}
                               </span>
                             </div>
                           </div>
@@ -926,7 +928,7 @@ export default function UserDashboard() {
                               <span className="font-mono bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs">#{suggestion.tracking_number}</span>
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
-                                {new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                                {new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                               </span>
                             </div>
                           </div>
@@ -1023,7 +1025,7 @@ export default function UserDashboard() {
                             {/* Date */}
                             <p className="text-xs text-gray-400 dark:text-white/40 flex items-center gap-1 mb-4">
                               <Calendar size={12} />
-                              {new Date(fav.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                              {new Date(fav.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                             </p>
 
                             {/* View Details Button */}
@@ -1456,6 +1458,8 @@ export default function UserDashboard() {
         )}
       </AnimatePresence>
 
+      {/* Government Partners Section */}
+      <GovernmentPartners />
       <Footer
         onIncreaseFont={() => { }}
         onDecreaseFont={() => { }}

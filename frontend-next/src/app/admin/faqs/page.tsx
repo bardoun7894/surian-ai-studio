@@ -435,7 +435,7 @@ export default function AdminFaqsPage() {
                         </td>
                         <td className="px-6 py-4">{getStatusBadge(faq.status)}</td>
                         <td className="px-6 py-4 text-sm text-gov-stone dark:text-gov-beige/60 font-mono">
-                          {new Date(faq.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                          {new Date(faq.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2 items-center">

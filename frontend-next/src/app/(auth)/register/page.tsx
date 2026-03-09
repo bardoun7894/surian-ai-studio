@@ -29,6 +29,7 @@ import { useRecaptcha } from '@/hooks/useRecaptcha';
 import PhoneInput from '@/components/ui/PhoneInput';
 import NationalIdField from '@/components/NationalIdField';
 import { validatePhoneWithCountryCode } from '@/lib/phone';
+import DatePicker from '@/components/ui/DatePicker';
 
 const RegisterPage = () => {
     const { language, t } = useLanguage();
@@ -148,6 +149,24 @@ const RegisterPage = () => {
             return t('validation_required');
         }
 
+        if (phoneValidation.reason === 'invalid_length' && phoneValidation.countryCode === '+963') {
+            return language === 'ar'
+                ? `يجب أن يتكون رقم الهاتف السوري من ${phoneValidation.maxDigits} أرقام`
+                : `Syrian phone number must be ${phoneValidation.maxDigits} digits`;
+        }
+
+        if (phoneValidation.reason === 'invalid_format' && phoneValidation.countryCode === '+963') {
+            return language === 'ar'
+                ? 'يجب أن يبدأ رقم الهاتف السوري بالرقم 9 ويتكون من 9 أرقام'
+                : 'Syrian phone number must start with 9 and be 9 digits';
+        }
+
+        if (phoneValidation.reason === 'invalid_length' && phoneValidation.maxDigits) {
+            return language === 'ar'
+                ? `رقم الهاتف يجب أن يتكون من ${phoneValidation.maxDigits} أرقام`
+                : `Phone number must be ${phoneValidation.maxDigits} digits`;
+        }
+
         return t('validation_phone_invalid');
     };
 
@@ -166,7 +185,10 @@ const RegisterPage = () => {
         const errors: Record<string, string> = {};
 
         if (step === 1) {
-            // National ID is validated by the NationalIdField component, but check birthDate
+            // #507: Validate national ID and birth date
+            if (!formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim())) {
+                errors.nationalId = language === 'ar' ? '\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a \u064a\u062c\u0628 \u0623\u0646 \u064a\u062a\u0643\u0648\u0646 \u0645\u0646 11 \u0631\u0642\u0645\u0627\u064b' : 'National ID must be exactly 11 digits';
+            }
             const birthDateError = validateBirthDate(formData.birthDate);
             if (birthDateError) {
                 errors.birthDate = birthDateError;
@@ -174,30 +196,28 @@ const RegisterPage = () => {
         }
 
         if (step === 2) {
-            // Validate required text fields
-            if (!formData.firstName.trim()) {
-                errors.firstName = language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required';
+            // #507: Validate names and governorate
+            if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
+                errors.firstName = language === 'ar' ? '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0623\u0648\u0644 \u0645\u0637\u0644\u0648\u0628 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'First name is required (min 2 characters)';
             }
-            if (!formData.fatherName.trim()) {
-                errors.fatherName = language === 'ar' ? 'اسم الأب مطلوب' : 'Father name is required';
+            if (!formData.fatherName.trim() || formData.fatherName.trim().length < 2) {
+                errors.fatherName = language === 'ar' ? '\u0627\u0633\u0645 \u0627\u0644\u0623\u0628 \u0645\u0637\u0644\u0648\u0628 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'Father name is required (min 2 characters)';
             }
-            if (!formData.lastName.trim()) {
-                errors.lastName = language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required';
+            if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
+                errors.lastName = language === 'ar' ? '\u0627\u0644\u0643\u0646\u064a\u0629 \u0645\u0637\u0644\u0648\u0628\u0629 (\u062d\u0631\u0641\u0627\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644)' : 'Last name is required (min 2 characters)';
             }
             if (!formData.governorate) {
-                errors.governorate = language === 'ar' ? 'المحافظة مطلوبة' : 'Governorate is required';
+                errors.governorate = language === 'ar' ? '\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0645\u062d\u0627\u0641\u0638\u0629' : 'Please select a governorate';
             }
         }
 
         if (step === 3) {
-            // Email validation
+            // Email validation - required and format check
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!formData.email.trim()) {
-                errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
-            } else {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(formData.email)) {
-                    errors.email = t('validation_email_invalid');
-                }
+                errors.email = t('validation_required');
+            } else if (!emailRegex.test(formData.email)) {
+                errors.email = t('validation_email_invalid');
             }
 
             const phoneError = getPhoneValidationError(formData.phone);
@@ -229,31 +249,32 @@ const RegisterPage = () => {
     const validateBeforeSubmit = (): boolean => {
         const errors: Record<string, string> = {};
 
+        // Step 1 fields
+        if (!formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim())) {
+            errors.nationalId = language === 'ar' ? '\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u0648\u0637\u0646\u064a \u064a\u062c\u0628 \u0623\u0646 \u064a\u062a\u0643\u0648\u0646 \u0645\u0646 11 \u0631\u0642\u0645\u0627\u064b' : 'National ID must be exactly 11 digits';
+        }
         const birthDateError = validateBirthDate(formData.birthDate);
         if (birthDateError) {
             errors.birthDate = birthDateError;
         }
 
-        if (!formData.firstName.trim()) {
-            errors.firstName = language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required';
+        // Step 2 fields
+        if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
+            errors.firstName = language === 'ar' ? '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0623\u0648\u0644 \u0645\u0637\u0644\u0648\u0628' : 'First name is required';
         }
-        if (!formData.fatherName.trim()) {
-            errors.fatherName = language === 'ar' ? 'اسم الأب مطلوب' : 'Father name is required';
+        if (!formData.fatherName.trim() || formData.fatherName.trim().length < 2) {
+            errors.fatherName = language === 'ar' ? '\u0627\u0633\u0645 \u0627\u0644\u0623\u0628 \u0645\u0637\u0644\u0648\u0628' : 'Father name is required';
         }
-        if (!formData.lastName.trim()) {
-            errors.lastName = language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required';
+        if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
+            errors.lastName = language === 'ar' ? '\u0627\u0644\u0643\u0646\u064a\u0629 \u0645\u0637\u0644\u0648\u0628\u0629' : 'Last name is required';
         }
         if (!formData.governorate) {
-            errors.governorate = language === 'ar' ? 'المحافظة مطلوبة' : 'Governorate is required';
+            errors.governorate = language === 'ar' ? '\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0645\u062d\u0627\u0641\u0638\u0629' : 'Please select a governorate';
         }
 
-        if (!formData.email.trim()) {
-            errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
-        } else {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
-                errors.email = t('validation_email_invalid');
-            }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email || !emailRegex.test(formData.email)) {
+            errors.email = t('validation_email_invalid');
         }
 
         const phoneError = getPhoneValidationError(formData.phone);
@@ -313,9 +334,10 @@ const RegisterPage = () => {
 
         if (!validateBeforeSubmit()) {
             const birthDateError = validateBirthDate(formData.birthDate);
-            const hasStep2Error = !formData.firstName.trim() || !formData.fatherName.trim() || !formData.lastName.trim() || !formData.governorate;
-            const hasPasswordError = !formData.password || !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
-            setCurrentStep(birthDateError ? 1 : hasStep2Error ? 2 : hasPasswordError ? 4 : 3);
+            const hasNationalIdError = !formData.nationalId.trim() || !/^\d{11}$/.test(formData.nationalId.trim());
+            const hasNameError = !formData.firstName.trim() || !formData.fatherName.trim() || !formData.lastName.trim() || !formData.governorate;
+            const hasPasswordError = !isPasswordValid(formData.password) || formData.password !== formData.confirmPassword;
+            setCurrentStep(hasNationalIdError || birthDateError ? 1 : hasNameError ? 2 : hasPasswordError ? 4 : 3);
             return;
         }
 
@@ -354,7 +376,13 @@ const RegisterPage = () => {
                     'الرقم الوطني مطلوب': t('validation_required'),
                     'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط': t('national_id_format_error'),
                 };
-                return errorMap[msg] || msg;
+                // If no direct map match, check for generic English network/request errors
+                if (errorMap[msg]) return errorMap[msg];
+                const lowerMsg = msg.toLowerCase();
+                if (lowerMsg.includes("request failed") || lowerMsg.includes("network") || lowerMsg.includes("failed to fetch") || lowerMsg.includes("timeout")) {
+                    return language === "ar" ? "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة لاحقاً." : "An error occurred while creating the account. Please try again later.";
+                }
+                return msg;
             };
             if (err instanceof ApiError) {
                 setError(translateBackendError(err.message));
@@ -514,10 +542,10 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="flex items-start justify-center gap-1 sm:gap-3 mb-4 px-2">
                         {steps.map((step, index) => (
                             <React.Fragment key={step.num}>
-                                <div className="flex flex-col items-center cursor-pointer" onClick={() => step.num < currentStep && setCurrentStep(step.num)}>
+                                <div className="flex flex-col items-center cursor-pointer min-w-[3.5rem] md:min-w-[4.5rem]" onClick={() => step.num < currentStep && setCurrentStep(step.num)}>
                                     <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${currentStep > step.num
                                         ? 'bg-gov-gold text-gov-forest'
                                         : currentStep === step.num
@@ -526,13 +554,13 @@ const RegisterPage = () => {
                                         }`}>
                                         {currentStep > step.num ? <CheckCircle size={18} /> : step.num}
                                     </div>
-                                    <span className={`text-[10px] md:text-xs mt-1 font-medium ${currentStep >= step.num ? 'text-gov-teal dark:text-gov-gold' : 'text-gray-400'
+                                    <span className={`text-[10px] md:text-xs mt-1 font-medium text-center whitespace-nowrap ${currentStep >= step.num ? 'text-gov-teal dark:text-gov-gold' : 'text-gray-400'
                                         }`}>
                                         {step.title}
                                     </span>
                                 </div>
                                 {index < steps.length - 1 && (
-                                    <div className={`flex-1 h-0.5 rounded ${currentStep > step.num ? 'bg-gov-gold' : 'bg-gray-200 dark:bg-white/10'
+                                    <div className={`flex-1 h-0.5 rounded self-start mt-[14px] md:mt-[16px] ${currentStep > step.num ? 'bg-gov-gold' : 'bg-gray-200 dark:bg-white/10'
                                         }`} style={{ minWidth: '2rem' }} />
                                 )}
                             </React.Fragment>
@@ -542,7 +570,7 @@ const RegisterPage = () => {
                     {/* Register Card */}
                     <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-5">
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                                 {error}
                             </div>
@@ -580,11 +608,9 @@ const RegisterPage = () => {
                                             {t('reg_birth_date')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
-                                            <input
-                                                type="date"
+                                            <DatePicker
                                                 value={formData.birthDate}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
+                                                onChange={(val) => {
                                                     setFormData({ ...formData, birthDate: val });
                                                     if (val) {
                                                         const err = validateBirthDate(val);
@@ -607,30 +633,24 @@ const RegisterPage = () => {
                                                 }}
                                                 min={minBirthDate}
                                                 max={maxBirthDate}
-                                                className={`w-full py-2.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white text-sm focus:outline-none transition-all
-                                                    ${fieldErrors.birthDate
-                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
+                                                className={
+                                                    fieldErrors.birthDate
+                                                        ? 'border-red-500 dark:border-red-400'
                                                         : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
-                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
-                                                    }`}
+                                                            ? 'border-green-500 dark:border-emerald-400'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25'
+                                                }
+                                                required
                                             />
-                                            <Calendar className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
-                                                ${fieldErrors.birthDate
-                                                    ? 'text-red-500 dark:text-red-400'
-                                                    : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                        ? 'text-green-500 dark:text-gov-emerald'
-                                                        : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
-                                                }`} size={20} />
                                             {/* Validation icon */}
                                             {fieldErrors.birthDate && (
-                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                                                     <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                                 </div>
                                             )}
                                             {formData.birthDate && !validateBirthDate(formData.birthDate) && !fieldErrors.birthDate && (
-                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
@@ -793,11 +813,9 @@ const RegisterPage = () => {
                                                     }
                                                 }}
                                                 className={`w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
-                                                    ${fieldErrors.governorate
-                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
-                                                        : formData.governorate
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
-                                                            : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                                                    ${formData.governorate
+                                                        ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
+                                                        : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                             >
                                                 <option value="" className="dark:bg-dm-surface dark:text-white">{t('reg_select_governorate')}</option>
@@ -806,11 +824,9 @@ const RegisterPage = () => {
                                                 ))}
                                             </select>
                                             <MapPin className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${fieldErrors.governorate
-                                                    ? 'text-red-500 dark:text-red-400'
-                                                    : formData.governorate
-                                                        ? 'text-green-500 dark:text-gov-emerald'
-                                                        : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
+                                                ${formData.governorate
+                                                    ? 'text-green-500 dark:text-emerald-400'
+                                                    : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
                                                 }`} size={20} />
                                             <ChevronDown className="absolute ltr:right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                                             {fieldErrors.governorate && (
@@ -820,7 +836,7 @@ const RegisterPage = () => {
                                             )}
                                             {!fieldErrors.governorate && formData.governorate && (
                                                 <div className="absolute ltr:right-8 rtl:left-8 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={16} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={16} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
@@ -859,12 +875,12 @@ const RegisterPage = () => {
                                                     ${fieldErrors.email
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                             />
                                             <Mail className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
-                                                ${fieldErrors.email ? 'text-red-500 dark:text-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.email ? 'text-red-500 dark:text-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             {/* Validation icons */}
                                             {fieldErrors.email && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -873,7 +889,7 @@ const RegisterPage = () => {
                                             )}
                                             {!fieldErrors.email && formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
@@ -944,12 +960,12 @@ const RegisterPage = () => {
                                                     ${fieldErrors.password
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.password && isPasswordValid(formData.password)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${fieldErrors.password ? 'text-red-500 dark:text-red-400' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.password ? 'text-red-500 dark:text-red-400' : formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
@@ -1001,12 +1017,12 @@ const RegisterPage = () => {
                                                     ${fieldErrors.confirmPassword
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password)
-                                                            ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
+                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                     }`}
                                             />
                                             <Lock className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none
-                                                ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-red-400' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-gov-emerald' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
+                                                ${fieldErrors.confirmPassword ? 'text-red-500 dark:text-red-400' : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'}`} size={20} />
                                             {/* Validation icons */}
                                             {fieldErrors.confirmPassword && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1015,7 +1031,7 @@ const RegisterPage = () => {
                                             )}
                                             {!fieldErrors.confirmPassword && formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password) && (
                                                 <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-gov-emerald" />
+                                                    <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>

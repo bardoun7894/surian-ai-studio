@@ -312,20 +312,10 @@
 
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
-                tickerFields.classList.remove('hidden');
-                tickerFields.classList.add('flex');
+                document.getElementById('tickerField').classList.remove('hidden');
             } else {
                 directorateField.classList.add('hidden');
-                tickerFields.classList.add('hidden');
-                tickerFields.classList.remove('flex');
-            }
-        }
-
-        function toggleTickerDuration() {
-            if (showInTickerCheckbox.checked) {
-                tickerDurationField.classList.remove('hidden');
-            } else {
-                tickerDurationField.classList.add('hidden');
+                document.getElementById('tickerField').classList.add('hidden');
             }
         }
 
@@ -333,6 +323,21 @@
         showInTickerCheckbox.addEventListener('change', toggleTickerDuration);
         toggleFields(); // Initial check
         toggleTickerDuration(); // Initial check
+
+        // Ticker checkbox toggle
+        const tickerEnabled = document.getElementById('tickerEnabled');
+        const tickerDurationField = document.getElementById('tickerDurationField');
+        function toggleTickerDuration() {
+            if (tickerEnabled && tickerEnabled.checked) {
+                tickerDurationField.classList.remove('hidden');
+            } else {
+                tickerDurationField.classList.add('hidden');
+            }
+        }
+        if (tickerEnabled) {
+            tickerEnabled.addEventListener('change', toggleTickerDuration);
+            toggleTickerDuration();
+        }
 
         // Auto-translate on form submit
         const contentForm = document.getElementById('contentForm');

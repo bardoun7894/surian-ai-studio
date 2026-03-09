@@ -81,45 +81,45 @@ const QuickServices: React.FC = () => {
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <section id="quick-services" className="py-16 bg-white dark:bg-dm-surface border-t border-gov-gold/10 dark:border-gov-border/15 transition-colors scroll-mt-24">
+    <section id="quick-services" className="py-10 md:py-16 bg-white dark:bg-dm-surface border-t border-gov-gold/10 dark:border-gov-border/15 transition-colors scroll-mt-20 md:scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gov-gold/10 text-gov-gold text-sm font-bold mb-4">
-            <Zap size={16} />
+        <div className="text-center mb-8 md:mb-12">
+          <div className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gov-gold/10 text-gov-gold text-xs md:text-sm font-bold mb-3 md:mb-4">
+            <Zap className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span>{t('quick_services_title')}</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-charcoal dark:text-gov-teal mb-4">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-charcoal dark:text-gov-teal mb-3 md:mb-4">
             {t('quick_services_title')}
           </h2>
-          <p className="text-gov-stone/60 dark:text-gov-teal/60 max-w-2xl mx-auto">
+          <p className="text-xs md:text-sm lg:text-base text-gov-stone/60 dark:text-gov-teal/60 max-w-2xl mx-auto px-4">
             {t('quick_services_subtitle')}
           </p>
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
           {services.map((service) => (
             <Link
               key={service.id}
               href={service.href}
-              className="group relative flex flex-col items-center p-6 rounded-2xl bg-gov-beige/50 dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-gov transition-all duration-300 cursor-pointer"
+              className="group relative flex flex-col items-center p-4 md:p-6 rounded-xl md:rounded-2xl bg-gov-beige/50 dark:bg-dm-surface border border-gov-gold/10 dark:border-gov-border/15 hover:border-gov-gold/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               {/* Icon Container */}
-              <div className={`w-16 h-16 rounded-2xl ${service.bgColor} ${service.color} flex items-center justify-center mb-4 transition-all duration-300`}>
+              <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl ${service.bgColor} ${service.color} flex items-center justify-center mb-3 md:mb-4 transition-all duration-300 [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-7 md:[&>svg]:h-7`}>
                 {service.icon}
               </div>
 
               {/* Service Title */}
-              <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-gov-teal text-center leading-tight mb-3">
+              <h3 className="text-xs md:text-sm lg:text-base font-bold text-gov-charcoal dark:text-gov-teal text-center leading-tight mb-2 md:mb-3">
                 {t(service.titleKey)}
               </h3>
 
               {/* Access Link */}
-              <span className="flex items-center gap-1 text-xs font-medium text-gov-teal dark:text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="flex items-center gap-1 text-[10px] md:text-xs font-medium text-gov-teal dark:text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {t('access_service')}
-                <ArrowIcon size={12} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                <ArrowIcon className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
               </span>
 
               {/* Hover Glow Effect */}

@@ -30,7 +30,8 @@ import {
     Zap,
     Wheat,
     Truck,
-    Loader2
+    Loader2,
+    X
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
@@ -208,6 +209,7 @@ export default function InvestmentCategoryPage() {
     const [loading, setLoading] = useState(true);
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [stats, setStats] = useState<InvestmentStats | null>(null);
+    const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
 
     // Icon map for dynamic icon rendering
     const iconMap: Record<string, React.ElementType> = {
@@ -257,7 +259,7 @@ export default function InvestmentCategoryPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center">
+                <main className="flex-grow pt-16 md:pt-[5.75rem] flex items-center justify-center">
                     <div className="text-center">
                         <h1 className="text-4xl font-bold text-gov-forest dark:text-white mb-4">
                             {language === 'ar' ? 'الصفحة غير موجودة' : 'Page Not Found'}
@@ -356,7 +358,28 @@ export default function InvestmentCategoryPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <button className="mt-8 w-full py-3 bg-white border-2 border-gov-teal text-gov-teal font-bold rounded-xl hover:bg-gov-teal hover:text-white dark:bg-gov-card/10 dark:border-gov-teal dark:text-gov-teal dark:hover:bg-gov-teal dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg">
+                                        <button
+                                            onClick={() => {
+                                                const inv: Investment = isApiData ? (opp as Investment) : {
+                                                    id: opp.id,
+                                                    title_ar: (opp as any).title || '',
+                                                    title_en: (opp as any).title || '',
+                                                    sector_ar: (opp as any).sector || '',
+                                                    sector_en: (opp as any).sector || '',
+                                                    location_ar: (opp as any).location || '',
+                                                    location_en: (opp as any).location || '',
+                                                    status: (opp as any).status || 'available',
+                                                    category: slug,
+                                                    icon: (opp as any).iconName || 'Target',
+                                                    is_featured: false,
+                                                    formatted_amount: (opp as any).investment,
+                                                    description_ar: (opp as any).description || '',
+                                                    description_en: (opp as any).description || '',
+                                                };
+                                                setSelectedInvestment(inv);
+                                            }}
+                                            className="mt-8 w-full py-3 bg-white border-2 border-gov-teal text-gov-teal font-bold rounded-xl hover:bg-gov-teal hover:text-white dark:bg-gov-card/10 dark:border-gov-teal dark:text-gov-teal dark:hover:bg-gov-teal dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg"
+                                        >
                                             {language === 'ar' ? 'عرض تفاصيل الفرصة' : 'View Opportunity Details'}
                                         </button>
                                     </div>
@@ -545,7 +568,7 @@ export default function InvestmentCategoryPage() {
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow">
+            <main className="flex-grow pt-16 md:pt-[5.75rem]">
                 {/* Hero Section */}
                 <div className={`bg-gradient-to-br ${categoryMeta.color} text-white py-20 px-4 relative overflow-hidden`}>
                     <div className="absolute inset-0 opacity-10">
@@ -604,6 +627,97 @@ export default function InvestmentCategoryPage() {
                 </div>
             </main>
             <Footer />
+
+            {/* Investment Detail Modal */}
+            {selectedInvestment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedInvestment(null)}>
+                    <div className="bg-white dark:bg-dm-surface rounded-3xl shadow-2xl max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gov-border/15 sticky top-0 bg-white dark:bg-dm-surface rounded-t-3xl z-10">
+                            <h3 className="text-xl font-bold text-gov-forest dark:text-gov-gold">
+                                {language === 'ar' ? selectedInvestment.title_ar : selectedInvestment.title_en}
+                            </h3>
+                            <button
+                                onClick={() => setSelectedInvestment(null)}
+                                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Sector & Location */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gov-forest/5 dark:bg-gov-gold/10 p-4 rounded-xl">
+                                    <div className="text-xs text-gray-500 dark:text-white/50 mb-1">{language === 'ar' ? '\u0627\u0644\u0642\u0637\u0627\u0639' : 'Sector'}</div>
+                                    <div className="font-bold text-gov-forest dark:text-white">
+                                        {language === 'ar' ? selectedInvestment.sector_ar : selectedInvestment.sector_en}
+                                    </div>
+                                </div>
+                                <div className="bg-gov-forest/5 dark:bg-gov-gold/10 p-4 rounded-xl">
+                                    <div className="text-xs text-gray-500 dark:text-white/50 mb-1">{language === 'ar' ? '\u0627\u0644\u0645\u0648\u0642\u0639' : 'Location'}</div>
+                                    <div className="font-bold text-gov-forest dark:text-white flex items-center gap-1.5">
+                                        <MapPin size={14} className="text-gov-teal" />
+                                        {language === 'ar' ? selectedInvestment.location_ar : selectedInvestment.location_en}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Investment Amount */}
+                            {selectedInvestment.formatted_amount && (
+                                <div className="bg-gov-gold/10 p-4 rounded-xl">
+                                    <div className="text-xs text-gray-500 dark:text-white/50 mb-1">{language === 'ar' ? '\u062d\u062c\u0645 \u0627\u0644\u0627\u0633\u062a\u062b\u0645\u0627\u0631' : 'Investment Amount'}</div>
+                                    <div className="text-2xl font-bold text-gov-gold">{selectedInvestment.formatted_amount}</div>
+                                </div>
+                            )}
+
+                            {/* Description */}
+                            {(selectedInvestment.description_ar || selectedInvestment.description_en) && (
+                                <div>
+                                    <h4 className="font-bold text-gov-forest dark:text-white mb-2">{language === 'ar' ? '\u0627\u0644\u0648\u0635\u0641' : 'Description'}</h4>
+                                    <p className="text-gray-600 dark:text-white/70 leading-relaxed">
+                                        {language === 'ar' ? (selectedInvestment.description_ar || selectedInvestment.description_en) : (selectedInvestment.description_en || selectedInvestment.description_ar)}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Contact Info */}
+                            {(selectedInvestment.contact_email || selectedInvestment.contact_phone) && (
+                                <div className="border-t border-gray-100 dark:border-gov-border/15 pt-4">
+                                    <h4 className="font-bold text-gov-forest dark:text-white mb-3">{language === 'ar' ? '\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u062a\u0648\u0627\u0635\u0644' : 'Contact Info'}</h4>
+                                    <div className="space-y-2">
+                                        {selectedInvestment.contact_email && (
+                                            <a href={`mailto:${selectedInvestment.contact_email}`} className="flex items-center gap-2 text-sm text-gov-teal dark:text-gov-gold hover:underline">
+                                                <Mail size={14} /> {selectedInvestment.contact_email}
+                                            </a>
+                                        )}
+                                        {selectedInvestment.contact_phone && (
+                                            <a href={`tel:${selectedInvestment.contact_phone}`} className="flex items-center gap-2 text-sm text-gov-teal dark:text-gov-gold hover:underline">
+                                                <Phone size={14} /> {selectedInvestment.contact_phone}
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* CTA */}
+                            <div className="flex gap-3 pt-2">
+                                <Link
+                                    href="/complaints"
+                                    className="flex-1 py-3 bg-gov-teal text-white font-bold rounded-xl text-center hover:bg-gov-emerald transition-colors"
+                                    onClick={() => setSelectedInvestment(null)}
+                                >
+                                    {language === 'ar' ? '\u062a\u0642\u062f\u0645 \u0628\u0637\u0644\u0628' : 'Apply Now'}
+                                </Link>
+                                <button
+                                    onClick={() => setSelectedInvestment(null)}
+                                    className="flex-1 py-3 border-2 border-gray-200 dark:border-gov-border/25 text-gray-600 dark:text-white/70 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                >
+                                    {language === 'ar' ? '\u0625\u063a\u0644\u0627\u0642' : 'Close'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

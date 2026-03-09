@@ -52,4 +52,9 @@ return [
         'allowed_ips' => env('ADMIN_ALLOWED_IPS', '127.0.0.1,::1'),
     ],
 
+    // ClamAV Virus Scanning (opt-in)
+    'clamav' => [
+        'enabled' => env('CLAMAV_ENABLED', false),
+    ],
+
 ];

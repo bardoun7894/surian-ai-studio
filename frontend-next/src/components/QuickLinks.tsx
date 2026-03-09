@@ -138,9 +138,10 @@ const normalizeQuickLinkUrl = (
 
 interface QuickLinksProps {
   section?: string;
+  directorateId?: string;
 }
 
-const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
+const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directorateId }) => {
   const { language } = useLanguage();
   const isAr = language === "ar";
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
@@ -214,8 +215,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
   }, [links, updateScrollButtons]);
 
   useEffect(() => {
-    API.quickLinks
-      .getBySection(section)
+    API.quickLinks.getBySection(section, directorateId)
       .then((data) => {
         if (data && data.length > 0) setLinks(data);
       })
@@ -223,7 +223,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
         /* Fallback already set */
       })
       .finally(() => setLoading(false));
-  }, [section]);
+  }, [section, directorateId]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
@@ -288,11 +288,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
   };
 
   return (
-    <section
-      ref={ref}
-      id="quick-links"
-      className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15"
-    >
+    <section ref={ref} id="quick-links" className="py-14 md:py-20 relative overflow-hidden bg-gradient-to-b from-gov-beige/40 via-white to-gov-beige/30 dark:from-dm-bg dark:via-dm-surface/30 dark:to-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div
@@ -358,54 +354,43 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
           </motion.h2>
         </motion.div>
 
-        {/* Links Grid with Side Arrows */}
-        <div className="flex items-center gap-2 md:gap-3">
-          {/* Left arrow - outside cards */}
-          <button
-            onClick={() => scroll("left")}
+        {/* Scroll Arrows + Cards - flex layout with arrows outside */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Left Arrow - outside the scroll area */}
+          <motion.button
+            initial={{ opacity: 0, x: -10 }}
+            animate={isInView ? { opacity: canScrollLeft ? 1 : 0, x: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="flex shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white dark:bg-dm-surface shadow-xl border-2 border-gov-gold/30 dark:border-gov-gold/20 items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+            className="flex-shrink-0 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
-            {language === "ar" ? (
-              <ChevronRight size={20} />
-            ) : (
-              <ChevronLeft size={20} />
-            )}
-          </button>
+            {language === 'ar' ? <ChevronRight size={20} className="md:w-6 md:h-6" /> : <ChevronLeft size={20} className="md:w-6 md:h-6" />}
+          </motion.button>
 
-          {/* Scrollable cards */}
-          <div className="flex-1 min-w-0">
-            <motion.div
-              ref={scrollContainerRef}
-              variants={containerVariants}
-              initial="hidden"
-              animate={isInView ? "visible" : "hidden"}
-              className={`flex flex-nowrap overflow-x-auto gap-3 md:gap-5 py-4 md:py-8 snap-x snap-mandatory ${isDragging ? "cursor-grabbing" : "cursor-grab scroll-smooth"}`}
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              onWheel={handleWheel}
-            >
-              <style
-                dangerouslySetInnerHTML={{
-                  __html: `
-            .flex::-webkit-scrollbar { display: none; }
-          `,
-                }}
-              />
-              {loading ? (
-                <div className="flex justify-center gap-8 w-full">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center gap-2 min-h-[88px] justify-center"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
-                      <div className="w-20 h-4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
-                    </div>
-                  ))}
+        {/* Links Grid */}
+        <motion.div
+          ref={scrollContainerRef}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className={`flex-1 flex flex-nowrap overflow-x-auto gap-4 md:gap-6 py-6 md:py-8 px-2 sm:px-4 snap-x snap-mandatory ql-scroll-container ${isDragging ? 'cursor-grabbing' : 'cursor-grab scroll-smooth'}`}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onWheel={handleWheel}
+        >
+          <style dangerouslySetInnerHTML={{
+            __html: `.ql-scroll-container::-webkit-scrollbar { display: none; }`
+          }} />
+          {loading ? (
+            <div className="flex justify-center gap-8 w-full">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="flex flex-col items-center gap-2 min-h-[88px] justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
+                  <div className="w-20 h-4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
                 </div>
               ) : (
                 links.map((link, idx) => {
@@ -425,63 +410,53 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = "homepage" }) => {
                   ];
                   const gradient = gradients[idx % gradients.length];
 
-                  return (
-                    <motion.div
-                      key={link.id}
-                      variants={itemVariants}
-                      className="group relative flex-shrink-0 snap-center min-w-max h-full"
-                    >
-                      <Link
-                        href={href}
-                        onClick={(e) => {
-                          if (hasDragged) {
-                            e.preventDefault();
-                          }
-                        }}
-                        className="flex relative px-4 py-3 md:px-6 md:py-4 min-h-[72px] md:min-h-[96px] bg-white/70 dark:bg-dm-surface backdrop-blur-xl rounded-[1rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-lg group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.15)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 items-stretch font-sans"
-                      >
-                        {/* Subtle Background Glow on Hover */}
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-[1rem] md:rounded-[1.5rem]`}
-                        />
+            return (
+              <motion.div
+                key={link.id}
+                variants={itemVariants}
+                className="group relative flex-shrink-0 snap-center w-[120px] sm:w-[180px] md:w-[200px] h-full"
+              >
+                <Link
+                  href={href}
+                  onClick={(e) => {
+                    if (hasDragged) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="flex relative w-full px-4 py-3 md:px-5 md:py-4 min-h-[64px] md:min-h-[100px] bg-white/80 dark:bg-dm-surface backdrop-blur-xl rounded-[1.25rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-[0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.2)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1.5 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 font-sans"
+                >
+                  {/* Subtle Background Glow on Hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-[1rem] md:rounded-[1.5rem]`} />
 
-                        {/* Icon Container */}
-                        <div
-                          className={`relative w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 transition-all duration-300 ease-out z-10 flex-shrink-0 my-auto`}
-                        >
-                          <Icon
-                            size={20}
-                            className="text-white group-hover:animate-pulse transition-transform duration-300 md:w-6 md:h-6"
-                          />
-                        </div>
+                  {/* Icon Container */}
+                  <div className={`relative w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 transition-all duration-300 ease-out z-10 flex-shrink-0 my-auto`}>
+                    <Icon size={20} className="text-white group-hover:animate-pulse transition-transform duration-300 md:w-6 md:h-6" />
+                  </div>
 
-                        {/* Label */}
-                        <span className="text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-nowrap leading-tight transition-colors z-10 flex items-center pr-2">
-                          {label}
-                        </span>
+                  {/* Label */}
+                  <span className="text-[11px] md:text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-normal leading-tight transition-colors z-10 flex items-center pr-2">
+                    {label}
+                  </span>
 
-                        {/* Animated Border Bottom */}
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gov-forest via-gov-gold to-gov-teal transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
-                      </Link>
-                    </motion.div>
-                  );
-                })
-              )}
-            </motion.div>
-          </div>
+                  {/* Animated Border Bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gov-forest via-gov-gold to-gov-teal transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
 
-          {/* Right arrow - outside cards */}
-          <button
-            onClick={() => scroll("right")}
+          {/* Right Arrow - outside the scroll area */}
+          <motion.button
+            initial={{ opacity: 0, x: 10 }}
+            animate={isInView ? { opacity: canScrollRight ? 1 : 0, x: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="flex shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white dark:bg-dm-surface shadow-xl border-2 border-gov-gold/30 dark:border-gov-gold/20 items-center justify-center text-gov-forest dark:text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+            className="flex-shrink-0 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gov-gold/40 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white hover:border-gov-gold disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 shadow-lg bg-white/90 dark:bg-dm-surface/90 backdrop-blur-sm"
           >
-            {language === "ar" ? (
-              <ChevronLeft size={20} />
-            ) : (
-              <ChevronRight size={20} />
-            )}
-          </button>
+            {language === 'ar' ? <ChevronLeft size={20} className="md:w-6 md:h-6" /> : <ChevronRight size={20} className="md:w-6 md:h-6" />}
+          </motion.button>
         </div>
       </div>
     </section>

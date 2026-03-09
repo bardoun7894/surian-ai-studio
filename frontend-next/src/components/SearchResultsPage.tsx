@@ -20,7 +20,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
     const searchParams = useSearchParams();
     const [query, setQuery] = useState(initialQuery);
     const [activeTab, setActiveTab] = useState<'all' | 'news' | 'decrees' | 'announcements' | 'services' | 'faq' | 'pages'>('all');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(!!initialQuery);
     const [results, setResults] = useState<SearchResults>({ news: [], decrees: [], announcements: [], services: [], faqs: [], pages: [], total: 0 });
 
     const [showFilters, setShowFilters] = useState(true);

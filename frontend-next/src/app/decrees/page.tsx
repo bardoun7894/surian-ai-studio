@@ -153,95 +153,14 @@ export default function DecreesPage() {
     }
   };
 
-  // M7.11: Download handler - generates PDF for all decrees
-  const handleDownload = (decree: Decree) => {
+  // M7.11: PDF handler - opens in new tab for viewing/printing
+  const handleDownload = async (decree: Decree) => {
     if (decree.attachments && decree.attachments.length > 0) {
       const attachment = decree.attachments[0];
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
-      const downloadUrl = `${apiBase}/public/decrees/${decree.id}/attachments/${attachment.id}/download`;
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', attachment.file_name || 'document.pdf');
-      link.setAttribute('target', '_blank');
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Open PDF in new tab for viewing/printing
+      window.open(attachment.download_url, "_blank");
     } else {
-      // Generate a formatted PDF document
-      const title = getLocalizedField(decree, "title", lang);
-      const description = getLocalizedField(decree, "description", lang);
-      const fullContent = isAr
-        ? (decree.content_ar || description)
-        : (decree.content_en || decree.content_ar || description);
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) { window.print(); return; }
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}">
-        <head>
-          <meta charset="UTF-8">
-          <title>${title}</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            @page { size: A4; margin: 15mm 18mm 20mm 18mm; }
-            body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.7; color: #161616; padding: 0; max-width: 100%; margin: 0; }
-            .header-gold-line { height: 3px; background: #b9a779; margin-bottom: 16px; }
-            .header-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-            .header-logo { width: 70px; height: auto; object-fit: contain; }
-            .header-text { flex: 1; }
-            .header-republic { font-size: 11px; color: #666; margin: 0; line-height: 1.4; }
-            .header-ministry { font-size: 18px; font-weight: 700; color: #094239; margin: 2px 0; line-height: 1.3; }
-            .header-doctype { font-size: 12px; color: #b9a779; font-weight: 600; margin: 2px 0 0; }
-            .header-separator { height: 2px; background: linear-gradient(to ${isAr ? 'left' : 'right'}, #094239, #b9a779); margin: 12px 0 24px; }
-            .meta-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-            .meta-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background: #f5f5f0; color: #555; }
-            .meta-badge.type { background: #094239; color: white; }
-            h1 { color: #094239; font-size: 20px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
-            .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e5e5e0; }
-            .date { color: #b9a779; font-size: 13px; font-weight: 600; }
-            .content { font-size: 14px; line-height: 1.85; color: #2d2d2d; white-space: pre-wrap; }
-            .footer { margin-top: 40px; padding-top: 16px; border-top: 0.75px solid #d0d0d0; }
-            .footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #888; }
-            .footer-url { font-weight: 600; color: #094239; direction: ltr; }
-            .footer-copyright { text-align: center; font-size: 9px; color: #aaa; margin-top: 6px; }
-            @media print { body { padding: 0; } .no-print { display: none; } }
-          </style>
-        </head>
-        <body>
-          <div class="header-gold-line"></div>
-          <div class="header-row">
-            <img src="${window.location.origin}/assets/logo/logo-light.png" alt="Logo" class="header-logo" />
-            <div class="header-text">
-              <p class="header-republic">${isAr ? 'الجمهورية العربية السورية' : 'Syrian Arab Republic'}</p>
-              <p class="header-ministry">${isAr ? 'وزارة الاقتصاد والصناعة' : 'Ministry of Economy and Industry'}</p>
-              <p class="header-doctype">${isAr ? getTypeLabel(decree.type) : getTypeLabel(decree.type)}</p>
-            </div>
-          </div>
-          <div class="header-separator"></div>
-          <div class="meta-badges">
-            <span class="meta-badge type">${getTypeLabel(decree.type)}</span>
-            <span class="meta-badge">${isAr ? 'رقم ' + decree.number : 'No. ' + decree.number}</span>
-            <span class="meta-badge">${isAr ? 'عام ' + decree.year : 'Year ' + decree.year}</span>
-          </div>
-          <h1>${title}</h1>
-          <div class="meta-row">
-            <div class="date">${isAr ? 'تاريخ الصدور: ' + decree.date : 'Issued: ' + decree.date}</div>
-          </div>
-          <div class="content">${fullContent}</div>
-          <div class="footer">
-            <div class="footer-row">
-              <span>${isAr ? 'تم إنشاء هذا المستند من البوابة الإلكترونية لوزارة الاقتصاد والصناعة' : 'Generated from the Ministry of Economy and Industry E-Portal'}</span>
-              <span class="footer-url">www.moe.gov.sy</span>
-            </div>
-            <p class="footer-copyright">${isAr ? '© 2026 وزارة الاقتصاد والصناعة - جميع الحقوق محفوظة' : '© 2026 Ministry of Economy and Industry - All Rights Reserved'}</p>
-          </div>
-          <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+      setDetailModal({ isOpen: true, decree });
     }
   };
 
@@ -347,7 +266,7 @@ export default function DecreesPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-6">
@@ -481,7 +400,7 @@ export default function DecreesPage() {
                   <Calendar size={12} />
                 </button>
                 {showMonthDropdown && (
-                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full mt-1 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => {
                         setSelectedMonth(null);
@@ -567,7 +486,7 @@ export default function DecreesPage() {
                     setFilterDirectorate("all");
                     setActiveDepartment("all");
                   }}
-                  className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
+                  className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry dark:text-red-400 hover:bg-gov-cherry/10 dark:hover:bg-red-400/10 transition-all flex items-center gap-1"
                 >
                   <X size={12} />
                   {isAr ? "مسح" : "Clear"}
@@ -778,7 +697,7 @@ export default function DecreesPage() {
 
       <Footer />
 
-      {/* AI Summary Modal - Bug 3 fix: z-[60] renders above detail modal (z-50) */}
+      {/* AI Summary Modal (#530 fix: z-[60] so it appears above detail modal z-50) */}
       {summaryModal.isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">

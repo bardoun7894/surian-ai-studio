@@ -94,7 +94,7 @@ const DepartmentsMenu: React.FC<DepartmentsMenuProps> = ({ label, active, onMous
 
                                             {/* Directorates List (Sub-items) */}
                                             <div className="pl-9 border-r-2 border-gray-100 dark:border-white/5 rtl:border-r-2 rtl:border-l-0 ltr:border-l-2 ltr:border-r-0">
-                                                <h4 className="text-[10px] uppercase font-bold text-gray-400 mb-3 tracking-wider px-3">{t('nav_directorates')}</h4>
+                                                <h4 className="text-[10px] uppercase font-bold text-gray-400 mb-3 tracking-wider px-3">{t('nav_sub_directorates')}</h4>
                                                 <ul className="space-y-2">
                                                     {directorate.subDirectorates && directorate.subDirectorates.length > 0 ? (
                                                         directorate.subDirectorates.map((sub, idx) => (

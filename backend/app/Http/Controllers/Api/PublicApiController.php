@@ -194,17 +194,26 @@ class PublicApiController extends Controller
                 ->map(function ($d) {
                 return [
                     'id' => (string) $d->id,
-                    'name' => $d->name_ar ?? $d->name,
+                    'name' => [
+                        'ar' => $d->name_ar ?? $d->name,
+                        'en' => $d->name_en ?? $d->name_ar ?? $d->name,
+                    ],
                     'name_ar' => $d->name_ar ?? $d->name,
                     'name_en' => $d->name_en ?? $d->name,
-                    'description' => $d->description_ar ?? $d->description ?? '',
+                    'description' => [
+                        'ar' => $d->description_ar ?? $d->description ?? '',
+                        'en' => $d->description_en ?? $d->description ?? '',
+                    ],
                     'description_en' => $d->description_en ?? $d->description ?? '',
                     'icon' => $d->icon ?? 'Building2',
                     'featured' => true,
                     'subDirectorates' => $d->subDirectorates->map(function ($sub) {
                         return [
                             'id' => $sub->id,
-                            'name' => $sub->name_ar,
+                            'name' => [
+                                'ar' => $sub->name_ar,
+                                'en' => $sub->name_en ?? $sub->name_ar,
+                            ],
                             'name_ar' => $sub->name_ar,
                             'name_en' => $sub->name_en ?? $sub->name_ar,
                             'url' => $sub->url,
@@ -234,7 +243,10 @@ class PublicApiController extends Controller
         $subDirectorates = $directorate->subDirectorates->map(function ($sub) {
             return [
                 'id' => $sub->id,
-                'name' => $sub->name_ar,
+                'name' => [
+                    'ar' => $sub->name_ar,
+                    'en' => $sub->name_en ?? $sub->name_ar,
+                ],
                 'name_ar' => $sub->name_ar,
                 'name_en' => $sub->name_en,
                 'url' => $sub->url,
@@ -377,43 +389,37 @@ class PublicApiController extends Controller
      */
     public function breakingNews(): JsonResponse
     {
-        return response()->json(Cache::remember('public.breaking_news', 120, function () {
-            // First, try to get items explicitly marked for the ticker with active duration
-            $tickerItems = Content::where('category', 'news')
+        return response()->json(Cache::remember('public.breaking_news', 60, function () {
+            // Get news with active ticker (duration not expired)
+            $tickerNews = Content::where('category', 'news')
                 ->where('status', 'published')
-                ->activeTicker()
-                ->orderBy('ticker_start_at', 'desc')
-                ->limit(5)
-                ->get(['title_ar', 'title_en']);
-
-            if ($tickerItems->isNotEmpty()) {
-                return $tickerItems->map(fn($n) => [
-                    'title_ar' => $n->title_ar,
-                    'title_en' => $n->title_en,
-                ])->toArray();
-            }
-
-            // Fallback: high-priority news (legacy behavior)
-            $newsItems = Content::where('category', 'news')
-                ->where('status', 'published')
-                ->where('priority', '>=', 8)
+                ->whereJsonContains('metadata->ticker_enabled', true)
                 ->orderBy('published_at', 'desc')
-                ->limit(5)
-                ->get(['title_ar', 'title_en']);
+                ->get(['title_ar', 'title_en', 'metadata']);
 
-            // If no breaking news, get latest news titles
-            if ($newsItems->isEmpty()) {
-                $newsItems = Content::where('category', 'news')
+            // Filter by duration expiry
+            $activeTickerNews = $tickerNews->filter(function ($item) {
+                $meta = $item->metadata ?? [];
+                $startsAt = $meta['ticker_starts_at'] ?? null;
+                $durationHours = $meta['ticker_duration'] ?? 24;
+                if (!$startsAt) return false;
+                $expiresAt = \Carbon\Carbon::parse($startsAt)->addHours($durationHours);
+                return now()->lt($expiresAt);
+            });
+
+            // If no active ticker news, fall back to latest news
+            if ($activeTickerNews->isEmpty()) {
+                $activeTickerNews = Content::where('category', 'news')
                     ->where('status', 'published')
                     ->orderBy('published_at', 'desc')
                     ->limit(5)
                     ->get(['title_ar', 'title_en']);
             }
 
-            return $newsItems->map(fn($n) => [
+            return $activeTickerNews->map(fn($n) => [
                 'title_ar' => $n->title_ar,
                 'title_en' => $n->title_en,
-            ])->toArray();
+            ])->values()->toArray();
         }));
     }
 
@@ -549,6 +555,17 @@ class PublicApiController extends Controller
             };
         }
 
+        // Search by title or content (Arabic and English)
+        if ($request->filled('search')) {
+            $search = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title_ar', 'like', "%{$search}%")
+                  ->orWhere('title_en', 'like', "%{$search}%")
+                  ->orWhere('content_ar', 'like', "%{$search}%")
+                  ->orWhere('content_en', 'like', "%{$search}%");
+            });
+        }
+
         $formatAnnouncement = fn($a) => [
             'id' => (string) $a->id,
             'title' => $a->title_ar,
@@ -659,7 +676,7 @@ class PublicApiController extends Controller
             'title_en' => $d->title_en,
             'type' => $d->metadata['decree_type'] ?? 'decree',
             'type_en' => $typeEnMap[$d->metadata['decree_type'] ?? 'decree'] ?? 'Decree',
-            'date' => $d->published_at?->format('Y-m-d'),
+            'date' => $d->decree_date ?: $d->published_at?->format('Y-m-d'),
             'description' => $d->seo_description_ar ?? mb_substr(strip_tags($d->content_ar), 0, 200),
             'description_ar' => $d->seo_description_ar ?? mb_substr(strip_tags($d->content_ar), 0, 200),
             'description_en' => $d->seo_description_en ?? mb_substr(strip_tags($d->content_en ?? ''), 0, 200),
@@ -750,6 +767,14 @@ class PublicApiController extends Controller
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->whereJsonContains('metadata->media_type', $request->type);
+        }
+
+        // Month/Year date filtering
+        if ($request->filled('month')) {
+            $query->whereMonth('published_at', (int) $request->month + 1); // JS months are 0-indexed
+        }
+        if ($request->filled('year')) {
+            $query->whereYear('published_at', (int) $request->year);
         }
 
         $formatMedia = function($m) {
@@ -1292,8 +1317,12 @@ class PublicApiController extends Controller
     private function normalizeImageUrl(?string $path): ?string
     {
         if (!$path) return null;
-        if (str_starts_with($path, '/storage/') || str_starts_with($path, 'http')) return $path;
-        return '/storage/' . $path;
+        // Already absolute URL or storage path
+        if (str_starts_with($path, 'http')) return $path;
+        if (str_starts_with($path, '/storage/')) return $path;
+        // Static assets (public directory) - do not prefix with /storage/
+        if (str_starts_with($path, '/assets/') || str_starts_with($path, '/images/')) return $path;
+        return '/storage/' . ltrim($path, '/');
     }
 
     private function formatNews($n): array
@@ -1449,7 +1478,7 @@ class PublicApiController extends Controller
                 'title_en' => $d->title_en,
                 'description_ar' => $d->seo_description_ar ?? $d->content_ar,
                 'description_en' => $d->content_en,
-                'date' => $d->published_at?->format('Y-m-d'),
+                'date' => $d->decree_date ?: $d->published_at?->format('Y-m-d'),
                 'format' => $d->metadata['format'] ?? 'PDF',
                 'size' => $d->metadata['size'] ?? '',
                 'category_label' => $d->metadata['category_label'] ?? '',
@@ -1466,22 +1495,11 @@ class PublicApiController extends Controller
     public function submitContactForm(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:2|max:100',
-            'email' => 'required|email:rfc,dns|max:255',
-            'subject' => 'required|string|min:3|max:255',
-            'message' => 'required|string|min:10|max:5000',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
             'department' => 'required|string|max:255',
-        ], [
-            'name.required' => 'الاسم مطلوب / Name is required',
-            'name.min' => 'الاسم يجب أن يكون حرفين على الأقل / Name must be at least 2 characters',
-            'name.max' => 'الاسم يجب ألا يتجاوز 100 حرف / Name must not exceed 100 characters',
-            'email.required' => 'البريد الإلكتروني مطلوب / Email is required',
-            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة / Invalid email format',
-            'subject.required' => 'الموضوع مطلوب / Subject is required',
-            'subject.min' => 'الموضوع يجب أن يكون 3 أحرف على الأقل / Subject must be at least 3 characters',
-            'message.required' => 'الرسالة مطلوبة / Message is required',
-            'message.min' => 'الرسالة يجب أن تكون 10 أحرف على الأقل / Message must be at least 10 characters',
-            'department.required' => 'يرجى اختيار الإدارة / الجهة / Please select an administration',
         ]);
 
         // Determine recipient email based on department/directorate selection
@@ -1567,6 +1585,28 @@ class PublicApiController extends Controller
             'comment' => 'nullable|string|max:1000',
             'feedback_type' => 'nullable|in:positive,negative',
         ]);
+
+        // T6-FIX: Verify suggestion exists with retry for race condition
+        // When users rate immediately after submission, the suggestion may not be
+        // fully committed to DB yet. Retry up to 3 times with short delays.
+        $suggestion = null;
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $suggestion = \App\Models\Suggestion::where('tracking_number', $validated['tracking_number'])->first();
+            if ($suggestion) {
+                break;
+            }
+            if ($attempt < 2) {
+                usleep(500000); // Wait 500ms before retry
+            }
+        }
+
+        if (!$suggestion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المقترح غير موجود. يرجى المحاولة مرة أخرى بعد لحظات.',
+                'message_en' => 'Suggestion not found. Please try again in a moment.',
+            ], 404);
+        }
 
         // Check if rating already exists for this tracking number from same IP
         $existingRating = SuggestionRating::where('tracking_number', $validated['tracking_number'])
@@ -1656,21 +1696,36 @@ class PublicApiController extends Controller
     public function quickLinks(Request $request): JsonResponse
     {
         $section = $request->query('section', 'homepage');
+        $directorateId = $request->query('directorate_id');
 
-        $links = Cache::remember("public.quick_links.{$section}", 600, function () use ($section) {
-            return QuickLink::active()
+        $cacheKey = "public.quick_links.{$section}" . ($directorateId ? ".dir.{$directorateId}" : '.global');
+
+        $links = Cache::remember($cacheKey, 600, function () use ($section, $directorateId) {
+            $query = QuickLink::active()
                 ->section($section)
-                ->ordered()
-                ->get()
-                ->map(fn ($link) => [
-                    'id' => $link->id,
-                    'label_ar' => $link->label_ar,
-                    'label_en' => $link->label_en,
-                    'url' => $link->url,
-                    'icon' => $link->icon,
-                    'section' => $link->section,
-                ]);
-        });
+                ->ordered();
+
+            if ($directorateId) {
+                // Return directorate-specific links, falling back to generic section links
+                $dirLinks = (clone $query)->forDirectorate($directorateId)->get();
+                if ($dirLinks->isEmpty()) {
+                    $dirLinks = (clone $query)->forDirectorate(null)->get();
+                }
+                return $dirLinks;
+            } else {
+                $query->forDirectorate(null);
+            }
+
+            return $query->get();
+        })->map(fn ($link) => [
+            'id' => $link->id,
+            'label_ar' => $link->label_ar,
+            'label_en' => $link->label_en,
+            'url' => $link->url,
+            'icon' => $link->icon,
+            'section' => $link->section,
+            'directorate_id' => $link->directorate_id,
+        ]);
 
         return response()->json($links);
     }

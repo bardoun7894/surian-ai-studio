@@ -78,7 +78,7 @@ export default function InvestmentPage() {
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
             <Navbar />
-            <main className="flex-grow">
+            <main className="flex-grow pt-0">
                 {/* Hero Section */}
                 <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-10">

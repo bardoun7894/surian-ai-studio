@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { usePageLoading } from "@/hooks/usePageLoading";
+import React, { useState, useEffect } from 'react';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -41,8 +42,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [directorates, setDirectorates] = useState<Directorate[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-    const [activeFilter, setActiveFilter] = useState<string | null>(null);
+    usePageLoading(loading);
 
     // Fetch Data
     useEffect(() => {
@@ -220,7 +220,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
                     <div className="text-center md:text-center w-full">
-                        <h2 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2 flex items-center gap-3 justify-center">
+                        <h2 className="text-xl md:text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2 flex items-center gap-3 justify-center">
                             <LayoutGrid className="text-gov-teal dark:text-gov-gold" />
                             {t('dir_title_compact')}
                         </h2>
@@ -285,17 +285,16 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                 </div>
             </div>
 
-            {/* Filter Bar & Controls */}
-            <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 -mt-6 md:-mt-8 relative z-20 mb-6">
-                <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 p-4 flex flex-col md:flex-row items-center gap-4">
-                    {/* Filter Dropdown */}
-                    <div className="flex items-center gap-2 flex-1 w-full md:w-auto">
-                        <Filter size={18} className="text-gov-gold shrink-0" />
-                        <select
-                            value={activeFilter || ''}
-                            onChange={(e) => setActiveFilter(e.target.value || null)}
-                            className="flex-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl px-4 py-2.5 text-sm font-medium text-gov-charcoal dark:text-white focus:ring-2 focus:ring-gov-gold/30 focus:border-gov-gold transition-all appearance-none cursor-pointer"
-                            dir={language === 'ar' ? 'rtl' : 'ltr'}
+            {/* Administrations & Sub-Directorates Hierarchical View */}
+            <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 -mt-6 md:-mt-8 relative z-20">
+                <div className="flex flex-col gap-5 md:gap-8">
+                    {directorates.map((admin, index) => (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            key={admin.id}
+                            className="bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden"
                         >
                             <option value="">{language === 'ar' ? 'عرض جميع الجهات' : 'Show All Entities'}</option>
                             {groupedDirectorates.map(group => (

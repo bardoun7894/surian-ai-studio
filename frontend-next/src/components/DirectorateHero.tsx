@@ -164,7 +164,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
   }, []);
 
   return (
-    <section ref={containerRef} className="relative pt-8 pb-16 md:pt-4 md:pb-10 overflow-hidden bg-gov-beige dark:bg-dm-bg min-h-[calc(80svh-3.5rem)] md:min-h-[calc(80svh-4rem)] h-auto flex items-center justify-center transition-colors duration-700">
+    <section ref={containerRef} className="relative pt-8 pb-16 md:pt-4 md:pb-10 overflow-hidden bg-gov-beige dark:bg-dm-bg min-h-[calc(60svh-3.5rem)] md:min-h-[calc(80svh-4rem)] h-auto flex items-center justify-center transition-colors duration-700">
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -187,7 +187,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
 
         {/* Directorate Logo/Icon */}
         <div ref={logoRef} className="mb-8 md:mb-0 relative z-20 flex justify-center items-center md:w-5/12 md:order-1 pt-8 md:pt-0">
-          <div className="relative w-56 h-56 md:w-72 md:h-72 lg:w-80 lg:h-80 flex items-center justify-center group">
+          <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 flex items-center justify-center group">
             {/* Soft angled backdrop */}
             <div className="absolute inset-0 bg-gov-gold/15 dark:bg-gov-brand/30 rounded-[2.5rem] rotate-3 md:rotate-6 group-hover:rotate-12 transition-transform duration-700 ease-out"></div>
 
@@ -199,13 +199,14 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
 
               {/* Directorate Logo */}
               <div className="relative w-[95%] h-[95%] flex items-center justify-center">
-                {directorate.logo && directorate.logo.trim() !== "" && !imageError ? (
+                {directorate.logo && directorate.logo.trim() !== '' && !imageError ? (
                   <Image
                     id="directorate-logo"
-                    src={directorate.logo}
+                    src={directorate.logo.startsWith('http') ? directorate.logo : directorate.logo.startsWith('/storage') ? (process.env.NEXT_PUBLIC_BACKEND_URL || '') + directorate.logo : directorate.logo}
                     alt={loc(directorate, 'name')}
                     fill
                     priority
+                    sizes="(max-width: 768px) 224px, 320px"
                     className="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:scale-105 transition-transform duration-500"
                     onError={() => setImageError(true)}
                   />
@@ -273,7 +274,7 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
             )}
 
             <Link
-              href="/services"
+              href={`/services?directorate=${directorate.id}`}
               className="animate-btn w-full sm:w-auto min-w-[160px] px-6 py-3 bg-gov-gold/10 text-gov-forest dark:text-gov-gold border border-gov-gold/30 font-bold text-base hover:bg-gov-gold/20 transition-all flex items-center justify-center gap-2 rounded-xl backdrop-blur-sm"
             >
               <FileCheck size={18} />

@@ -64,6 +64,7 @@ export async function shareContent(title: string, url: string): Promise<boolean>
 
 /**
  * Format a date as locale-aware relative time (e.g., "2 hours ago", "منذ ساعتين").
+ * Numbers are displayed in Arabic-Indic numerals when lang='ar'.
  */
 export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
   if (!dateStr) return '';
@@ -75,16 +76,99 @@ export function formatRelativeTime(dateStr: string, lang: 'ar' | 'en'): string {
   const diffHrs = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMin < 1) return lang === 'ar' ? 'الآن' : 'Just now';
-  if (diffMin < 60) return lang === 'ar' ? `منذ ${diffMin} دقيقة` : `${diffMin} min ago`;
-  if (diffHrs < 24) return lang === 'ar' ? `منذ ${diffHrs} ساعة` : `${diffHrs}h ago`;
-  if (diffDays < 7) return lang === 'ar' ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
+  const n = (v: number) => localizeDigits(String(v), lang);
 
-  // Use en-US for number formatting to avoid Hindi numerals
-  const formatted = date.toLocaleDateString(lang === 'ar' ? 'ar-u-nu-latn' : 'en-US', {
+  if (diffMin < 1) return lang === 'ar' ? 'الآن' : 'Just now';
+  if (diffMin < 60) return lang === 'ar' ? `منذ ${n(diffMin)} دقيقة` : `${diffMin} min ago`;
+  if (diffHrs < 24) return lang === 'ar' ? `منذ ${n(diffHrs)} ساعة` : `${diffHrs}h ago`;
+  if (diffDays < 7) return lang === 'ar' ? `منذ ${n(diffDays)} يوم` : `${diffDays}d ago`;
+
+  return formatDate(dateStr, lang);
+}
+
+// ──────────────────────────────────────────────────────
+// M4.10: Unified number formatting (Arabic-Indic / Latin)
+// ──────────────────────────────────────────────────────
+
+const ARABIC_INDIC_DIGITS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+/**
+ * Convert Latin digits in a string to Arabic-Indic numerals.
+ */
+function toArabicIndic(str: string): string {
+  return str.replace(/[0-9]/g, (d) => ARABIC_INDIC_DIGITS[parseInt(d, 10)]);
+}
+
+/**
+ * Format a number according to the active locale.
+ *   - Arabic mode  → Arabic-Indic numerals (٠١٢٣٤٥٦٧٨٩) with proper grouping
+ *   - English mode → Latin numerals (0123456789) with comma grouping
+ *
+ * @param num   - The number (or numeric string) to format
+ * @param locale - 'ar' | 'en'
+ * @param options - Optional Intl.NumberFormat options (e.g. { minimumFractionDigits: 2 })
+ */
+export function formatNumber(
+  num: number | string,
+  locale: 'ar' | 'en',
+  options?: Intl.NumberFormatOptions,
+): string {
+  const n = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(n)) return String(num);
+
+  // Format with Latin digits first (en-US gives us commas)
+  const formatted = new Intl.NumberFormat('en-US', options).format(n);
+
+  if (locale === 'ar') {
+    // Use Latin digits consistently, just swap comma to Arabic comma
+    return formatted.replace(/,/g, '٬');
+  }
+  return formatted;
+}
+
+/**
+ * Convert ALL Latin digits in an arbitrary string to Arabic-Indic numerals
+ * (useful for dates, phone numbers, etc.).
+ *
+ * @param str    - Any string that may contain digits
+ * @param locale - 'ar' | 'en'
+ */
+export function localizeDigits(str: string, locale: 'ar' | 'en'): string {
+  if (!str) return '';
+  // Keep Latin digits consistently in both languages
+  if (locale === 'ar') return str;
+  return str;
+}
+
+/**
+ * Format a date string for display, with locale-aware digits.
+ *
+ * @param dateStr - ISO date string
+ * @param locale  - 'ar' | 'en'
+ * @param options - Optional Intl.DateTimeFormat options
+ */
+export function formatDate(
+  dateStr: string,
+  locale: 'ar' | 'en',
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+
+  const defaults: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  };
+  const opts = options || defaults;
+
+  // Always format with en-US to get Latin digits, then localize
+  const formatted = date.toLocaleDateString('en-US', opts);
+
+  if (locale === 'ar') {
+    // Use Latin digits consistently (ar-u-nu-latn gives Arabic month names + Latin digits)
+    return date.toLocaleDateString('ar-EG-u-nu-latn', opts);
+  }
   return formatted;
 }

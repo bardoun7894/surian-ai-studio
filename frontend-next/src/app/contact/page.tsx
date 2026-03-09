@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Loader2, CheckCircle, User, Building2, Tag, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Mail, MapPin, Send, MessageSquare, Clock, Map as MapIcon, Loader2, CheckCircle, Building2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import { Directorate } from '@/types';
@@ -98,10 +98,34 @@ export default function ContactPage() {
         email: '',
         directorate: '',
         subject: '',
-        message: ''
+        message: '',
+        department: ''
     });
-    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+    // #425/#348: Validate all contact form fields
+    const validateForm = (): boolean => {
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim() || formData.name.trim().length < 3) {
+            errors.name = language === 'ar' ? 'الاسم مطلوب (3 أحرف على الأقل)' : 'Name is required (min 3 characters)';
+        }
+        if (!formData.email.trim()) {
+            errors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            errors.email = language === 'ar' ? 'البريد الإلكتروني غير صالح' : 'Invalid email address';
+        }
+        if (!formData.subject.trim() || formData.subject.trim().length < 5) {
+            errors.subject = language === 'ar' ? 'الموضوع مطلوب (5 أحرف على الأقل)' : 'Subject is required (min 5 characters)';
+        }
+        if (!formData.department) {
+            errors.department = language === 'ar' ? 'يرجى اختيار القسم المعني' : 'Please select a department';
+        }
+        if (!formData.message.trim() || formData.message.trim().length < 10) {
+            errors.message = language === 'ar' ? 'الرسالة مطلوبة (10 أحرف على الأقل)' : 'Message is required (min 10 characters)';
+        }
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     useEffect(() => {
         Promise.all([
@@ -147,19 +171,10 @@ export default function ContactPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitError('');
-
-        // Touch all fields to show all errors
-        setTouched({ name: true, email: true, directorate: true, subject: true, message: true });
-
-        // Full validation
-        const allErrors = validateForm(formData, isAr);
-        if (Object.keys(allErrors).length > 0) {
-            setFieldErrors(allErrors);
-            return;
-        }
-
+        if (!validateForm()) return;
         setIsSubmitting(true);
+        setError('');
+        setFieldErrors({});
         try {
             await API.settings.submitContactForm({
                 name: formData.name.trim(),
@@ -169,11 +184,16 @@ export default function ContactPage() {
                 department: formData.directorate,
             });
             setIsSuccess(true);
-            setFormData({ name: '', email: '', directorate: '', subject: '', message: '' });
-            setTouched({});
-            setFieldErrors({});
-        } catch {
-            setSubmitError(isAr ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'An error occurred. Please try again.');
+            setFormData({ name: '', email: '', subject: '', message: '', department: 'general' });
+        } catch (err: any) {
+            const msg = err?.message || '';
+            if (msg.includes('mail') || msg.includes('Mail') || msg.includes('SMTP')) {
+                setError(language === 'ar'
+                    ? 'تم حفظ رسالتك بنجاح ولكن تعذر إرسال إشعار بالبريد الإلكتروني. سيتم الرد عليك قريباً.'
+                    : 'Your message was saved but email notification could not be sent. We will respond to you shortly.');
+            } else {
+                setError(language === 'ar' ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'An error occurred. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -208,12 +228,12 @@ export default function ContactPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow">
+            <main className="flex-grow pt-0">
                 {/* Header */}
-                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-16 px-4">
+                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-10 md:py-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
-                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
-                            {isAr ? 'اتصل بنا' : 'Contact Us'}
+                        <h1 className="text-2xl md:text-4xl font-display font-bold mb-3 md:mb-4">
+                            {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
                         </h1>
                         <p className="text-gray-300 text-lg max-w-2xl mx-auto">
                             {isAr
@@ -223,15 +243,15 @@ export default function ContactPage() {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 -mt-6 md:-mt-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
 
                         {/* Contact Info Cards */}
                         <div className="space-y-4 lg:col-span-1">
                             {/* Phone */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
-                                    <Phone size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-gold/10 flex items-center justify-center text-gov-gold shrink-0">
+                                    <Phone size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{isAr ? 'الخط الساخن' : 'Hotline'}</h3>
@@ -241,9 +261,9 @@ export default function ContactPage() {
                             </div>
 
                             {/* Email */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
-                                    <Mail size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-teal/10 flex items-center justify-center text-gov-teal shrink-0">
+                                    <Mail size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{isAr ? 'البريد الإلكتروني' : 'Email'}</h3>
@@ -253,9 +273,9 @@ export default function ContactPage() {
                             </div>
 
                             {/* Address */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
-                                    <MapPin size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-red/10 flex items-center justify-center text-gov-red shrink-0">
+                                    <MapPin size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{isAr ? 'العنوان' : 'Address'}</h3>
@@ -266,9 +286,9 @@ export default function ContactPage() {
                             </div>
 
                             {/* Working Hours */}
-                            <div className="bg-white dark:bg-dm-surface p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
-                                <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
-                                    <Clock size={24} />
+                            <div className="bg-white dark:bg-dm-surface p-5 md:p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gov-border/15 flex items-start gap-4 hover:-translate-y-1 transition-transform duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
+                                    <Clock size={24} className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{isAr ? 'ساعات العمل' : 'Working Hours'}</h3>
@@ -282,13 +302,13 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        {/* Contact Form */}
-                        <div className="lg:col-span-2 space-y-8">
+                        {/* Contact Form & Map */}
+                        <div className="lg:col-span-2 space-y-6 md:space-y-8">
 
                             {/* Form */}
-                            <div className="bg-white dark:bg-dm-surface p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15">
-                                <div className="mb-8">
-                                    <h2 className="text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
+                            <div className="bg-white dark:bg-dm-surface p-6 md:p-8 rounded-[1.5rem] md:rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15">
+                                <div className="mb-6 md:mb-8">
+                                    <h2 className="text-xl md:text-2xl font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center gap-2">
                                         <MessageSquare className="text-gov-gold" />
                                         {isAr ? 'أرسل لنا رسالة' : 'Send Us a Message'}
                                     </h2>
@@ -316,29 +336,16 @@ export default function ContactPage() {
                                                 {submitError}
                                             </div>
                                         )}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {/* Name */}
-                                            <div>
-                                                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">
-                                                    {isAr ? 'الاسم الكامل' : 'Full Name'} <span className="text-red-500">*</span>
-                                                </label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                            <div className="flex flex-col gap-4 md:block md:gap-0">
+                                                <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
                                                 <input
                                                     type="text"
                                                     value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    onBlur={() => handleBlur('name')}
-                                                    maxLength={100}
-                                                    placeholder={isAr ? 'أدخل اسمك الكامل' : 'Enter your full name'}
-                                                    className={inputClass('name')}
+                                                    onChange={(e) => { { setFormData({ ...formData, name: e.target.value }); if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' })); }; setFieldErrors(prev => ({ ...prev, name: '' })); }}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.name ? 'border-red-500 dark:border-red-400' : formData.name.trim().length >= 3 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                                 />
-                                                <div className="min-h-[1.25rem] mt-1">
-                                                    {fieldErrors.name && (
-                                                        <p className="text-xs text-red-500 flex items-center gap-1">
-                                                            <AlertCircle size={12} className="shrink-0" />
-                                                            {fieldErrors.name}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                {fieldErrors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.name}</p>}
                                             </div>
 
                                             {/* Email */}
@@ -349,20 +356,10 @@ export default function ContactPage() {
                                                 <input
                                                     type="email"
                                                     value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    onBlur={() => handleBlur('email')}
-                                                    maxLength={255}
-                                                    placeholder="example@domain.com"
-                                                    className={inputClass('email')}
+                                                    onChange={(e) => { { setFormData({ ...formData, email: e.target.value }); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })); }; setFieldErrors(prev => ({ ...prev, email: '' })); }}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.email ? 'border-red-500 dark:border-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                                 />
-                                                <div className="min-h-[1.25rem] mt-1">
-                                                    {fieldErrors.email && (
-                                                        <p className="text-xs text-red-500 flex items-center gap-1">
-                                                            <AlertCircle size={12} className="shrink-0" />
-                                                            {fieldErrors.email}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                {fieldErrors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.email}</p>}
                                             </div>
                                         </div>
 
@@ -409,20 +406,31 @@ export default function ContactPage() {
                                             <input
                                                 type="text"
                                                 value={formData.subject}
-                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                                onBlur={() => handleBlur('subject')}
-                                                maxLength={255}
-                                                placeholder={isAr ? 'موضوع رسالتك' : 'Your message subject'}
-                                                className={inputClass('subject')}
+                                                onChange={(e) => { { setFormData({ ...formData, subject: e.target.value }); if (fieldErrors.subject) setFieldErrors(prev => ({ ...prev, subject: '' })); }; setFieldErrors(prev => ({ ...prev, subject: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.subject ? 'border-red-500 dark:border-red-400' : formData.subject.trim().length >= 5 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                             />
-                                            <div className="min-h-[1.25rem] mt-1">
-                                                {fieldErrors.subject && (
-                                                    <p className="text-xs text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={12} className="shrink-0" />
-                                                        {fieldErrors.subject}
-                                                    </p>
-                                                )}
-                                            </div>
+                                            {fieldErrors.subject && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.subject}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Building2 size={14} className="text-gov-gold" />
+                                                    {language === 'ar' ? 'القسم' : 'Department'}
+                                                </span>
+                                            </label>
+                                            <select
+                                                required
+                                                value={formData.department}
+                                                onChange={(e) => { { setFormData({ ...formData, department: e.target.value }); if (fieldErrors.department) setFieldErrors(prev => ({ ...prev, department: '' })); }; setFieldErrors(prev => ({ ...prev, department: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.department ? 'border-red-500 dark:border-red-400' : formData.department ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white`}
+                                            >
+                                                <option value="">{language === 'ar' ? '-- اختر القسم المعني --' : '-- Select Department --'}</option>
+                                                <option value="general">{language === 'ar' ? 'الإدارة العامة' : 'General Administration'}</option>
+                                                <option value="complaints">{language === 'ar' ? 'قسم الشكاوى' : 'Complaints Department'}</option>
+                                                <option value="media">{language === 'ar' ? 'الإدارة الإعلامية' : 'Media Department'}</option>
+                                                <option value="investment">{language === 'ar' ? 'قسم الاستثمار' : 'Investment Department'}</option>
+                                            </select>
+                                            {fieldErrors.department && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.department}</p>}
                                         </div>
 
                                         {/* Message */}
@@ -433,20 +441,10 @@ export default function ContactPage() {
                                             <textarea
                                                 rows={5}
                                                 value={formData.message}
-                                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                                onBlur={() => handleBlur('message')}
-                                                maxLength={5000}
-                                                placeholder={isAr ? 'اكتب رسالتك هنا (10 أحرف على الأقل)' : 'Write your message here (at least 10 characters)'}
-                                                className={`${inputClass('message')} resize-none`}
+                                                onChange={(e) => { { setFormData({ ...formData, message: e.target.value }); if (fieldErrors.message) setFieldErrors(prev => ({ ...prev, message: '' })); }; setFieldErrors(prev => ({ ...prev, message: '' })); }}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.message ? 'border-red-500 dark:border-red-400' : formData.message.trim().length >= 10 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors resize-none`}
                                             />
-                                            <div className="min-h-[1.25rem] mt-1">
-                                                {fieldErrors.message && (
-                                                    <p className="text-xs text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={12} className="shrink-0" />
-                                                        {fieldErrors.message}
-                                                    </p>
-                                                )}
-                                            </div>
+                                            {fieldErrors.message && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.message}</p>}
                                         </div>
 
                                         <button

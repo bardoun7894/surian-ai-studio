@@ -41,8 +41,11 @@ Route::prefix('v1')->group(function () {
         Route::get('templates', [\App\Http\Controllers\ComplaintController::class, 'indexTemplates']);
         Route::post('otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendOtp']);
         Route::post('otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyOtp']);
-        Route::post('email-otp/send', [\App\Http\Controllers\ComplaintController::class, 'sendEmailOtp'])->middleware('throttle:5,10'); // BE-06
-        Route::post('email-otp/verify', [\App\Http\Controllers\ComplaintController::class, 'verifyEmailOtp'])->middleware('throttle:10,10'); // BE-06
+        // Staged file uploads (immediate upload on selection)
+        Route::post("attachments/stage", [\App\Http\Controllers\StagedUploadController::class, "store"])
+            ->middleware('throttle:10,1');
+        Route::delete("attachments/stage/{stagedId}", [\App\Http\Controllers\StagedUploadController::class, "destroy"])
+            ->middleware('throttle:10,1');
 
         // FR-27: Rate limit complaint submissions (3 per day)
         Route::post('/', [\App\Http\Controllers\ComplaintController::class, 'store'])
@@ -177,7 +180,8 @@ Route::prefix('v1')->group(function () {
 
     // Suggestions Routes (FR-52 to FR-56)
     Route::prefix('suggestions')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store'])->middleware(\App\Http\Middleware\SuggestionRateLimitMiddleware::class); // Public submission (Bug #315: per-user rate limit)
+        Route::post('/', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'store'])
+            ->middleware(\App\Http\Middleware\ComplaintRateLimitMiddleware::class); // Public submission + rate limit
         Route::get('track/{trackingNumber}', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'track']); // FR-55: Track suggestion status
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'printView']); // T-SRS2-10: Print view
     });

@@ -37,6 +37,11 @@ Route::middleware(['web', 'admin.ip'])->prefix('admin')->name('admin.')->group(f
         Route::post('/login', [App\Http\Controllers\Admin\Auth\LoginController::class, 'login']);
     });
 
+    // Redirect /admin to /admin/dashboard
+    Route::get('/', function () {
+        return redirect('/admin/dashboard');
+    });
+
     // Authenticated Routes (NFR-08: IP restriction applied via group middleware)
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])->name('logout');

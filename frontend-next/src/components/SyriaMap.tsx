@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef, memo } from 'react';
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -14,20 +14,20 @@ import Link from 'next/link';
 const GEO_URL = '/assets/geo/syria-governorates.json';
 
 const GOVERNORATE_NAMES: Record<string, { ar: string; en: string }> = {
-  'Aleppo':       { ar: 'حلب',       en: 'Aleppo' },
-  'ArRaqqah':     { ar: 'الرقة',     en: 'Ar-Raqqa' },
-  'AlḤasakah':    { ar: 'الحسكة',    en: 'Al-Hasakah' },
-  'DayrAzZawr':   { ar: 'دير الزور', en: 'Deir ez-Zor' },
-  'Idlib':        { ar: 'إدلب',      en: 'Idlib' },
-  'Lattakia':     { ar: 'اللاذقية',  en: 'Latakia' },
-  'Tartus':       { ar: 'طرطوس',     en: 'Tartus' },
-  'Hamah':        { ar: 'حماة',      en: 'Hama' },
-  'Hims':         { ar: 'حمص',       en: 'Homs' },
-  'RifDimashq':   { ar: 'ريف دمشق',  en: 'Rif Dimashq' },
-  'Damascus':     { ar: 'دمشق',      en: 'Damascus' },
-  'Quneitra':     { ar: 'القنيطرة',  en: 'Quneitra' },
-  "Dar`a":       { ar: 'درعا',      en: 'Daraa' },
-  "AsSuwayda'":   { ar: 'السويداء',  en: 'As-Suwayda' },
+  'Aleppo': { ar: 'حلب', en: 'Aleppo' },
+  'ArRaqqah': { ar: 'الرقة', en: 'Ar-Raqqa' },
+  'AlḤasakah': { ar: 'الحسكة', en: 'Al-Hasakah' },
+  'DayrAzZawr': { ar: 'دير الزور', en: 'Deir ez-Zor' },
+  'Idlib': { ar: 'إدلب', en: 'Idlib' },
+  'Lattakia': { ar: 'اللاذقية', en: 'Latakia' },
+  'Tartus': { ar: 'طرطوس', en: 'Tartus' },
+  'Hamah': { ar: 'حماة', en: 'Hama' },
+  'Hims': { ar: 'حمص', en: 'Homs' },
+  'RifDimashq': { ar: 'ريف دمشق', en: 'Rif Dimashq' },
+  'Damascus': { ar: 'دمشق', en: 'Damascus' },
+  'Quneitra': { ar: 'القنيطرة', en: 'Quneitra' },
+  "Dar`a": { ar: 'درعا', en: 'Daraa' },
+  "AsSuwayda'": { ar: 'السويداء', en: 'As-Suwayda' },
 };
 
 const CENTER: [number, number] = [38.5, 35.2];
@@ -53,7 +53,26 @@ function SyriaMap() {
   });
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredName, setHoveredName] = useState<string | null>(null);
-  const [selectedName, setSelectedName] = useState<string | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const override = () => {
+      const svg = mapContainerRef.current?.querySelector('svg');
+      if (svg) svg.style.touchAction = 'pan-y';
+    };
+    override();
+    const observer = new MutationObserver(override);
+    observer.observe(mapContainerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Dismiss tooltip on scroll so it does not float away from the map
+  useEffect(() => {
+    const dismiss = () => { setTooltip(null); setHoveredName(null); };
+    window.addEventListener('scroll', dismiss, { passive: true });
+    return () => window.removeEventListener('scroll', dismiss);
+  }, []);
 
   const handleZoomIn = useCallback(() => {
     setPosition((pos) => ({
@@ -124,7 +143,8 @@ function SyriaMap() {
   const tooltipInfo = activeName ? GOVERNORATE_NAMES[activeName] : null;
 
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden bg-white dark:bg-dm-bg">
+    <section className="relative py-10 md:py-24 overflow-hidden bg-white dark:bg-dm-bg">
+      {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
         style={{
@@ -134,20 +154,21 @@ function SyriaMap() {
       />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-3">
+        {/* Section heading */}
+        <div className="text-center mb-8 md:mb-10">
+          <h2 className="text-2xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-teal mb-2 md:mb-3">
             {isArabic ? 'مواقع خاصة بنا' : 'Our Locations'}
           </h2>
-          <p className="text-gov-stone dark:text-white/70 max-w-xl mx-auto text-base">
+          <p className="text-gov-stone dark:text-white/70 max-w-xl mx-auto text-sm md:text-base px-4">
             {isArabic
               ? 'استكشف مواقع مديرياتنا في كافة أنحاء القطر'
               : 'Explore our directorate locations across the country'}
           </p>
-          <div className="mt-4 mx-auto w-20 h-1 rounded-full bg-gov-gold" />
+          <div className="mt-3 md:mt-4 mx-auto w-16 md:w-20 h-1 rounded-full bg-gov-gold" />
         </div>
 
-        {/* Map container - tooltip is now absolute inside this */}
-        <div ref={mapContainerRef} className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[450px]">
+        {/* Map container */}
+        <div ref={mapContainerRef} className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[300px] md:h-[450px]">
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
@@ -207,9 +228,9 @@ function SyriaMap() {
               className="absolute z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y - 12 }}
             >
-              <div className="bg-gov-forest dark:bg-gov-emerald text-white dark:text-gov-charcoal text-sm font-semibold px-4 py-2 rounded-lg shadow-lg whitespace-nowrap">
+              <div className="bg-gov-forest dark:bg-gov-emerald text-white dark:text-gov-charcoal text-xs md:text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow-lg whitespace-nowrap">
                 <span className="block text-center">{tooltipInfo.ar}</span>
-                <span className="block text-center text-xs opacity-80">{tooltipInfo.en}</span>
+                <span className="block text-center text-[10px] md:text-xs opacity-80">{tooltipInfo.en}</span>
               </div>
               <div className="flex justify-center">
                 <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gov-forest dark:border-t-gov-gold" />

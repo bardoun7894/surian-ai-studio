@@ -5,24 +5,26 @@ export interface CountryPhoneRule {
   flag: string;
   placeholder: string;
   maxDigits: number;
+  /** Expected starting digit(s) for mobile numbers. Empty string = any digit allowed */
+  startDigits?: string;
 }
 
 export const COUNTRY_PHONE_RULES: CountryPhoneRule[] = [
-  { code: '+963', country: 'Syria', countryAr: 'سوريا', flag: '🇸🇾', placeholder: '9xxxxxxxx', maxDigits: 9 },
+  { code: '+963', country: 'Syria', countryAr: 'سوريا', flag: '🇸🇾', placeholder: '9xxxxxxxx', maxDigits: 9, startDigits: '9' },
   { code: '+961', country: 'Lebanon', countryAr: 'لبنان', flag: '🇱🇧', placeholder: 'xxxxxxxx', maxDigits: 8 },
-  { code: '+962', country: 'Jordan', countryAr: 'الأردن', flag: '🇯🇴', placeholder: '7xxxxxxxx', maxDigits: 9 },
-  { code: '+964', country: 'Iraq', countryAr: 'العراق', flag: '🇮🇶', placeholder: '7xxxxxxxxx', maxDigits: 10 },
-  { code: '+971', country: 'UAE', countryAr: 'الإمارات', flag: '🇦🇪', placeholder: '5xxxxxxxx', maxDigits: 9 },
-  { code: '+966', country: 'Saudi Arabia', countryAr: 'السعودية', flag: '🇸🇦', placeholder: '5xxxxxxxx', maxDigits: 9 },
-  { code: '+20', country: 'Egypt', countryAr: 'مصر', flag: '🇪🇬', placeholder: '1xxxxxxxxx', maxDigits: 10 },
+  { code: '+962', country: 'Jordan', countryAr: 'الأردن', flag: '🇯🇴', placeholder: '7xxxxxxxx', maxDigits: 9, startDigits: '7' },
+  { code: '+964', country: 'Iraq', countryAr: 'العراق', flag: '🇮🇶', placeholder: '7xxxxxxxxx', maxDigits: 10, startDigits: '7' },
+  { code: '+971', country: 'UAE', countryAr: 'الإمارات', flag: '🇦🇪', placeholder: '5xxxxxxxx', maxDigits: 9, startDigits: '5' },
+  { code: '+966', country: 'Saudi Arabia', countryAr: 'السعودية', flag: '🇸🇦', placeholder: '5xxxxxxxx', maxDigits: 9, startDigits: '5' },
+  { code: '+20', country: 'Egypt', countryAr: 'مصر', flag: '🇪🇬', placeholder: '1xxxxxxxxx', maxDigits: 10, startDigits: '1' },
   { code: '+1', country: 'USA/Canada', countryAr: 'أمريكا/كندا', flag: '🇺🇸', placeholder: 'xxxxxxxxxx', maxDigits: 10 },
-  { code: '+44', country: 'UK', countryAr: 'بريطانيا', flag: '🇬🇧', placeholder: '7xxxxxxxxx', maxDigits: 10 },
-  { code: '+33', country: 'France', countryAr: 'فرنسا', flag: '🇫🇷', placeholder: '6xxxxxxxx', maxDigits: 9 },
+  { code: '+44', country: 'UK', countryAr: 'بريطانيا', flag: '🇬🇧', placeholder: '7xxxxxxxxx', maxDigits: 10, startDigits: '7' },
+  { code: '+33', country: 'France', countryAr: 'فرنسا', flag: '🇫🇷', placeholder: '6xxxxxxxx', maxDigits: 9, startDigits: '67' },
   { code: '+49', country: 'Germany', countryAr: 'ألمانيا', flag: '🇩🇪', placeholder: 'xxxxxxxxxxx', maxDigits: 11 },
-  { code: '+90', country: 'Turkey', countryAr: 'تركيا', flag: '🇹🇷', placeholder: '5xxxxxxxxx', maxDigits: 10 },
-  { code: '+98', country: 'Iran', countryAr: 'إيران', flag: '🇮🇷', placeholder: '9xxxxxxxxx', maxDigits: 10 },
-  { code: '+7', country: 'Russia', countryAr: 'روسيا', flag: '🇷🇺', placeholder: '9xxxxxxxxx', maxDigits: 10 },
-  { code: '+86', country: 'China', countryAr: 'الصين', flag: '🇨🇳', placeholder: '1xxxxxxxxxx', maxDigits: 11 },
+  { code: '+90', country: 'Turkey', countryAr: 'تركيا', flag: '🇹🇷', placeholder: '5xxxxxxxxx', maxDigits: 10, startDigits: '5' },
+  { code: '+98', country: 'Iran', countryAr: 'إيران', flag: '🇮🇷', placeholder: '9xxxxxxxxx', maxDigits: 10, startDigits: '9' },
+  { code: '+7', country: 'Russia', countryAr: 'روسيا', flag: '🇷🇺', placeholder: '9xxxxxxxxx', maxDigits: 10, startDigits: '9' },
+  { code: '+86', country: 'China', countryAr: 'الصين', flag: '🇨🇳', placeholder: '1xxxxxxxxxx', maxDigits: 11, startDigits: '1' },
 ];
 
 const SORTED_BY_CODE_LENGTH = [...COUNTRY_PHONE_RULES].sort((a, b) => b.code.length - a.code.length);
@@ -118,6 +120,20 @@ export const validatePhoneWithCountryCode = (value: string): PhoneValidationResu
       countryCode: countryRule.code,
       maxDigits: countryRule.maxDigits,
     };
+  }
+
+  // Validate starting digit(s) based on country-specific rules
+  if (countryRule.startDigits && normalizedNationalNumber.length > 0) {
+    const firstDigit = normalizedNationalNumber[0];
+    if (!countryRule.startDigits.includes(firstDigit)) {
+      return {
+        isValid: false,
+        normalized: normalizedWithCountryCode,
+        reason: 'invalid_format',
+        countryCode: countryRule.code,
+        maxDigits: countryRule.maxDigits,
+      };
+    }
   }
 
   return {

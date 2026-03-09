@@ -36,7 +36,7 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center">
+                <main className="flex-grow flex items-center justify-center pt-0">
                     <Loader2 className="animate-spin text-gov-gold" size={40} />
                 </main>
                 <Footer />
@@ -48,13 +48,13 @@ export default function SubDirectoratesPage() {
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow flex items-center justify-center">
+                <main className="flex-grow flex items-center justify-center pt-0">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-4">
                             {language === 'ar' ? 'الإدارة غير موجودة' : 'Directorate Not Found'}
                         </h1>
                         <Link href="/directorates" className="text-gov-gold hover:underline">
-                            {language === 'ar' ? 'العودة إلى الإدارات' : 'Back to Directorates'}
+                            {language === 'ar' ? 'العودة إلى المديريات' : 'Back to Directorates'}
                         </Link>
                     </div>
                 </main>
@@ -69,7 +69,7 @@ export default function SubDirectoratesPage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
             <Navbar />
 
-            <main className="flex-grow">
+            <main className="flex-grow pt-0">
                 {/* Hero Section */}
                 <div className="bg-gov-forest text-white py-16 px-4">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">
@@ -156,7 +156,7 @@ export default function SubDirectoratesPage() {
                             className="inline-flex items-center gap-2 px-6 py-3 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
                         >
                             <ChevronLeft size={20} className="rtl:rotate-180" />
-                            {language === 'ar' ? 'العودة إلى الإدارة' : 'Back to Directorate'}
+                            {language === 'ar' ? 'العودة إلى المديرية' : 'Back to Directorate'}
                         </Link>
                     </div>
                 </div>

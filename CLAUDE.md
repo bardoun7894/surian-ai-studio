@@ -89,3 +89,25 @@ docker-compose -f docker-compose.dev.yml exec backend php artisan route:clear
 ```
 
 <!-- MANUAL ADDITIONS END -->
+
+## NotebookLM - Source of Truth
+
+**IMPORTANT: Always consult NotebookLM as the single source of truth before making architectural decisions, implementing features, or resolving ambiguities.**
+
+- **Notebook ID**: `b495a242-38b2-400c-9068-c2a322046278`
+- **Docs Source ID**: `0a77799e-6dfb-45aa-9932-1bcdb7593c23` (combined code docs & specs)
+
+### When to query NotebookLM:
+- Before starting any new feature or significant change
+- When unsure about project architecture, API contracts, or design decisions
+- To verify specs, plans, and requirements
+- To check security guidelines and integration patterns
+
+### How to use:
+```
+# Query the notebook for context
+mcp__notebooklm-mcp__notebook_query(notebook_id="b495a242-38b2-400c-9068-c2a322046278", query="your question")
+
+# Query specific docs source only
+mcp__notebooklm-mcp__notebook_query(notebook_id="b495a242-38b2-400c-9068-c2a322046278", query="your question", source_ids=["0a77799e-6dfb-45aa-9932-1bcdb7593c23"])
+```

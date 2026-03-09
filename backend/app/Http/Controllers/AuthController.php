@@ -41,22 +41,37 @@ class AuthController extends Controller
 
         if ($request->filled('email')) {
             $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
+                'email' => 'required|email:rfc,dns',
+                'password' => 'required|string|min:8',
+            ], [
+                'email.required' => __('validation.required', ['attribute' => __('validation.attributes.email')]),
+                'email.email' => __('validation.email', ['attribute' => __('validation.attributes.email')]),
+                'password.required' => __('validation.required', ['attribute' => __('validation.attributes.password')]),
+                'password.min' => __('validation.min.string', ['attribute' => __('validation.attributes.password'), 'min' => 8]),
             ]);
             $loginField = 'email';
             $loginValue = $request->email;
         } elseif ($request->filled('phone')) {
             $request->validate([
                 'phone' => 'required|string',
-                'password' => 'required',
+                'password' => 'required|string|min:8',
+            ], [
+                'phone.required' => __('validation.required', ['attribute' => __('validation.attributes.phone')]),
+                'password.required' => __('validation.required', ['attribute' => __('validation.attributes.password')]),
+                'password.min' => __('validation.min.string', ['attribute' => __('validation.attributes.password'), 'min' => 8]),
             ]);
             $loginField = 'phone';
             $loginValue = $request->phone;
         } elseif ($request->filled('national_id')) {
             $request->validate([
-                'national_id' => 'required|string',
-                'password' => 'required',
+                'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
+                'password' => 'required|string|min:8',
+            ], [
+                'national_id.required' => __('validation.required', ['attribute' => __('validation.attributes.national_id')]),
+                'national_id.size' => __('validation.size.string', ['attribute' => __('validation.attributes.national_id'), 'size' => 11]),
+                'national_id.regex' => __('validation.regex', ['attribute' => __('validation.attributes.national_id')]),
+                'password.required' => __('validation.required', ['attribute' => __('validation.attributes.password')]),
+                'password.min' => __('validation.min.string', ['attribute' => __('validation.attributes.password'), 'min' => 8]),
             ]);
             $loginField = 'national_id';
             $loginValue = $request->national_id;

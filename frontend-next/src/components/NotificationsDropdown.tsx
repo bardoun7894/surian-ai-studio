@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Bell, X, Check, Clock, AlertCircle, CheckCircle, FileText, Shield, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatRelativeTime } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { API, AppNotification } from '@/lib/repository';
 import Link from 'next/link';
@@ -105,28 +106,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
     }
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (language === 'ar') {
-      if (diffMins < 1) return 'الآن';
-      if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-      if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-      if (diffDays < 7) return `منذ ${diffDays} يوم`;
-      return date.toLocaleDateString('ar-u-nu-latn');
-    } else {
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays < 7) return `${diffDays}d ago`;
-      return date.toLocaleDateString('en-US');
-    }
-  };
+  const formatTime = (dateString: string) => formatRelativeTime(dateString, language);
 
   const getNotificationLink = (notification: AppNotification): string | undefined => {
     if (notification.data?.tracking_number) {

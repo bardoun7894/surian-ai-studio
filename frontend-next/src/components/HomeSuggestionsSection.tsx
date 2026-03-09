@@ -59,14 +59,14 @@ const HomeSuggestionsSection = () => {
     // Loading skeleton
     if (loading) {
         return (
-            <section className="py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
+            <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
                 <div className="container mx-auto px-4">
                     <div className="max-w-5xl mx-auto">
-                        <div className="text-center mb-16">
-                            <SkeletonText lines={1} className="max-w-20 mx-auto mb-6" />
+                        <div className="text-center mb-10 md:mb-16">
+                            <SkeletonText lines={1} className="max-w-16 md:max-w-20 mx-auto mb-4 md:mb-6" />
                             <SkeletonText lines={2} className="max-w-3xl mx-auto" />
                         </div>
-                        <SkeletonGrid cards={3} className="grid-cols-1 md:grid-cols-3 mb-12" />
+                        <SkeletonGrid cards={3} className="grid-cols-1 md:grid-cols-3 mb-8 md:mb-12" />
                     </div>
                 </div>
             </section>
@@ -74,7 +74,7 @@ const HomeSuggestionsSection = () => {
     }
 
     return (
-        <section ref={ref} className="py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
+        <section ref={ref} className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
             {/* Top Separator */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gov-gold/30 to-transparent" />
 
@@ -99,52 +99,52 @@ const HomeSuggestionsSection = () => {
                     className="max-w-5xl mx-auto"
                 >
                     {/* Header */}
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-10 md:mb-16">
                         {/* Decorative Line */}
-                        <div className="flex items-center justify-center gap-4 mb-6">
+                        <div className="flex items-center justify-center gap-3 md:gap-4 mb-4 md:mb-6">
                             <motion.div
                                 initial={{ width: 0 }}
-                                animate={isInView ? { width: 60 } : {}}
+                                animate={isInView ? { width: 40 } : {}}
                                 transition={{ duration: 0.8, delay: 0.3 }}
-                                className="h-0.5 bg-gradient-to-r from-transparent to-gov-gold"
+                                className="h-0.5 bg-gradient-to-r from-transparent to-gov-gold md:w-[60px]"
                             />
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={isInView ? { scale: 1 } : {}}
                                 transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
-                                className="w-3 h-3 rotate-45 bg-gov-gold"
+                                className="w-2 h-2 md:w-3 md:h-3 rotate-45 bg-gov-gold"
                             />
                             <motion.div
                                 initial={{ width: 0 }}
-                                animate={isInView ? { width: 60 } : {}}
+                                animate={isInView ? { width: 40 } : {}}
                                 transition={{ duration: 0.8, delay: 0.3 }}
-                                className="h-0.5 bg-gradient-to-l from-transparent to-gov-gold"
+                                className="h-0.5 bg-gradient-to-l from-transparent to-gov-gold md:w-[60px]"
                             />
                         </div>
 
                         {/* Icon */}
                         <motion.div
                             variants={itemVariants}
-                            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-gov-gold/20 to-gov-gold/5 text-gov-gold mb-6 border border-gov-gold/20"
+                            className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-gradient-to-br from-gov-gold/20 to-gov-gold/5 text-gov-gold mb-4 md:mb-6 border border-gov-gold/20"
                         >
                             <motion.div
                                 animate={{ rotate: [0, 10, -10, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                             >
-                                <Lightbulb size={40} />
+                                <Lightbulb className="w-8 h-8 md:w-10 md:h-10" />
                             </motion.div>
                         </motion.div>
 
                         <motion.h2
                             variants={itemVariants}
-                            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6 leading-tight"
+                            className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4 md:mb-6 leading-tight"
                         >
                             {isAr ? 'شاركنا أفكارك لتطوير المستقبل' : 'Share Your Ideas for Future Development'}
                         </motion.h2>
 
                         <motion.p
                             variants={itemVariants}
-                            className="text-lg md:text-xl text-gov-charcoal/70 dark:text-gov-gold/70 max-w-3xl mx-auto leading-relaxed"
+                            className="text-sm md:text-lg lg:text-xl text-gov-charcoal/70 dark:text-gov-gold/70 max-w-3xl mx-auto leading-relaxed"
                         >
                             {isAr
                                 ? 'نؤمن بأن الابتكار يبدأ بفكرة. شارك مقترحاتك ومشاريعك لتساهم معنا في تحسين بيئة الأعمال والخدمات.'
@@ -155,7 +155,7 @@ const HomeSuggestionsSection = () => {
                     {/* Feature Cards */}
                     <motion.div
                         variants={containerVariants}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12"
                     >
                         {features.map((feature, idx) => (
                             <motion.div
@@ -164,13 +164,13 @@ const HomeSuggestionsSection = () => {
                                 whileHover={{ y: -8, scale: 1.02 }}
                                 className="group relative"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/20 to-gov-teal/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-gov-gold/10 dark:border-white/10 text-center hover:border-gov-gold/30 transition-colors h-full flex flex-col">
-                                    <div className="w-14 h-14 rounded-xl bg-gov-gold/10 dark:bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                        <feature.icon size={28} className="text-gov-gold" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-gov-gold/20 to-gov-teal/20 rounded-xl md:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-sm p-5 md:p-6 rounded-xl md:rounded-2xl border border-gov-gold/10 dark:border-white/10 text-center hover:border-gov-gold/30 transition-colors h-full flex flex-col">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-gov-gold/10 dark:bg-white/10 flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                                        <feature.icon className="w-6 h-6 md:w-7 md:h-7 text-gov-gold" />
                                     </div>
-                                    <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-2">{feature.title}</h3>
-                                    <p className="text-sm text-gov-charcoal/60 dark:text-white/60 flex-grow">{feature.desc}</p>
+                                    <h3 className="text-sm md:text-base font-bold text-gov-forest dark:text-gov-gold mb-1.5 md:mb-2">{feature.title}</h3>
+                                    <p className="text-xs md:text-sm text-gov-charcoal/60 dark:text-white/60 flex-grow">{feature.desc}</p>
                                 </div>
                             </motion.div>
                         ))}
@@ -183,15 +183,15 @@ const HomeSuggestionsSection = () => {
                     >
                         <Link
                             href="/suggestions"
-                            className="group inline-flex items-center gap-3 px-10 py-5 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-2xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 text-lg"
+                            className="group inline-flex items-center gap-2 md:gap-3 px-6 py-3 md:px-10 md:py-5 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl md:rounded-2xl hover:bg-gov-teal dark:hover:bg-gov-gold transition-all duration-300 shadow-md md:shadow-xl hover:shadow-lg md:hover:shadow-2xl hover:-translate-y-1 text-sm md:text-lg"
                         >
-                            <Sparkles size={22} className="group-hover:animate-pulse" />
+                            <Sparkles className="w-4 h-4 md:w-[22px] md:h-[22px] group-hover:animate-pulse" />
                             <span>{isAr ? 'مشاركة مقترح' : 'Submit Suggestion'}</span>
                             <motion.span
                                 animate={{ x: isAr ? [-3, 3, -3] : [3, -3, 3] }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                                {isAr ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                                {isAr ? <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />}
                             </motion.span>
                         </Link>
                     </motion.div>

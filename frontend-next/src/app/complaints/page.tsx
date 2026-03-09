@@ -19,7 +19,7 @@ export default function ComplaintsPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pt-0">
         {/* Suggestions Navigation Banner */}
         <div className="max-w-4xl mx-auto px-4 pt-8">
           <div className="bg-white dark:bg-dm-surface border border-gov-gold/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">

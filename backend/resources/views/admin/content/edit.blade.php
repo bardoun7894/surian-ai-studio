@@ -108,40 +108,37 @@
                             <p class="text-[10px] text-slate-400 mt-1">اختر الإدارة المركزية التابع لها هذا الخبر</p>
                         </div>
 
-                        <!-- Ticker Settings (for news items) -->
-                        <div id="tickerFields" class="{{ (old('category', $content->category) === 'news') ? 'flex' : 'hidden' }} flex-col gap-3 pt-4 mt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px]">breaking_news</span>
-                                شريط الأخبار العاجلة
-                            </h4>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <label for="show_in_ticker" class="text-xs font-bold text-slate-700 dark:text-slate-300">عرض في شريط الأخبار</label>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="show_in_ticker" id="show_in_ticker" value="1" class="sr-only peer" {{ old('show_in_ticker', $content->show_in_ticker) ? 'checked' : '' }}>
-                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        {{-- News Ticker Settings --}}
+                        @php
+                            $tickerEnabled = ($content->metadata['ticker_enabled'] ?? false);
+                            $tickerDuration = ($content->metadata['ticker_duration'] ?? 24);
+                            $tickerStartsAt = ($content->metadata['ticker_starts_at'] ?? null);
+                            $tickerExpiresAt = $tickerStartsAt ? \Carbon\Carbon::parse($tickerStartsAt)->addHours($tickerDuration) : null;
+                            $tickerActive = $tickerEnabled && $tickerExpiresAt && $tickerExpiresAt->isFuture();
+                        @endphp
+                        <div id="tickerField" class="{{ $content->category === 'news' ? '' : 'hidden' }} mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="ticker_enabled" id="tickerEnabled" value="1" {{ $tickerEnabled ? 'checked' : '' }}
+                                        class="rounded border-amber-400 text-amber-600 focus:ring-amber-500 dark:bg-slate-800 dark:border-amber-600">
+                                    <span class="text-sm font-bold text-amber-800 dark:text-amber-300">هل تريد أن يظهر في الشريط الإخباري؟</span>
                                 </label>
                             </div>
-                            <div id="tickerDurationField" class="{{ (old('show_in_ticker', $content->show_in_ticker)) ? '' : 'hidden' }}">
-                                <label class="block text-xs font-bold text-slate-500 mb-1.5">مدة العرض</label>
-                                <select name="ticker_duration" id="ticker_duration" class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-amber-500 focus:border-amber-500 text-sm">
-                                    <option value="">-- اختر المدة --</option>
-                                    <option value="24h" {{ old('ticker_duration', $content->ticker_duration) == '24h' ? 'selected' : '' }}>24 ساعة</option>
-                                    <option value="48h" {{ old('ticker_duration', $content->ticker_duration) == '48h' ? 'selected' : '' }}>48 ساعة</option>
-                                    <option value="1w" {{ old('ticker_duration', $content->ticker_duration) == '1w' ? 'selected' : '' }}>أسبوع واحد</option>
-                                    <option value="1m" {{ old('ticker_duration', $content->ticker_duration) == '1m' ? 'selected' : '' }}>شهر واحد</option>
+                            <div id="tickerDurationField" class="{{ $tickerEnabled ? '' : 'hidden' }}">
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">مدة العرض في الشريط</label>
+                                <select name="ticker_duration" id="tickerDuration" class="w-full rounded-lg border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                    <option value="24" {{ $tickerDuration == 24 ? 'selected' : '' }}>24 ساعة</option>
+                                    <option value="48" {{ $tickerDuration == 48 ? 'selected' : '' }}>48 ساعة</option>
+                                    <option value="168" {{ $tickerDuration == 168 ? 'selected' : '' }}>أسبوع</option>
+                                    <option value="720" {{ $tickerDuration == 720 ? 'selected' : '' }}>شهر</option>
                                 </select>
-                                <p class="text-[10px] text-amber-500 mt-1">سيظهر الخبر في شريط الأخبار العاجلة للمدة المحددة من لحظة الحفظ</p>
-                                @if($content->ticker_start_at)
-                                    <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[12px]">schedule</span>
-                                        بدأ العرض: {{ $content->ticker_start_at->format('Y-m-d H:i') }}
-                                        @if(!$content->isTickerExpired())
-                                            <span class="text-green-500 font-bold mr-1">(نشط)</span>
-                                        @else
-                                            <span class="text-red-500 font-bold mr-1">(منتهي)</span>
-                                        @endif
+                                @if($tickerActive)
+                                    <p class="mt-2 text-xs text-green-600 dark:text-green-400">
+                                        ✅ يظهر حالياً في الشريط حتى {{ $tickerExpiresAt->format('Y-m-d H:i') }}
+                                    </p>
+                                @elseif($tickerEnabled && !$tickerActive)
+                                    <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                                        ⏰ انتهت مدة العرض — عدّل المدة لإعادة العرض
                                     </p>
                                 @endif
                             </div>
@@ -379,20 +376,10 @@
         function toggleCategoryFields() {
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
-                tickerFields.classList.remove('hidden');
-                tickerFields.classList.add('flex');
+                document.getElementById('tickerField').classList.remove('hidden');
             } else {
                 directorateField.classList.add('hidden');
-                tickerFields.classList.add('hidden');
-                tickerFields.classList.remove('flex');
-            }
-        }
-
-        function toggleTickerDuration() {
-            if (showInTickerCheckbox.checked) {
-                tickerDurationField.classList.remove('hidden');
-            } else {
-                tickerDurationField.classList.add('hidden');
+                document.getElementById('tickerField').classList.add('hidden');
             }
         }
 

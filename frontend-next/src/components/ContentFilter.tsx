@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, ChevronDown, X, Clock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -61,9 +61,20 @@ export default function ContentFilter({
     const { language, t } = useLanguage();
     const isAr = language === 'ar';
 
+    const tabsRef = useRef<HTMLDivElement>(null);
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
     const [showYearDropdown, setShowYearDropdown] = useState(false);
     const [internalSearch, setInternalSearch] = useState(searchValue || '');
+
+    // Scroll active tab into view on mobile
+    useEffect(() => {
+        if (tabsRef.current && activeTab) {
+            const activeBtn = tabsRef.current.querySelector('[data-active="true"]') as HTMLElement;
+            if (activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+    }, [activeTab, tabs]);
 
     // Sync internal search if controlled prop changes
     React.useEffect(() => {
@@ -88,20 +99,21 @@ export default function ContentFilter({
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 {/* Tabs */}
                 {tabs.length > 0 && (
-                    <div className="grid grid-cols-4 gap-2 w-full md:w-auto md:flex md:overflow-x-visible md:flex-wrap pb-2 md:pb-0 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div ref={tabsRef} className="flex gap-2 w-full md:w-auto overflow-x-auto snap-x snap-mandatory md:flex-wrap md:overflow-visible scrollbar-hide pb-1 md:pb-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.key;
                             return (
                                 <button
                                     key={tab.key}
+                                    data-active={isActive ? "true" : "false"}
                                     onClick={() => onTabChange?.(tab.key)}
-                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 flex-shrink-0 whitespace-nowrap ${isActive
+                                    className={`inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 snap-start whitespace-nowrap flex-shrink-0 ${isActive
                                             ? 'bg-gov-forest text-white dark:bg-gov-button dark:text-white shadow-lg shadow-gov-forest/20 dark:shadow-gov-button/20'
                                             : 'bg-white dark:bg-gov-card/10 text-gov-charcoal dark:text-white/70 border border-gray-200 dark:border-gov-border/15 hover:border-gov-forest/30 dark:hover:border-gov-gold/30 hover:shadow-md'
                                         }`}
                                 >
-                                    {Icon && <Icon size={16} className={isActive ? '' : 'text-gov-teal dark:text-gov-gold'} />}
+                                    {Icon && <Icon size={16} className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isActive ? '' : 'text-gov-teal dark:text-gov-gold'}`} />}
                                     <span>{tab.label}</span>
                                 </button>
                             );
@@ -134,13 +146,13 @@ export default function ContentFilter({
 
             {/* Secondary Filters Row (Date, Extras, Count) */}
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
-                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
+                <div className="flex flex-row flex-wrap items-center justify-between gap-1.5 sm:gap-4 bg-white dark:bg-gov-card/10 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gov-border/15 p-1.5 sm:p-4">
 
-                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-auto">
 
                         {/* Date Filters */}
                         {showDateFilter && (
-                            <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5 sm:gap-3 flex-wrap">
                                 <div className="flex items-center gap-1.5 text-gov-forest dark:text-gov-gold">
                                     <Clock size={16} />
                                     <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>
@@ -162,7 +174,7 @@ export default function ContentFilter({
                                         <ChevronDown size={12} className={`transition-transform ${showMonthDropdown ? 'rotate-180' : ''}`} />
                                     </button>
                                     {showMonthDropdown && (
-                                        <div className="absolute top-full mt-2 left-0 rtl:right-0 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                                        <div className="absolute top-full mt-2 left-0 rtl:right-0 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
                                             <button
                                                 onClick={() => { onDateChange?.(null, selectedYear); setShowMonthDropdown(false); }}
                                                 className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
@@ -223,7 +235,7 @@ export default function ContentFilter({
                                 {(selectedMonth !== null || selectedYear !== null) && (
                                     <button
                                         onClick={clearDateFilters}
-                                        className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry hover:bg-gov-cherry/10 transition-all flex items-center gap-1"
+                                        className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry dark:text-red-400 hover:bg-gov-cherry/10 dark:hover:bg-red-400/10 transition-all flex items-center gap-1"
                                         title={isAr ? 'محو الفلتر' : 'Clear filters'}
                                     >
                                         <X size={14} />
@@ -245,7 +257,7 @@ export default function ContentFilter({
 
                     {/* Results Count */}
                     {totalCount !== undefined && (
-                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-auto text-start">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs md:text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-auto">
                             {totalCount} {countLabel || (isAr ? 'عنصر' : 'items')}
                         </div>
                     )}

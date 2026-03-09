@@ -247,6 +247,23 @@ class ContentController extends Controller
              unset($metadata['duration']);
         }
 
+        // News ticker settings
+        if ($data['category'] === 'news') {
+            if ($request->has('ticker_enabled')) {
+                $oldDuration = $metadata['ticker_duration'] ?? null;
+                $newDuration = (int) $request->input('ticker_duration', 24);
+                $metadata['ticker_enabled'] = true;
+                $metadata['ticker_duration'] = $newDuration;
+                // Reset timer when duration changes or newly enabled
+                if (!isset($metadata['ticker_starts_at']) || $oldDuration !== $newDuration) {
+                    $metadata['ticker_starts_at'] = now()->toIso8601String();
+                }
+            } else {
+                $metadata['ticker_enabled'] = false;
+                unset($metadata['ticker_starts_at']);
+            }
+        }
+
         $data['metadata'] = $metadata;
         
         if ($request->filled('tags')) {

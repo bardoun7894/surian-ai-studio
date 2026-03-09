@@ -1,6 +1,7 @@
 'use client';
+import { usePageLoading } from '@/hooks/usePageLoading';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import {
   Play,
@@ -15,10 +16,14 @@ import {
   X,
   Pause,
   Maximize2,
-  ChevronLeft
+  ChevronLeft,
+  Loader2,
+  CheckCircle2,
+  Package
 } from 'lucide-react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
 import { API, AlbumData } from '@/lib/repository';
 import { formatRelativeTime } from '@/lib/utils';
 import ShareMenu from '@/components/ShareMenu';
@@ -37,16 +42,19 @@ type ViewMode = 'grid' | 'list';
 
 export default function MediaPage() {
   const { language, t } = useLanguage();
-
-  usePageMeta({
-    title: language === "ar" ? "المركز الإعلامي" : "Media Center",
-    description: language === "ar" ? "المركز الإعلامي لوزارة الاقتصاد والصناعة" : "Media Center of the Ministry of Economy and Industry",
-  });
   const isAr = language === 'ar';
+
+  // Helper to get localized media title
+  const getMediaTitle = (item: MediaItem) => {
+    if (language === 'en' && item.title_en) return item.title_en;
+    if (item.title_ar) return item.title_ar;
+    return item.title;
+  };
   const [activeFilter, setActiveFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [showVideoControls, setShowVideoControls] = useState<string | null>(null);
   const [downloadingItems, setDownloadingItems] = useState<Set<string>>(new Set());
@@ -63,6 +71,11 @@ export default function MediaPage() {
   const [perPage] = useState(12);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [loadingMedia, setLoadingMedia] = useState<Record<string, boolean>>({});
+
+  // Album download state
+  const [downloadingAlbum, setDownloadingAlbum] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
   // Reset to page 1 when filter changes
   useEffect(() => {
@@ -111,9 +124,9 @@ export default function MediaPage() {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'video': return t('media_video');
-      case 'photo': return t('media_photos');
-      case 'infographic': return t('media_infographic');
+      case 'video': return t('media_filter_video');
+      case 'photo': return t('media_filter_photo');
+      case 'infographic': return t('media_filter_infographic');
       default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
@@ -157,6 +170,7 @@ export default function MediaPage() {
 
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
+    toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
 
     // Show downloading state immediately (Bug 2 fix)
     setDownloadingItems(prev => new Set(prev).add(item.id));
@@ -165,7 +179,7 @@ export default function MediaPage() {
       const response = await fetch(url);
       const blob = await response.blob();
       const ext = blob.type.split('/')[1]?.split('+')[0] || url.split('.').pop()?.split('?')[0] || 'jpg';
-      const filename = `${item.title || 'download'}.${ext}`;
+      const filename = `${getMediaTitle(item) || 'download'}.${ext}`;
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
@@ -186,11 +200,72 @@ export default function MediaPage() {
     }
   };
 
+  // Download all album photos as a zip
+  const handleDownloadAlbum = useCallback(async (album: AlbumData) => {
+    if (downloadingAlbum || !album.photos || album.photos.length === 0) return;
+
+    setDownloadingAlbum(true);
+    setDownloadProgress({ current: 0, total: album.photos.length });
+
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const folder = zip.folder(album.title || 'album');
+
+      if (!folder) {
+        throw new Error('Failed to create zip folder');
+      }
+
+      // Download all images in parallel with concurrency limit
+      const concurrency = 4;
+      let completed = 0;
+
+      const downloadImage = async (photo: typeof album.photos[0], index: number) => {
+        try {
+          const response = await fetch(photo.url);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status} for ${photo.url}`);
+          }
+          const blob = await response.blob();
+          const ext = blob.type.split('/')[1]?.split('+')[0] || photo.url.split('.').pop()?.split('?')[0] || 'jpg';
+          const fileName = photo.file_name || `${photo.title || `photo-${index + 1}`}.${ext}`;
+          folder.file(fileName, blob);
+        } catch (err) {
+          console.warn(`Failed to download image ${index + 1}:`, err);
+        }
+        completed++;
+        setDownloadProgress({ current: completed, total: album.photos.length });
+      };
+
+      // Process in batches
+      for (let i = 0; i < album.photos.length; i += concurrency) {
+        const batch = album.photos.slice(i, i + concurrency);
+        await Promise.all(batch.map((photo, batchIndex) => downloadImage(photo, i + batchIndex)));
+      }
+
+      // Generate zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = zipUrl;
+      link.download = `${album.title || 'album'}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(zipUrl);
+    } catch (err) {
+      console.error('Failed to create album zip:', err);
+    } finally {
+      setDownloadingAlbum(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
+  }, [downloadingAlbum]);
+
   const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
 
   const handleShare = (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    setShareData({ title: item.title, url: window.location.href });
+    setShareData({ title: getMediaTitle(item), url: window.location.href });
   };
 
   const handleOpenAlbum = async (item: MediaItem) => {
@@ -212,10 +287,10 @@ export default function MediaPage() {
   };
 
   const filters: { key: MediaType; label: string; icon: React.ElementType }[] = [
-    { key: 'all', label: t('media_all'), icon: Grid },
-    { key: 'video', label: t('media_videos'), icon: Play },
-    { key: 'photo', label: t('media_photos'), icon: ImageIcon },
-    { key: 'infographic', label: t('media_infographics'), icon: BarChart3 },
+    { key: 'all', label: t('media_filter_all'), icon: Grid },
+    { key: 'video', label: t('media_filter_video'), icon: Play },
+    { key: 'photo', label: t('media_filter_photo'), icon: ImageIcon },
+    { key: 'infographic', label: t('media_filter_infographic'), icon: BarChart3 },
   ];
 
   // Handle video area click to toggle controls (Bug 1 fix)
@@ -247,33 +322,68 @@ export default function MediaPage() {
       const ytId = getYouTubeId(item.url);
       if (!ytId) return null;
       return (
-        <div
-          className="absolute inset-0 z-10"
-          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
-        >
-          <iframe loading="lazy"
-            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title={item.title}
-            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full border-0"
-          />
-        </div>
+        <iframe
+          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
+          title={getMediaTitle(item)}
+          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full border-0 z-10"
+        />
       );
     }
 
     return (
-      <video
-        src={item.url}
-        poster={item.thumbnailUrl}
-        controls
-        autoPlay
-        playsInline
-        onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
-        className="absolute inset-0 w-full h-full object-contain bg-black z-10"
-      >
-        {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
-      </video>
+      <>
+        {loadingMedia[item.id] && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20">
+            <Loader2 size={36} className="text-gov-gold animate-spin mb-2" />
+            <span className="text-white/80 text-sm font-medium">{t('media_loading')}</span>
+          </div>
+        )}
+        <video
+          src={item.url}
+          poster={item.thumbnailUrl}
+          controls
+          autoPlay
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+          onLoadStart={() => setLoadingMedia(prev => ({ ...prev, [item.id]: true }))}
+          onCanPlay={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+          onError={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            const videoEl = e.currentTarget;
+            if (document.fullscreenElement) {
+              document.exitFullscreen?.();
+            } else if ((videoEl as any).webkitEnterFullscreen) {
+              (videoEl as any).webkitEnterFullscreen();
+            } else if (videoEl.requestFullscreen) {
+              videoEl.requestFullscreen();
+            }
+          }}
+          onTouchEnd={(e) => {
+            const now = Date.now();
+            const DOUBLE_TAP_DELAY = 300;
+            const videoEl = e.currentTarget as HTMLVideoElement;
+            if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
+              e.preventDefault();
+              if (document.fullscreenElement) {
+                document.exitFullscreen?.();
+              } else if ((videoEl as any).webkitEnterFullscreen) {
+                (videoEl as any).webkitEnterFullscreen();
+              } else if (videoEl.requestFullscreen) {
+                videoEl.requestFullscreen();
+              }
+              (videoEl as any)._lastTap = 0;
+            } else {
+              (videoEl as any)._lastTap = now;
+            }
+          }}
+        >
+          {t('media_browser_no_video')}
+        </video>
+      </>
     );
   };
 
@@ -281,16 +391,16 @@ export default function MediaPage() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
           <div className="bg-gov-forest text-white py-16 px-4">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-                {t('media_center')}
+                {t('media_center_title')}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl">
-                {t('media_subtitle')}
+                {t('media_center_subtitle')}
               </p>
             </div>
           </div>
@@ -308,22 +418,26 @@ export default function MediaPage() {
               totalCount={filteredMedia.length}
               countLabel={t('media_items')}
               extraFilters={
-                <div className="flex gap-2 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
+                <div className="flex gap-1.5 bg-white dark:bg-dm-surface rounded-xl p-1 border border-gray-200 dark:border-gov-border/25">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
-                      ? 'bg-gov-teal text-white'
-                      : 'text-gray-500 hover:text-gov-teal'
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === 'grid'
+                      ? 'bg-gov-teal text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gov-teal hover:bg-gray-50 dark:hover:bg-white/5'
                       }`}
+                    title={t('ui_view_grid')}
+                    aria-label={t('ui_view_grid')}
                   >
                     <Grid size={16} />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
-                      ? 'bg-gov-teal text-white'
-                      : 'text-gray-500 hover:text-gov-teal'
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === 'list'
+                      ? 'bg-gov-teal text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gov-teal hover:bg-gray-50 dark:hover:bg-white/5'
                       }`}
+                    title={t('ui_view_list')}
+                    aria-label={t('ui_view_list')}
                   >
                     <List size={16} />
                   </button>
@@ -358,27 +472,37 @@ export default function MediaPage() {
                       }
                     }}
                     className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
-                      viewMode === 'list' ? 'flex' : ''
+                      viewMode === 'list' ? 'flex items-center' : ''
                     } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
                       item.type !== 'video' ? 'cursor-pointer' : ''
                     }`}
                   >
                     {/* Thumbnail / Inline Video Player */}
                     <div className={`relative overflow-hidden ${
-                      viewMode === 'list' ? 'w-32 sm:w-48 aspect-video flex-shrink-0' : 'w-full aspect-video'
+                      viewMode === 'list' ? 'w-40 sm:w-48 md:w-56 aspect-video flex-shrink-0' : 'w-full aspect-video'
                     } bg-black`}>
 
                       {/* Show inline player when playing */}
                       {isPlaying && isVideo ? (
                         renderInlinePlayer(item)
                       ) : (
-                        <Image
-                          src={item.thumbnailUrl}
-                          alt={item.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
+                        <>
+                          {loadingMedia[item.id] && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gov-forest/20 dark:bg-dm-bg/50 z-10">
+                              <Loader2 size={28} className="text-gov-gold animate-spin mb-2" />
+                              <span className="text-white/80 text-xs font-medium">{t('media_loading')}</span>
+                            </div>
+                          )}
+                          <Image
+                            src={item.thumbnailUrl}
+                            alt={getMediaTitle(item)}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            onLoadingComplete={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+                            onError={() => setLoadingMedia(prev => ({ ...prev, [item.id]: false }))}
+                          />
+                        </>
                       )}
 
                       {/* Hover Overlay */}
@@ -400,7 +524,7 @@ export default function MediaPage() {
                         </span>
                       </div>
 
-                      {/* Play Button for Videos (not playing) */}
+                      {/* Play Button for Videos (only when not playing - native controls handle playback) */}
                       {isVideo && !isPlaying && (
                         <button
                           onClick={(e) => handlePlayInline(item, e)}
@@ -415,10 +539,10 @@ export default function MediaPage() {
 
                       {/* Controls overlay for playing videos (Bug 1: show on click/tap) */}
                       {isPlaying && isVideo && (
-                        <div
-                          onClick={(e) => handleVideoAreaClick(item, e)}
-                          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
-                          className="absolute inset-0 z-20 cursor-pointer"
+                        <button
+                          onClick={(e) => handleExpand(item, e)}
+                          className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-30 w-8 h-8 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+                          title={t('media_expand')}
                         >
                           {/* Controls bar - visible on hover or tap */}
                           <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
@@ -471,9 +595,7 @@ export default function MediaPage() {
                             size={14}
                             className="!w-8 !h-8"
                             metadata={{
-                              title: item.title,
-                              title_ar: (item as any).title_ar || item.title,
-                              title_en: (item as any).title_en || item.title,
+                              title: getMediaTitle(item),
                               description: '',
                               image: item.thumbnailUrl || '',
                               url: `/media#${item.id}`
@@ -490,11 +612,8 @@ export default function MediaPage() {
                           {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && !(item.count && item.count > 1) && (
                             <button
                               onClick={(e) => handleDownload(item, e)}
-                              disabled={downloadingItems.has(item.id)}
-                              className={`w-8 h-8 rounded-full backdrop-blur-sm text-white flex items-center justify-center transition-colors ${
-                                downloadingItems.has(item.id) ? 'bg-gov-gold/60 cursor-wait' : 'bg-white/20 hover:bg-white/40'
-                              }`}
-                              title={downloadingItems.has(item.id) ? t('media_downloading') : t('media_download')}
+                              className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
+                              title={t('media_download')}
                             >
                               {downloadingItems.has(item.id) ? (
                                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -510,7 +629,7 @@ export default function MediaPage() {
                     {/* Content */}
                     <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
                       <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2">
-                        {item.title}
+                        {getMediaTitle(item)}
                       </h3>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gov-gold/50">
@@ -527,9 +646,7 @@ export default function MediaPage() {
                               variant="compact"
                               size={14}
                               metadata={{
-                                title: item.title,
-                                title_ar: (item as any).title_ar || item.title,
-                                title_en: (item as any).title_en || item.title,
+                                title: getMediaTitle(item),
                                 description: '',
                                 image: item.thumbnailUrl || '',
                                 url: `/media#${item.id}`
@@ -560,17 +677,8 @@ export default function MediaPage() {
                                   downloadingItems.has(item.id) ? 'text-gov-gold cursor-wait' : 'hover:text-gov-teal'
                                 }`}
                               >
-                                {downloadingItems.has(item.id) ? (
-                                  <>
-                                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                    {t('media_downloading')}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Download size={14} />
-                                    {t('media_download')}
-                                  </>
-                                )}
+                                <Download size={14} />
+                                {t('media_download')}
                               </button>
                             )}
                           </div>
@@ -625,16 +733,16 @@ export default function MediaPage() {
               <button
                 onClick={() => setExpandedVideo(null)}
                 className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                aria-label={t('media_close')}
+                aria-label={t('ui_close')}
               >
                 <X size={20} />
               </button>
 
               <div className="aspect-video w-full">
                 {isYouTubeUrl(expandedVideo.url) ? (
-                  <iframe loading="lazy"
-                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                    title={expandedVideo.title}
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
+                    title={getMediaTitle(expandedVideo)}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full border-0"
@@ -644,17 +752,55 @@ export default function MediaPage() {
                     src={expandedVideo.url}
                     poster={expandedVideo.thumbnailUrl}
                     controls
-                    autoPlay
                     playsInline
                     className="w-full h-full object-contain bg-black"
+                    ref={(el) => {
+                      if (el) {
+                        el.volume = 1;
+                        el.muted = false;
+                        el.play().catch(() => {
+                          el.muted = true;
+                          el.play().catch(() => {});
+                        });
+                      }
+                    }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      const videoEl = e.currentTarget;
+                      if (document.fullscreenElement) {
+                        document.exitFullscreen?.();
+                      } else if ((videoEl as any).webkitEnterFullscreen) {
+                        (videoEl as any).webkitEnterFullscreen();
+                      } else if (videoEl.requestFullscreen) {
+                        videoEl.requestFullscreen();
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      const now = Date.now();
+                      const DOUBLE_TAP_DELAY = 300;
+                      const videoEl = e.currentTarget as HTMLVideoElement;
+                      if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
+                        e.preventDefault();
+                        if (document.fullscreenElement) {
+                          document.exitFullscreen?.();
+                        } else if ((videoEl as any).webkitEnterFullscreen) {
+                          (videoEl as any).webkitEnterFullscreen();
+                        } else if (videoEl.requestFullscreen) {
+                          videoEl.requestFullscreen();
+                        }
+                        (videoEl as any)._lastTap = 0;
+                      } else {
+                        (videoEl as any)._lastTap = now;
+                      }
+                    }}
                   >
-                    {isAr ? 'المتصفح لا يدعم تشغيل الفيديو.' : 'Your browser does not support the video tag.'}
+                    {t('media_browser_no_video')}
                   </video>
                 )}
               </div>
 
               <div className="p-4 bg-gov-forest text-white">
-                <h3 className="text-lg font-bold">{expandedVideo.title}</h3>
+                <h3 className="text-lg font-bold">{getMediaTitle(expandedVideo)}</h3>
                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-300">
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />
@@ -714,7 +860,7 @@ export default function MediaPage() {
                     setSourceAlbum(null);
                   }}
                   className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={t('media_close')}
+                  aria-label={t('ui_close')}
                 >
                   <X size={20} />
                 </button>
@@ -723,7 +869,7 @@ export default function MediaPage() {
               <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden bg-black">
                 <Image
                   src={expandedImage.thumbnailUrl || expandedImage.url || ''}
-                  alt={expandedImage.title}
+                  alt={getMediaTitle(expandedImage)}
                   fill
                   className="object-contain"
                   sizes="100vw"
@@ -732,7 +878,7 @@ export default function MediaPage() {
 
               <div className="mt-4 flex items-center justify-between text-white">
                 <div>
-                  <h3 className="text-lg font-bold">{expandedImage.title}</h3>
+                  <h3 className="text-lg font-bold">{getMediaTitle(expandedImage)}</h3>
                   <span className="text-sm text-gray-300 flex items-center gap-1 mt-1">
                     <Calendar size={14} />
                     {expandedImage.date}
@@ -745,17 +891,8 @@ export default function MediaPage() {
                     downloadingItems.has(expandedImage.id) ? 'bg-gov-gold/40 cursor-wait' : 'bg-white/20 hover:bg-white/30'
                   }`}
                 >
-                  {downloadingItems.has(expandedImage.id) ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {t('media_downloading')}
-                    </>
-                  ) : (
-                    <>
-                      <Download size={16} />
-                      {t('media_download')}
-                    </>
-                  )}
+                  <Download size={16} />
+                  {t('media_download')}
                 </button>
               </div>
             </div>
@@ -772,9 +909,9 @@ export default function MediaPage() {
               className="relative max-w-6xl w-full max-h-[90vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 flex items-center justify-between border-b border-gov-gold/20">
+              <div className="sticky top-0 z-10 bg-gov-forest/95 backdrop-blur-sm rounded-t-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gov-gold/20">
                 <div className="text-white">
-                  <h3 className="text-lg font-bold">{albumData?.title || expandedAlbum.title}</h3>
+                  <h3 className="text-lg font-bold">{(language === 'en' && albumData?.title_en ? albumData.title_en : albumData?.title) || getMediaTitle(expandedAlbum)}</h3>
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-300">
                     <span className="flex items-center gap-1">
                       <Calendar size={14} />
@@ -786,22 +923,72 @@ export default function MediaPage() {
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={handleCloseAlbum}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors"
-                  aria-label={t('media_close')}
-                >
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {/* Download All button */}
+                  {albumData && albumData.photos && albumData.photos.length > 0 && (
+                    <button
+                      onClick={() => handleDownloadAlbum(albumData)}
+                      disabled={downloadingAlbum}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex-1 sm:flex-initial justify-center ${
+                        downloadingAlbum
+                          ? 'bg-gov-gold/30 text-gov-gold cursor-wait'
+                          : 'bg-gov-gold hover:bg-gov-gold/90 text-gov-forest hover:shadow-lg'
+                      }`}
+                    >
+                      {downloadingAlbum ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>
+                            {t('media_downloading')} ({downloadProgress.current}/{downloadProgress.total})
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Package size={16} />
+                          <span>{t('media_download_all')}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCloseAlbum}
+                    className="w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+                    aria-label={t('ui_close')}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-gov-forest rounded-b-2xl p-6">
+              {/* Download Progress Bar */}
+              {downloadingAlbum && (
+                <div className="bg-gov-forest/90 px-5 py-3 border-b border-gov-gold/20">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gov-gold rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${downloadProgress.total > 0 ? (downloadProgress.current / downloadProgress.total) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gov-gold font-bold whitespace-nowrap">
+                      {downloadProgress.total > 0
+                        ? `${Math.round((downloadProgress.current / downloadProgress.total) * 100)}%`
+                        : '0%'}
+                    </span>
+                    {downloadProgress.current === downloadProgress.total && downloadProgress.total > 0 && (
+                      <CheckCircle2 size={16} className="text-green-400" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gov-forest rounded-b-2xl p-4 sm:p-6">
                 {loadingAlbum ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="w-12 h-12 border-4 border-gov-gold border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : albumData?.photos && albumData.photos.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {albumData.photos.map((photo, index) => (
                       <div
                         key={photo.id}
@@ -830,17 +1017,14 @@ export default function MediaPage() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs font-medium">
-                            <span>{t('media_photo')} {index + 1}</span>
+                            <span>{t('media_photo_label')} {index + 1}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDownload({ id: photo.id, title: photo.title, type: 'photo', thumbnailUrl: photo.url, url: photo.url, date: albumData.date } as MediaItem, e);
                               }}
-                              disabled={downloadingItems.has(photo.id)}
-                              className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
-                                downloadingItems.has(photo.id) ? 'bg-gov-gold/60 cursor-wait' : 'bg-white/20 hover:bg-white/40'
-                              }`}
-                              title={downloadingItems.has(photo.id) ? t('media_downloading') : t('media_download')}
+                              className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"
+                              title={t('media_download')}
                             >
                               {downloadingItems.has(photo.id) ? (
                                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />

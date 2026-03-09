@@ -99,7 +99,7 @@ function ReportsDashboard() {
 
   const formatNumber = (num: number | null) => {
     if (num === null) return '-';
-    return num.toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US');
+    return num.toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US');
   };
 
   const formatPercentage = (num: number | null) => {
@@ -535,7 +535,7 @@ function ReportsDashboard() {
                       </div>
                     )}
                     <p className="text-xs text-gray-400">
-                      {language === 'ar' ? 'تم الإنشاء:' : 'Generated:'} {new Date(aiSummary.generated_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                      {language === 'ar' ? 'تم الإنشاء:' : 'Generated:'} {new Date(aiSummary.generated_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                     </p>
                   </div>
                 ) : (
@@ -548,7 +548,7 @@ function ReportsDashboard() {
               {/* Last Updated */}
               <div className="mt-8 text-center text-xs text-gov-stone/60 dark:text-gov-beige/40 font-mono">
                 {language === 'ar' ? 'تم التحديث: ' : 'Updated: '}
-                {new Date(stats.generated_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                {new Date(stats.generated_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
               </div>
             </>
           )}

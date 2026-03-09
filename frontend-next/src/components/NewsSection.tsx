@@ -122,23 +122,35 @@ const NewsSection: React.FC = () => {
 
   return (
     <>
-      <section
-        className="py-8 md:py-20 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors"
-        id="news-section"
-      >
+      <section className="py-10 md:py-16 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors" id="news-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header with prev/next + View All */}
           <div className="flex items-end justify-between mb-4 md:mb-10">
             <div>
-              <h2 className="text-xl md:text-3xl font-display font-bold text-gov-charcoal dark:text-gov-teal mb-1 md:mb-2">
-                {t("news_section_title")}
+              <h2 className="text-lg md:text-3xl font-display font-bold text-gov-charcoal dark:text-gov-teal mb-1 md:mb-2">
+                {t('news_section_title')}
               </h2>
-              <div className="h-1 w-12 md:w-16 bg-gov-gold rounded-full"></div>
+              <div className="h-0.5 md:h-1 w-8 md:w-16 bg-gov-gold rounded-full"></div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* Prev/Next arrows */}
+              <button
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+                className="w-7 h-7 md:w-9 md:h-9 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                {direction === 'rtl' ? <ChevronRight size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <ChevronLeft size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+                className="w-7 h-7 md:w-9 md:h-9 rounded-full border border-gov-gold/30 flex items-center justify-center text-gov-gold hover:bg-gov-gold hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                {direction === 'rtl' ? <ChevronLeft size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <ChevronRight size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+              </button>
               <Link
                 href="/news"
-                className="group relative hidden md:inline-flex items-center gap-3 px-5 py-2.5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-2xl hover:text-white transition-colors duration-500 overflow-hidden shadow-sm hover:shadow-md border border-gov-gold/20"
+                className="group relative hidden lg:inline-flex items-center gap-3 px-5 py-2.5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-2xl hover:text-white transition-colors duration-500 overflow-hidden shadow-sm hover:shadow-md border border-gov-gold/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
                 <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
@@ -167,142 +179,85 @@ const NewsSection: React.FC = () => {
               </p>
             </div>
           ) : (
-            /* Horizontal scroll carousel with side arrows */
-            <div className="flex items-center gap-2 md:gap-3">
-              {/* Left arrow - outside cards */}
-              <button
-                onClick={() => scroll("left")}
-                disabled={!canScrollLeft}
-                className="hidden md:flex shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 dark:bg-dm-surface/90 shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gov-border/25 items-center justify-center text-gov-charcoal dark:text-white/70 hover:bg-gov-forest hover:text-white hover:border-gov-forest dark:hover:bg-gov-gold dark:hover:text-gov-charcoal disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                {direction === "rtl" ? (
-                  <ChevronRight size={20} />
-                ) : (
-                  <ChevronLeft size={20} />
-                )}
-              </button>
-
-              {/* Scrollable cards */}
-              <div className="flex-1 min-w-0">
-                <div
-                  ref={scrollRef}
-                  className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
-                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            /* Horizontal scroll carousel */
+            <div
+              ref={scrollRef}
+              className="flex gap-3 md:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {allNews.map((item) => (
+                <article
+                  key={item.id}
+                  className="news-card group flex-shrink-0 w-[46vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-lg md:rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
-                  {allNews.map((item) => (
-                    <article
-                      key={item.id}
-                      className="news-card group flex-shrink-0 w-[70vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-gold-sm hover:shadow-gov hover:-translate-y-1 transition-all duration-300 flex flex-col"
-                    >
-                      {item.imageUrl && (
-                        <div className="h-32 md:h-40 overflow-hidden relative">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.title}
-                            fill
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  {item.imageUrl && (
+                    <div className="h-24 md:h-40 overflow-hidden relative">
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50"></div>
+                      <div className="absolute top-2 left-2 right-2 z-10 flex items-center justify-between">
+                        <span className="px-2 py-0.5 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white border-l-2 border-gov-gold text-[10px] font-bold rounded backdrop-blur-md">
+                          {language === 'ar' ? item.category : ((item as any).category_en || item.category)}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(item); }}
+                            className="p-1.5 bg-white/80 dark:bg-gov-forest/80 text-gov-charcoal dark:text-white rounded-full backdrop-blur-md hover:bg-gov-gold hover:text-white transition-all"
+                          >
+                            <Share2 size={12} />
+                          </button>
+                          <FavoriteButton
+                            contentType="news"
+                            contentId={item.id}
+                            variant="overlay"
+                            size={12}
+                            className="!p-1.5 !bg-white/80 dark:!bg-gov-forest/80 !backdrop-blur-md"
+                            metadata={{
+                              title: language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title),
+                              title_ar: (item as any).title_ar || item.title,
+                              title_en: (item as any).title_en || item.title,
+                              description: language === 'ar' ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary),
+                              description_ar: (item as any).summary_ar || item.summary,
+                              description_en: (item as any).summary_en || item.summary,
+                              image: item.imageUrl || '',
+                              url: `/news/${item.id}`
+                            }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50"></div>
-                          <div className="absolute top-2 left-2 right-2 z-10 flex items-center justify-between">
-                            <span className="px-2 py-0.5 bg-white/90 dark:bg-gov-forest/90 text-gov-charcoal dark:text-white border-l-2 border-gov-gold text-[10px] font-bold rounded backdrop-blur-md">
-                              {language === "ar"
-                                ? item.category
-                                : (item as any).category_en || item.category}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleShare(item);
-                                }}
-                                className="p-1.5 bg-white/80 dark:bg-gov-forest/80 text-gov-charcoal dark:text-white rounded-full backdrop-blur-md hover:bg-gov-gold hover:text-white transition-all"
-                              >
-                                <Share2 size={12} />
-                              </button>
-                              <FavoriteButton
-                                contentType="news"
-                                contentId={item.id}
-                                variant="overlay"
-                                size={12}
-                                className="!p-1.5 !bg-white/80 dark:!bg-gov-forest/80 !backdrop-blur-md"
-                                metadata={{
-                                  title:
-                                    language === "ar"
-                                      ? (item as any).title_ar || item.title
-                                      : (item as any).title_en || item.title,
-                                  title_ar:
-                                    (item as any).title_ar || item.title,
-                                  title_en:
-                                    (item as any).title_en || item.title,
-                                  description:
-                                    language === "ar"
-                                      ? (item as any).summary_ar || item.summary
-                                      : (item as any).summary_en ||
-                                        item.summary,
-                                  description_ar:
-                                    (item as any).summary_ar || item.summary,
-                                  description_en:
-                                    (item as any).summary_en || item.summary,
-                                  image: item.imageUrl || "",
-                                  url: `/news/${item.id}`,
-                                }}
-                              />
-                            </div>
-                          </div>
                         </div>
-                      )}
-
-                      <div className="p-3 flex-1 flex flex-col">
-                        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 dark:text-white/50 mb-2">
-                          <Calendar size={10} className="text-gov-gold" />
-                          {formatRelativeTime(
-                            item.date,
-                            language as "ar" | "en",
-                          )}
-                        </div>
-
-                        <h3 className="text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2 leading-snug line-clamp-2 group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
-                          <Link href={`/news/${item.id}`}>
-                            {language === "ar"
-                              ? (item as any).title_ar || item.title
-                              : (item as any).title_en || item.title}
-                          </Link>
-                        </h3>
-
-                        <p className="text-xs text-gray-500 dark:text-white/60 line-clamp-2 mb-3 flex-1">
-                          {language === "ar"
-                            ? (item as any).summary_ar || item.summary
-                            : (item as any).summary_en || item.summary}
-                        </p>
-
-                        <Link
-                          href={`/news/${item.id}`}
-                          className="inline-flex items-center text-xs font-bold text-gov-gold mt-auto group/link"
-                        >
-                          {t("read_more")}
-                          <ChevronLeft
-                            className={`ms-1 w-3 h-3 ${direction === "rtl" ? "" : "rotate-180"}`}
-                          />
-                        </Link>
                       </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                  )}
 
-              {/* Right arrow - outside cards */}
-              <button
-                onClick={() => scroll("right")}
-                disabled={!canScrollRight}
-                className="hidden md:flex shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 dark:bg-dm-surface/90 shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gov-border/25 items-center justify-center text-gov-charcoal dark:text-white/70 hover:bg-gov-forest hover:text-white hover:border-gov-forest dark:hover:bg-gov-gold dark:hover:text-gov-charcoal disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                {direction === "rtl" ? (
-                  <ChevronLeft size={20} />
-                ) : (
-                  <ChevronRight size={20} />
-                )}
-              </button>
+                  <div className="p-1.5 md:p-3 flex-1 flex flex-col">
+                    <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-gray-400 dark:text-white/50 mb-1.5 md:mb-2">
+                      <Calendar size={10} className="text-gov-gold" />
+                      {formatRelativeTime(item.date, language as 'ar' | 'en')}
+                    </div>
+
+                    <h3 className="text-xs md:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 md:mb-2 leading-snug line-clamp-2 group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
+                      <Link href={`/news/${item.id}`}>
+                        {language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+                      </Link>
+                    </h3>
+
+                    <p className="text-[10px] md:text-xs text-gray-500 dark:text-white/60 line-clamp-2 md:line-clamp-3 mb-2 md:mb-3 flex-1">
+                      {language === 'ar' ? ((item as any).summary_ar || item.summary) : ((item as any).summary_en || item.summary)}
+                    </p>
+
+                    <Link
+                      href={`/news/${item.id}`}
+                      className="inline-flex items-center text-[10px] md:text-xs font-bold text-gov-gold mt-auto group/link"
+                    >
+                      {t('read_more')}
+                      <ChevronLeft className={`ms-0.5 md:ms-1 w-2.5 h-2.5 md:w-3 md:h-3 ${direction === 'rtl' ? '' : 'rotate-180'}`} />
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
 

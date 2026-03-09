@@ -9,6 +9,8 @@ use App\Services\AuditService;
 use App\Services\RecaptchaService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -108,72 +110,37 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        // Rate limiting handled by ComplaintRateLimitMiddleware (Bug #315 fix)
+        // Rate Limiting: Handled by ComplaintRateLimitMiddleware (per-user/IP, #487 fix)
 
-        // Bug #350: Server-side validation for all required fields
-        // Determine if this is an anonymous submission (no personal info required)
-        $isAnonymous = !$request->filled('full_name') && !$request->filled('national_id') && !$request->user();
+        // Validate Request including CAPTCHA (#488: Full form validation)
+        $isAnonymous = $request->boolean('is_anonymous');
 
-        $rules = [
+        $request->validate([
+            'is_anonymous' => 'nullable|boolean',
+            'full_name' => $isAnonymous ? 'nullable|string|max:255' : 'required|string|min:3|max:255',
+            'national_id' => $isAnonymous ? 'nullable|string|size:11|regex:/^\d{11}$/' : 'required|string|size:11|regex:/^\d{11}$/',
+            'phone' => $isAnonymous ? 'nullable|string|max:20' : 'required|string|min:7|max:20',
+            'email' => 'nullable|email:rfc|max:255',
             'directorate_id' => 'nullable|exists:directorates,id',
             'description' => 'required|string|min:10|max:5000',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
-            'attachments' => 'nullable|array|max:5', // Max 5 files
-            'attachment_ids' => 'nullable|array|max:5', // Bug #316: pre-uploaded temp attachment IDs
-            'attachment_ids.*' => 'string|uuid',
-            'recaptcha_token' => 'nullable|string',
-            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number',
-            'template_id' => 'nullable|exists:complaint_templates,id',
-            'template_fields' => 'nullable',
-        ];
-
-        // Non-anonymous submissions require personal info
-        if (!$isAnonymous) {
-            $rules['full_name'] = 'required|string|min:3|max:255';
-            $rules['national_id'] = 'required|string|size:11|regex:/^\d{11}$/';
-            $rules['phone'] = 'required|string|min:10|max:20';
-            $rules['email'] = 'nullable|email|max:255';
-        }
-
-        // If previous complaint is indicated, tracking number is required
-        if ($request->boolean('has_previous_complaint') || $request->filled('previous_tracking_number')) {
-            $rules['previous_tracking_number'] = 'required|string|exists:complaints,tracking_number';
-        }
-
-        // Determine locale from Accept-Language header for bilingual validation messages
-        $locale = str_starts_with($request->header('Accept-Language', 'ar'), 'en') ? 'en' : 'ar';
-
-        $validationMessages = $locale === 'en' ? [
-            'full_name.required' => 'Full name is required',
-            'full_name.min' => 'Full name must be at least 3 characters',
-            'national_id.required' => 'National ID is required',
-            'national_id.size' => 'National ID must be exactly 11 digits',
-            'national_id.regex' => 'National ID must contain only digits',
-            'phone.required' => 'Phone number is required',
-            'phone.min' => 'Invalid phone number',
-            'description.required' => 'Complaint details are required',
-            'description.min' => 'Complaint details must be at least 10 characters',
-            'description.max' => 'Complaint details must not exceed 5000 characters',
-            'previous_tracking_number.required' => 'Previous complaint tracking number is required',
-            'previous_tracking_number.exists' => 'Previous complaint tracking number not found in system',
-            'template_id.exists' => 'Complaint template not found',
-        ] : [
-            'full_name.required' => 'الاسم الكامل مطلوب',
-            'full_name.min' => 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل',
-            'national_id.required' => 'الرقم الوطني مطلوب',
-            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
-            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
-            'phone.required' => 'رقم الهاتف مطلوب',
-            'phone.min' => 'رقم الهاتف غير صالح',
-            'description.required' => 'تفاصيل الشكوى مطلوبة',
-            'description.min' => 'تفاصيل الشكوى يجب أن تكون 10 أحرف على الأقل',
-            'description.max' => 'تفاصيل الشكوى يجب ألا تتجاوز 5000 حرف',
-            'previous_tracking_number.required' => 'رقم الشكوى السابقة مطلوب عند الإشارة إلى شكوى سابقة',
-            'previous_tracking_number.exists' => 'رقم الشكوى السابقة غير موجود في النظام',
-            'template_id.exists' => 'نموذج الشكوى غير موجود',
-        ];
-
-        $request->validate($rules, $validationMessages);
+            'attachments' => 'max:5', // Max 5 files
+            'recaptcha_token' => 'nullable|string', // Optional pending Config
+            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
+        ], [
+            'full_name.required' => "الاسم الكامل مطلوب",
+            'full_name.min' => "الاسم يجب أن يتكون من 3 أحرف على الأقل",
+            'national_id.required' => "الرقم الوطني مطلوب",
+            'national_id.size' => "الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط",
+            'national_id.regex' => "الرقم الوطني يجب أن يحتوي على أرقام فقط",
+            'phone.required' => "رقم الهاتف مطلوب",
+            'phone.min' => "رقم الهاتف غير صالح",
+            'directorate_id.required' => "يرجى تحديد الجهة المختصة",
+            'directorate_id.exists' => "الجهة المختصة غير موجودة",
+            'description.required' => "وصف الشكوى مطلوب",
+            'description.min' => "وصف الشكوى يجب أن يتكون من 10 أحرف على الأقل",
+            'description.max' => "وصف الشكوى يجب ألا يتجاوز 5000 حرف",
+        ]);
 
         // Verify CAPTCHA (T060)
         if ($request->filled('recaptcha_token')) {
@@ -257,7 +224,31 @@ class ComplaintController extends Controller
             $data['email'] = $request->input('email');
         }
 
-        $files = $request->file('attachments', []);
+        $files = $request->file("attachments", []);
+
+        // Support staged uploads: move temp files to attachments
+        $consumedTempPaths = [];
+        if ($request->has("staged_attachment_ids")) {
+            $stagedIds = $request->input("staged_attachment_ids", []);
+            $tempFiles = Storage::disk("local")->files("temp-uploads");
+            foreach ($stagedIds as $stagedId) {
+                // Validate UUID format
+                if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $stagedId)) {
+                    continue;
+                }
+                foreach ($tempFiles as $tempFile) {
+                    $stem = pathinfo(basename($tempFile), PATHINFO_FILENAME);
+                    if ($stem === $stagedId) {
+                        $fullPath = storage_path("app/" . $tempFile);
+                        if (file_exists($fullPath)) {
+                            $files[] = new UploadedFile($fullPath, basename($tempFile), null, null, true);
+                            $consumedTempPaths[] = $tempFile;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
         // Bug #316: Resolve pre-uploaded temp attachment IDs to files
         $attachmentIds = $request->input('attachment_ids', []);
@@ -281,7 +272,10 @@ class ComplaintController extends Controller
 
         $complaint = $this->complaintService->createComplaint($data, $files);
 
-        // Rate limit counter incremented by ComplaintRateLimitMiddleware (Bug #315 fix)
+        // Clean up consumed temp files
+        foreach ($consumedTempPaths as $tempPath) {
+            Storage::disk("local")->delete($tempPath);
+        }
 
         // Audit Log
         $actorId = $user ? $user->id : null;
@@ -408,6 +402,37 @@ class ComplaintController extends Controller
         // Only proceed if status actually changed
         if ($oldStatus === $newStatus) {
             return response()->json(['message' => 'Status unchanged', 'complaint' => $complaint]);
+        }
+
+        // T-M2-10: Enforce sequential complaint status flow:
+        // واردة (new/received) → قيد المعالجة (in_progress) → منتهية (completed/resolved/closed/rejected)
+        $allowedTransitions = [
+            'new'         => ['received', 'in_progress'],
+            'received'    => ['in_progress'],
+            'in_progress' => ['completed', 'resolved', 'rejected', 'closed'],
+            'completed'   => ['closed'],   // Allow closing a completed complaint
+            'resolved'    => ['closed'],   // Allow closing a resolved complaint
+            'rejected'    => [],           // Terminal state
+            'closed'      => [],           // Terminal state
+        ];
+
+        $allowed = $allowedTransitions[$oldStatus] ?? [];
+        if (!in_array($newStatus, $allowed)) {
+            $statusLabels = [
+                'new' => 'واردة', 'received' => 'واردة',
+                'in_progress' => 'قيد المعالجة',
+                'completed' => 'منتهية', 'resolved' => 'منتهية',
+                'rejected' => 'مرفوضة', 'closed' => 'مغلقة',
+            ];
+            $fromLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+            $toLabel = $statusLabels[$newStatus] ?? $newStatus;
+            return response()->json([
+                'message' => "لا يمكن تغيير الحالة من \"{$fromLabel}\" ({$oldStatus}) إلى \"{$toLabel}\" ({$newStatus}). يرجى اتباع التسلسل الصحيح: واردة → قيد المعالجة → منتهية",
+                'error' => 'invalid_status_transition',
+                'current_status' => $oldStatus,
+                'requested_status' => $newStatus,
+                'allowed_statuses' => $allowed,
+            ], 422);
         }
 
         $complaint->status = $newStatus;
@@ -611,11 +636,12 @@ class ComplaintController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // FR-22: Only allow deletion if status is 'new' or 'received'
+        // FR-22: Only allow deletion if status is 'new' or 'received' (#185 fix)
         $allowedStatuses = ['new', 'received'];
         if (!in_array($complaint->status, $allowedStatuses)) {
             return response()->json([
-                'message' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
+                'message' => "لا يمكن حذف الشكوى. يمكن حذف الشكاوى الواردة فقط.",
+                'message_en' => 'Cannot delete complaint. Only complaints with status "new" or "received" can be deleted.',
                 'current_status' => $complaint->status
             ], 400);
         }

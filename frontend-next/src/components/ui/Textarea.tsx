@@ -44,7 +44,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                     {/* Validation Icons (Top Right in LTR, Top Left in RTL) */}
                     {(error || isValid) && (
                         <div className={`absolute top-3 right-3 rtl:right-auto rtl:left-3 pointer-events-none`}>
-                            {error && <AlertCircle size={18} className="text-red-500 dark:text-red-400" />}
+                            {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
                             {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                         </div>
                     )}

@@ -358,7 +358,7 @@ export default function SuggestionsManagementPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
-                            {new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                            {new Date(suggestion.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -486,7 +486,7 @@ export default function SuggestionsManagementPage() {
                     {language === 'ar' ? 'تاريخ الإرسال' : 'Submitted Date'}
                   </label>
                   <p className="text-gov-charcoal dark:text-white font-bold">
-                    {new Date(selectedSuggestion.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                    {new Date(selectedSuggestion.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                   </p>
                 </div>
               </div>
@@ -511,7 +511,7 @@ export default function SuggestionsManagementPage() {
                   {selectedSuggestion.reviewer && (
                     <p className="text-sm text-gray-500 dark:text-white/70 mt-2">
                       {language === 'ar' ? 'بواسطة: ' : 'By: '}{selectedSuggestion.reviewer.name}
-                      {selectedSuggestion.reviewed_at && ` - ${new Date(selectedSuggestion.reviewed_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}`}
+                      {selectedSuggestion.reviewed_at && ` - ${new Date(selectedSuggestion.reviewed_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}`}
                     </p>
                   )}
                 </div>

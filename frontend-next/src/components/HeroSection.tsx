@@ -278,7 +278,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
   }
 
   return (
-    <section ref={containerRef} className={`relative pt-4 pb-20 md:pt-0 md:pb-6 overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[calc(100svh-3.5rem)] md:min-h-[calc(100svh-5rem)]'} h-auto md:h-[calc(100svh-5rem)] flex items-center justify-center md:-mt-8 transition-colors duration-700`}>
+    <section ref={containerRef} className={`relative overflow-hidden bg-gov-beige dark:bg-dm-bg ${hasBreakingNews ? 'min-h-[calc(100svh-6rem)]' : 'min-h-[100svh] md:min-h-[calc(100svh-5rem)]'} flex flex-col items-center justify-center pt-8 md:pt-0 pb-16 md:pb-6 md:-mt-8 transition-colors duration-700`}>
 
       {/* Backgrounds */}
       <div ref={bgPatternRef} className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay scale-110"></div>
@@ -340,7 +340,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
         </div>
 
-        <div ref={textContainerRef} className={`space-y-2 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center md:-me-6 lg:-me-10' : 'md:text-start'} min-w-0`}>
+        <div ref={textContainerRef} className={`space-y-1 md:space-y-4 relative z-20 md:flex-1 md:order-2 text-center ${language === 'ar' ? 'md:text-center md:-me-6 lg:-me-10' : 'md:text-start'} min-w-0 mt-2 md:mt-0`}>
 
           {/* Titles Group */}
           <div className={`flex flex-col items-center ${language === 'ar' ? 'md:items-center' : 'md:items-start'} w-full`}>
@@ -416,56 +416,59 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
           </div>
 
-          <div className={`flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center ${language === 'ar' ? 'md:justify-center' : 'md:justify-start'} pt-3 md:pt-6 w-full px-2 sm:px-4 md:px-0`}>
+          <div className={`grid grid-cols-3 sm:flex sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 md:pt-6 w-full px-2 sm:px-0 mx-auto md:mx-0`}>
             {/* Our Services Button */}
             <Link
               href="/services"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
-              {/* Animated Gradient Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
-              {/* Shimmer Effect */}
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
-              {/* Glass Border */}
-              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-[1.25rem] sm:rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10 hidden sm:block" />
 
-              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'خدماتنا' : 'Our Services'}</span>
-
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
-                <Landmark size={18} />
+              <div className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10 shrink-0">
+                <Landmark size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
+
+              <span className="text-[9px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+                {language === 'ar' ? 'خدماتنا' : 'Our Services'}
+              </span>
             </Link>
 
             {/* Our News Button */}
             <Link
               href="/news"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
-              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-[1.25rem] sm:rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10 hidden sm:block" />
 
-              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'أخبارنا' : 'Our News'}</span>
-
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
-                <FileText size={18} />
+              <div className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10 shrink-0">
+                <FileText size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
+
+              <span className="text-[9px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+                {language === 'ar' ? 'أخبارنا' : 'Our News'}
+              </span>
             </Link>
 
             {/* Complaints & Suggestions Button */}
             <Link
               href="/complaints"
-              className="animate-btn group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-4 px-4 md:px-8 py-3 md:py-4 bg-gov-beige/60 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-lg shadow-gov-forest/5 dark:shadow-xl border border-gov-forest/15 dark:border-white/10"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
-              <div className="absolute inset-0 border border-gov-forest/10 dark:border-gov-gold/30 rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10" />
+              <div className="absolute inset-0 border border-gov-gold/30 rounded-[1.25rem] sm:rounded-3xl group-hover:border-transparent transition-colors duration-500 -z-10 hidden sm:block" />
 
-              <span className="text-[14px] md:text-[16px] tracking-wide relative z-10 font-extrabold">{language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}</span>
-
-              <div className="relative z-10 w-9 h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-gov-forest/15 dark:border-white/15">
-                <MessageSquare size={18} />
+              <div className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10 shrink-0">
+                <MessageSquare size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
+
+              <span className="text-[9px] sm:text-[16px] tracking-tighter sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+                {language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}
+              </span>
             </Link>
           </div>
 
@@ -497,14 +500,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
 
       </div>
 
-      {/* News Ticker Integrated - Centered within hero */}
-      <div className="absolute bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 z-30 w-[95%] md:w-[90%]">
+      {/* News Ticker Integrated - Positioned at the very bottom of the Hero section */}
+      <div className="absolute bottom-2 md:bottom-10 left-1/2 -translate-x-1/2 z-30 w-[96%] md:w-[90%]">
         <NewsTicker
           onNewsLoaded={onNewsLoaded}
           className="rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.16)] border border-gov-gold/25 dark:border-gov-gold/20"
         />
       </div>
-    </section >
+    </section>
   );
 };
 

@@ -6,6 +6,7 @@ import { SkeletonGrid } from '@/components/SkeletonLoader';
 import { API } from '@/lib/repository';
 import { NewsItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -30,12 +31,7 @@ const CentralDirectorateNews: React.FC = () => {
     fetchNews();
   }, []);
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return language === 'ar'
-      ? date.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })
-      : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  };
+  const formatDate = (dateStr: string) => formatDateUtil(dateStr, language);
 
   const loc = (item: any, field: string): string => {
     const ar = item?.[`${field}_ar`] || item?.[field] || '';

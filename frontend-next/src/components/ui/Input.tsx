@@ -45,7 +45,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                     {Icon && (
                         <Icon
                             className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
-                                ${error ? 'text-red-500 dark:text-red-400' : isValid ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50'}`}
+                                ${error ? 'text-red-500 dark:text-gov-cherry' : isValid ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50'}`}
                             size={18}
                         />
                     )}
@@ -53,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                     {/* Validation Icons (Right side in LTR, Left in RTL) */}
                     {(error || isValid) && (
                         <div className={`absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none`}>
-                            {error && <AlertCircle size={18} className="text-red-500 dark:text-red-400" />}
+                            {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
                             {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                         </div>
                     )}

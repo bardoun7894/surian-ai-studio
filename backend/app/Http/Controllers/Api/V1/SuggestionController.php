@@ -40,36 +40,32 @@ class SuggestionController extends Controller
             'description' => 'required|string|min:10|max:5000',
             'directorate_id' => 'required|exists:directorates,id',
             'files' => 'nullable|array|max:5',
-            'files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB
-            'attachment_ids' => 'nullable|array|max:5', // Bug #316: pre-uploaded temp attachment IDs
-            'attachment_ids.*' => 'string',
+            'files.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:5120', new \App\Rules\ValidFileMagicBytes], // 5MB
             'is_anonymous' => 'nullable|boolean',
             'recaptcha_token' => 'nullable|string',
             'guest_token' => 'nullable|string',
         ];
 
         if (!$isAnonymous) {
-            $rules['name'] = 'required|string|min:3|max:255';
+            $rules['name'] = 'required|string|max:100';
             $rules['email'] = 'nullable|email|max:255';
-            $rules['phone'] = 'nullable|string|min:10|max:20';
-            $rules['national_id'] = 'nullable|string|size:11|regex:/^\d{11}$/';
-            $rules['dob'] = 'nullable|date|before:today';
+            $rules['phone'] = ['nullable', 'string', 'regex:/^(\+?[0-9]{7,15})$/'];
+            $rules['national_id'] = 'nullable|string|digits:11';
+            $rules['dob'] = 'nullable|date';
         }
 
-        $messages = [
-            'description.required' => 'وصف المقترح مطلوب',
-            'description.min' => 'وصف المقترح يجب أن يكون 10 أحرف على الأقل',
-            'description.max' => 'وصف المقترح يجب ألا يتجاوز 5000 حرف',
-            'directorate_id.required' => 'الجهة المعنية مطلوبة',
-            'directorate_id.exists' => 'الجهة المختارة غير موجودة',
+        $validator = Validator::make($request->all(), $rules, [
             'name.required' => 'الاسم مطلوب',
-            'name.min' => 'الاسم يجب أن يكون 3 أحرف على الأقل',
-            'phone.min' => 'رقم الهاتف غير صالح',
-            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
-            'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
+            'name.max' => 'الاسم يجب ألا يتجاوز 100 حرف',
+            'description.required' => 'الوصف مطلوب',
+            'description.min' => 'الوصف يجب أن يكون على الأقل 10 أحرف',
+            'description.max' => 'الوصف يجب ألا يتجاوز 5000 حرف',
+            'directorate_id.required' => 'يجب تحديد الجهة المستلمة | Please select a recipient directorate',
+            'directorate_id.exists' => 'الجهة المحددة غير صالحة | The selected directorate is invalid',
+            'email.email' => 'البريد الإلكتروني غير صالح',
+            'phone.regex' => 'رقم الهاتف غير صالح',
+            'national_id.digits' => 'الرقم الوطني يجب أن يتكون من 11 رقماً',
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -111,6 +107,14 @@ class SuggestionController extends Controller
         try {
             $data = $request->only(['name', 'email', 'phone', 'description', 'national_id', 'dob', 'directorate_id']);
             $data['is_anonymous'] = $isAnonymous;
+
+            // Sanitize string inputs
+            if (isset($data['name'])) {
+                $data['name'] = strip_tags(trim($data['name']));
+            }
+            if (isset($data['description'])) {
+                $data['description'] = strip_tags($data['description']);
+            }
 
             $suggestion = $this->suggestionService->store(
                 $data,
@@ -338,6 +342,7 @@ class SuggestionController extends Controller
     public function track(Request $request, string $trackingNumber): JsonResponse
     {
         $suggestion = Suggestion::where('tracking_number', $trackingNumber)
+            ->with('directorate')
             ->first();
 
         if (!$suggestion) {
@@ -375,13 +380,18 @@ class SuggestionController extends Controller
                 'tracking_number' => $suggestion->tracking_number,
                 'status' => $suggestion->status,
                 'description' => $suggestion->description,
-                'full_name' => $suggestion->is_anonymous ? null : $suggestion->name,
                 'created_at' => $suggestion->created_at->toIso8601String(),
                 'submitted_at' => $suggestion->created_at->toIso8601String(),
                 'last_updated' => $suggestion->updated_at->toIso8601String(),
                 'response' => $suggestion->status !== Suggestion::STATUS_PENDING ? $suggestion->response : null,
                 'reviewed_at' => $suggestion->reviewed_at?->toIso8601String(),
                 'is_anonymous' => (bool) $suggestion->is_anonymous,
+                'full_name' => $suggestion->is_anonymous ? null : $suggestion->name,
+                'directorate' => $suggestion->directorate ? [
+                    'name_ar' => $suggestion->directorate->name_ar,
+                    'name_en' => $suggestion->directorate->name_en,
+                ] : null,
+                'category' => $suggestion->ai_category,
                 'rating' => $existingRating?->rating,
                 'directorate_name' => $directorateName,
                 'directorate' => $directorate ? [

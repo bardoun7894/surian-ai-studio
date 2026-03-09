@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Megaphone, Calendar, ArrowLeft, ArrowRight, Bell, AlertCircle, Loader2, Share2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { formatDate as formatDateUtil } from '@/lib/utils';
 import { API } from '@/lib/repository';
 import ShareMenu from './ShareMenu';
 import Link from 'next/link';
@@ -85,12 +86,7 @@ const Announcements: React.FC = () => {
         return t(`announcements_type_${type}`);
     };
 
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return language === 'ar'
-            ? date.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })
-            : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    };
+    const formatDate = (dateStr: string) => formatDateUtil(dateStr, language);
 
     const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 

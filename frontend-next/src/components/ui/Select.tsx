@@ -54,14 +54,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                     {Icon && (
                         <Icon
                             className={`absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors
-                                ${error ? 'text-red-500 dark:text-red-400' : isValid ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50'}`}
+                                ${error ? 'text-red-500 dark:text-gov-cherry' : isValid ? 'text-green-500 dark:text-emerald-400' : 'text-gov-sand dark:text-gov-teal/50'}`}
                             size={18}
                         />
                     )}
 
                     {/* Custom Chevron and Validation Status */}
                     <div className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                        {error && <AlertCircle size={18} className="text-red-500 dark:text-red-400" />}
+                        {error && <AlertCircle size={18} className="text-red-500 dark:text-gov-cherry" />}
                         {isValid && !error && <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />}
                         <ChevronDown size={16} className="text-gray-400" />
                     </div>

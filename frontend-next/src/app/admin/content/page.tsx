@@ -430,7 +430,7 @@ export default function ContentManagementPage() {
 
   const formatDateTime = (dateString: string | undefined) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US', {
+    return new Date(dateString).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -637,7 +637,7 @@ export default function ContentManagementPage() {
                           </td>
                           <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
                             {content.published_at
-                              ? new Date(content.published_at).toLocaleDateString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')
+                              ? new Date(content.published_at).toLocaleDateString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')
                               : '-'}
                           </td>
                           <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
@@ -1372,7 +1372,7 @@ export default function ContentManagementPage() {
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          {new Date(version.created_at).toLocaleString(language === 'ar' ? 'ar-u-nu-latn' : 'en-US')}
+                          {new Date(version.created_at).toLocaleString(language === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US')}
                         </p>
                       </button>
                     ))}

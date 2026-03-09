@@ -136,7 +136,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
   }
 
   return (
-    <section id="faq" className="py-24 relative overflow-hidden bg-gov-beige/30 dark:bg-dm-bg scroll-mt-24">
+    <section id="faq" className="py-12 md:py-24 relative overflow-hidden bg-gov-beige/30 dark:bg-dm-bg scroll-mt-24">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -200,7 +200,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="text-3xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-4"
+            className="text-2xl md:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold mb-3 md:mb-4 px-4"
           >
             {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
           </motion.h2>
@@ -210,7 +210,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="text-lg text-gov-charcoal/70 dark:text-gov-gold/70 max-w-2xl mx-auto mb-8"
+            className="text-sm md:text-lg text-gov-charcoal/70 dark:text-gov-gold/70 max-w-2xl mx-auto mb-6 md:mb-8 px-4"
           >
             {isAr
               ? 'إجابات على أكثر الاستفسارات شيوعاً حول الخدمات والبوابة.'
@@ -223,16 +223,16 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
-            className="relative max-w-xl mx-auto"
+            className="relative max-w-xl mx-auto px-4 sm:px-0"
           >
             <div className="relative">
-              <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isAr ? 'ابحث في الأسئلة الشائعة...' : 'Search FAQs...'}
-                className="w-full pl-12 pr-4 rtl:pl-4 rtl:pr-12 py-4 rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-gov-forest dark:text-white placeholder:text-gray-400"
+                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-sm md:text-base text-gov-forest dark:text-white placeholder:text-gray-400"
               />
             </div>
           </motion.div>
@@ -244,7 +244,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-4 overflow-visible"
+          className="space-y-4 max-h-[600px] overflow-y-auto scroll-smooth pb-4"
           data-faq-list
           role="list"
         >
@@ -257,7 +257,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                 layout
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${openIndex === index
                   ? 'bg-white dark:bg-white/10 border-gov-gold shadow-lg shadow-gov-gold/10'
-                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-md'
+                  : 'bg-white/80 dark:bg-white/5 border-gov-gold/10 dark:border-white/10 hover:border-gov-gold/30 hover:shadow-lg hover:shadow-gov-gold/10'
                   }`}
               >
                 <motion.button
@@ -285,25 +285,25 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                     }
                   }}
                   whileHover={{ x: isAr ? -4 : 4 }}
-                  className="w-full flex items-center justify-between p-6 text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-gold focus-visible:ring-offset-2 rounded-t-2xl"
+                  className="w-full flex items-center justify-between p-4 md:p-6 text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-gov-gold focus-visible:ring-offset-2 rounded-t-2xl"
                   aria-expanded={openIndex === index}
                   aria-controls={`faq-panel-${faq.id}`}
                   id={`faq-header-${faq.id}`}
                 >
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${openIndex === index ? 'bg-gov-gold text-gov-forest' : 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold'}`}>
-                      <MessageCircle size={20} />
+                  <div className="flex items-center gap-3 md:gap-4 flex-1">
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 transition-colors ${openIndex === index ? 'bg-gov-gold text-gov-forest' : 'bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold'}`}>
+                      <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
                     </div>
-                    <span className={`font-display font-bold text-lg transition-colors ${openIndex === index ? 'text-gov-forest dark:text-gov-gold' : 'text-gov-forest dark:text-white'}`}>
+                    <span className={`font-display font-bold text-sm md:text-lg transition-colors leading-tight ${openIndex === index ? 'text-gov-forest dark:text-gov-gold' : 'text-gov-forest dark:text-white'}`}>
                       {getQuestion(faq)}
                     </span>
                   </div>
                   <motion.div
                     animate={{ rotate: openIndex === index ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ml-4 ${openIndex === index ? 'bg-gov-gold/20 text-gov-gold' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}
+                    className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shrink-0 ml-2 md:ml-4 ${openIndex === index ? 'bg-gov-gold/20 text-gov-gold' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}
                   >
-                    <ChevronDown size={18} />
+                    <ChevronDown className="w-3.5 h-3.5 md:w-[18px] md:h-[18px]" />
                   </motion.div>
                 </motion.button>
 
@@ -319,9 +319,9 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
                       role="region"
                       aria-labelledby={`faq-header-${faq.id}`}
                     >
-                      <div className="px-6 pb-6 pt-2">
-                        <div className="border-t border-gov-gold/10 dark:border-gov-border/15 pt-4">
-                          <p className="text-gov-charcoal/70 dark:text-white/70 leading-relaxed text-base">
+                      <div className="px-4 pb-4 md:px-6 md:pb-6 pt-1 md:pt-2">
+                        <div className="border-t border-gov-gold/10 dark:border-gov-border/15 pt-3 md:pt-4">
+                          <p className="text-gov-charcoal/70 dark:text-white/70 leading-relaxed text-xs md:text-base">
                             {getAnswer(faq)}
                           </p>
                         </div>

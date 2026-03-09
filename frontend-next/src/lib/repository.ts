@@ -664,6 +664,7 @@ class ApiComplaintRepository implements IComplaintRepository {
     if (data.dob) formData.append('dob', data.dob);
     if (data.recaptcha_token) formData.append('recaptcha_token', data.recaptcha_token);
     if (data.previousTrackingNumber) formData.append('previous_tracking_number', data.previousTrackingNumber);
+    if ((data as any).is_anonymous) formData.append('is_anonymous', '1');
 
     // Template fields
     if ((data as any).template_id) formData.append('template_id', (data as any).template_id);
@@ -745,11 +746,11 @@ class ApiComplaintRepository implements IComplaintRepository {
       xhr.send(formData);
     });
   }
-  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify(nationalId ? { national_id: nationalId } : {}),
     });
 
     if (res.status === 404) return null;
@@ -1512,11 +1513,24 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
+    // Fetch CSRF cookie before submitting (required by Laravel Sanctum)
+    await getCsrfCookie();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    // Include XSRF token from cookie
+    const xsrfToken = getXsrfToken();
+    if (xsrfToken) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+
     const res = await fetch(`${API_BASE_URL}/public/suggestions/rating`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     if (!res.ok) {

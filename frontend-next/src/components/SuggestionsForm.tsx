@@ -993,14 +993,16 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             </div>
                                         )}
 
-                                        {/* T030: Upload Progress Bar (shown during submission) */}
-                                        <MultiUploadProgress
-                                            files={formData.files}
-                                            progress={uploadProgress}
-                                            isUploading={isUploading}
-                                            isSubmitting={isSubmitting}
-                                            language={isAr ? 'ar' : 'en'}
-                                        />
+                                        {/* T030: Upload Progress Bar (shown during submission, only when files attached) */}
+                                        {formData.files.length > 0 && (
+                                            <MultiUploadProgress
+                                                files={formData.files}
+                                                progress={uploadProgress}
+                                                isUploading={isUploading}
+                                                isSubmitting={isSubmitting}
+                                                language={isAr ? 'ar' : 'en'}
+                                            />
+                                        )}
                                     </div>
 
                                     <button
@@ -1208,11 +1210,13 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                         </div>
                                     )}
                                     {(hasRated || trackingResult.rating) && (
-                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 text-center">
-                                            <p className="text-sm text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
-                                                <CheckCircle size={16} />
-                                                {isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!'}
-                                            </p>
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gov-border/15 animate-fade-in">
+                                            <SuggestionRating
+                                                trackingNumber={trackingResult.tracking_number || trackingResult.id}
+                                                language={language as 'ar' | 'en'}
+                                                isReadOnly={true}
+                                                existingRating={trackingResult.rating || undefined}
+                                            />
                                         </div>
                                     )}
                                 </div>

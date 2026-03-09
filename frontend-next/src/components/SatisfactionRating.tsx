@@ -24,19 +24,28 @@ const SatisfactionRating: React.FC<SatisfactionRatingProps> = ({ trackingNumber,
         setIsSubmitting(true);
         setError(null);
 
-        try {
-            const success = await API.complaints.rate(trackingNumber, rating, comment);
-            if (success) {
-                setIsSubmitted(true);
-                if (onSubmitted) onSubmitted();
-            } else {
-                setError(t('rating_error'));
+        // Retry up to 3 times with delay (race condition / CSRF token refresh)
+        let lastError: any = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                const success = await API.complaints.rate(trackingNumber, rating, comment);
+                if (success) {
+                    setIsSubmitted(true);
+                    if (onSubmitted) onSubmitted();
+                    return;
+                }
+                lastError = new Error('API returned failure');
+            } catch (err) {
+                lastError = err;
             }
-        } catch (err) {
-            setError(t('rating_connection_error'));
-        } finally {
-            setIsSubmitting(false);
+            // Wait before retry (CSRF cookie might need refresh)
+            if (attempt < 2) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
         }
+        // All retries failed
+        setError(t('rating_error'));
+        setIsSubmitting(false);
     };
 
     if (isSubmitted) {

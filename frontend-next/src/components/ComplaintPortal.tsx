@@ -1011,13 +1011,13 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             <p className="text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
                         </div>
 
-                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
                             <fieldset disabled={isSubmitting}>
 
 
                             {/* Anonymous / Known User Toggle */}
                             <div className="bg-gov-beige/50 dark:bg-gov-card/10 p-6 rounded-2xl border border-gov-gold/20 text-center">
-                                <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                                <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-2">
                                     <button
                                         type="button"
                                         onClick={() => setIsAnonymous(false)}
@@ -1058,7 +1058,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             </div>
 
                             {/* Complaint Template Selection (T019) */}
-                            <div className="bg-gov-gold/5 dark:bg-gov-emerald/10 rounded-xl border border-gov-gold/30">
+                            <div className="bg-gov-gold/5 dark:bg-gov-emerald/10 rounded-xl border border-gov-gold/30 mb-2">
                                 {/* Clickable Header / Trigger */}
                                 <button
                                     type="button"
@@ -1393,7 +1393,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
                             {/* Personal Information - Hidden for anonymous submissions */}
                             {!isAnonymous && (
-                                <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                                <div className="bg-gray-50 dark:bg-gov-card/10 p-6 md:p-8 rounded-xl border border-gray-100 dark:border-gov-border/15 mt-2">
                                     <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">
                                         {t('complaint_personal_info')}
                                     </h3>
@@ -1476,6 +1476,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             value={formData.dob}
                                             onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                                             disabled={shouldLockPersonalInfo}
+                                            max={new Date().toISOString().split('T')[0]}
+                                            placeholder={language === 'ar' ? 'يوم/شهر/سنة' : 'dd/mm/yyyy'}
                                         />
                                     </div>
 
@@ -1539,7 +1541,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
 
                             {/* Previous Complaint Field (Added for V2) */}
-                            <div className="bg-gray-50 dark:bg-gov-card/10 p-6 rounded-xl border border-gray-100 dark:border-gov-border/15">
+                            <div className="bg-gray-50 dark:bg-gov-card/10 p-6 md:p-8 rounded-xl border border-gray-100 dark:border-gov-border/15 mt-2">
                                 <h3 className="font-display font-bold text-gov-forest dark:text-gov-teal mb-4 text-base border-b border-gov-gold/20 dark:border-gov-border/15 pb-2">{t('complaint_details')} ({t('sitemap_previous')})</h3>
 
                                 <div className="space-y-4">

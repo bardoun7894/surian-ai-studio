@@ -90,7 +90,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
-    const [uploadedAttachmentIds, setUploadedAttachmentIds] = useState<Record<string, string>>({}); // Bug #316: instant upload IDs
     const [uploadProgress, setUploadProgress] = useState(0);
     const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [isUploading, setIsUploading] = useState(false);
@@ -110,19 +109,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
     // Copy state
     const [copied, setCopied] = useState(false);
 
-    // Bug #318 fix: When a new ticket is submitted, delay rating availability
-    useEffect(() => {
-        if (submittedTicket && formStep === 3) {
-            setRatingReady(false);
-            const timer = setTimeout(() => setRatingReady(true), 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [submittedTicket, formStep]);
-
     // Rating state - track if user already rated
     const [hasRated, setHasRated] = useState(false);
-    // Bug #318 fix: delay rating availability to avoid timing issue after submission
-    const [ratingReady, setRatingReady] = useState(false);
 
     // File upload visual progress
     const [fileUploadStatus, setFileUploadStatus] = useState<'ready' | 'uploading' | 'completed'>('ready');
@@ -498,7 +486,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                     directorate_id: formData.directorate_id,
                     description: formData.description,
                     files: formData.files,
-                    attachment_ids: Object.values(uploadedAttachmentIds).filter(Boolean),
                     is_anonymous: false as const,
                     recaptcha_token: recaptchaToken,
                     guest_token: guestToken || undefined,
@@ -522,7 +509,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                 duration: 8000,
             });
             setFormData({ firstName: '', lastName: '', fatherName: '', nationalId: '', dob: '', email: '', phone: '', directorate_id: '', description: '', files: [] });
-            setUploadedAttachmentIds({});
             setUploadProgress(0);
             setOtpStep('none');
             setOtpCode('');
@@ -595,7 +581,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             {/* Tabs */}
             <div className="flex bg-white dark:bg-dm-surface p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gov-border/25 mb-8 max-w-md mx-auto">
                 <button
-                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setFormStep(0); setHasAgreedToTerms(false); setHasRated(false); setRatingReady(false); }}
+                    onClick={() => { setActiveTab('submit'); setSubmittedTicket(null); setFormStep(0); setHasAgreedToTerms(false); }}
                     className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all ${activeTab === 'submit'
                         ? 'bg-gov-forest dark:bg-gov-button text-white shadow-md'
                         : 'text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -921,7 +907,6 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             value={formData.directorate_id}
                                             onChange={(e) => setFormData({ ...formData, directorate_id: e.target.value })}
                                             label={t('complaint_entity')}
-                                            required
                                             options={[
                                                 { value: '', label: t('complaint_select_entity') },
                                                 ...directoratesList.map(d => ({ value: d.id, label: getLocalizedName(d.name, language) }))
@@ -947,27 +932,8 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 focus:ring-green-500/20'
                                                         : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold focus:ring-gov-teal/20'
                                             }`}
-                                            minLength={10}
-                                            maxLength={5000}
                                             placeholder={t('suggestion_description_placeholder')}
                                         />
-                                        {/* Bug #349: Character counter */}
-                                        <div className="flex items-center justify-between mt-1 px-1">
-                                            <span className="text-xs text-gray-400">
-                                                {formData.description.length > 0 && formData.description.length < 10 && (
-                                                    <span className="text-amber-500">{isAr ? `${10 - formData.description.length} حرف إضافي مطلوب` : `${10 - formData.description.length} more characters needed`}</span>
-                                                )}
-                                            </span>
-                                            <span className={`text-xs font-mono ${
-                                                formData.description.length > 0 && formData.description.length < 10
-                                                    ? 'text-amber-500'
-                                                    : formData.description.length > 4500
-                                                        ? 'text-red-500'
-                                                        : 'text-gray-400 dark:text-white/50'
-                                            }`}>
-                                                {formData.description.length}{formData.description.length < 10 ? ' / 10' : ''} / 5000
-                                            </span>
-                                        </div>
                                         {touched.description && errors.description && (
                                             <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 mt-1 animate-fade-in">
                                                 <AlertCircle size={12} className="shrink-0" />
@@ -1076,23 +1042,15 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             </div>
                         </div>
 
-                        {/* Rating Component - Bug #318 fix: delay rating to avoid timing issues, Bug #273 fix: disable after rating */}
-                        {submittedTicket && !hasRated && ratingReady && (
+                        {/* Rating Component */}
+                        {submittedTicket && (
                             <div className="w-full max-w-md mb-8">
                                 <SuggestionRating
                                     trackingNumber={submittedTicket}
                                     language={language as 'ar' | 'en'}
-                                    onClose={() => setHasRated(true)}
+                                    onClose={() => {}}
                                     hideHelpfulQuestion={true}
                                 />
-                            </div>
-                        )}
-                        {submittedTicket && hasRated && (
-                            <div className="w-full max-w-md mb-8 text-center">
-                                <p className="text-sm text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
-                                    <CheckCircle size={16} />
-                                    {isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!'}
-                                </p>
                             </div>
                         )}
 
@@ -1100,7 +1058,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('track'); setTrackId(submittedTicket || ''); }} className="px-6 py-2.5 bg-gov-forest dark:bg-gov-button text-white font-bold rounded-xl hover:bg-gov-forest/90 dark:hover:bg-gov-button/80 transition-colors">
                                 {t('suggestion_track_now')}
                             </button>
-                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('submit'); setHasRated(false); setRatingReady(false); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline text-sm">
+                            <button onClick={() => { setSubmittedTicket(null); setFormStep(0); setActiveTab('submit'); }} className="text-gov-forest dark:text-gov-teal font-bold hover:underline text-sm">
                                 {isAr ? 'تقديم مقترح جديد' : 'Submit New Suggestion'}
                             </button>
                         </div>

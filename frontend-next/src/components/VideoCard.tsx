@@ -99,7 +99,7 @@ const VideoModal: React.FC<{
 
                 {isYoutube ? (
                     <div className="aspect-video rounded-xl overflow-hidden">
-                        <iframe loading="lazy"
+                        <iframe
                             src={youtubeEmbedUrl}
                             title={title || 'Video'}
                             allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -335,8 +335,7 @@ export default function VideoCard({
                         }
                     }
                 }}
-                onClick={handleContainerClick}
-                onDoubleClick={!isTouch ? handleDoubleClick : undefined}
+                onClick={openPlayer}
             >
                 {isYoutube ? (
                     <>
@@ -349,13 +348,13 @@ export default function VideoCard({
 
                         {/* YouTube iframe on hover */}
                         {youtubeActive && youtubeId && (
-                            <iframe loading="lazy"
+                            <iframe
                                 ref={ytIframeRef}
                                 src={youtubeEmbedUrl}
                                 title={title || 'Video'}
                                 allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                className="absolute inset-0 w-full h-full border-0 z-10 pointer-events-none"
+                                className="absolute inset-0 w-full h-full border-0 z-10"
                             />
                         )}
 
@@ -373,7 +372,7 @@ export default function VideoCard({
 
                         {/* Sound toggle + title when YouTube active */}
                         {youtubeActive && (
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-20 items-center justify-between hidden md:flex">
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-20 flex items-center justify-between">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -384,9 +383,16 @@ export default function VideoCard({
                                 >
                                     {ytMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                                 </button>
+                                {title && <span className="text-white text-sm font-medium truncate max-w-[60%]">{title}</span>}
                             </div>
                         )}
 
+                        {/* Title when not active */}
+                        {!youtubeActive && title && (
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
+                                <span className="text-white text-sm font-medium truncate block">{title}</span>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <>

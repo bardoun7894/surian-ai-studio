@@ -35,7 +35,6 @@ class SuggestionController extends Controller
     {
         $isAnonymous = $request->boolean('is_anonymous');
 
-        // Bug #350: Strengthened server-side validation
         $rules = [
             'description' => 'required|string|min:10|max:5000',
             'directorate_id' => 'required|exists:directorates,id',
@@ -76,25 +75,6 @@ class SuggestionController extends Controller
 
         // Additional file validation
         $files = $request->file('files', []);
-
-        // Bug #316: Resolve pre-uploaded temp attachment IDs to files
-        $attachmentIds = $request->input('attachment_ids', []);
-        if (!empty($attachmentIds) && is_array($attachmentIds)) {
-            foreach ($attachmentIds as $tempId) {
-                $metadata = \Illuminate\Support\Facades\Cache::get("temp_attachment_{$tempId}");
-                if ($metadata && \Illuminate\Support\Facades\Storage::disk('public')->exists($metadata['path'])) {
-                    $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($metadata['path']);
-                    $files[] = new \Illuminate\Http\UploadedFile(
-                        $fullPath,
-                        $metadata['original_name'],
-                        $metadata['mime_type'],
-                        null,
-                        true
-                    );
-                    \Illuminate\Support\Facades\Cache::forget("temp_attachment_{$tempId}");
-                }
-            }
-        }
         $fileErrors = $this->suggestionService->validateFiles($files);
 
         if (!empty($fileErrors)) {
@@ -367,13 +347,6 @@ class SuggestionController extends Controller
         // Check if this suggestion has already been rated
         $existingRating = \App\Models\SuggestionRating::where('tracking_number', $suggestion->tracking_number)->first();
 
-        // Bug #274 fix: Return full suggestion details for tracking display
-        $directorate = $suggestion->directorate;
-        $directorateName = null;
-        if ($directorate) {
-            $directorateName = $directorate->name_ar ?? $directorate->name_en ?? $directorate->name ?? null;
-        }
-
         return response()->json([
             'success' => true,
             'data' => [
@@ -393,12 +366,6 @@ class SuggestionController extends Controller
                 ] : null,
                 'category' => $suggestion->ai_category,
                 'rating' => $existingRating?->rating,
-                'directorate_name' => $directorateName,
-                'directorate' => $directorate ? [
-                    'name_ar' => $directorate->name_ar ?? $directorate->name ?? null,
-                    'name_en' => $directorate->name_en ?? $directorate->name ?? null,
-                ] : null,
-                'category' => $suggestion->ai_category ?? null,
             ]
         ]);
     }

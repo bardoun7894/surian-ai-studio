@@ -478,7 +478,7 @@ export default function AdminFaqsPage() {
                                 <Clock size={12} />
                                 <span>
                                   {language === 'ar' ? 'مؤجل حتى' : 'Snoozed until'}{' '}
-                                  {new Date(faq.snoozed_until).toLocaleDateString("ar-u-nu-latn")}
+                                  {new Date(faq.snoozed_until).toLocaleDateString()}
                                 </span>
                               </div>
                             )}

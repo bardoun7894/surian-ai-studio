@@ -28,13 +28,6 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
   // if a page has registered a data load that hasn't completed yet
   const shouldShowLoader = isLoading || (displayLoading && isPageDataLoading);
 
-  // Track when loading started (wall clock) and the route at that moment
-  const loadingStartTimeRef = useRef<number>(0);
-  const loadingStartRouteRef = useRef<string | null>(null);
-  // Whether we have already scheduled a "finish" sequence for this loading cycle
-  const finishScheduledRef = useRef(false);
-
-  // -- Animated progress bar --
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
 
@@ -77,12 +70,9 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
   useEffect(() => {
     if (isLoading && !loadingStartRouteRef.current) {
       loadingStartRouteRef.current = routeKey;
-      loadingStartTimeRef.current = Date.now();
-      finishScheduledRef.current = false;
     }
     if (!isLoading) {
       loadingStartRouteRef.current = null;
-      finishScheduledRef.current = false;
     }
   }, [isLoading, routeKey]);
 
@@ -95,7 +85,7 @@ const PageTransitionLoader: React.FC<PageTransitionLoaderProps> = ({
     ) {
       stopLoading();
     }
-  }, [routeKey, isLoading, finishLoading]);
+  }, [routeKey, isLoading, stopLoading]);
 
   // Safety timeout: ensure loading screen never gets stuck (12s max)
   useEffect(() => {

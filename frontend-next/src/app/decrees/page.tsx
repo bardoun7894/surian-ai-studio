@@ -21,11 +21,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { aiService } from "@/lib/aiService";
 import FavoriteButton from "@/components/FavoriteButton";
-import { SkeletonDecreeList } from "@/components/SkeletonLoader";
-import { usePageMeta } from "@/hooks/usePageMeta";
 
 // Type label mappings
 const typeLabels: Record<string, { ar: string; en: string }> = {
@@ -67,39 +64,14 @@ const MONTHS_EN = [
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
-// Map department slugs from header nav to directorate IDs
-const departmentSlugMap: Record<string, string> = {
-  ministry: "ministry", // special case: show ministry-level decrees
-  industry: "d1",
-  trade: "d3",
-  economy: "d2",
-};
-
-
-// Bug 1 fix: Department filter tabs (like news page)
-const DEPARTMENTS = [
-  { value: "all", ar: "الكل", en: "All" },
-  { value: "ministry", ar: "الوزارة", en: "The Ministry" },
-  { value: "d1", ar: "الإدارة العامة للصناعة", en: "General Admin. for Industry" },
-  { value: "d3", ar: "الإدارة العامة للتجارة الداخلية", en: "General Admin. for Internal Trade" },
-  { value: "d2", ar: "الإدارة العامة للاقتصاد", en: "General Admin. for Economy" },
-];
-
 export default function DecreesPage() {
   const { language } = useLanguage();
-
-  usePageMeta({
-    title: language === "ar" ? "القوانين والتشريعات" : "Laws & Legislation",
-    description: language === "ar" ? "القوانين والتشريعات والمراسيم المتعلقة بوزارة الاقتصاد والصناعة" : "Laws, legislation and decrees related to the Ministry",
-  });
   const isAr = language === "ar";
   const lang = language as "ar" | "en";
-  const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterDirectorate, setFilterDirectorate] = useState<string>("all");
-  const [activeDepartment, setActiveDepartment] = useState<string>("all");
   const [decrees, setDecrees] = useState<Decree[]>([]);
   const [directorates, setDirectorates] = useState<Directorate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,15 +141,6 @@ export default function DecreesPage() {
     setDetailModal({ isOpen: true, decree });
   };
 
-  // Read department param from URL and set initial filter
-  useEffect(() => {
-    const deptParam = searchParams.get("department");
-    if (deptParam && departmentSlugMap[deptParam]) {
-      const resolvedId = departmentSlugMap[deptParam];
-      setFilterDirectorate(resolvedId);
-    }
-  }, [searchParams]);
-
   // Fetch directorates on mount
   useEffect(() => {
     const fetchDirectorates = async () => {
@@ -195,20 +158,10 @@ export default function DecreesPage() {
     const fetchDecrees = async () => {
       setLoading(true);
       try {
-        // Combine department tab + directorate dropdown filter
-        let dirId: string | undefined;
-        if (activeDepartment !== "all" && activeDepartment !== "ministry") {
-          dirId = activeDepartment;
-        } else if (filterDirectorate !== "all" && filterDirectorate !== "ministry") {
-          dirId = filterDirectorate;
-        }
+        const dirId =
+          filterDirectorate !== "all" ? filterDirectorate : undefined;
         const data = await API.decrees.search(searchTerm, filterType, dirId);
-        // If "ministry" is active (via tab or URL param), filter to only decrees without a directorate
-        if (activeDepartment === "ministry" || filterDirectorate === "ministry") {
-          setDecrees(data.filter((d: any) => !d.directorate_id));
-        } else {
-          setDecrees(data);
-        }
+        setDecrees(data);
       } catch (e) {
         console.error("Failed to fetch decrees", e);
       } finally {
@@ -221,7 +174,7 @@ export default function DecreesPage() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterType, filterDirectorate, activeDepartment]);
+  }, [searchTerm, filterType, filterDirectorate]);
 
   // Filter type buttons
   const filterTypes = [
@@ -279,26 +232,6 @@ export default function DecreesPage() {
                 ? "البوابة الرسمية للوصول إلى كافة المراسيم التشريعية، القوانين، والقرارات الحكومية الصادرة في الجمهورية العربية السورية."
                 : "The official portal for accessing all legislative decrees, laws, and government decisions issued in the Syrian Arab Republic."}
             </p>
-          </div>
-
-          {/* Bug 1: Department Filter Tabs */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            {DEPARTMENTS.map((dept) => (
-              <button
-                key={dept.value}
-                onClick={() => {
-                  setActiveDepartment(dept.value);
-                  if (dept.value !== "all") setFilterDirectorate("all");
-                }}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                  activeDepartment === dept.value
-                    ? "bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest border-gov-forest dark:border-gov-gold shadow-md"
-                    : "bg-white dark:bg-dm-surface text-gray-600 dark:text-white/70 border-gray-200 dark:border-gov-border/15 hover:border-gov-gold/50 hover:bg-gov-beige dark:hover:bg-white/10"
-                }`}
-              >
-                {isAr ? dept.ar : dept.en}
-              </button>
-            ))}
           </div>
 
           {/* Unified Filter Bar */}
@@ -477,14 +410,12 @@ export default function DecreesPage() {
               {/* Clear filters */}
               {(selectedMonth !== null ||
                 selectedYear !== null ||
-                filterDirectorate !== "all" ||
-                activeDepartment !== "all") && (
+                filterDirectorate !== "all") && (
                 <button
                   onClick={() => {
                     setSelectedMonth(null);
                     setSelectedYear(null);
                     setFilterDirectorate("all");
-                    setActiveDepartment("all");
                   }}
                   className="px-2 py-1.5 rounded-lg text-xs font-bold text-gov-cherry dark:text-red-400 hover:bg-gov-cherry/10 dark:hover:bg-red-400/10 transition-all flex items-center gap-1"
                 >
@@ -501,7 +432,9 @@ export default function DecreesPage() {
           {/* Results */}
           <div className="space-y-1.5">
             {loading ? (
-              <SkeletonDecreeList rows={8} />
+              <div className="flex justify-center py-12">
+                <Loader2 className="animate-spin text-gov-teal" size={32} />
+              </div>
             ) : filteredDecrees.length === 0 ? (
               <div className="text-center py-16 bg-white dark:bg-gov-card/10 rounded-xl border border-dashed border-gray-200 dark:border-gov-border/25">
                 <FileText size={48} className="mx-auto text-gray-300 mb-4" />
@@ -604,8 +537,23 @@ export default function DecreesPage() {
                       </button>
                       <button
                         onClick={() => handleDownload(decree)}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest"
-                        title={isAr ? "تحميل PDF" : "Download PDF"}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs ${
+                          decree.attachments && decree.attachments.length > 0
+                            ? "bg-gov-beige dark:bg-gov-gold/10 text-gov-forest dark:text-gov-gold hover:bg-gov-forest hover:text-white dark:hover:bg-gov-gold dark:hover:text-gov-forest"
+                            : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/30 cursor-not-allowed"
+                        }`}
+                        disabled={
+                          !decree.attachments || decree.attachments.length === 0
+                        }
+                        title={
+                          decree.attachments && decree.attachments.length > 0
+                            ? isAr
+                              ? "تحميل الملف"
+                              : "Download file"
+                            : isAr
+                              ? "لا يوجد ملف للتحميل"
+                              : "No file available"
+                        }
                       >
                         <Download size={14} />
                         PDF
@@ -855,8 +803,7 @@ export default function DecreesPage() {
                       {detailModal.decree.attachments.map((att) => (
                         <a
                           key={att.id}
-                          href={`${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/public/decrees/${detailModal.decree.id}/attachments/${att.id}/download`}
-                          download={att.file_name}
+                          href={att.download_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors group/att"
@@ -898,13 +845,16 @@ export default function DecreesPage() {
                 {isAr ? "ملخص ذكي" : "AI Summary"}
               </button>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleDownload(detailModal.decree!)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest font-bold hover:opacity-90 transition-all text-sm"
-                >
-                  <Download size={16} />
-                  {isAr ? "تحميل PDF" : "Download PDF"}
-                </button>
+                {detailModal.decree.attachments &&
+                  detailModal.decree.attachments.length > 0 && (
+                    <button
+                      onClick={() => handleDownload(detailModal.decree!)}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-forest text-white dark:bg-gov-gold dark:text-gov-forest font-bold hover:opacity-90 transition-all text-sm"
+                    >
+                      <Download size={16} />
+                      {isAr ? "تحميل PDF" : "Download PDF"}
+                    </button>
+                  )}
                 <button
                   onClick={() =>
                     setDetailModal({ isOpen: false, decree: null })

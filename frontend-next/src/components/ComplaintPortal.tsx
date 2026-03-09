@@ -234,7 +234,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [stagedIds, setStagedIds] = useState<Record<string, string>>({});
     const [rejectedFiles, setRejectedFiles] = useState<RejectedAttachment[]>([]);
-    const [uploadedAttachmentIds, setUploadedAttachmentIds] = useState<Record<string, string>>({}); // Bug #316: file.name+size -> temp attachment ID
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Tracking State
@@ -259,54 +258,15 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const validateField = (name: string, value: string) => {
         let error = '';
-        switch (name) {
-            case 'nationalId':
-                if (!isAnonymous && !/^\d{11}$/.test(value)) {
-                    error = t('complaint_national_id_invalid');
-                }
-                break;
-            case 'phone':
-                if (!isAnonymous) {
-                    if (!value || value.length < 5) {
-                        error = t('complaint_phone_required');
-                    } else {
-                        const phoneResult = validatePhoneWithCountryCode(value);
-                        if (!phoneResult.isValid) {
-                            error = t('complaint_phone_invalid');
-                        }
-                    }
-                }
-                break;
-            case 'email':
-                if (!isAnonymous && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    error = t('validation_email_invalid');
-                }
-                break;
-            case 'firstName':
-                if (!isAnonymous && !value.trim()) {
-                    error = t('complaint_name_required');
-                }
-                break;
-            case 'fatherName':
-                if (!isAnonymous && !value.trim()) {
-                    error = t('complaint_father_name_required');
-                }
-                break;
-            case 'lastName':
-                if (!isAnonymous && !value.trim()) {
-                    error = t('complaint_last_name_required');
-                }
-                break;
-            case 'details':
-                if (value && value.trim().length > 0 && value.trim().length < 10) {
-                    error = t('complaint_description_min');
-                }
-                break;
-            case 'previousTrackingNumber':
-                if (formData.hasPreviousComplaint && !value.trim()) {
-                    error = t('complaint_prev_tracking_required');
-                }
-                break;
+        if (name === 'nationalId' && !/^\d{11}$/.test(value)) {
+            error = t('complaint_national_id_invalid');
+        } else if (name === 'phone') {
+            const phoneResult = validatePhoneWithCountryCode(value);
+            if (!phoneResult.isValid) {
+                error = t('complaint_phone_invalid');
+            }
+        } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            error = t('validation_email_invalid') || 'Invalid email address';
         }
 
         setErrors(prev => ({ ...prev, [name]: error }));
@@ -420,7 +380,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         setIsDeleting(true);
         try {
-            const success = await API.complaints.delete(trackingResult.tracking_number || trackingResult.id);
+            const success = await API.complaints.delete(trackingResult.id);
             if (success) {
                 toast.success(t('complaint_delete_success'));
                 setTrackingResult(null);
@@ -647,73 +607,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Comprehensive frontend validation for all fields
-        const newErrors: Record<string, string> = {};
-        const allTouched: Record<string, boolean> = {};
+        const nationalIdError = !isAnonymous && !/^\d{11}$/.test(formData.nationalId)
+            ? t('complaint_national_id_invalid')
+            : '';
 
-        // Template/complaint type required
-        if (!selectedTemplateId) {
-            newErrors.template = t('complaint_template_required');
-        }
-
-        // Personal info validation (non-anonymous only)
-        if (!isAnonymous) {
-            if (!formData.firstName.trim()) {
-                newErrors.firstName = t('complaint_name_required');
-                allTouched.firstName = true;
-            }
-            if (!formData.fatherName.trim()) {
-                newErrors.fatherName = t('complaint_father_name_required');
-                allTouched.fatherName = true;
-            }
-            if (!formData.lastName.trim()) {
-                newErrors.lastName = t('complaint_last_name_required');
-                allTouched.lastName = true;
-            }
-            if (!/^\d{11}$/.test(formData.nationalId)) {
-                newErrors.nationalId = t('complaint_national_id_invalid');
-                allTouched.nationalId = true;
-            }
-            if (!formData.phone || formData.phone.length < 5) {
-                newErrors.phone = t('complaint_phone_required');
-                allTouched.phone = true;
-            } else {
-                const phoneResult = validatePhoneWithCountryCode(formData.phone);
-                if (!phoneResult.isValid) {
-                    newErrors.phone = t('complaint_phone_invalid');
-                    allTouched.phone = true;
-                }
-            }
-            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-                newErrors.email = t('validation_email_invalid');
-                allTouched.email = true;
-            }
-        }
-
-        // Description validation (for open template type)
-        const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
-        if (!selectedTemplateId || selectedTmpl?.type === 'open') {
-            if (!formData.details.trim()) {
-                newErrors.details = t('complaint_description_required');
-            } else if (formData.details.trim().length < 10) {
-                newErrors.details = t('complaint_description_min');
-            }
-        }
-
-        // Previous tracking number validation
-        if (formData.hasPreviousComplaint && !formData.previousTrackingNumber.trim()) {
-            newErrors.previousTrackingNumber = t('complaint_prev_tracking_required');
-        }
-
-        // If there are validation errors, show them and abort
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(prev => ({ ...prev, ...newErrors }));
-            setTouched(prev => ({ ...prev, ...allTouched }));
-            const firstError = Object.values(newErrors)[0];
-            setSubmitError(firstError);
-            toast.error(t('complaint_validation_fix_errors'), {
-                description: firstError,
-            });
+        if (nationalIdError) {
+            setTouched(prev => ({ ...prev, nationalId: true }));
+            setErrors(prev => ({ ...prev, nationalId: nationalIdError }));
+            setSubmitError(nationalIdError);
             return;
         }
 
@@ -761,7 +662,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
             setUploadStatus('completed');
             setSubmittedTicket(ticketId);
-            setUploadedAttachmentIds({});
             toast.success(t('complaint_success'), {
                 description: ticketId
                     ? `${t('complaint_ticket_number')}: ${ticketId}`
@@ -933,20 +833,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             'الرقم الوطني مطلوب': 'National ID is required.',
             'الوصف مطلوب': 'Description is required.',
             'الوصف يجب ان يكون على الأقل 10 أحرف': 'Description must be at least 10 characters.',
-            'تم تجاوز الحد المسموح من الشكاوى اليومية': 'You have exceeded the daily complaint limit. Please try again tomorrow.',
-            'لقد تجاوزت الحد المسموح': 'You have exceeded the daily limit. Please try again tomorrow.',
-            'الاسم الكامل مطلوب': 'Full name is required.',
-            'الاسم الكامل يجب أن يكون 3 أحرف على الأقل': 'Full name must be at least 3 characters.',
-            'الرقم الوطني يجب أن يتكون من 11 رقماً': 'National ID must be exactly 11 digits.',
-            'الرقم الوطني يجب أن يحتوي على أرقام فقط': 'National ID must contain only digits.',
-            'رقم الهاتف مطلوب': 'Phone number is required.',
-            'رقم الهاتف غير صالح': 'Invalid phone number.',
-            'تفاصيل الشكوى مطلوبة': 'Complaint details are required.',
-            'تفاصيل الشكوى يجب أن تكون 10 أحرف على الأقل': 'Complaint details must be at least 10 characters.',
-            'تفاصيل الشكوى يجب ألا تتجاوز 5000 حرف': 'Complaint details must not exceed 5000 characters.',
-            'رقم الشكوى السابقة مطلوب عند الإشارة إلى شكوى سابقة': 'Previous complaint tracking number is required.',
-            'رقم الشكوى السابقة غير موجود في النظام': 'Previous complaint tracking number not found.',
-            'نموذج الشكوى غير موجود': 'Complaint template not found.',
         };
         for (const [ar, en] of Object.entries(translations)) {
             if (msg.includes(ar)) return en;

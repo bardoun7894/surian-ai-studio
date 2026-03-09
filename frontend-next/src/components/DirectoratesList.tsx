@@ -22,10 +22,7 @@ import {
     Factory,
     Landmark,
     LayoutGrid,
-    ChevronLeft,
-    ChevronDown,
-    ChevronUp,
-    Filter
+    ChevronLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
@@ -61,16 +58,15 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
     }, []);
 
     // Helper functions
-    const getLocalized = (field: any, obj?: any, fieldName: string = 'name') => {
-        if (!field && !obj) return '';
-        // Handle LocalizedString objects { ar: '...', en: '...' }
-        if (field && typeof field === 'object' && ('ar' in field || 'en' in field)) {
+    const getLocalized = (field: any, obj?: any) => {
+        if (!field) return '';
+        if (typeof field === 'object' && ('ar' in field || 'en' in field)) {
             return language === 'ar' ? (field.ar || field.en || '') : (field.en || field.ar || '');
         }
         // If obj is provided, check for _ar/_en suffixed fields
-        if (obj) {
-            const arVal = obj[fieldName + '_ar'] || obj[fieldName] || (typeof field === 'string' ? field : '') || '';
-            const enVal = obj[fieldName + '_en'] || '';
+        if (obj && typeof field === 'string') {
+            const arVal = obj.name_ar || field;
+            const enVal = obj.name_en || '';
             return language === 'en' && enVal ? enVal : arVal;
         }
         return typeof field === 'string' ? field : '';
@@ -94,112 +90,6 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
             default: return <Landmark {...props} />;
         }
     };
-
-    // --- Grouping Logic for Org Chart ---
-    interface DirectorateGroup {
-        id: string;
-        label: { ar: string; en: string };
-        icon: React.ReactNode;
-        directorates: Directorate[];
-    }
-
-    const groupedDirectorates = useMemo((): DirectorateGroup[] => {
-        if (directorates.length === 0) return [];
-        
-        const groups: DirectorateGroup[] = [
-            {
-                id: 'general-admin',
-                label: { ar: 'الإدارات العامة', en: 'General Administrations' },
-                icon: <Landmark size={22} />,
-                directorates: directorates.filter(d => {
-                    const name = d.name_ar || (typeof d.name === 'object' ? d.name?.ar : d.name) || '';
-                    return name.includes('الإدارة العامة');
-                }),
-            },
-            {
-                id: 'directorates',
-                label: { ar: 'المديريات', en: 'Directorates' },
-                icon: <Building2 size={22} />,
-                directorates: directorates.filter(d => {
-                    const name = d.name_ar || (typeof d.name === 'object' ? d.name?.ar : d.name) || '';
-                    return name.includes('مديرية');
-                }),
-            },
-            {
-                id: 'authorities',
-                label: { ar: 'الهيئات', en: 'Authorities' },
-                icon: <ShieldAlert size={22} />,
-                directorates: directorates.filter(d => {
-                    const name = d.name_ar || (typeof d.name === 'object' ? d.name?.ar : d.name) || '';
-                    return name.includes('هيئة');
-                }),
-            },
-            {
-                id: 'companies',
-                label: { ar: 'الشركات العامة', en: 'Public Companies' },
-                icon: <Factory size={22} />,
-                directorates: directorates.filter(d => {
-                    const name = d.name_ar || (typeof d.name === 'object' ? d.name?.ar : d.name) || '';
-                    return name.includes('السورية');
-                }),
-            },
-            {
-                id: 'centers',
-                label: { ar: 'المراكز والمؤسسات', en: 'Centers & Institutions' },
-                icon: <BookOpen size={22} />,
-                directorates: directorates.filter(d => {
-                    const name = d.name_ar || (typeof d.name === 'object' ? d.name?.ar : d.name) || '';
-                    return name.includes('مركز') || name.includes('المؤسسة');
-                }),
-            },
-        ];
-
-        // Collect ungrouped directorates
-        const groupedIds = new Set(groups.flatMap(g => g.directorates.map(d => d.id)));
-        const ungrouped = directorates.filter(d => !groupedIds.has(d.id));
-        if (ungrouped.length > 0) {
-            groups.push({
-                id: 'other',
-                label: { ar: 'جهات أخرى', en: 'Other Entities' },
-                icon: <LayoutGrid size={22} />,
-                directorates: ungrouped,
-            });
-        }
-
-        return groups.filter(g => g.directorates.length > 0);
-    }, [directorates]);
-
-    const toggleGroup = (groupId: string) => {
-        setExpandedGroups(prev => {
-            const next = new Set(prev);
-            if (next.has(groupId)) {
-                next.delete(groupId);
-            } else {
-                next.add(groupId);
-            }
-            return next;
-        });
-    };
-
-    const expandAll = () => {
-        setExpandedGroups(new Set(groupedDirectorates.map(g => g.id)));
-    };
-
-    const collapseAll = () => {
-        setExpandedGroups(new Set());
-    };
-
-    const filteredGroups = useMemo(() => {
-        if (!activeFilter) return groupedDirectorates;
-        return groupedDirectorates.filter(g => g.id === activeFilter);
-    }, [groupedDirectorates, activeFilter]);
-
-    // Auto-expand all groups on initial load
-    useEffect(() => {
-        if (groupedDirectorates.length > 0 && expandedGroups.size === 0) {
-            setExpandedGroups(new Set(groupedDirectorates.map(g => g.id)));
-        }
-    }, [groupedDirectorates]);
 
     const featuredDirectorates = directorates.filter(dir => dir.featured === true);
 
@@ -262,13 +152,13 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
         );
     }
 
-    // FULL VARIANT (Grouped Accordion Redesign)
+    // FULL VARIANT (Hierarchical Redesign)
     return (
         <div className="min-h-screen bg-gov-beige/30 dark:bg-dm-bg pb-20">
             {/* Ministry Root Banner */}
             <div className="bg-gov-forest text-white py-10 md:py-16 px-4 relative overflow-hidden">
                 {/* Decorative Overlay */}
-                <div className="absolute inset-0 bg-pattern-islamic opacity-5 pointer-events-none mix-blend-overlay"></div>
+                <div className="absolute inset-0 bg-[url('/islamic-pattern.svg')] opacity-5 pointer-events-none mix-blend-overlay"></div>
                 <div className="max-w-6xl mx-auto relative z-10 text-center animate-fade-in-up">
                     <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 backdrop-blur-sm shadow-xl border border-white/20">
                         <Landmark size={48} className="text-gov-gold hidden md:block" />
@@ -296,171 +186,66 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                             key={admin.id}
                             className="bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden"
                         >
-                            <option value="">{language === 'ar' ? 'عرض جميع الجهات' : 'Show All Entities'}</option>
-                            {groupedDirectorates.map(group => (
-                                <option key={group.id} value={group.id}>
-                                    {language === 'ar' ? group.label.ar : group.label.en} ({group.directorates.length})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                            {/* Administration Header */}
+                            <div className="p-4 md:p-8 bg-gradient-to-r from-gov-beige/50 to-transparent dark:from-white/5 border-b border-gray-100 dark:border-gov-border/15 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 relative">
+                                <div className="absolute top-0 bottom-0 right-0 w-2 bg-gov-gold"></div>
+                                <div className="w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-gov-forest dark:bg-white/10 flex items-center justify-center text-gov-gold shadow-lg shrink-0">
+                                    {getIcon(admin.icon, false)}
+                                </div>
+                                <div className="text-center md:text-start flex-1">
+                                    <h2 className="text-lg md:text-3xl font-bold text-gov-charcoal dark:text-white mb-2 md:mb-3">
+                                        {getLocalized(admin.name, admin)}
+                                    </h2>
+                                    <p className="text-sm md:text-base text-gov-stone dark:text-white/70 leading-relaxed max-w-3xl">
+                                        {language === 'en' && admin.description_en ? admin.description_en : (admin.description || getLocalized(admin.description))}
+                                    </p>
+                                </div>
+                                <Link href={`/directorates/${admin.id}`} className="shrink-0 mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-gov-teal/10 hover:bg-gov-teal text-gov-teal hover:text-white dark:bg-gov-gold/10 dark:hover:bg-gov-gold dark:text-gov-gold dark:hover:text-gov-forest rounded-xl font-bold transition-all">
+                                    {language === 'ar' ? 'صفحة الإدارة' : 'Department Page'}
+                                    <ArrowRight size={18} className={language === 'ar' ? 'rotate-180' : ''} />
+                                </Link>
+                            </div>
 
-                    {/* Expand / Collapse All */}
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={expandAll}
-                            className="px-4 py-2 text-xs font-bold text-gov-teal dark:text-gov-gold bg-gov-teal/10 dark:bg-gov-gold/10 rounded-lg hover:bg-gov-teal/20 dark:hover:bg-gov-gold/20 transition-colors"
-                        >
-                            {language === 'ar' ? 'توسيع الكل' : 'Expand All'}
-                        </button>
-                        <button
-                            onClick={collapseAll}
-                            className="px-4 py-2 text-xs font-bold text-gov-stone dark:text-white/60 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-                        >
-                            {language === 'ar' ? 'طي الكل' : 'Collapse All'}
-                        </button>
-                    </div>
+                            {/* Sub-Directorates Grid */}
+                            <div className="p-4 md:p-8">
+                                <h3 className="text-base md:text-lg font-bold text-gov-forest dark:text-white mb-4 md:mb-6 flex items-center gap-2">
+                                    <Building2 className="text-gov-gold" size={20} />
+                                    {language === 'ar' ? 'المديريات التابعة' : 'Affiliated Directorates'}
+                                </h3>
 
-                    {/* Entity Count */}
-                    <div className="text-sm text-gov-stone/60 dark:text-white/40">
-                        {language === 'ar'
-                            ? `${directorates.length} جهة`
-                            : `${directorates.length} entities`}
-                    </div>
-                </div>
-            </div>
-
-            {/* Grouped Accordion View */}
-            <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
-                <div className="flex flex-col gap-5 md:gap-6">
-                    {filteredGroups.map((group, groupIndex) => {
-                        const isExpanded = expandedGroups.has(group.id);
-                        return (
-                            <motion.div
-                                key={group.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: Math.min(groupIndex * 0.08, 0.4) }}
-                                className="bg-white dark:bg-dm-surface rounded-3xl shadow-xl border border-gray-100 dark:border-gov-border/15 overflow-hidden"
-                            >
-                                {/* Group Accordion Header */}
-                                <button
-                                    onClick={() => toggleGroup(group.id)}
-                                    className="w-full p-5 md:p-6 flex items-center gap-4 bg-gradient-to-r from-gov-beige/50 to-transparent dark:from-white/5 hover:from-gov-gold/10 dark:hover:from-gov-gold/5 transition-all duration-300 group/header cursor-pointer"
-                                >
-                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gov-forest dark:bg-white/10 flex items-center justify-center text-gov-gold shadow-lg shrink-0 group-hover/header:bg-gov-gold group-hover/header:text-gov-forest transition-all duration-300">
-                                        {group.icon}
-                                    </div>
-                                    <div className="flex-1 text-start">
-                                        <h2 className="text-lg md:text-2xl font-bold text-gov-charcoal dark:text-white">
-                                            {language === 'ar' ? group.label.ar : group.label.en}
-                                        </h2>
-                                        <p className="text-sm text-gov-stone/60 dark:text-white/50 mt-1">
-                                            {language === 'ar'
-                                                ? `${group.directorates.length} جهة`
-                                                : `${group.directorates.length} entities`}
-                                        </p>
-                                    </div>
-                                    <div className={`w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                                        <ChevronDown size={20} className="text-gov-charcoal dark:text-white/60" />
-                                    </div>
-                                </button>
-
-                                {/* Group Content (Expandable) */}
-                                <motion.div
-                                    initial={false}
-                                    animate={{
-                                        height: isExpanded ? 'auto' : 0,
-                                        opacity: isExpanded ? 1 : 0,
-                                    }}
-                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="px-4 md:px-6 pb-6 pt-2">
-                                        <div className="flex flex-col gap-4">
-                                            {group.directorates.map((admin, index) => (
-                                                <div
-                                                    key={admin.id}
-                                                    className="bg-gray-50 dark:bg-white/[0.03] rounded-2xl border border-gray-100 dark:border-gov-border/10 overflow-hidden hover:shadow-md transition-all duration-300"
-                                                >
-                                                    {/* Entity Header */}
-                                                    <div className="p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 relative">
-                                                        <div className="absolute top-0 bottom-0 end-0 w-1.5 bg-gov-gold rounded-s-full"></div>
-                                                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface flex items-center justify-center text-gov-teal dark:text-gov-gold shadow-sm shrink-0 border border-gray-100 dark:border-gov-border/15">
-                                                            {getIcon(admin.icon, false)}
-                                                        </div>
-                                                        <div className="text-center md:text-start flex-1 min-w-0">
-                                                            <h3 className="text-base md:text-xl font-bold text-gov-charcoal dark:text-white mb-1 md:mb-2">
-                                                                {getLocalized(admin.name, admin)}
-                                                            </h3>
-                                                            {getLocalized(admin.description, admin, 'description') && (
-                                                                <p className="text-sm text-gov-stone dark:text-white/60 leading-relaxed line-clamp-2">
-                                                                    {getLocalized(admin.description, admin, 'description')}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <Link href={`/directorates/${admin.id}`} className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-gov-teal/10 hover:bg-gov-teal text-gov-teal hover:text-white dark:bg-gov-gold/10 dark:hover:bg-gov-gold dark:text-gov-gold dark:hover:text-gov-forest rounded-xl font-bold text-sm transition-all">
-                                                            {language === 'ar' ? 'التفاصيل' : 'Details'}
-                                                            <ArrowRight size={16} className={language === 'ar' ? 'rotate-180' : ''} />
-                                                        </Link>
-                                                    </div>
-
-                                                    {/* Sub-Directorates (if any) */}
-                                                    {admin.subDirectorates && admin.subDirectorates.length > 0 && (
-                                                        <div className="px-4 md:px-6 pb-4 pt-0">
-                                                            <div className="border-t border-gray-100 dark:border-gov-border/10 pt-3">
-                                                                <h4 className="text-xs font-bold text-gov-forest/60 dark:text-white/40 mb-3 flex items-center gap-2 uppercase tracking-wider">
-                                                                    <Building2 className="text-gov-gold/60" size={14} />
-                                                                    {language === 'ar' ? 'المديريات التابعة' : 'Sub-Directorates'}
-                                                                    <span className="text-gov-gold/40">({admin.subDirectorates.length})</span>
-                                                                </h4>
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                                    {admin.subDirectorates.map(sub => (
-                                                                        <Link
-                                                                            key={sub.id}
-                                                                            href={sub.isExternal ? (sub.url || '#') : `/directorates/${admin.id}/${sub.id}`}
-                                                                            target={sub.isExternal ? '_blank' : undefined}
-                                                                            rel={sub.isExternal ? 'noopener noreferrer' : undefined}
-                                                                            className="group/sub p-2.5 bg-white dark:bg-dm-surface/50 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10 rounded-xl border border-gray-100 dark:border-white/5 hover:border-gov-gold/30 transition-all flex items-center gap-2.5"
-                                                                        >
-                                                                            <div className="w-1.5 h-1.5 rounded-full bg-gov-gold/40 group-hover/sub:bg-gov-gold transition-colors shrink-0"></div>
-                                                                            <span className="text-sm font-medium text-gov-charcoal dark:text-white/70 group-hover/sub:text-gov-teal dark:group-hover/sub:text-gov-gold transition-colors line-clamp-1">
-                                                                                {getLocalized(sub.name, sub)}
-                                                                            </span>
-                                                                            {sub.isExternal && (
-                                                                                <span className="text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded shrink-0">
-                                                                                    {language === 'ar' ? 'خارجي' : 'Ext'}
-                                                                                </span>
-                                                                            )}
-                                                                        </Link>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                {(!admin.subDirectorates || admin.subDirectorates.length === 0) ? (
+                                    <p className="text-gov-stone/60 dark:text-white/50">{language === 'ar' ? 'لا توجد مديريات تابعة.' : 'No sub-directorates found.'}</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {admin.subDirectorates.map(sub => (
+                                            <Link
+                                                key={sub.id}
+                                                href={sub.isExternal ? (sub.url || '#') : `/directorates/${admin.id}/${sub.id}`}
+                                                target={sub.isExternal ? '_blank' : undefined}
+                                                rel={sub.isExternal ? 'noopener noreferrer' : undefined}
+                                                className="group p-3 md:p-5 bg-gray-50 dark:bg-white/5 hover:bg-gov-gold/5 dark:hover:bg-gov-gold/10 rounded-xl md:rounded-2xl border border-gray-100 dark:border-white/10 hover:border-gov-gold/50 transition-all flex items-start gap-3 md:gap-4"
+                                            >
+                                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-white dark:bg-black/20 flex items-center justify-center text-gov-teal dark:text-gov-gold shadow-sm shrink-0">
+                                                    <Building2 size={20} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gov-charcoal dark:text-white group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors text-sm md:text-base line-clamp-2">
+                                                        {getLocalized(sub.name, sub)}
+                                                    </h4>
+                                                    {sub.isExternal && (
+                                                        <span className="inline-block mt-2 text-xs font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+                                                            {language === 'ar' ? 'رابط خارجي' : 'External'}
+                                                        </span>
                                                     )}
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </Link>
+                                        ))}
                                     </div>
-                                </motion.div>
-                            </motion.div>
-                        );
-                    })}
+                                )}
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
-            </div>
-
-            {/* Section Divider */}
-            <div className="max-w-6xl mx-auto px-6 py-12 mt-8">
-                <div className="flex items-center gap-4">
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gov-gold/30 to-transparent"></div>
-                    <div className="w-3 h-3 rounded-full bg-gov-gold/30"></div>
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gov-gold/30 to-transparent"></div>
-                </div>
-                <p className="text-center text-sm text-gov-stone/50 dark:text-white/30 mt-4">
-                    {language === 'ar'
-                        ? `${filteredGroups.length} تصنيف • ${directorates.length} جهة`
-                        : `${filteredGroups.length} categories • ${directorates.length} entities`}
-                </p>
             </div>
 
         </div>

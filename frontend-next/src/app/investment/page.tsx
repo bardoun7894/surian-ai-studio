@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
-import { usePageMeta } from "@/hooks/usePageMeta";
 
 // Icon component that renders based on name
 const IconRenderer = ({ name, size = 40, className = '' }: { name: string; size?: number; className?: string }) => {
@@ -69,11 +68,6 @@ const stats = [
 
 export default function InvestmentPage() {
     const { language } = useLanguage();
-
-  usePageMeta({
-    title: language === "ar" ? "الاستثمار" : "Investment",
-    description: language === "ar" ? "فرص الاستثمار في سوريا" : "Investment opportunities in Syria",
-  });
 
     return (
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">

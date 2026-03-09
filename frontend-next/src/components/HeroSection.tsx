@@ -301,10 +301,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
 
       <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] md:w-[300px] md:h-[300px] bg-[radial-gradient(circle,rgba(185,167,121,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(9,66,57,0.3)_0%,transparent_70%)] pointer-events-none opacity-0"></div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-0">
 
         {/* The Golden Hawk */}
-        <div ref={eagleRef} className="mb-2 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
+        <div ref={eagleRef} className="mb-4 md:mb-0 relative z-20 flex justify-center items-center md:w-auto md:order-1 flex-shrink-0">
           <div className="relative w-44 h-44 md:w-[260px] md:h-[260px] lg:w-[320px] lg:h-[320px] xl:w-[350px] xl:h-[350px] flex items-center justify-center perspective-1000 flex-shrink-0">
             <div className="eagle-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gov-gold/20 rounded-full blur-[80px] dark:bg-gov-brand/30"></div>
             <div className="absolute inset-0 rounded-full border border-gov-gold/20 dark:border-gov-border/15 shadow-[0_0_60px_rgba(185,167,121,0.2)]"></div>
@@ -344,7 +344,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
 
           {/* Titles Group */}
           <div className={`flex flex-col items-center ${language === 'ar' ? 'md:items-center' : 'md:items-start'} w-full`}>
-            <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 dark:bg-gov-brand/10 border border-gov-gold/40 dark:border-gov-gold/30 backdrop-blur-sm shadow-sm dark:shadow-none mb-3 opacity-0">
+            <div className="animate-text inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-gov-brand/10 border border-gov-gold/30 backdrop-blur-sm mb-3 opacity-0">
               <span className="w-2 h-2 rounded-full bg-gov-gold animate-pulse"></span>
               <span className="text-xs font-bold text-gov-forest dark:text-gov-gold tracking-wide uppercase">
                 {t('republic_name')}
@@ -369,7 +369,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             </div>
 
             {/* Strategic Messages - WOW Animation (appear last) */}
-            <div className="h-8 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
+            <div className="h-10 md:h-20 flex items-center justify-center w-full overflow-hidden relative">
               <AnimatePresence mode="wait">
                 {(() => {
                   const phrases = [
@@ -473,7 +473,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
           </div>
 
           {/* Official Pillars - Stats Section */}
-          <div className="flex items-center justify-center gap-6 md:gap-12 mt-3 md:mt-6 border-t border-gov-charcoal/15 dark:border-gov-border/15 pt-3 md:pt-4 w-full">
+          <div className="flex items-center justify-center gap-8 md:gap-12 mt-4 md:mt-6 border-t border-gov-charcoal/10 dark:border-gov-border/15 pt-4 w-full">
             {/* 24/7 Secure Portal */}
             <div className="animate-stat text-center group cursor-default flex flex-col items-center">
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -483,7 +483,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
               <span className="text-xs text-gov-stone dark:text-gov-beige/60 font-medium">{language === 'ar' ? 'بوابة آمنة' : 'Secure Portal'}</span>
             </div>
 
-            <div className="w-px h-8 bg-gov-charcoal/20 dark:bg-gov-border/15" />
+            <div className="w-px h-8 bg-gov-charcoal/10 dark:bg-gov-border/15" />
 
             {/* 100% Transparency */}
             <div className="animate-stat text-center group cursor-default flex flex-col items-center">

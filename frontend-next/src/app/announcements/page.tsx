@@ -13,7 +13,6 @@ import ShareMenu from '@/components/ShareMenu';
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
 import Pagination from '@/components/Pagination';
-import { usePageMeta } from "@/hooks/usePageMeta";
 
 interface Announcement {
   id: string;
@@ -127,11 +126,6 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 
 export default function AnnouncementsPage() {
   const { language, t } = useLanguage();
-
-  usePageMeta({
-    title: language === "ar" ? "الإعلانات" : "Announcements",
-    description: language === "ar" ? "إعلانات وزارة الاقتصاد والصناعة" : "Announcements from the Ministry of Economy and Industry",
-  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [announcements, setAnnouncements] = useState<any[]>([]);

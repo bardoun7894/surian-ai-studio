@@ -103,10 +103,6 @@ class PublicApiController extends Controller
                     ],
                     'name_ar' => $sub->name_ar,
                     'name_en' => $sub->name_en ?? $sub->name_ar,
-                    'description' => [
-                        'ar' => $sub->description_ar ?? '',
-                        'en' => $sub->description_en ?? '',
-                    ],
                     'description_ar' => $sub->description_ar ?? '',
                     'description_en' => $sub->description_en ?? '',
                     'phone' => $sub->phone ?? '',
@@ -124,16 +120,10 @@ class PublicApiController extends Controller
             ->map(function ($member) {
                 return [
                     'id' => (string) $member->id,
-                    'name' => [
-                        'ar' => $member->name_ar ?? '',
-                        'en' => $member->name_en ?? $member->name_ar ?? '',
-                    ],
+                    'name' => $member->name_ar,
                     'name_ar' => $member->name_ar,
                     'name_en' => $member->name_en,
-                    'position' => [
-                        'ar' => $member->position_ar ?? '',
-                        'en' => $member->position_en ?? $member->position_ar ?? '',
-                    ],
+                    'position' => $member->position_ar,
                     'position_ar' => $member->position_ar,
                     'position_en' => $member->position_en,
                     'image' => $this->normalizeImageUrl($member->image),
@@ -313,36 +303,32 @@ class PublicApiController extends Controller
      */
     public function newsByDirectorate(): JsonResponse
     {
-        $result = Cache::remember('public.news_by_directorate', 600, function () {
-            $directorates = Directorate::where('is_active', true)->get();
-            $result = [];
+        $directorates = Directorate::where('is_active', true)->get();
+        $result = [];
 
-            foreach ($directorates as $directorate) {
-                $news = Content::where('category', 'news')
-                    ->where('status', 'published')
-                    ->where('directorate_id', $directorate->id)
-                    ->orderBy('published_at', 'desc')
-                    ->limit(3)
-                    ->get()
-                    ->map(fn($n) => $this->formatNews($n))
-                    ->values();
+        foreach ($directorates as $directorate) {
+            $news = Content::where('category', 'news')
+                ->where('status', 'published')
+                ->where('directorate_id', $directorate->id)
+                ->orderBy('published_at', 'desc')
+                ->limit(3)
+                ->get()
+                ->map(fn($n) => $this->formatNews($n))
+                ->values();
 
-                if ($news->isNotEmpty()) {
-                    $result[] = [
-                        'directorate' => [
-                            'id' => (string) $directorate->id,
-                            'name' => $directorate->name_ar,
-                            'name_ar' => $directorate->name_ar,
-                            'name_en' => $directorate->name_en,
-                            'icon' => $directorate->icon ?? 'Building2',
-                        ],
-                        'news' => $news,
-                    ];
-                }
+            if ($news->isNotEmpty()) {
+                $result[] = [
+                    'directorate' => [
+                        'id' => (string) $directorate->id,
+                        'name' => $directorate->name_ar,
+                        'name_ar' => $directorate->name_ar,
+                        'name_en' => $directorate->name_en,
+                        'icon' => $directorate->icon ?? 'Building2',
+                    ],
+                    'news' => $news,
+                ];
             }
-
-            return $result;
-        });
+        }
 
         return response()->json($result);
     }
@@ -385,7 +371,6 @@ class PublicApiController extends Controller
 
     /**
      * Get breaking news (titles only)
-     * Prioritizes items with active ticker duration, then falls back to high-priority news.
      */
     public function breakingNews(): JsonResponse
     {
@@ -428,8 +413,7 @@ class PublicApiController extends Controller
      */
     public function heroArticle(): JsonResponse
     {
-        $data = Cache::remember('public.hero_article', 300, function () {
-            $article = Content::where('category', 'news')
+        $article = Content::where('category', 'news')
             ->where('status', 'published')
             ->where('featured', true)
             ->orderBy('published_at', 'desc')
@@ -443,7 +427,7 @@ class PublicApiController extends Controller
         }
 
         if (!$article) {
-            return [
+            return response()->json([
                 'id' => null,
                 'title' => 'مرحباً بكم في البوابة الإلكترونية',
                 'title_ar' => 'مرحباً بكم في البوابة الإلكترونية',
@@ -459,10 +443,10 @@ class PublicApiController extends Controller
                 'readTime' => '3 دقائق',
                 'readTime_en' => '3 minutes',
                 'imageUrl' => '/assets/hero-bg.jpg',
-            ];
+            ]);
         }
 
-        return [
+        return response()->json([
             'id' => (string) $article->id,
             'title' => $article->title_ar,
             'title_ar' => $article->title_ar,
@@ -478,10 +462,7 @@ class PublicApiController extends Controller
             'readTime' => ceil(str_word_count(strip_tags($article->content_ar ?? '')) / 200) . ' دقائق',
             'readTime_en' => ceil(str_word_count(strip_tags($article->content_en ?? '')) / 200) . ' minutes',
             'imageUrl' => $this->normalizeImageUrl($article->metadata['image'] ?? null) ?? '/assets/hero-bg.jpg',
-        ];
-        });
-
-        return response()->json($data);
+        ]);
     }
 
     /**
@@ -489,8 +470,7 @@ class PublicApiController extends Controller
      */
     public function gridArticles(): JsonResponse
     {
-        $articles = Cache::remember('public.grid_articles', 300, function () {
-            return Content::where('category', 'news')
+        $articles = Content::where('category', 'news')
             ->where('status', 'published')
             ->where('featured', false)
             ->orderBy('published_at', 'desc')
@@ -513,7 +493,6 @@ class PublicApiController extends Controller
                 'readTime_en' => '3 minutes',
                 'imageUrl' => $this->normalizeImageUrl($a->metadata['image'] ?? null) ?? '/assets/news-placeholder.jpg',
             ]);
-        });
 
         return response()->json($articles);
     }
@@ -1005,27 +984,14 @@ class PublicApiController extends Controller
                 $query->whereIn('category', $validCategories);
             }
 
-            // Bug 4: Search across all language fields with word-level matching for better relevance
-            $searchWords = array_filter(explode(' ', $safeQ), fn($w) => mb_strlen(trim($w)) >= 2);
-            $query->where(function ($qb) use ($safeQ, $searchWords) {
-                // Full phrase match
+            // Search across all language fields
+            $query->where(function ($qb) use ($safeQ) {
                 $qb->where('title_ar', 'like', "%{$safeQ}%")
                     ->orWhere('title_en', 'like', "%{$safeQ}%")
                     ->orWhere('content_ar', 'like', "%{$safeQ}%")
                     ->orWhere('content_en', 'like', "%{$safeQ}%")
                     ->orWhere('seo_description_ar', 'like', "%{$safeQ}%")
                     ->orWhere('seo_description_en', 'like', "%{$safeQ}%");
-
-                // Bug 4: Also match individual words for multi-word queries (better Arabic search)
-                if (count($searchWords) > 1) {
-                    foreach ($searchWords as $word) {
-                        $word = trim($word);
-                        $qb->orWhere(function ($sub) use ($word) {
-                            $sub->where('title_ar', 'like', "%{$word}%")
-                                ->orWhere('title_en', 'like', "%{$word}%");
-                        });
-                    }
-                }
             });
 
             // Date filters
@@ -1042,39 +1008,18 @@ class PublicApiController extends Controller
             }
 
             // M7.5: Order by relevance - title matches first, then description, then content
-            // Bug 4: Improved relevance scoring with word-boundary matching for Arabic
             $escapedQ = str_replace("'", "''", $q);
             $titleField = $lang === 'ar' ? 'title_ar' : 'title_en';
             $otherTitleField = $lang === 'ar' ? 'title_en' : 'title_ar';
             $descField = $lang === 'ar' ? 'seo_description_ar' : 'seo_description_en';
-            $contentField = $lang === 'ar' ? 'content_ar' : 'content_en';
-
-            // Build word-level matching for multi-word queries
-            $words = array_filter(explode(' ', $q), fn($w) => mb_strlen(trim($w)) >= 2);
-            $wordMatchClauses = '';
-            if (count($words) > 1) {
-                // For multi-word queries, boost results that match individual words in the title
-                $wordConditions = [];
-                foreach ($words as $word) {
-                    $escapedWord = str_replace("'", "''", trim($word));
-                    $wordConditions[] = "LOWER({$titleField}) LIKE LOWER('%{$escapedWord}%')";
-                }
-                $allWordsMatch = implode(' AND ', $wordConditions);
-                $anyWordMatch = implode(' OR ', $wordConditions);
-                $wordMatchClauses = "
-                    WHEN ({$allWordsMatch}) THEN 2
-                    WHEN ({$anyWordMatch}) THEN 4";
-            }
 
             $query->orderByRaw("CASE
                 WHEN LOWER({$titleField}) = LOWER('{$escapedQ}') THEN 1
-                {$wordMatchClauses}
-                WHEN LOWER({$titleField}) LIKE LOWER('{$escapedQ}%') THEN 3
-                WHEN LOWER({$titleField}) LIKE LOWER('%{$escapedQ}%') THEN 5
-                WHEN LOWER({$otherTitleField}) LIKE LOWER('%{$escapedQ}%') THEN 6
-                WHEN LOWER(COALESCE({$descField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 7
-                WHEN LOWER(COALESCE({$contentField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 8
-                ELSE 9
+                WHEN LOWER({$titleField}) LIKE LOWER('{$escapedQ}%') THEN 2
+                WHEN LOWER({$titleField}) LIKE LOWER('%{$escapedQ}%') THEN 3
+                WHEN LOWER({$otherTitleField}) LIKE LOWER('%{$escapedQ}%') THEN 4
+                WHEN LOWER(COALESCE({$descField}, '')) LIKE LOWER('%{$escapedQ}%') THEN 5
+                ELSE 6
             END ASC");
 
             $results = $query->limit(30)
@@ -1449,16 +1394,12 @@ class PublicApiController extends Controller
 
     private function getContentUrl($content): string
     {
-        // Bug 3: Only generate URLs for pages that actually exist in the frontend
         return match($content->category) {
             'news' => "/news/{$content->id}",
             'announcement' => "/announcements/{$content->id}",
-            'decree' => "/decrees",  // No individual decree pages exist
+            'decree' => "/decrees/{$content->id}",
             'service' => "/services/{$content->id}",
-            'faq' => "/faq",
-            'about' => "/about",
-            'media' => "/media",
-            default => "/search?q=" . urlencode($content->title_ar ?? $content->title_en ?? ''),
+            default => "/{$content->category}/{$content->id}",
         };
     }
 
@@ -1467,8 +1408,7 @@ class PublicApiController extends Controller
      */
     public function openData(): JsonResponse
     {
-        $datasets = Cache::remember('public.open_data', 900, function () {
-            return Content::where('category', 'open_data')
+        $datasets = Content::where('category', 'open_data')
             ->where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->get()
@@ -1484,7 +1424,6 @@ class PublicApiController extends Controller
                 'category_label' => $d->metadata['category_label'] ?? '',
                 'download_url' => $d->metadata['download_url'] ?? null,
             ]);
-        });
 
         return response()->json($datasets);
     }

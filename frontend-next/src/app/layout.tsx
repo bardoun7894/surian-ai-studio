@@ -26,16 +26,13 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://moe.gov.sy'),
   title: {
     default: "وزارة الاقتصاد والصناعة - الجمهورية العربية السورية",
     template: "%s | وزارة الاقتصاد والصناعة",
   },
-  description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية - خدمات حكومية، أخبار، مراسيم، تراخيص صناعية",
-  keywords: ["وزارة الاقتصاد", "الصناعة", "التجارة الداخلية", "سوريا", "خدمات حكومية", "تراخيص صناعية", "مراسيم", "أخبار الوزارة", "Ministry of Economy", "Syria"],
+  description: "البوابة الإلكترونية الرسمية لوزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
+  keywords: ["وزارة الاقتصاد", "الصناعة", "التجارة الداخلية", "سوريا", "خدمات حكومية", "تراخيص صناعية"],
   authors: [{ name: "Ministry of Economy and Industry" }],
-  creator: "Ministry of Economy and Industry - Syrian Arab Republic",
-  publisher: "Ministry of Economy and Industry",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
@@ -100,8 +97,6 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/png" href="/assets/logo/11.png" />
-        <link rel="apple-touch-icon" href="/assets/logo/11.png" />
         <link rel="preload" href="/fonts/itfQomraArabic-Regular.otf" as="font" type="font/otf" crossOrigin="anonymous" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="icon" href="/assets/logo/11.png" type="image/png" />

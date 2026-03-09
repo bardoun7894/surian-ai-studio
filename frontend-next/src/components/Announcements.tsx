@@ -7,8 +7,7 @@ import { formatDate as formatDateUtil } from '@/lib/utils';
 import { API } from '@/lib/repository';
 import ShareMenu from './ShareMenu';
 import Link from 'next/link';
-import { SkeletonText, SkeletonAnnouncementCard } from '@/components/SkeletonLoader';
-import { motion } from 'framer-motion';
+import { SkeletonGrid, SkeletonText } from '@/components/SkeletonLoader';
 
 interface Announcement {
     id: string;
@@ -99,11 +98,7 @@ const Announcements: React.FC = () => {
                         <SkeletonText lines={1} className="max-w-48 mx-auto mb-6" />
                         <SkeletonText lines={1} className="max-w-96 mx-auto" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {Array.from({ length: 9 }).map((_, i) => (
-                            <SkeletonAnnouncementCard key={i} />
-                        ))}
-                    </div>
+                    <SkeletonGrid cards={9} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
                 </div>
             </section>
         );
@@ -113,13 +108,7 @@ const Announcements: React.FC = () => {
         <>
             <section className="py-12 md:py-24 bg-white dark:bg-dm-bg relative overflow-hidden scroll-mt-16 md:scroll-mt-24" id="announcements">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        className="text-center mb-8 md:mb-16"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
-                    >
+                    <div className="text-center mb-8 md:mb-16">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-4 md:mb-6">
                             <Megaphone className="text-gov-gold w-4 h-4 md:w-5 md:h-5" />
                             <span className="text-gov-gold font-bold text-xs md:text-sm tracking-wide">
@@ -132,35 +121,20 @@ const Announcements: React.FC = () => {
                         <p className="text-gov-stone/60 dark:text-gov-teal/40 max-w-2xl mx-auto text-lg leading-relaxed">
                             {t('announcements_subtitle')}
                         </p>
-                    </motion.div>
+                    </div>
 
-                    {/* FR-58: Announcements 3x3 Grid (9 items) - M9.7: Unified card sizes - M11.11: Stagger animations */}
-                    <motion.div
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-50px" }}
-                        variants={{
-                            hidden: {},
-                            visible: { transition: { staggerChildren: 0.08 } }
-                        }}
-                    >
+                    {/* FR-58: Announcements 3x3 Grid (9 items) - M9.7: Unified card sizes */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {announcements.map((announcement) => {
                             const styles = getTypeStyles(announcement.type);
                             const expired = isExpired(announcement.expires_at);
                             return (
-                                <motion.div
+                                <Link
                                     key={announcement.id}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 30 },
-                                        visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
-                                    }}
+                                    href={`/announcements/${announcement.id}`}
+                                    className="block group"
                                 >
-                                    <Link
-                                        href={`/announcements/${announcement.id}`}
-                                        className="block group"
-                                    >
-                                        <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
+                                    <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
                                         <article
                                             className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[320px] md:min-h-[360px]`}
                                         >
@@ -242,19 +216,12 @@ const Announcements: React.FC = () => {
                                         </article>
                                     </div>
                                 </Link>
-                                </motion.div>
                             );
                         })}
-                    </motion.div>
+                    </div>
 
-                    {/* View All Button - M11.11: Fade-in animation */}
-                    <motion.div
-                        className="text-center mt-10 md:mt-16 relative z-10"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
-                    >
+                    {/* View All Button */}
+                    <div className="text-center mt-10 md:mt-16 relative z-10">
                         <Link
                             href="/announcements"
                             className="group relative inline-flex items-center gap-3 md:gap-4 px-6 md:px-10 py-3 md:py-5 bg-white/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[2rem] hover:text-white transition-colors duration-500 overflow-hidden shadow-xl border border-gov-gold/20"
@@ -269,7 +236,7 @@ const Announcements: React.FC = () => {
                                 <ArrowIcon size={16} className="md:w-[18px] md:h-[18px] transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
                             </div>
                         </Link>
-                    </motion.div>
+                    </div>
                 </div>
             </section>
 

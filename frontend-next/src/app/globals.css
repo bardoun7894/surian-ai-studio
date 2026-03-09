@@ -782,40 +782,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     overflow: visible !important;
   }
 
-  /* --- News Article Images in Print --- */
-  article img,
-  .prose img,
-  [class*="article"] img {
-    position: relative !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: 400pt !important;
-    object-fit: contain !important;
-    float: none !important;
-    margin: 8pt 0 !important;
-    page-break-inside: avoid !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Fix Next.js Image fill containers in print */
-  [style*="position: relative"] > img[data-nimg],
-  [style*="position:relative"] > img[data-nimg] {
-    position: relative !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-  }
-
-  /* Article image containers */
-  article [class*="relative"],
-  .prose [class*="relative"] {
-    position: relative !important;
-    overflow: visible !important;
-    height: auto !important;
-  }
-
   /* --- Borders for Print Cards/Sections --- */
   [class*="border-gov-"] {
     border-color: #d0d0d0 !important;
@@ -959,46 +925,40 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 
   body.complaint-print-mode .print-header {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
     display: block !important;
-    padding: 0 !important;
-    margin-bottom: 12pt !important;
-    page-break-after: avoid !important;
+    padding: 0 18mm !important;
   }
 
   body.complaint-print-mode .print-footer {
-    position: relative !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
     display: block !important;
-    padding: 0 !important;
-    margin-top: 16pt !important;
-    page-break-before: avoid !important;
+    padding: 0 18mm 10mm !important;
   }
 
   body.complaint-print-mode [data-complaint-print-target="true"] {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
+    position: absolute !important;
+    top: 80pt !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 8pt 0 !important;
+    padding: 0 18mm !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: white !important;
     color: #161616 !important;
     animation: none !important;
-    page-break-inside: auto !important;
-    overflow: visible !important;
   }
 
   body.complaint-print-mode [data-complaint-print-target="true"] [class*="dark:bg-"],
@@ -1011,55 +971,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     color: #161616 !important;
   }
 
-
-  /* Bug #431 Fix: Prevent element overlaps in complaint print */
-  body.complaint-print-mode [data-complaint-print-target="true"] .grid {
-    display: block !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .grid > * {
-    display: block !important;
-    width: 100% !important;
-    margin-bottom: 6pt !important;
-    page-break-inside: avoid !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .space-y-4 > * {
-    margin-bottom: 8pt !important;
-    page-break-inside: avoid !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .flex {
-    display: flex !important;
-    flex-wrap: wrap !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-xl,
-  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-2xl,
-  body.complaint-print-mode [data-complaint-print-target="true"] .rounded-lg {
-    border-radius: 4px !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .shadow-lg {
-    box-shadow: none !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .animate-slide-up {
-    animation: none !important;
-    transform: none !important;
-  }
-
-  /* Hide delete and print buttons in print output */
-  body.complaint-print-mode [data-complaint-print-target="true"] button {
-    display: none !important;
-  }
-
-  body.complaint-print-mode [data-complaint-print-target="true"] .border-t {
-    border-top: 1px solid #e5e5e5 !important;
-    padding-top: 8pt !important;
-    margin-top: 8pt !important;
-  }
-
   /* --- Suggestion Track Print --- */
   .print\:shadow-none {
     box-shadow: none !important;
@@ -1067,106 +978,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
   .print\:border-none {
     border: none !important;
-  }
-
-  /* --- M11.7: Fix images covering text in print --- */
-
-  /* Featured / hero images in articles - constrain height and prevent overflow */
-  article .relative[class*='h-['],
-  article .relative[class*='md:h-['],
-  article div[class*='aspect-video'] {
-    height: auto !important;
-    max-height: 250pt !important;
-    overflow: hidden !important;
-    position: relative !important;
-    page-break-inside: avoid !important;
-  }
-
-  /* All images inside articles - flow naturally, never overlap text */
-  article img,
-  article picture,
-  article [data-nimg] {
-    position: relative !important;
-    float: none !important;
-    max-width: 100% !important;
-    width: auto !important;
-    height: auto !important;
-    max-height: 250pt !important;
-    object-fit: contain !important;
-    margin: 8pt auto !important;
-    display: block !important;
-    page-break-inside: avoid !important;
-  }
-
-  /* Next.js Image fill wrappers - collapse to flow layout */
-  article .relative > img[style*='position'],
-  article .relative > span > img {
-    position: relative !important;
-    inset: auto !important;
-  }
-
-  /* Gradient overlays - remove in print so they don't cover content */
-  article [class*='bg-gradient-to-t'],
-  article [class*='bg-gradient-to-b'],
-  article .absolute.inset-0[class*='bg-'] {
-    display: none !important;
-  }
-
-  /* Image gallery in print - smaller thumbnails that don't overflow */
-  article .grid img {
-    max-height: 120pt !important;
-    width: auto !important;
-  }
-
-  /* Ensure prose content flows after images */
-  .prose,
-  .prose p,
-  .prose h1,
-  .prose h2,
-  .prose h3,
-  .prose h4,
-  .prose ul,
-  .prose ol {
-    position: relative !important;
-    z-index: 1 !important;
-    overflow: visible !important;
-  }
-
-  /* Related items section - smaller images in print */
-  [class*='grid-cols'] img {
-    max-height: 100pt !important;
-    height: auto !important;
-  }
-
-  /* --- M11: Article Image Print Fix --- */
-  article .relative[class*="h-"] {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  article .relative img[data-nimg],
-  article .relative img {
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    max-height: 280pt !important;
-    object-fit: contain !important;
-    margin-bottom: 8pt !important;
-    break-inside: avoid !important;
-  }
-
-  article img[data-nimg="fill"] {
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    max-height: 280pt !important;
-    object-fit: contain !important;
-  }
-
-  /* Hide overlays/decorative elements on images in print */
-  article .relative .absolute {
-    display: none !important;
   }
 }
 

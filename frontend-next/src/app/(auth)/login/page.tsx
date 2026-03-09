@@ -137,13 +137,6 @@ const LoginPage = () => {
         setFormSubmitted(true);
         setIsLoading(true);
         setError(null);
-
-        // Run full validation
-        if (!validateForm()) {
-            return;
-        }
-
-        setIsLoading(true);
         setPhoneFieldError(null);
         setNationalIdFieldError(null);
         setEmailFieldError(null);
@@ -175,9 +168,27 @@ const LoginPage = () => {
                 credentials.email = formData.email.trim();
             } else if (loginMethod === 'phone') {
                 const phoneValidation = validatePhoneWithCountryCode(formData.phone);
+                if (!phoneValidation.isValid) {
+                    setPhoneFieldError(
+                        phoneValidation.reason === 'required'
+                            ? t('validation_required')
+                            : t('validation_phone_invalid')
+                    );
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Send phone in the same international format used during registration
                 credentials.phone = phoneValidation.normalized;
             } else {
-                credentials.national_id = formData.nationalId.trim();
+                const nationalId = formData.nationalId.trim();
+                if (!/^\d{11}$/.test(nationalId)) {
+                    setNationalIdFieldError(t('national_id_format_error'));
+                    setIsLoading(false);
+                    return;
+                }
+
+                credentials.national_id = nationalId;
             }
 
             const response = await login(credentials);
@@ -224,43 +235,6 @@ const LoginPage = () => {
 
     const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
     const BackIcon = language === 'ar' ? ChevronRight : ChevronLeft;
-
-    // Compute border classes for the identifier input (email or national ID - not phone, which is separate)
-    const getIdentifierBorderClass = (): string => {
-        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
-        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
-        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
-
-        if (hasError) {
-            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
-        }
-        if (fieldValue && fieldIsValid) {
-            return 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20';
-        }
-        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
-    };
-
-    // Password border class
-    const getPasswordBorderClass = (): string => {
-        if (passwordFieldError) {
-            return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
-        }
-        if (formData.password && isPasswordFilled(formData.password)) {
-            return 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20';
-        }
-        return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
-    };
-
-    // Icon color for identifier field
-    const getIdentifierIconColor = (): string => {
-        const hasError = (loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError);
-        const fieldValue = loginMethod === 'email' ? formData.email : formData.nationalId;
-        const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
-
-        if (hasError) return 'text-red-500 dark:text-red-400';
-        if (fieldValue && fieldIsValid) return 'text-green-500 dark:text-gov-emerald';
-        return 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold';
-    };
 
     return (
         <div className="min-h-screen flex">
@@ -410,11 +384,12 @@ const LoginPage = () => {
                                     onClick={() => {
                                         setLoginMethod(key as typeof loginMethod);
                                         setError(null);
-                                        setFormSubmitted(false);
-                                        setPhoneFieldError(null);
-                                        setNationalIdFieldError(null);
-                                        setEmailFieldError(null);
-                                        setPasswordFieldError(null);
+                                        if (key !== 'phone') {
+                                            setPhoneFieldError(null);
+                                        }
+                                        if (key !== 'national') {
+                                            setNationalIdFieldError(null);
+                                        }
                                     }}
                                     className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
                                         ? 'bg-white dark:bg-gov-button text-gov-forest dark:text-white shadow-sm border border-gray-200/50 dark:border-white/10'
@@ -427,14 +402,13 @@ const LoginPage = () => {
                             ))}
                         </div>
 
-                        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Dynamic Input Field */}
                             <div>
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
                                     {loginMethod === 'email' && (language === 'ar' ? 'البريد الإلكتروني' : 'Email Address')}
                                     {loginMethod === 'phone' && (language === 'ar' ? 'رقم الهاتف' : 'Phone Number')}
                                     {loginMethod === 'national' && (language === 'ar' ? 'الرقم الوطني' : 'National ID')}
-                                    {' '}<span className="text-red-500 dark:text-red-400">*</span>
                                 </label>
                                 {loginMethod === 'phone' ? (
                                     <PhoneInput
@@ -474,14 +448,6 @@ const LoginPage = () => {
                                                     setEmailFieldError(t('validation_required'));
                                                 } else {
                                                     setEmailFieldError(null);
-                                                }
-                                            }}
-                                            onBlur={() => {
-                                                if (loginMethod === 'email' && !formData.email.trim() && formSubmitted) {
-                                                    setEmailFieldError(language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required');
-                                                }
-                                                if (loginMethod === 'national' && !formData.nationalId.trim() && formSubmitted) {
-                                                    setNationalIdFieldError(language === 'ar' ? 'الرقم الوطني مطلوب' : 'National ID is required');
                                                 }
                                             }}
                                             placeholder={

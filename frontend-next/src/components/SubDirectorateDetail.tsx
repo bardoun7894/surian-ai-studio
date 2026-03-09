@@ -18,6 +18,7 @@ import {
     FileText,
     Users
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import ContactSection from '@/components/ContactSection';
 
@@ -83,16 +84,23 @@ const SubDirectorateDetail = () => {
     }
 
     const isAr = language === 'ar';
-    const name = getLocalizedField(subDirectorate, 'name', language);
-    const description = getLocalizedField(subDirectorate, 'description', language);
-    const parentName = getLocalizedField(parentDirectorate, 'name', language);
+    const name = typeof subDirectorate.name === 'string' ? subDirectorate.name : (isAr ? subDirectorate.name.ar : subDirectorate.name.en);
+    const description = typeof (subDirectorate as any).description === 'string' ? (subDirectorate as any).description : (isAr ? (subDirectorate as any).description?.ar : (subDirectorate as any).description?.en);
+    const parentName = typeof parentDirectorate.name === 'string' ? parentDirectorate.name : (isAr ? parentDirectorate.name.ar : parentDirectorate.name.en);
 
     return (
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20 transition-colors duration-500">
             {/* Header */}
             <div className="bg-gov-forest dark:bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
                 {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10 bg-pattern-islamic bg-repeat"></div>
+                <div className="absolute inset-0 opacity-10">
+                    <Image
+                        src="/images/pattern-islamic.png"
+                        alt="Pattern"
+                        fill
+                        className="object-cover"
+                    />
+                </div>
 
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-row items-start md:items-center gap-4 md:gap-6">
@@ -163,7 +171,7 @@ const SubDirectorateDetail = () => {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* About Card */}
-                        <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 shadow-gold-sm border border-gov-gold/10">
+                        <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 shadow-sm border border-gov-gold/10">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xl font-bold text-gov-forest dark:text-white flex items-center gap-3">
                                     <FileText className="text-gov-teal dark:text-gov-gold" />

@@ -1,41 +1,30 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { API } from "@/lib/repository";
-import { NewsItem } from "@/types";
-import {
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-  ArrowLeft,
-  Share2,
-} from "lucide-react";
-import { SkeletonGrid } from "@/components/SkeletonLoader";
-import FavoriteButton from "./FavoriteButton";
-import { useLanguage } from "@/contexts/LanguageContext";
-import Link from "next/link";
-import Image from "next/image";
-import { formatRelativeTime } from "@/lib/utils";
-import ShareMenu from "./ShareMenu";
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { API } from '@/lib/repository';
+import { NewsItem } from '@/types';
+import { Calendar, ChevronLeft, ChevronRight, ArrowRight, ArrowLeft, Share2 } from 'lucide-react';
+import { SkeletonGrid } from '@/components/SkeletonLoader';
+import FavoriteButton from './FavoriteButton';
+import { useLanguage } from '@/contexts/LanguageContext';
+import Link from 'next/link';
+import Image from 'next/image';
+import { formatRelativeTime } from '@/lib/utils';
+import ShareMenu from './ShareMenu';
 
 const NewsSection: React.FC = () => {
   const { t, direction, language } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [shareData, setShareData] = useState<{
-    title: string;
-    url: string;
-  } | null>(null);
+  const [shareData, setShareData] = useState<{ title: string; url: string } | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const handleShare = (item: NewsItem) => {
-    const title =
-      language === "ar"
-        ? (item as any).title_ar || item.title
-        : (item as any).title_en || item.title;
+    const title = language === 'ar'
+      ? ((item as any).title_ar || item.title)
+      : ((item as any).title_en || item.title);
     const url = `${window.location.origin}/news/${item.id}`;
     setShareData({ title, url });
   };
@@ -53,7 +42,7 @@ const NewsSection: React.FC = () => {
 
     // "canScrollLeft" = can go backward (toward start)
     // "canScrollRight" = can go forward (toward end)
-    if (direction === "rtl") {
+    if (direction === 'rtl') {
       setCanScrollLeft(absScroll > threshold);
       setCanScrollRight(absScroll < maxScroll - threshold);
     } else {
@@ -62,20 +51,19 @@ const NewsSection: React.FC = () => {
     }
   }, [direction]);
 
-  const scroll = (dir: "left" | "right") => {
+  const scroll = (dir: 'left' | 'right') => {
     if (!scrollRef.current) return;
-    const cardWidth =
-      scrollRef.current.querySelector(".news-card")?.clientWidth || 300;
+    const cardWidth = scrollRef.current.querySelector('.news-card')?.clientWidth || 300;
     const amount = (cardWidth + 16) * 2;
 
     // "left" button = go backward, "right" button = go forward
     // In RTL, forward is negative scrollLeft, backward is positive
-    if (direction === "rtl") {
-      const scrollAmount = dir === "left" ? amount : -amount;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    if (direction === 'rtl') {
+      const scrollAmount = dir === 'left' ? amount : -amount;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     } else {
-      const scrollAmount = dir === "left" ? -amount : amount;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      const scrollAmount = dir === 'left' ? -amount : amount;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
 
     // Update buttons after scroll animation
@@ -111,12 +99,12 @@ const NewsSection: React.FC = () => {
     // Initial check
     setTimeout(updateScrollButtons, 100);
     // Update on scroll
-    el.addEventListener("scroll", updateScrollButtons);
+    el.addEventListener('scroll', updateScrollButtons);
     // Also update after resize
-    window.addEventListener("resize", updateScrollButtons);
+    window.addEventListener('resize', updateScrollButtons);
     return () => {
-      el.removeEventListener("scroll", updateScrollButtons);
-      window.removeEventListener("resize", updateScrollButtons);
+      el.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
     };
   }, [allNews, updateScrollButtons]);
 
@@ -156,15 +144,10 @@ const NewsSection: React.FC = () => {
                 <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
                 <div className="absolute inset-0 border border-gov-gold/30 rounded-2xl group-hover:border-transparent transition-colors duration-500 -z-10" />
 
-                <span className="text-[13px] tracking-wide relative z-10 font-bold">
-                  {t("view_all")}
-                </span>
+                <span className="text-[13px] tracking-wide relative z-10 font-bold">{t('view_all')}</span>
 
                 <div className="relative z-10 w-7 h-7 rounded-lg bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
-                  <ArrowRight
-                    size={14}
-                    className={direction === "rtl" ? "rotate-180" : ""}
-                  />
+                  <ArrowRight size={14} className={direction === 'rtl' ? 'rotate-180' : ''} />
                 </div>
               </Link>
             </div>
@@ -174,9 +157,7 @@ const NewsSection: React.FC = () => {
             <SkeletonGrid cards={4} className="grid-cols-2 md:grid-cols-4" />
           ) : allNews.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
-              <p className="text-gray-500 dark:text-white/70">
-                {t("no_news_currently")}
-              </p>
+              <p className="text-gray-500 dark:text-white/70">{t('no_news_currently')}</p>
             </div>
           ) : (
             /* Horizontal scroll carousel */
@@ -271,15 +252,10 @@ const NewsSection: React.FC = () => {
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
               <div className="absolute inset-0 border border-gov-gold/30 rounded-xl group-hover:border-transparent transition-colors duration-500 -z-10" />
 
-              <span className="text-[12px] tracking-wide relative z-10 font-bold">
-                {t("view_all")}
-              </span>
+              <span className="text-[12px] tracking-wide relative z-10 font-bold">{t('view_all')}</span>
 
               <div className="relative z-10 w-6 h-6 rounded-md bg-gov-forest/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-500 border border-current/10">
-                <ArrowRight
-                  size={12}
-                  className={direction === "rtl" ? "rotate-180" : ""}
-                />
+                <ArrowRight size={12} className={direction === 'rtl' ? 'rotate-180' : ''} />
               </div>
             </Link>
           </div>
@@ -289,8 +265,8 @@ const NewsSection: React.FC = () => {
       <ShareMenu
         isOpen={!!shareData}
         onClose={() => setShareData(null)}
-        title={shareData?.title || ""}
-        url={shareData?.url || ""}
+        title={shareData?.title || ''}
+        url={shareData?.url || ''}
       />
     </>
   );

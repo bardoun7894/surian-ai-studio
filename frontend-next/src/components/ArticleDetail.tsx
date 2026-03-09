@@ -392,7 +392,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 isOpen={shareMenuOpen}
                 onClose={() => setShareMenuOpen(false)}
                 title={title}
-                url={shareMenuOpen ? window.location.href : ""}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
             />
 
             {/* Lightbox */}

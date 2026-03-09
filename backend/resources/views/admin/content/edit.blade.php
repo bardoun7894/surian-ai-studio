@@ -369,10 +369,6 @@
         const categorySelect = document.getElementById('categorySelect');
         const directorateField = document.getElementById('directorateField');
 
-        const tickerFields = document.getElementById('tickerFields');
-        const showInTickerCheckbox = document.getElementById('show_in_ticker');
-        const tickerDurationField = document.getElementById('tickerDurationField');
-
         function toggleCategoryFields() {
             if (categorySelect.value === 'news') {
                 directorateField.classList.remove('hidden');
@@ -384,7 +380,6 @@
         }
 
         categorySelect.addEventListener('change', toggleCategoryFields);
-        showInTickerCheckbox.addEventListener('change', toggleTickerDuration);
 
         // Auto-translate on form submit
         const contentForm = document.getElementById('contentForm');

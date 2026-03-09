@@ -248,7 +248,7 @@ export default function ContentFilter({
                         {extraFilters && (
                             <>
                                 {showDateFilter && <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>}
-                                <div className="flex w-auto flex-wrap items-center gap-2 ml-auto sm:ml-0">
+                                <div className="flex w-full sm:w-auto flex-wrap items-stretch sm:items-center gap-2">
                                     {extraFilters}
                                 </div>
                             </>

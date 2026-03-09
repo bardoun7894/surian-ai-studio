@@ -461,7 +461,7 @@ function NewsPageContent() {
               ))}
             </div>
 
-            {visibleCount < (originalAllNews.length > 0 ? originalAllNews : allNews).length && (
+            {visibleCount < allNews.length && (
               <div className="mt-10 mb-6 flex justify-center">
                 <button
                   onClick={() => { setActiveView('all'); setCurrentPage(1); }}

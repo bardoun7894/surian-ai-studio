@@ -35,7 +35,6 @@ import Image from 'next/image';
 import { SkeletonGrid } from '@/components/SkeletonLoader';
 import ContentFilter from '@/components/ContentFilter';
 import Pagination from '@/components/Pagination';
-import { usePageMeta } from "@/hooks/usePageMeta";
 
 type MediaType = 'all' | 'video' | 'photo' | 'infographic';
 type ViewMode = 'grid' | 'list';
@@ -56,8 +55,6 @@ export default function MediaPage() {
   const [loading, setLoading] = useState(true);
     usePageLoading(loading);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-  const [showVideoControls, setShowVideoControls] = useState<string | null>(null);
-  const [downloadingItems, setDownloadingItems] = useState<Set<string>>(new Set());
   const [expandedVideo, setExpandedVideo] = useState<MediaItem | null>(null);
   const [expandedImage, setExpandedImage] = useState<MediaItem | null>(null);
   const [expandedAlbum, setExpandedAlbum] = useState<MediaItem | null>(null);
@@ -165,15 +162,9 @@ export default function MediaPage() {
       return;
     }
 
-    // Prevent duplicate downloads
-    if (downloadingItems.has(item.id)) return;
-
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
     toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
-
-    // Show downloading state immediately (Bug 2 fix)
-    setDownloadingItems(prev => new Set(prev).add(item.id));
 
     try {
       const response = await fetch(url);
@@ -191,12 +182,6 @@ export default function MediaPage() {
     } catch {
       // Fallback: open in new tab
       window.open(url, '_blank');
-    } finally {
-      setDownloadingItems(prev => {
-        const next = new Set(prev);
-        next.delete(item.id);
-        return next;
-      });
     }
   };
 
@@ -292,27 +277,6 @@ export default function MediaPage() {
     { key: 'photo', label: t('media_filter_photo'), icon: ImageIcon },
     { key: 'infographic', label: t('media_filter_infographic'), icon: BarChart3 },
   ];
-
-  // Handle video area click to toggle controls (Bug 1 fix)
-  const handleVideoAreaClick = (item: MediaItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (showVideoControls === item.id) {
-      setShowVideoControls(null);
-    } else {
-      setShowVideoControls(item.id);
-      // Auto-hide controls after 3 seconds
-      setTimeout(() => setShowVideoControls(prev => prev === item.id ? null : prev), 3000);
-    }
-  };
-
-  // Handle double-click/tap to go fullscreen (Bug 3 fix)
-  const handleVideoDoubleClick = (item: MediaItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setExpandedVideo(item);
-    setPlayingVideo(null);
-    setShowVideoControls(null);
-  };
 
   // Render inline video player
   const renderInlinePlayer = (item: MediaItem) => {
@@ -528,7 +492,6 @@ export default function MediaPage() {
                       {isVideo && !isPlaying && (
                         <button
                           onClick={(e) => handlePlayInline(item, e)}
-                          onDoubleClick={(e) => handleVideoDoubleClick(item, e)}
                           className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
                         >
                           <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
@@ -537,33 +500,15 @@ export default function MediaPage() {
                         </button>
                       )}
 
-                      {/* Controls overlay for playing videos (Bug 1: show on click/tap) */}
+                      {/* Expand button (visible on hover when playing) */}
                       {isPlaying && isVideo && (
                         <button
                           onClick={(e) => handleExpand(item, e)}
                           className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-30 w-8 h-8 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
                           title={t('media_expand')}
                         >
-                          {/* Controls bar - visible on hover or tap */}
-                          <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
-                            showVideoControls === item.id ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                          }`}>
-                            <button
-                              onClick={(e) => handlePlayInline(item, e)}
-                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/40 transition-colors"
-                              title={t('media_pause')}
-                            >
-                              <Pause size={18} fill="currentColor" />
-                            </button>
-                            <button
-                              onClick={(e) => handleExpand(item, e)}
-                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/40 transition-colors"
-                              title={t('media_expand')}
-                            >
-                              <Maximize2 size={18} />
-                            </button>
-                          </div>
-                        </div>
+                          <Maximize2 size={14} />
+                        </button>
                       )}
 
                       {/* Duration/Count Badge */}
@@ -608,18 +553,14 @@ export default function MediaPage() {
                           >
                             <Share2 size={14} />
                           </button>
-                          {/* Hide download for YouTube videos and albums (Bug 5) */}
-                          {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && !(item.count && item.count > 1) && (
+                          {/* Hide download button for YouTube videos */}
+                          {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
                             <button
                               onClick={(e) => handleDownload(item, e)}
                               className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
                               title={t('media_download')}
                             >
-                              {downloadingItems.has(item.id) ? (
-                                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Download size={14} />
-                              )}
+                              <Download size={14} />
                             </button>
                           )}
                         </div>
@@ -668,14 +609,11 @@ export default function MediaPage() {
                               <Share2 size={14} />
                               {t('media_share')}
                             </button>
-                            {/* Hide download for YouTube videos and albums (Bug 5) */}
-                            {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && !(item.count && item.count > 1) && (
+                            {/* Hide download button for YouTube videos */}
+                            {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
                               <button
                                 onClick={(e) => handleDownload(item, e)}
-                                disabled={downloadingItems.has(item.id)}
-                                className={`flex items-center gap-1 transition-colors ${
-                                  downloadingItems.has(item.id) ? 'text-gov-gold cursor-wait' : 'hover:text-gov-teal'
-                                }`}
+                                className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Download size={14} />
                                 {t('media_download')}
@@ -886,10 +824,7 @@ export default function MediaPage() {
                 </div>
                 <button
                   onClick={(e) => handleDownload(expandedImage, e)}
-                  disabled={downloadingItems.has(expandedImage.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
-                    downloadingItems.has(expandedImage.id) ? 'bg-gov-gold/40 cursor-wait' : 'bg-white/20 hover:bg-white/30'
-                  }`}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-bold transition-colors"
                 >
                   <Download size={16} />
                   {t('media_download')}
@@ -1026,11 +961,7 @@ export default function MediaPage() {
                               className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"
                               title={t('media_download')}
                             >
-                              {downloadingItems.has(photo.id) ? (
-                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Download size={12} />
-                              )}
+                              <Download size={12} />
                             </button>
                           </div>
                         </div>
@@ -1056,16 +987,6 @@ export default function MediaPage() {
         title={shareData?.title || ''}
         url={shareData?.url || ''}
       />
-
-      {/* Download progress toast (Bug 2 fix) */}
-      {downloadingItems.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 bg-gov-forest text-white rounded-xl shadow-2xl flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-bold">
-            {t('media_downloading')}
-          </span>
-        </div>
-      )}
     </div>
   );
 }

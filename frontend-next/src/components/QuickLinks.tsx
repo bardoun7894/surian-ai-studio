@@ -1,41 +1,15 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { motion, useInView } from "framer-motion";
-import {
-  Scale,
-  Newspaper,
-  Megaphone,
-  Briefcase,
-  MessageSquareWarning,
-  HelpCircle,
-  Phone,
-  Building2,
-  FileText,
-  Globe,
-  Network,
-  ExternalLink,
-  LucideIcon,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { API } from "@/lib/repository";
-import Link from "next/link";
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning, HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink, LucideIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { API } from '@/lib/repository';
+import Link from 'next/link';
 
 const iconMap: Record<string, LucideIcon> = {
-  Scale,
-  Newspaper,
-  Megaphone,
-  Briefcase,
-  MessageSquareWarning,
-  HelpCircle,
-  Phone,
-  Building2,
-  FileText,
-  Globe,
-  Network,
-  ExternalLink,
+  Scale, Newspaper, Megaphone, Briefcase, MessageSquareWarning,
+  HelpCircle, Phone, Building2, FileText, Globe, Network, ExternalLink,
 };
 
 interface QuickLinkItem {
@@ -47,90 +21,38 @@ interface QuickLinkItem {
 }
 
 const FALLBACK_LINKS = [
-  {
-    id: 1,
-    label_ar: "القوانين والتشريعات",
-    label_en: "Laws & Legislation",
-    url: "/decrees",
-    icon: "Scale",
-  },
-  {
-    id: 2,
-    label_ar: "الأخبار",
-    label_en: "News",
-    url: "/news",
-    icon: "Newspaper",
-  },
-  {
-    id: 3,
-    label_ar: "الإعلانات",
-    label_en: "Announcements",
-    url: "/#announcements",
-    icon: "Megaphone",
-  },
-  {
-    id: 4,
-    label_ar: "الخدمات",
-    label_en: "Services",
-    url: "/services",
-    icon: "Briefcase",
-  },
-  {
-    id: 5,
-    label_ar: "الشكاوى",
-    label_en: "Complaints",
-    url: "/complaints",
-    icon: "MessageSquareWarning",
-  },
-  {
-    id: 6,
-    label_ar: "الأسئلة الشائعة",
-    label_en: "FAQ",
-    url: "/faq",
-    icon: "HelpCircle",
-  },
-  {
-    id: 7,
-    label_ar: "اتصل بنا",
-    label_en: "Contact Us",
-    url: "/contact",
-    icon: "Phone",
-  },
-  {
-    id: 8,
-    label_ar: "حول الوزارة",
-    label_en: "About",
-    url: "/about",
-    icon: "Building2",
-  },
+  { id: 1, label_ar: 'القوانين والتشريعات', label_en: 'Laws & Legislation', url: '/decrees', icon: 'Scale' },
+  { id: 2, label_ar: 'الأخبار', label_en: 'News', url: '/news', icon: 'Newspaper' },
+  { id: 3, label_ar: 'الإعلانات', label_en: 'Announcements', url: '/#announcements', icon: 'Megaphone' },
+  { id: 4, label_ar: 'الخدمات', label_en: 'Services', url: '/services', icon: 'Briefcase' },
+  { id: 5, label_ar: 'الشكاوى', label_en: 'Complaints', url: '/complaints', icon: 'MessageSquareWarning' },
+  { id: 6, label_ar: 'الأسئلة الشائعة', label_en: 'FAQ', url: '/faq', icon: 'HelpCircle' },
+  { id: 7, label_ar: 'اتصل بنا', label_en: 'Contact Us', url: '/contact', icon: 'Phone' },
+  { id: 8, label_ar: 'حول الوزارة', label_en: 'About', url: '/about', icon: 'Building2' },
 ];
 
-const normalizeQuickLinkUrl = (
-  url: string,
-  labelAr: string,
-  labelEn: string,
-): string => {
+const normalizeQuickLinkUrl = (url: string, labelAr: string, labelEn: string): string => {
   const normalizedUrl = url.trim().toLowerCase();
   const normalizedAr = labelAr.trim();
   const normalizedEn = labelEn.trim().toLowerCase();
 
   if (
-    normalizedUrl === "/#faq" ||
-    normalizedUrl === "#faq" ||
-    normalizedAr === "الأسئلة الشائعة" ||
-    normalizedEn === "faq"
+    normalizedUrl === '/#faq' ||
+    normalizedUrl === '#faq' ||
+    normalizedAr === 'الأسئلة الشائعة' ||
+    normalizedEn === 'faq'
   ) {
-    return "/faq";
+    return '/faq';
   }
 
   if (
-    normalizedUrl === "/#contact" ||
-    normalizedUrl === "#contact" ||
-    normalizedAr === "اتصل بنا" ||
-    normalizedEn === "contact us" ||
-    normalizedEn === "contact"
+    normalizedUrl === '/#contact' ||
+    normalizedUrl === '#contact' ||
+    normalizedAr === 'اتصل بنا' ||
+    normalizedEn === 'contact us' ||
+    normalizedEn === 'contact'
   ) {
-    return "/contact";
+    return '/contact';
   }
 
   return url;
@@ -143,7 +65,7 @@ interface QuickLinksProps {
 
 const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directorateId }) => {
   const { language } = useLanguage();
-  const isAr = language === "ar";
+  const isAr = language === 'ar';
   const [links, setLinks] = useState<QuickLinkItem[]>(FALLBACK_LINKS);
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
@@ -165,7 +87,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
     const absScroll = Math.abs(scrollLeft);
     const maxScroll = scrollWidth - clientWidth;
 
-    if (language === "ar") {
+    if (language === 'ar') {
       setCanScrollLeft(absScroll > threshold);
       setCanScrollRight(absScroll < maxScroll - threshold);
     } else {
@@ -174,29 +96,21 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
     }
   }, [language]);
 
-  const scroll = (dir: "left" | "right") => {
+  const scroll = (dir: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
-    const cardElement = scrollContainerRef.current.querySelector(
-      "a",
-    ) as HTMLElement | null;
+    const cardElement = scrollContainerRef.current.querySelector('a') as HTMLElement | null;
     let cardWidth = 200;
     if (cardElement && cardElement.parentElement) {
       cardWidth = cardElement.parentElement.clientWidth;
     }
     const amount = cardWidth + 20;
 
-    if (language === "ar") {
-      const scrollAmount = dir === "left" ? amount : -amount;
-      scrollContainerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
+    if (language === 'ar') {
+      const scrollAmount = dir === 'left' ? amount : -amount;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     } else {
-      const scrollAmount = dir === "left" ? -amount : amount;
-      scrollContainerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
+      const scrollAmount = dir === 'left' ? -amount : amount;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
 
     setTimeout(() => updateScrollButtons(), 400);
@@ -206,11 +120,11 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
     const el = scrollContainerRef.current;
     if (!el) return;
     setTimeout(updateScrollButtons, 100);
-    el.addEventListener("scroll", updateScrollButtons);
-    window.addEventListener("resize", updateScrollButtons);
+    el.addEventListener('scroll', updateScrollButtons);
+    window.addEventListener('resize', updateScrollButtons);
     return () => {
-      el.removeEventListener("scroll", updateScrollButtons);
-      window.removeEventListener("resize", updateScrollButtons);
+      el.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
     };
   }, [links, updateScrollButtons]);
 
@@ -219,9 +133,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
       .then((data) => {
         if (data && data.length > 0) setLinks(data);
       })
-      .catch(() => {
-        /* Fallback already set */
-      })
+      .catch(() => { /* Fallback already set */ })
       .finally(() => setLoading(false));
   }, [section, directorateId]);
 
@@ -268,9 +180,9 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
       opacity: 1,
       transition: {
         staggerChildren: 0.08,
-        delayChildren: 0.3,
-      },
-    },
+        delayChildren: 0.3
+      }
+    }
   };
 
   const itemVariants = {
@@ -282,23 +194,20 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
       transition: {
         type: "spring",
         stiffness: 100,
-        damping: 12,
-      },
-    },
+        damping: 12
+      }
+    }
   };
 
   return (
     <section ref={ref} id="quick-links" className="py-14 md:py-20 relative overflow-hidden bg-gradient-to-b from-gov-beige/40 via-white to-gov-beige/30 dark:from-dm-bg dark:via-dm-surface/30 dark:to-dm-bg border-t border-gov-gold/10 dark:border-gov-border/15">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, #b9a779 0%, transparent 2%), 
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, #b9a779 0%, transparent 2%), 
                            radial-gradient(circle at 75% 75%, #094239 0%, transparent 2%)`,
-            backgroundSize: "80px 80px",
-          }}
-        />
+          backgroundSize: '80px 80px'
+        }} />
       </div>
 
       {/* Gradient Orbs */}
@@ -310,7 +219,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-4 md:mb-8"
+          className="text-center mb-8 md:mb-16"
         >
           {/* Decorative Line */}
           <div className="flex items-center justify-center gap-4 mb-6">
@@ -341,7 +250,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
             className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gov-gold/10 border border-gov-gold/30 text-gov-gold font-bold text-sm mb-4"
           >
             <Globe size={18} />
-            <span>{isAr ? "روابط سريعة" : "Quick Links"}</span>
+            <span>{isAr ? 'روابط سريعة' : 'Quick Links'}</span>
           </motion.div>
 
           <motion.h2
@@ -350,7 +259,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
             transition={{ delay: 0.3 }}
             className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gov-forest dark:text-gov-gold"
           >
-            {isAr ? "روابط سريعة" : "Quick Links"}
+            {isAr ? 'روابط سريعة' : 'Quick Links'}
           </motion.h2>
         </motion.div>
 
@@ -392,23 +301,19 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
                   <div className="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-white/5 animate-pulse" />
                   <div className="w-20 h-4 bg-gray-200 dark:bg-white/5 rounded animate-pulse" />
                 </div>
-              ) : (
-                links.map((link, idx) => {
-                  const Icon = iconMap[link.icon || ""] || Building2;
-                  const label =
-                    language === "ar" ? link.label_ar : link.label_en;
-                  const href = normalizeQuickLinkUrl(
-                    link.url,
-                    link.label_ar,
-                    link.label_en,
-                  );
+              ))}
+            </div>
+          ) : links.map((link, idx) => {
+            const Icon = iconMap[link.icon || ''] || Building2;
+            const label = language === 'ar' ? link.label_ar : link.label_en;
+            const href = normalizeQuickLinkUrl(link.url, link.label_ar, link.label_en);
 
-                  // Unified brand gradients
-                  const gradients = [
-                    "from-gov-forest to-gov-emerald",
-                    "from-gov-teal to-gov-forest",
-                  ];
-                  const gradient = gradients[idx % gradients.length];
+            // Unified brand gradients
+            const gradients = [
+              'from-gov-forest to-gov-emerald',
+              'from-gov-teal to-gov-forest',
+            ];
+            const gradient = gradients[idx % gradients.length];
 
             return (
               <motion.div

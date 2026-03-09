@@ -633,7 +633,7 @@ export default function ContentManagementPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-600 dark:text-white/70">
-                            {content.view_count.toLocaleString('en-US')}
+                            {content.view_count.toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-gray-600 dark:text-white/70 text-sm">
                             {content.published_at

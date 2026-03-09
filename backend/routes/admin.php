@@ -43,7 +43,7 @@ Route::middleware(['web', 'admin.ip'])->prefix('admin')->name('admin.')->group(f
     });
 
     // Authenticated Routes (NFR-08: IP restriction applied via group middleware)
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'role:admin.*'])->group(function () {
         Route::post('/logout', [App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])->name('logout');
         
         Route::prefix('dashboard')->group(function () {

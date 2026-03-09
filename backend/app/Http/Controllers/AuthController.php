@@ -129,7 +129,7 @@ class AuthController extends Controller
         $user->save();
 
         // Send OTP via email
-        Log::info("OTP for user {$user->email}: {$otp}");
+        Log::info("OTP sent for user {$user->email}");
         try {
             Mail::to($user->email)->send(new TwoFactorCode($otp));
             Log::info("2FA OTP email sent successfully to {$user->email}");
@@ -156,35 +156,24 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Allow test OTP "123456" in non-production environments (skips all OTP checks)
-        $isTestOtp = !app()->environment('production') && $request->otp === '123456';
-
-        if (! $isTestOtp) {
-            if (! $user || ! $user->otp || ! $user->otp_expires_at) {
-                $this->auditService->log($user, '2fa_failed_invalid', 'user', $user ? $user->id : null);
-                throw ValidationException::withMessages([
-                    'otp' => [__('auth.otp_invalid')],
-                ]);
-            }
-
-            if (Carbon::now()->gt($user->otp_expires_at)) {
-                $this->auditService->log($user, '2fa_failed_expired', 'user', $user->id);
-                throw ValidationException::withMessages([
-                    'otp' => [__('auth.otp_expired')],
-                ]);
-            }
-
-            if (! Hash::check($request->otp, $user->otp)) {
-                $this->auditService->log($user, '2fa_failed_wrong', 'user', $user->id);
-                throw ValidationException::withMessages([
-                    'otp' => [__('auth.otp_wrong')],
-                ]);
-            }
-        }
-
-        if (! $user) {
+        if (! $user || ! $user->otp || ! $user->otp_expires_at) {
+            $this->auditService->log($user, '2fa_failed_invalid', 'user', $user ? $user->id : null);
             throw ValidationException::withMessages([
                 'otp' => [__('auth.otp_invalid')],
+            ]);
+        }
+
+        if (Carbon::now()->gt($user->otp_expires_at)) {
+            $this->auditService->log($user, '2fa_failed_expired', 'user', $user->id);
+            throw ValidationException::withMessages([
+                'otp' => [__('auth.otp_expired')],
+            ]);
+        }
+
+        if (! Hash::check($request->otp, $user->otp)) {
+            $this->auditService->log($user, '2fa_failed_wrong', 'user', $user->id);
+            throw ValidationException::withMessages([
+                'otp' => [__('auth.otp_wrong')],
             ]);
         }
 
@@ -229,7 +218,7 @@ class AuthController extends Controller
         $user->otp_expires_at = Carbon::now()->addMinutes(15);
         $user->save();
 
-        Log::info("OTP resent for user {$user->email}: {$otp}");
+        Log::info("OTP resent for user {$user->email}");
         try {
             Mail::to($user->email)->send(new TwoFactorCode($otp));
             Log::info("2FA OTP resend email sent successfully to {$user->email}");
@@ -314,7 +303,7 @@ class AuthController extends Controller
 
         // Build reset URL and send email
         $resetUrl = config('app.frontend_url', 'http://localhost:3000') . "/reset-password?token={$token}&email=" . urlencode($user->email);
-        Log::info("Password reset link for {$user->email}: {$resetUrl}");
+        Log::info("Password reset requested for {$user->email}");
 
         // Send password reset email
         try {

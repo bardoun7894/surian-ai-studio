@@ -45,7 +45,6 @@ def get_ai_provider(
 # Models
 class ChatRequest(BaseModel):
     prompt: str
-    system_prompt: Optional[str] = None
     use_google_search: bool = False
 
 
@@ -58,7 +57,6 @@ class SummarizeRequest(BaseModel):
     text: str
     language: str = "ar"
     max_length: int = 200
-    system_prompt: Optional[str] = None
 
 
 class ProofreadRequest(BaseModel):
@@ -78,7 +76,6 @@ class TranslateRequest(BaseModel):
     text: str
     source_lang: str = "ar"  # ar or en
     target_lang: str = "en"  # ar or en
-    system_prompt: Optional[str] = None
 
 
 @app.get("/health")
@@ -106,11 +103,7 @@ async def chat(request: ChatRequest, provider: AIProvider = Depends(get_ai_provi
     """Chat with AI assistant."""
     try:
         messages = [Message(role="user", content=request.prompt)]
-        system = (
-            request.system_prompt
-            if request.system_prompt
-            else settings.CHAT_SYSTEM_PROMPT
-        )
+        system = settings.CHAT_SYSTEM_PROMPT
         response = await provider.chat(
             messages,
             system_prompt=system,
@@ -162,7 +155,7 @@ async def summarize(
             request.text,
             max_length=request.max_length,
             language=request.language,
-            system_prompt=request.system_prompt,
+            system_prompt=None,
         )
         return {
             "summary": result.summary,
@@ -277,7 +270,7 @@ Text to translate:
 
         # Use chat method for translation with optional RAG context
         messages = [Message(role="user", content=prompt)]
-        system = request.system_prompt if request.system_prompt else None
+        system = None
         response = await provider.chat(
             messages, system_prompt=system, temperature=0.3, max_tokens=2000
         )

@@ -562,7 +562,7 @@ class UserController extends Controller
         $user->otp_expires_at = Carbon::now()->addMinutes(15);
         $user->save();
 
-        Log::info("OTP for new user {$user->email}: {$otp}");
+        Log::info("OTP sent for new user {$user->email}");
         Mail::to($user->email)->send(new TwoFactorCode($otp));
 
         return response()->json([

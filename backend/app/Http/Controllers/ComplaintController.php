@@ -68,7 +68,7 @@ class ComplaintController extends Controller
         Cache::put($key, $otp, 600);
         Cache::put("complaint_data_{$request->national_id}", $request->only('phone', 'national_id'), 600);
 
-        Log::info("Guest OTP for {$request->national_id}: {$otp}");
+        Log::info("Guest OTP sent for {$request->national_id}");
         // Send SMS logic here
 
         return response()->json(['message' => 'OTP sent.', 'req_key' => $request->national_id]); // returning national_id as key for simplicity

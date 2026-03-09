@@ -83,7 +83,7 @@ export default function MediaPage() {
     const fetchMedia = async () => {
       setLoading(true);
       try {
-        const response = await API.media.getPaginated(currentPage, perPage, activeFilter);
+        const response = await API.media.getPaginated(currentPage, perPage, activeFilter, null, null, language as 'ar' | 'en');
         setMedia(response.data);
         setLastPage(response.last_page);
         setTotalItems(response.total);
@@ -94,7 +94,7 @@ export default function MediaPage() {
       }
     };
     fetchMedia();
-  }, [activeFilter, currentPage, perPage]);
+  }, [activeFilter, currentPage, perPage, language]);
 
   // Date filtering
   const filteredMedia = useMemo(() => {

@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
-import { formatRelativeTime, formatDate as formatDateUtil, copyToClipboard } from '@/lib/utils';
+import { formatRelativeTime, copyToClipboard } from '@/lib/utils';
 import { toast } from 'sonner';
 import ShareMenu from '@/components/ShareMenu';
 import PrintHeader from '@/components/PrintHeader';
@@ -141,7 +141,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
     }, [lightboxOpen, galleryImages.length]);
 
     const formattedDate = date && !isNaN(new Date(date).getTime())
-        ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         : '';
 
     return (
@@ -168,37 +168,48 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                     {/* Featured Image */}
                     {imageUrl && (
-                        <div
-                            className="relative h-[250px] md:h-[500px] w-full cursor-pointer group print-featured-image"
-                            onClick={() => galleryImages.length > 0 ? openLightbox(0) : undefined}
-                        >
-                            <Image
+                        <>
+                            {/* Screen version: Next/Image with fill for optimized loading */}
+                            <div
+                                className="relative h-[250px] md:h-[500px] w-full cursor-pointer group print:hidden"
+                                onClick={() => galleryImages.length > 0 ? openLightbox(0) : undefined}
+                            >
+                                <Image
+                                    src={imageUrl}
+                                    alt={title}
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                    unoptimized
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                <div className="absolute bottom-6 right-6 rtl:right-auto rtl:left-6">
+                                    <span className="px-4 py-1.5 bg-gov-gold text-gov-forest text-sm font-bold rounded-full">
+                                        {category}
+                                    </span>
+                                </div>
+                                {galleryImages.length > 1 && (
+                                    <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Images size={16} />
+                                        <span>{galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {/* Print version: plain img tag for reliable print layout */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                                 src={imageUrl}
                                 alt={title}
-                                fill
-                                className="object-cover"
-                                priority
-                                unoptimized
+                                className="hidden print:block w-full max-h-[300pt] object-contain"
+                                style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent print:hidden" />
-                            <div className="absolute bottom-6 right-6 rtl:right-auto rtl:left-6 print:hidden">
-                                <span className="px-4 py-1.5 bg-gov-gold text-gov-forest text-sm font-bold rounded-full">
-                                    {category}
-                                </span>
-                            </div>
-                            {galleryImages.length > 1 && (
-                                <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Images size={16} />
-                                    <span>{galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'}</span>
-                                </div>
-                            )}
-                        </div>
+                        </>
                     )}
 
                     <div className="p-4 md:p-12">
                         {/* Meta Data */}
                         <div className="flex flex-wrap items-center gap-y-3 gap-x-4 text-sm text-gray-500 dark:text-white/70 mb-8 pb-8 border-b border-gray-100 dark:border-gov-border/15">
-                            <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
+                            <div className="flex items-center gap-2" title={date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                 <Calendar size={16} className="text-gov-gold" />
                                 <span className="font-medium">{formatRelativeTime(date, lang as 'ar' | 'en')}</span>
                             </div>
@@ -313,7 +324,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
                         {/* Image Gallery */}
                         {galleryImages.length > 1 && (
-                            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gov-border/15">
+                            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gov-border/15 print:hidden">
                                 <h2 className="text-xl font-display font-bold text-gov-forest dark:text-white mb-6 flex items-center gap-2">
                                     <Images size={22} className="text-gov-gold" />
                                     {language === 'ar' ? 'معرض الصور' : 'Photo Gallery'}
@@ -372,7 +383,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                         <h3 className="font-bold text-gov-charcoal dark:text-white mb-2 line-clamp-2">
                                             {item.title}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY-u-nu-latn' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500" title={item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString(lang === 'ar' ? 'ar-SY' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}>
                                             <Calendar size={14} />
                                             {formatRelativeTime(item.date, lang as 'ar' | 'en')}
                                         </div>

@@ -1,6 +1,5 @@
 import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults, Favorite, AutocompleteSuggestion, Investment, InvestmentStats, PaginatedResponse } from '../types';
-export type { Investment, InvestmentStats };
-import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
+import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA, getMedia } from '@/constants';
 import { getCsrfCookie } from '@/lib/api';
 
 // Helper: read XSRF-TOKEN from cookies for XHR requests
@@ -215,7 +214,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve({
         id: ticketId,
         status: 'in_progress',
-        lastUpdate: new Date().toLocaleDateString('ar-SY-u-nu-latn'),
+        lastUpdate: new Date().toLocaleDateString('ar-SY'),
         notes: 'الطلب قيد المراجعة من قبل القسم الفني (بيانات محاكاة).'
       }), 1000);
     });
@@ -664,7 +663,6 @@ class ApiComplaintRepository implements IComplaintRepository {
     if (data.dob) formData.append('dob', data.dob);
     if (data.recaptcha_token) formData.append('recaptcha_token', data.recaptcha_token);
     if (data.previousTrackingNumber) formData.append('previous_tracking_number', data.previousTrackingNumber);
-    if ((data as any).is_anonymous) formData.append('is_anonymous', '1');
 
     // Template fields
     if ((data as any).template_id) formData.append('template_id', (data as any).template_id);
@@ -746,11 +744,11 @@ class ApiComplaintRepository implements IComplaintRepository {
       xhr.send(formData);
     });
   }
-  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
+  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(nationalId ? { national_id: nationalId } : {}),
+      body: JSON.stringify({}),
     });
 
     if (res.status === 404) return null;
@@ -1513,24 +1511,11 @@ class ApiSuggestionRepository implements ISuggestionRepository {
   }
 
   async submitRating(data: { tracking_number: string; rating: number; comment?: string; feedback_type?: 'positive' | 'negative' }): Promise<any> {
-    // Fetch CSRF cookie before submitting (required by Laravel Sanctum)
-    await getCsrfCookie();
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    // Include XSRF token from cookie
-    const xsrfToken = getXsrfToken();
-    if (xsrfToken) {
-      headers['X-XSRF-TOKEN'] = xsrfToken;
-    }
-
     const res = await fetch(`${API_BASE_URL}/public/suggestions/rating`, {
       method: 'POST',
-      headers,
-      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -1618,7 +1603,7 @@ export interface AlbumData {
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
-  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>>;
+  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>>;
   getAlbumPhotos(id: string): Promise<AlbumData>;
 }
 
@@ -1634,8 +1619,8 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
-    const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>> {
+    const mediaData = getMedia(language || "ar"); const all = type && type !== "all" ? mediaData.filter(m => m.type === type) : mediaData;
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
     return {
@@ -1680,11 +1665,12 @@ class ApiMediaRepository implements IMediaRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
     if (month !== null && month !== undefined) params.append('month', String(month));
     if (year !== null && year !== undefined) params.append('year', String(year));
+    if (language) params.append("lang", language);
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();

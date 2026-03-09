@@ -108,12 +108,15 @@ class ComplaintController extends Controller
         // Rate Limiting: Handled by ComplaintRateLimitMiddleware (per-user/IP, #487 fix)
 
         // Validate Request including CAPTCHA (#488: Full form validation)
+        $isAnonymous = $request->boolean('is_anonymous');
+
         $request->validate([
-            'full_name' => 'required|string|min:3|max:255',
-            'national_id' => 'required|string|size:11|regex:/^\d{11}$/',
-            'phone' => 'required|string|min:7|max:20',
+            'is_anonymous' => 'nullable|boolean',
+            'full_name' => $isAnonymous ? 'nullable|string|max:255' : 'required|string|min:3|max:255',
+            'national_id' => $isAnonymous ? 'nullable|string|size:11|regex:/^\d{11}$/' : 'required|string|size:11|regex:/^\d{11}$/',
+            'phone' => $isAnonymous ? 'nullable|string|max:20' : 'required|string|min:7|max:20',
             'email' => 'nullable|email:rfc|max:255',
-            'directorate_id' => 'required|exists:directorates,id',
+            'directorate_id' => 'nullable|exists:directorates,id',
             'description' => 'required|string|min:10|max:5000',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
             'attachments' => 'max:5', // Max 5 files

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, memo, useEffect } from "react";
+import React, { useState, useCallback, memo, useEffect, useRef } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -41,6 +41,26 @@ function DirectoratesMap() {
   const [selectedDirectorate, setSelectedDirectorate] =
     useState<Directorate | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const override = () => {
+      const svg = mapContainerRef.current?.querySelector('svg');
+      if (svg) svg.style.touchAction = 'pan-y';
+    };
+    override();
+    const observer = new MutationObserver(override);
+    observer.observe(mapContainerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Dismiss tooltip on scroll so it does not float away from the map
+  useEffect(() => {
+    const dismiss = () => { setTooltip(null); setHoveredDirectorate(null); };
+    window.addEventListener('scroll', dismiss, { passive: true });
+    return () => window.removeEventListener('scroll', dismiss);
+  }, []);
 
   useEffect(() => {
     const fetchDirectorates = async () => {
@@ -112,7 +132,7 @@ function DirectoratesMap() {
         </div>
       </div>
 
-      <div className="relative h-[350px] md:h-[500px] w-full bg-gray-50 dark:bg-dm-bg group">
+      <div ref={mapContainerRef} className="relative h-[350px] md:h-[500px] w-full bg-gray-50 dark:bg-dm-bg group">
         {loading && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 dark:bg-dm-bg/50 backdrop-blur-sm">
             <div className="w-10 h-10 border-4 border-gov-gold border-t-transparent rounded-full animate-spin" />

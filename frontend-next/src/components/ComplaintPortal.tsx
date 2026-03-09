@@ -606,15 +606,17 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const nationalIdError = !isAnonymous && !/^\d{11}$/.test(formData.nationalId)
-            ? t('complaint_national_id_invalid')
-            : '';
+        if (!isAnonymous) {
+            const nationalIdError = !/^\d{11}$/.test(formData.nationalId)
+                ? t('complaint_national_id_invalid')
+                : '';
 
-        if (nationalIdError) {
-            setTouched(prev => ({ ...prev, nationalId: true }));
-            setErrors(prev => ({ ...prev, nationalId: nationalIdError }));
-            setSubmitError(nationalIdError);
-            return;
+            if (nationalIdError) {
+                setTouched(prev => ({ ...prev, nationalId: true }));
+                setErrors(prev => ({ ...prev, nationalId: nationalIdError }));
+                setSubmitError(nationalIdError);
+                return;
+            }
         }
 
         if (selectedFiles.length > MAX_ATTACHMENT_COUNT) {
@@ -638,6 +640,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             // Build submission data with file and template info
             const submitData: any = {
                 ...formData,
+                is_anonymous: isAnonymous,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
                 staged_attachment_ids: selectedFiles.length > 0 ? selectedFiles.map(f => stagedIds[`${f.name}:${f.size}:${f.lastModified}`]).filter(Boolean) : undefined,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -53,6 +53,26 @@ function SyriaMap() {
   });
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredName, setHoveredName] = useState<string | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const override = () => {
+      const svg = mapContainerRef.current?.querySelector('svg');
+      if (svg) svg.style.touchAction = 'pan-y';
+    };
+    override();
+    const observer = new MutationObserver(override);
+    observer.observe(mapContainerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Dismiss tooltip on scroll so it does not float away from the map
+  useEffect(() => {
+    const dismiss = () => { setTooltip(null); setHoveredName(null); };
+    window.addEventListener('scroll', dismiss, { passive: true });
+    return () => window.removeEventListener('scroll', dismiss);
+  }, []);
 
   const handleZoomIn = useCallback(() => {
     setPosition((pos) => ({
@@ -120,7 +140,7 @@ function SyriaMap() {
         </div>
 
         {/* Map container */}
-        <div className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[300px] md:h-[450px]">
+        <div ref={mapContainerRef} className="relative w-full max-w-3xl mx-auto overflow-hidden bg-gray-50 dark:bg-dm-surface rounded-lg h-[300px] md:h-[450px]">
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{

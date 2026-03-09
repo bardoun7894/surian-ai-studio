@@ -122,6 +122,18 @@ class User extends Authenticatable
             return true;
         }
 
+        // Support wildcard in the requested permission
+        // e.g. hasPermission('admin.*') matches user with 'admin.panel'
+        if (str_ends_with($permission, '.*')) {
+            $requiredPrefix = substr($permission, 0, -2);
+            foreach ($permissions as $p) {
+                if (str_starts_with($p, $requiredPrefix . '.') || $p === $permission) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         foreach ($permissions as $p) {
             if (str_ends_with($p, '.*')) {
                 $prefix = substr($p, 0, -2);

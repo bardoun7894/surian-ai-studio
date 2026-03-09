@@ -1,5 +1,6 @@
-import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults, Favorite, AutocompleteSuggestion, Investment, InvestmentStats, PaginatedResponse } from '../types';
-import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA, getMedia } from '@/constants';
+import { Directorate, Service, Article, NewsItem, Decree, Ticket, ComplaintData, User, SuggestionData, Suggestion, MediaItem, PromotionalSection, FAQ, SearchResult, SearchResults, Favorite, AutocompleteSuggestion, Investment, InvestmentStats, InvestmentApplication, InvestmentApplicationData, PaginatedResponse } from '../types';
+export type { Investment, InvestmentStats };
+import { DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, BREAKING_NEWS, HERO_ARTICLE, GRID_ARTICLES, DECREES, MOCK_MEDIA } from '@/constants';
 import { getCsrfCookie } from '@/lib/api';
 
 // Helper: read XSRF-TOKEN from cookies for XHR requests
@@ -1603,7 +1604,7 @@ export interface AlbumData {
 export interface IMediaRepository {
   getAll(): Promise<MediaItem[]>;
   getByType(type: string): Promise<MediaItem[]>;
-  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>>;
+  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>>;
   getAlbumPhotos(id: string): Promise<AlbumData>;
 }
 
@@ -1619,8 +1620,8 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>> {
-    const mediaData = getMedia(language || "ar"); const all = type && type !== "all" ? mediaData.filter(m => m.type === type) : mediaData;
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
+    const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
     return {
@@ -1665,12 +1666,11 @@ class ApiMediaRepository implements IMediaRepository {
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, language?: "ar" | "en"): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
     if (month !== null && month !== undefined) params.append('month', String(month));
     if (year !== null && year !== undefined) params.append('year', String(year));
-    if (language) params.append("lang", language);
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
@@ -1891,6 +1891,140 @@ class ApiInvestmentRepository implements IInvestmentRepository {
         sectors_count: 0,
         labels: {}
       };
+    }
+  }
+}
+// --- Investment Application Repository ---
+export interface IInvestmentApplicationRepository {
+  submit(data: InvestmentApplicationData): Promise<string>;
+  track(trackingNumber: string): Promise<InvestmentApplication | null>;
+}
+
+export interface IStaffInvestmentApplicationRepository {
+  listAll(
+    params?: any,
+  ): Promise<{
+    data: InvestmentApplication[];
+    total: number;
+    last_page: number;
+  }>;
+  getById(id: number): Promise<InvestmentApplication | null>;
+  updateStatus(
+    id: number,
+    status: string,
+    staffNotes?: string,
+  ): Promise<boolean>;
+}
+
+class ApiInvestmentApplicationRepository implements IInvestmentApplicationRepository {
+  async submit(data: InvestmentApplicationData): Promise<string> {
+    const formData = new FormData();
+    formData.append("full_name", data.full_name);
+    formData.append("national_id", data.national_id);
+    formData.append("company_name", data.company_name);
+    formData.append("email", data.email);
+    formData.append("phone", data.phone);
+    formData.append("proposed_amount", String(data.proposed_amount));
+    if (data.description) formData.append("description", data.description);
+    if (data.investment_id)
+      formData.append("investment_id", String(data.investment_id));
+    if (data.attachments) {
+      data.attachments.forEach((file) => {
+        formData.append("attachments[]", file);
+      });
+    }
+
+    const res = await fetch(`${API_BASE_URL}/public/investment-applications`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "فشل في تقديم الطلب");
+    }
+
+    const result = await res.json();
+    return result.tracking_number;
+  }
+
+  async track(trackingNumber: string): Promise<InvestmentApplication | null> {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/public/investment-applications/track/${trackingNumber}`,
+      );
+      if (!res.ok) return null;
+      const result = await res.json();
+      return result.data;
+    } catch {
+      return null;
+    }
+  }
+}
+
+class ApiStaffInvestmentApplicationRepository implements IStaffInvestmentApplicationRepository {
+  async listAll(
+    params?: any,
+  ): Promise<{
+    data: InvestmentApplication[];
+    total: number;
+    last_page: number;
+  }> {
+    const query = new URLSearchParams(params || {}).toString();
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${API_BASE_URL}/staff/investment-applications?${query}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return res.json();
+  }
+
+  async getById(id: number): Promise<InvestmentApplication | null> {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${API_BASE_URL}/staff/investment-applications/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      if (!res.ok) return null;
+      const result = await res.json();
+      return result.data;
+    } catch {
+      return null;
+    }
+  }
+
+  async updateStatus(
+    id: number,
+    status: string,
+    staffNotes?: string,
+  ): Promise<boolean> {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${API_BASE_URL}/staff/investment-applications/${id}/status`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status, staff_notes: staffNotes }),
+        },
+      );
+      return res.ok;
+    } catch {
+      return false;
     }
   }
 }
@@ -2238,6 +2372,8 @@ export const API = {
   media: new MockMediaRepository(),
   services: USE_MOCK_DATA ? new MockServicesRepository() : new ApiServicesRepository(),
   investments: USE_MOCK_DATA ? new MockInvestmentRepository() : new ApiInvestmentRepository(),
+  investmentApplications: new ApiInvestmentApplicationRepository(),
+  staffInvestmentApplications: new ApiStaffInvestmentApplicationRepository(),
   promotionalSections: USE_MOCK_DATA ? new MockPromotionalSectionsRepository() : new ApiPromotionalSectionsRepository(),
   newsletter: USE_MOCK_DATA ? new MockNewsletterRepository() : new ApiNewsletterRepository(),
   faqs: USE_MOCK_DATA ? new MockFaqRepository() : new ApiFaqRepository(),

@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Handshake,
   Lightbulb,
-  HelpCircle
+  HelpCircle,
+  Briefcase
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +60,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       href: '/admin/suggestions',
       label: { ar: 'المقترحات', en: 'Suggestions' },
       icon: Lightbulb,
+    },
+    {
+      href: "/admin/investment-applications",
+      label: { ar: "طلبات الاستثمار", en: "Investment Applications" },
+      icon: Briefcase,
     },
     {
       href: '/admin/content',

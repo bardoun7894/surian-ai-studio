@@ -423,3 +423,46 @@ export interface InvestmentStats {
   sectors_count: number;
   labels: Record<string, { ar: string; en: string }>;
 }
+
+export interface InvestmentApplication {
+  id: number;
+  tracking_number: string;
+  investment_id?: number;
+  investment?: {
+    title_ar: string;
+    title_en: string;
+  };
+  full_name: string;
+  national_id: string;
+  company_name: string;
+  email: string;
+  phone: string;
+  proposed_amount: number;
+  description?: string;
+  status: 'received' | 'under_review' | 'needs_more_info' | 'approved' | 'rejected';
+  status_label?: { ar: string; en: string };
+  staff_notes?: string;
+  attachments?: InvestmentApplicationAttachment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvestmentApplicationAttachment {
+  id: number;
+  file_path: string;
+  file_name: string;
+  mime_type: string;
+  size: number;
+}
+
+export interface InvestmentApplicationData {
+  investment_id?: number;
+  full_name: string;
+  national_id: string;
+  company_name: string;
+  email: string;
+  phone: string;
+  proposed_amount: number;
+  description?: string;
+  attachments?: File[];
+}

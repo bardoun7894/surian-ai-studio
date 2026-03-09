@@ -502,7 +502,7 @@ export default function InvestmentCategoryPage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <button className="px-6 py-3 bg-gov-teal hover:bg-gov-emerald text-white font-bold rounded-xl transition-all">
+                                        <button onClick={() => window.location.href = `/investment/${(license as Investment).id}/apply`} className="px-6 py-3 bg-gov-teal hover:bg-gov-emerald text-white font-bold rounded-xl transition-all">
                                             {language === 'ar' ? 'تقديم طلب' : 'Apply Now'}
                                         </button>
                                     </div>
@@ -617,7 +617,7 @@ export default function InvestmentCategoryPage() {
                                 : 'Our specialized team is ready to answer your questions and assist you on your investment journey'}
                         </p>
                         <Link
-                            href="/complaints"
+                            href={`/investment/${selectedInvestment?.id || slug}/apply`}
                             className="inline-flex items-center gap-2 px-8 py-4 bg-gov-teal hover:bg-gov-emerald text-white font-bold rounded-2xl transition-all"
                         >
                             {language === 'ar' ? 'تواصل معنا' : 'Contact Us'}
@@ -701,7 +701,7 @@ export default function InvestmentCategoryPage() {
                             {/* CTA */}
                             <div className="flex gap-3 pt-2">
                                 <Link
-                                    href="/complaints"
+                                    href={`/investment/${selectedInvestment?.id || slug}/apply`}
                                     className="flex-1 py-3 bg-gov-teal text-white font-bold rounded-xl text-center hover:bg-gov-emerald transition-colors"
                                     onClick={() => setSelectedInvestment(null)}
                                 >

@@ -319,7 +319,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
               <motion.div
                 key={link.id}
                 variants={itemVariants}
-                className="group relative flex-shrink-0 snap-center w-[160px] sm:w-[180px] md:w-[200px] h-full"
+                className="group relative flex-shrink-0 snap-center w-[120px] sm:w-[180px] md:w-[200px] h-full"
               >
                 <Link
                   href={href}
@@ -328,18 +328,18 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
                       e.preventDefault();
                     }
                   }}
-                  className="flex relative w-full px-4 py-3 md:px-5 md:py-4 min-h-[80px] md:min-h-[100px] bg-white/80 dark:bg-dm-surface backdrop-blur-xl rounded-[1.25rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-[0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.2)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1.5 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 font-sans"
+                  className="flex relative w-full px-4 py-3 md:px-5 md:py-4 min-h-[64px] md:min-h-[100px] bg-white/80 dark:bg-dm-surface backdrop-blur-xl rounded-[1.25rem] md:rounded-[1.5rem] border border-gov-gold/20 dark:border-gov-gold/15 shadow-[0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_20px_40px_rgba(185,167,121,0.2)] transition-all duration-300 overflow-hidden flex-row items-center gap-3 md:gap-4 group-hover:-translate-y-1.5 md:group-hover:-translate-y-2 group-hover:border-gov-gold/40 dark:group-hover:border-gov-gold/40 font-sans"
                 >
                   {/* Subtle Background Glow on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-[1rem] md:rounded-[1.5rem]`} />
 
                   {/* Icon Container */}
-                  <div className={`relative w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 transition-all duration-300 ease-out z-10 flex-shrink-0 my-auto`}>
+                  <div className={`relative w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md shadow-gov-forest/20 dark:shadow-black/30 group-hover:scale-110 transition-all duration-300 ease-out z-10 flex-shrink-0 my-auto`}>
                     <Icon size={20} className="text-white group-hover:animate-pulse transition-transform duration-300 md:w-6 md:h-6" />
                   </div>
 
                   {/* Label */}
-                  <span className="text-[13px] md:text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-normal leading-tight transition-colors z-10 flex items-center pr-2">
+                  <span className="text-[11px] md:text-[15px] font-extrabold text-gov-forest dark:text-white/90 whitespace-normal leading-tight transition-colors z-10 flex items-center pr-2">
                     {label}
                   </span>
 

@@ -430,7 +430,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
                 <Landmark size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
 
-              <span className="text-[11px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+              <span className="text-[9px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
                 {language === 'ar' ? 'خدماتنا' : 'Our Services'}
               </span>
             </Link>
@@ -448,7 +448,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
                 <FileText size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
 
-              <span className="text-[11px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+              <span className="text-[9px] sm:text-[16px] tracking-tight sm:tracking-wide relative z-10 font-bold text-center leading-tight">
                 {language === 'ar' ? 'أخبارنا' : 'Our News'}
               </span>
             </Link>
@@ -456,7 +456,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
             {/* Complaints & Suggestions Button */}
             <Link
               href="/complaints"
-              className="animate-btn group relative flex-[1.4] sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
+              className="animate-btn group relative flex-1 sm:flex-initial sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 px-1 py-3 sm:px-8 sm:py-4 bg-gov-forest/10 dark:bg-dm-surface/30 backdrop-blur-md font-bold text-gov-forest dark:text-white rounded-[1.25rem] sm:rounded-3xl hover:text-white transition-colors duration-500 overflow-hidden shadow-md dark:shadow-xl border border-gov-forest/20 dark:border-gov-gold/30 sm:border-gov-forest/20 sm:dark:border-gov-gold/30"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-gov-forest via-gov-teal to-gov-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               <div className="absolute inset-0 w-1/4 bg-white/20 skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_infinite] -z-10" />
@@ -466,7 +466,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
                 <MessageSquare size={18} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </div>
 
-              <span className="text-[10px] sm:text-[16px] tracking-tighter sm:tracking-wide relative z-10 font-bold text-center leading-tight">
+              <span className="text-[9px] sm:text-[16px] tracking-tighter sm:tracking-wide relative z-10 font-bold text-center leading-tight">
                 {language === 'ar' ? 'الشكاوى والمقترحات' : 'Complaints & Suggestions'}
               </span>
             </Link>

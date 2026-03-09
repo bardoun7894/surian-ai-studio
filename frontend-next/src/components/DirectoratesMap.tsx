@@ -153,6 +153,13 @@ function DirectoratesMap() {
             onMoveEnd={handleMoveEnd}
             minZoom={MIN_ZOOM}
             maxZoom={MAX_ZOOM}
+            filterZoomEvent={(evt: any) => {
+              // Block touch and wheel events from zooming/panning the map
+              // This allows normal page scrolling over the map
+              if (evt?.type?.startsWith('touch')) return false;
+              if (evt?.type === 'wheel') return false;
+              return true;
+            }}
           >
             <Geographies geography={GEO_URL}>
               {({ geographies }) =>

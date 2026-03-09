@@ -198,7 +198,7 @@ const GovernmentPartners: React.FC = () => {
                 >
                     <div
                         ref={scrollRef}
-                        className="flex gap-4 md:gap-6 w-max flex-nowrap py-2 md:py-4"
+                        className="flex gap-2 md:gap-6 w-max flex-nowrap py-2 md:py-4"
                     >
                         {/* Duplicate the array multiple times to ensure it covers wide screens and loops seamlessly */}
                         {[...directorates, ...directorates, ...directorates, ...directorates].map((directorate, index) => (
@@ -207,24 +207,24 @@ const GovernmentPartners: React.FC = () => {
                                 className="flex-shrink-0"
                                 onClick={() => setSelectedDirectorate(directorate)}
                             >
-                                <div className="w-36 h-36 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-2xl md:rounded-3xl bg-white dark:bg-dm-bg border border-gray-200/60 dark:border-gov-border/20 hover:border-gov-gold/30 flex flex-col items-center justify-center p-4 md:p-6 transition-all duration-500 hover:shadow-xl md:hover:shadow-2xl hover:-translate-y-2 md:hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
+                                <div className="w-28 h-28 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-xl md:rounded-3xl bg-white dark:bg-dm-bg border border-gray-200/60 dark:border-gov-border/20 hover:border-gov-gold/30 flex flex-col items-center justify-center p-4 md:p-6 transition-all duration-500 hover:shadow-xl md:hover:shadow-2xl hover:-translate-y-2 md:hover:-translate-y-3 cursor-pointer group/card hover:bg-gov-gold/5 relative overflow-hidden">
                                     {/* Glass reflection effect */}
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
 
                                     {/* Icon */}
-                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gov-forest/5 dark:bg-gov-emerald/10 text-gov-forest dark:text-gov-teal flex items-center justify-center mb-3 md:mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8">
+                                    <div className="w-9 h-9 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gov-forest/5 dark:bg-gov-emerald/10 text-gov-forest dark:text-gov-teal flex items-center justify-center mb-3 md:mb-4 group-hover/card:bg-gov-forest group-hover/card:text-white dark:group-hover/card:bg-gov-gold dark:group-hover/card:text-gov-forest transition-all duration-500 transform group-hover/card:scale-110 shadow-sm [&>svg]:w-6 [&>svg]:h-6 md:[&>svg]:w-8 md:[&>svg]:h-8">
                                         {iconMap[directorate.icon] || <Building2 className="w-6 h-6 md:w-8 md:h-8" />}
                                     </div>
 
                                     {/* Name */}
-                                    <h3 className="text-[11px] md:text-sm lg:text-base font-bold text-gov-forest dark:text-gov-teal text-center leading-tight line-clamp-2 px-1 md:px-2">
+                                    <h3 className="text-[9px] md:text-sm lg:text-base font-bold text-gov-forest dark:text-gov-teal text-center leading-tight line-clamp-2 px-1 md:px-2">
                                         {loc(directorate, 'name')}
                                     </h3>
 
                                     {/* Service Count */}
                                     <div className="flex items-center gap-1 md:gap-1.5 mt-2 md:mt-3 opacity-60 group-hover/card:opacity-100 transition-all duration-300">
                                         <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-gov-gold" />
-                                        <span className="text-[9px] md:text-xs font-medium text-gov-sand dark:text-gov-beige">
+                                        <span className="text-[8px] md:text-xs font-medium text-gov-sand dark:text-gov-beige">
                                             {directorate.servicesCount} {language === 'ar' ? 'خدمة' : 'services'}
                                         </span>
                                     </div>

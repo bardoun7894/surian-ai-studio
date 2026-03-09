@@ -330,13 +330,13 @@ export default function InvestmentSection() {
                                             {/* Subtle Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                                            <div className="absolute top-3 md:top-4 right-3 md:right-4 rtl:right-auto rtl:left-3 md:rtl:left-4 z-10">
-                                                <span className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md shadow-sm border ${item.status === 'available' ? 'bg-gov-gold/90 text-gov-forest border-gov-gold/20' : 'bg-gray-100/90 text-gray-700 border-gray-200 dark:bg-gray-800/90 dark:text-gray-300 dark:border-gray-600'}`}>
+                                            <div className="absolute top-3 md:top-4 right-3 md:right-4 z-10 rtl:right-auto rtl:left-3 md:rtl:left-4">
+                                                <div className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md shadow-sm border ${item.status === 'available' ? 'bg-gov-gold/90 text-gov-forest border-gov-gold/20' : 'bg-gray-100/90 text-gray-700 border-gray-200 dark:bg-gray-800/90 dark:text-gray-300 dark:border-gray-600'}`}>
                                                     <div className="flex items-center gap-1 md:gap-1.5">
-                                                        <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${item.status === 'available' ? 'bg-gov-forest' : 'bg-gray-400'}`} />
+                                                        <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${item.status === 'available' ? 'bg-gov-forest' : 'bg-gray-400'}`} />
                                                         {statusLabel}
                                                     </div>
-                                                </span>
+                                                </div>
                                             </div>
 
                                             <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 rtl:left-auto rtl:right-3 md:rtl:right-4 z-10">

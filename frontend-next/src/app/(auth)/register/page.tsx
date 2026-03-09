@@ -29,6 +29,7 @@ import { useRecaptcha } from '@/hooks/useRecaptcha';
 import PhoneInput from '@/components/ui/PhoneInput';
 import NationalIdField from '@/components/NationalIdField';
 import { validatePhoneWithCountryCode } from '@/lib/phone';
+import DatePicker from '@/components/ui/DatePicker';
 
 const RegisterPage = () => {
     const { language, t } = useLanguage();
@@ -574,11 +575,9 @@ const RegisterPage = () => {
                                             {t('reg_birth_date')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
-                                            <input
-                                                type="date"
+                                            <DatePicker
                                                 value={formData.birthDate}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
+                                                onChange={(val) => {
                                                     setFormData({ ...formData, birthDate: val });
                                                     if (val) {
                                                         const err = validateBirthDate(val);
@@ -601,30 +600,23 @@ const RegisterPage = () => {
                                                 }}
                                                 min={minBirthDate}
                                                 max={maxBirthDate}
-                                                className={`w-full py-2.5 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white text-sm focus:outline-none transition-all
-                                                    ${fieldErrors.birthDate
-                                                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
+                                                className={
+                                                    fieldErrors.birthDate
+                                                        ? 'border-red-500 dark:border-red-400'
                                                         : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                            ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
-                                                            : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
-                                                    }`}
+                                                            ? 'border-green-500 dark:border-emerald-400'
+                                                            : 'border-gov-gold/20 dark:border-gov-border/25'
+                                                }
                                                 required
                                             />
-                                            <Calendar className={`absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 transition-colors
-                                                ${fieldErrors.birthDate
-                                                    ? 'text-red-500 dark:text-red-400'
-                                                    : formData.birthDate && !validateBirthDate(formData.birthDate)
-                                                        ? 'text-green-500 dark:text-emerald-400'
-                                                        : 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold'
-                                                }`} size={20} />
                                             {/* Validation icon */}
                                             {fieldErrors.birthDate && (
-                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                                                     <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                                 </div>
                                             )}
                                             {formData.birthDate && !validateBirthDate(formData.birthDate) && !fieldErrors.birthDate && (
-                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <div className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                                                     <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
                                                 </div>
                                             )}

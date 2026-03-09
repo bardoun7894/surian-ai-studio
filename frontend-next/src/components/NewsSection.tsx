@@ -110,7 +110,7 @@ const NewsSection: React.FC = () => {
 
   return (
     <>
-      <section className="py-6 md:py-20 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors" id="news-section">
+      <section className="py-10 md:py-16 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors" id="news-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header with prev/next + View All */}
           <div className="flex items-end justify-between mb-4 md:mb-10">
@@ -163,16 +163,16 @@ const NewsSection: React.FC = () => {
             /* Horizontal scroll carousel */
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide"
+              className="flex gap-3 md:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {allNews.map((item) => (
                 <article
                   key={item.id}
-                  className="news-card group flex-shrink-0 w-[65vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-lg md:rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col first:ms-0 last:me-0"
+                  className="news-card group flex-shrink-0 w-[46vw] sm:w-[45vw] md:w-[calc(25%-12px)] snap-start bg-white dark:bg-dm-surface rounded-lg md:rounded-xl overflow-hidden border border-gray-100 dark:border-gov-border/15 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
                   {item.imageUrl && (
-                    <div className="h-28 md:h-40 overflow-hidden relative">
+                    <div className="h-24 md:h-40 overflow-hidden relative">
                       <Image
                         src={item.imageUrl}
                         alt={item.title}
@@ -213,7 +213,7 @@ const NewsSection: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="p-2 md:p-3 flex-1 flex flex-col">
+                  <div className="p-1.5 md:p-3 flex-1 flex flex-col">
                     <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-gray-400 dark:text-white/50 mb-1.5 md:mb-2">
                       <Calendar size={10} className="text-gov-gold" />
                       {formatRelativeTime(item.date, language as 'ar' | 'en')}

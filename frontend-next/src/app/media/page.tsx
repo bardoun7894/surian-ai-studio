@@ -71,6 +71,7 @@ export default function MediaPage() {
   const [perPage] = useState(12);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loadingMedia, setLoadingMedia] = useState<Record<string, boolean>>({});
 
   // Album download state
@@ -122,8 +123,15 @@ export default function MediaPage() {
         return true;
       });
     }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((item) => {
+        const title = getMediaTitle(item).toLowerCase();
+        return title.includes(q);
+      });
+    }
     return result;
-  }, [media, selectedMonth, selectedYear]);
+  }, [media, selectedMonth, selectedYear, searchQuery]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -196,7 +204,7 @@ export default function MediaPage() {
 
     // For videos, use blob download to ensure download instead of navigation
     if (item.type === "video") {
-      toast(language === "ar" ? "جار بدء التحميل..." : "Starting download...", {
+      toast(t("media_download_starting"), {
         duration: 3000,
       });
       try {
@@ -225,7 +233,7 @@ export default function MediaPage() {
     }
 
     // For images, use blob approach for proper filename
-    toast(language === "ar" ? "جار التحميل..." : "Downloading...", {
+    toast(t("media_downloading_toast"), {
       duration: 3000,
     });
     try {
@@ -354,7 +362,7 @@ export default function MediaPage() {
   const handleDirectAlbumDownload = async (item: MediaItem, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      toast(language === 'ar' ? 'جاري تجهيز التحميل...' : 'Preparing download...', { duration: 3000 });
+      toast(t('media_preparing_download'), { duration: 3000 });
       const data = await API.media.getAlbumPhotos(item.id);
       if (data && data.photos && data.photos.length > 0) {
         handleDownloadAlbum(data);
@@ -504,18 +512,18 @@ export default function MediaPage() {
       <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
-          <div className="bg-gov-forest text-white py-16 px-4">
+          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
             <div className="max-w-7xl mx-auto">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
+              <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
                 {t("media_center_title")}
               </h1>
-              <p className="text-gray-300 text-lg max-w-2xl">
+              <p className="text-white/70 mb-6">
                 {t("media_center_subtitle")}
               </p>
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Unified Content Filter with Date Filter */}
             <ContentFilter
               tabs={filters}
@@ -531,6 +539,8 @@ export default function MediaPage() {
                 setSelectedMonth(m);
                 setSelectedYear(y);
               }}
+              onSearch={(q) => setSearchQuery(q)}
+              searchValue={searchQuery}
               totalCount={filteredMedia.length}
               countLabel={t("media_items")}
               extraFilters={
@@ -568,7 +578,7 @@ export default function MediaPage() {
             <div
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-visible"
                   : "flex flex-col gap-4"
               }
             >
@@ -604,7 +614,7 @@ export default function MediaPage() {
                           setExpandedImage(item);
                         }
                       }}
-                      className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
+                      className={`group relative bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 hover:z-10 ${
                         viewMode === "list"
                           ? "flex flex-row items-center gap-4"
                           : ""

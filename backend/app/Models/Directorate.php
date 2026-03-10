@@ -75,6 +75,6 @@ class Directorate extends Model
 
     public function scopeFeatured($query)
     {
-        return $query->where('featured', true)->limit(3);
+        return $query->where('featured', true)->whereNotIn('id', ['d_central'])->limit(3);
     }
 }

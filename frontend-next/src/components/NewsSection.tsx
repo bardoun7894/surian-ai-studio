@@ -220,7 +220,7 @@ const NewsSection: React.FC = () => {
                       {formatRelativeTime(item.date, language as 'ar' | 'en')}
                     </div>
 
-                    <h3 className="text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2 leading-snug line-clamp-2 group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
+                    <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-gov-teal mb-2 leading-snug line-clamp-2 group-hover:text-gov-emerald dark:group-hover:text-gov-gold transition-colors">
                       <Link href={`/news/${item.id}`}>
                         {language === 'ar' ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
                       </Link>

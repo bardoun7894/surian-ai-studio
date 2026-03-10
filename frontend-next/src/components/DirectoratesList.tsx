@@ -112,6 +112,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
             return (order[a.id] ?? 99) - (order[b.id] ?? 99);
         });
 
+
     if (loading) {
         return (
             <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${variant === 'full' ? 'py-16 min-h-screen' : 'py-12'}`}>
@@ -226,17 +227,18 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 {centralAdmin.subDirectorates.map(sub => (
-                                    <div
+                                    <Link
                                         key={sub.id}
+                                        href={`/directorates/d_central/${sub.id}`}
                                         className="group p-3 bg-gov-beige/30 dark:bg-white/5 hover:bg-gov-beige/60 dark:hover:bg-white/10 rounded-xl border border-gov-sand/20 dark:border-white/8 hover:border-gov-teal/30 dark:hover:border-gov-gold/30 transition-all flex items-center gap-3"
                                     >
                                         <div className="w-8 h-8 rounded-lg bg-gov-forest/10 dark:bg-gov-gold/10 flex items-center justify-center text-gov-forest dark:text-gov-gold shrink-0">
                                             <Building2 size={16} />
                                         </div>
-                                        <span className="font-semibold text-gov-charcoal dark:text-white text-xs md:text-sm leading-tight">
+                                        <span className="font-semibold text-gov-charcoal dark:text-white group-hover:text-gov-teal dark:group-hover:text-gov-gold text-xs md:text-sm leading-tight transition-colors">
                                             {getLocalized(sub.name, sub)}
                                         </span>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>
@@ -308,7 +310,7 @@ const DirectoratesList: React.FC<DirectoratesListProps> = ({
                                                                 {admin.subDirectorates.map(sub => (
                                                                     <Link
                                                                         key={sub.id}
-                                                                        href={sub.isExternal ? (sub.url || '#') : `/directorates/${admin.id}`}
+                                                                        href={sub.isExternal ? (sub.url || '#') : `/directorates/${admin.id}/${sub.id}`}
                                                                         target={sub.isExternal ? '_blank' : undefined}
                                                                         rel={sub.isExternal ? 'noopener noreferrer' : undefined}
                                                                         className="group p-3 bg-gov-beige/20 dark:bg-white/5 hover:bg-gov-beige/50 dark:hover:bg-white/10 rounded-lg md:rounded-xl border border-transparent hover:border-gov-teal/20 dark:hover:border-gov-gold/20 transition-all flex items-center gap-2.5"

@@ -251,9 +251,9 @@ export default function DecreesPage() {
       <Navbar />
 
       <main className="flex-grow pt-16 md:pt-[5.75rem]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-fade-in-up">
           {/* Header */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-3 md:mb-6">
             <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 inline-flex items-center justify-center gap-2 w-full">
               <Scale size={26} className="text-gov-gold" />
               {isAr ? "القوانين والتشريعات" : "Laws & Legislation"}

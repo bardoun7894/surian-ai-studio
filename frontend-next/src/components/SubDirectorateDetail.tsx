@@ -97,7 +97,7 @@ return (
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-row items-start md:items-center gap-4 md:gap-6">
                         <Link
-                            href={`/directorates/${id}`}
+                            href="/directorates"
                             className="p-2 md:p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm flex-shrink-0 self-start mt-1 md:mt-0"
                         >
                             <ChevronLeft size={24} className={isAr ? "rotate-180" : ""} />
@@ -125,14 +125,14 @@ return (
                                     {prevSub ? (
                                         <Link
                                             href={`/directorates/${id}/${prevSub.id}`}
-                                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+                                            className="p-1 md:p-2 md:bg-white/10 md:rounded-lg md:hover:bg-white/20 transition-colors md:backdrop-blur-sm text-white/70 hover:text-white"
                                             title={typeof prevSub.name === 'string' ? prevSub.name : (isAr ? prevSub.name.ar : prevSub.name.en)}
                                         >
-                                            <ArrowRight size={20} className={isAr ? '' : 'rotate-180'} />
+                                            <ArrowRight size={16} className={`md:w-5 md:h-5 ${isAr ? '' : 'rotate-180'}`} />
                                         </Link>
                                     ) : (
-                                        <div className="p-2 opacity-30 cursor-not-allowed">
-                                            <ArrowRight size={20} className={isAr ? '' : 'rotate-180'} />
+                                        <div className="p-1 md:p-2 opacity-30 cursor-not-allowed">
+                                            <ArrowRight size={16} className={`md:w-5 md:h-5 ${isAr ? '' : 'rotate-180'}`} />
                                         </div>
                                     )}
                                     <span className="text-white/50 text-xs">
@@ -141,14 +141,14 @@ return (
                                     {nextSub ? (
                                         <Link
                                             href={`/directorates/${id}/${nextSub.id}`}
-                                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+                                            className="p-1 md:p-2 md:bg-white/10 md:rounded-lg md:hover:bg-white/20 transition-colors md:backdrop-blur-sm text-white/70 hover:text-white"
                                             title={typeof nextSub.name === 'string' ? nextSub.name : (isAr ? nextSub.name.ar : nextSub.name.en)}
                                         >
-                                            <ArrowRight size={20} className={isAr ? 'rotate-180' : ''} />
+                                            <ArrowRight size={16} className={`md:w-5 md:h-5 ${isAr ? 'rotate-180' : ''}`} />
                                         </Link>
                                     ) : (
-                                        <div className="p-2 opacity-30 cursor-not-allowed">
-                                            <ArrowRight size={20} className={isAr ? 'rotate-180' : ''} />
+                                        <div className="p-1 md:p-2 opacity-30 cursor-not-allowed">
+                                            <ArrowRight size={16} className={`md:w-5 md:h-5 ${isAr ? 'rotate-180' : ''}`} />
                                         </div>
                                     )}
                                 </div>

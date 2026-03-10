@@ -263,12 +263,6 @@ function SuggestionTrackPageContent() {
                                 </div>
                             )}
 
-                                        trackingNumber={result.tracking_number}
-                                        language="ar"
-                                    />
-                                </div>
-                            )}
-                        </div>
 
                             {/* Rating Section - allow rating but hide success result */}
                             {(result.response || result.status === 'completed' || result.status === 'reviewed' || result.status === 'responded') && (

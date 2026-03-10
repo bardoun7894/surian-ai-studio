@@ -491,6 +491,9 @@ const translations: Record<string, Record<Language, string>> = {
   'media_browser_no_video': { ar: 'المتصفح لا يدعم تشغيل الفيديو.', en: 'Your browser does not support the video tag.' },
   'media_loading': { ar: 'جار التحميل...', en: 'Loading...' },
   'media_fullscreen': { ar: 'ملء الشاشة', en: 'Fullscreen' },
+  'media_download_starting': { ar: 'جار بدء التحميل...', en: 'Starting download...' },
+  'media_downloading_toast': { ar: 'جار التحميل...', en: 'Downloading...' },
+  'media_preparing_download': { ar: 'جاري تجهيز التحميل...', en: 'Preparing download...' },
   // News Page
   'news_page_title': { ar: 'المحتوى الإعلامي', en: 'Media Content' },
   'news_page_subtitle': { ar: 'تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة.', en: 'Browse all news, decisions, and press reports.' },

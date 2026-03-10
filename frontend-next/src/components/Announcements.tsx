@@ -136,13 +136,13 @@ const Announcements: React.FC = () => {
                                 >
                                     <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
                                         <article
-                                            className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[320px] md:min-h-[360px]`}
+                                            className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-3 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[220px] md:min-h-[360px]`}
                                         >
                                             {/* Abstract Shapes */}
                                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-gov-teal/5 dark:from-gov-teal/[0.02] to-transparent rounded-tr-[100px] -z-10 transition-transform duration-500 group-hover:scale-150" />
 
                                             {/* Top Bar with Badges */}
-                                            <div className="flex flex-wrap items-start justify-between gap-2 mb-4 md:mb-6 z-10 relative">
+                                            <div className="flex flex-wrap items-start justify-between gap-2 mb-3 md:mb-6 z-10 relative">
                                                 <div className="flex flex-col gap-2">
                                                     <span className={`${styles.badge} w-fit px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider shadow-sm`}>
                                                         {styles.icon}
@@ -161,12 +161,12 @@ const Announcements: React.FC = () => {
                                             </div>
 
                                             {/* Title - M9.7: Fixed height for consistency */}
-                                            <h3 className={`text-lg md:text-xl font-display font-bold mb-2 md:mb-4 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 leading-snug drop-shadow-sm min-h-[3rem] md:min-h-[3.5rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
+                                            <h3 className={`text-base md:text-xl font-display font-bold mb-2 md:mb-4 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 leading-snug drop-shadow-sm min-h-[2.25rem] md:min-h-[3.5rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
                                                 {announcement.title}
                                             </h3>
 
                                             {/* Description - M9.7: Fixed line-clamp and min-height */}
-                                            <p className="text-gov-stone/70 dark:text-white/70 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3 leading-relaxed min-h-[2.5rem] md:min-h-[3.75rem] flex-grow">
+                                            <p className="text-gov-stone/70 dark:text-white/70 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3 leading-relaxed min-h-[2rem] md:min-h-[3.75rem] flex-grow">
                                                 {announcement.description}
                                             </p>
 

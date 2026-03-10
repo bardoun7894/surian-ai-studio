@@ -110,7 +110,7 @@ return (
                                     {parentName}
                                 </Link>
                             </div>
-                            <h1 className="text-base sm:text-xl md:text-3xl lg:text-4xl font-display font-bold mb-4">{name}</h1>
+                            <h1 className="text-sm sm:text-lg md:text-2xl lg:text-3xl font-display font-bold mb-4">{name}</h1>
                         </div>
 
                         {/* Navigation arrows between sibling sub-directorates */}
@@ -170,7 +170,7 @@ return (
                                     {t('about_portal') || (isAr ? "نبذة عامة" : "Overview")}
                                 </h3>
                             </div>
-                            <div className="prose prose-lg dark:prose-invert max-w-none text-gov-charcoal/80 dark:text-white/80 leading-relaxed">
+                            <div className="prose dark:prose-invert max-w-none text-gov-charcoal/80 dark:text-white/80 leading-relaxed">
                                 <p>{description}</p>
                             </div>
                         </div>

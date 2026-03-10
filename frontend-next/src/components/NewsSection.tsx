@@ -177,6 +177,7 @@ const NewsSection: React.FC = () => {
                         src={item.imageUrl}
                         alt={item.title}
                         fill
+                        sizes="(max-width: 640px) 70vw, (max-width: 768px) 45vw, 25vw"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50"></div>

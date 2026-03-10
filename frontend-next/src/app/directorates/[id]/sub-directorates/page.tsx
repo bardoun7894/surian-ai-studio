@@ -137,7 +137,7 @@ export default function SubDirectoratesPage() {
                                         </a>
                                     ) : (
                                         <Link
-                                            href={`/directorates/${sub.id}`}
+                                            href={`/directorates/${directorate.id}/${sub.id}`}
                                             className="inline-flex items-center gap-2 text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline"
                                         >
                                             {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}

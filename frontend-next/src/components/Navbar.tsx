@@ -174,6 +174,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             alt="Ministry of Economy and Industry"
             width={200}
             height={200}
+            priority
             className="h-10 sm:h-12 md:h-[4.5rem] w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
           />
         </Link>
@@ -189,7 +190,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (window.location.hash) window.history.replaceState(null, '', '/');
               } else {
-                router.push('/').then(() => { window.scrollTo({ top: 0 }); setTimeout(() => window.scrollTo({ top: 0 }), 150); });
+                router.push('/'); setTimeout(() => window.scrollTo({ top: 0 }), 300);
               }
             }}
             className={`${language === 'en' ? 'px-2 text-xs' : 'px-3 text-sm'} py-2 font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 whitespace-nowrap`}
@@ -468,7 +469,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         if (window.location.hash) window.history.replaceState(null, '', '/');
                       } else {
-                        router.push('/').then(() => { window.scrollTo({ top: 0 }); setTimeout(() => window.scrollTo({ top: 0 }), 150); });
+                        router.push('/'); setTimeout(() => window.scrollTo({ top: 0 }), 300);
                       }
                     }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors ${pathname === '/' ? 'bg-gov-beige/70 dark:bg-white/10 text-gov-forest dark:text-gov-gold border-s-4 border-gov-gold' : ''}`}

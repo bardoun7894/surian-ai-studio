@@ -38,6 +38,25 @@ function isYouTubeUrl(url: string): boolean {
   return /(?:youtube\.com|youtu\.be)/.test(url);
 }
 
+/** Cross-browser fullscreen — handles iOS Safari's proprietary API */
+function enterFullscreen(
+  videoEl: HTMLVideoElement,
+  containerEl?: HTMLElement | null,
+) {
+  // iOS Safari: only webkitEnterFullscreen works on <video>
+  if ((videoEl as any).webkitEnterFullscreen) {
+    (videoEl as any).webkitEnterFullscreen();
+    return;
+  }
+  // Standard API on container (for custom controls) or video
+  const target = containerEl || videoEl;
+  if (target.requestFullscreen) {
+    target.requestFullscreen();
+  } else if ((target as any).webkitRequestFullscreen) {
+    (target as any).webkitRequestFullscreen();
+  }
+}
+
 // Fullscreen modal player for both YouTube and native video
 const VideoModal: React.FC<{
   videoUrl: string;
@@ -49,20 +68,31 @@ const VideoModal: React.FC<{
 }> = ({ videoUrl, youtubeId, isYoutube, title, posterUrl, onClose }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [progress, setProgress] = useState(0);
+  // Guard: ignore backdrop clicks for 500ms after mount (prevents mobile ghost click)
+  const [ready, setReady] = useState(false);
+  const readyRef = useRef(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setReady(true);
+      readyRef.current = true;
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && readyRef.current) onClose();
     };
     // Push a history state so back button closes modal instead of navigating away
     history.pushState({ videoModal: true }, "");
     const handlePopState = (e: PopStateEvent) => {
-      onClose();
+      if (readyRef.current) onClose();
     };
     document.addEventListener("keydown", handleEsc);
     window.addEventListener("popstate", handlePopState);
@@ -77,6 +107,43 @@ const VideoModal: React.FC<{
       }
     };
   }, [onClose]);
+
+  // Step 3: Auto-enter native fullscreen on mobile for native videos
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobileDevice = window.innerWidth < 768;
+    if (!isYoutube && isMobileDevice && videoRef.current) {
+      // Small delay to let the video element mount and start playing
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          enterFullscreen(videoRef.current, videoContainerRef.current);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isYoutube]);
+
+  // Step 4: Close modal when native fullscreen is exited on mobile (native video only)
+  const wasFullscreenRef = useRef(false);
+  useEffect(() => {
+    if (isYoutube) return; // YouTube handles its own fullscreen
+    const handleFsChange = () => {
+      const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      if (isFs) {
+        wasFullscreenRef.current = true;
+      } else if (wasFullscreenRef.current && window.innerWidth < 768) {
+        // Only close if we were previously in fullscreen and exited
+        wasFullscreenRef.current = false;
+        onClose();
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener("webkitfullscreenchange", handleFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      document.removeEventListener("webkitfullscreenchange", handleFsChange);
+    };
+  }, [onClose, isYoutube]);
 
   useEffect(() => {
     if (!isYoutube && videoRef.current) {
@@ -103,35 +170,35 @@ const VideoModal: React.FC<{
   };
 
   const youtubeEmbedUrl = youtubeId
-    ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+    ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`
     : "";
 
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
-      onClick={onClose}
+      onClick={() => ready && onClose()}
     >
       <div
         className="relative w-full max-w-5xl mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
+        {/* Close button - inside container on mobile, above on desktop */}
         <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors z-50"
+          onClick={() => ready && onClose()}
+          className="absolute top-3 right-3 md:-top-12 md:right-0 w-11 h-11 md:w-10 md:h-10 rounded-full bg-black/70 md:bg-white/10 hover:bg-black/90 md:hover:bg-white/20 flex items-center justify-center text-white transition-colors z-50 shadow-lg md:shadow-none"
         >
-          <X size={20} />
+          <X size={22} className="md:w-5 md:h-5" />
         </button>
 
-        {/* Title */}
+        {/* Title - hidden on mobile to avoid overlap with close button */}
         {title && (
-          <div className="absolute -top-12 left-0 text-white font-bold text-lg truncate max-w-[70%]">
+          <div className="hidden md:block absolute -top-12 left-0 text-white font-bold text-lg truncate max-w-[70%]">
             {title}
           </div>
         )}
 
         {isYoutube ? (
-          <div className="aspect-video rounded-xl overflow-hidden">
+          <div className="aspect-video rounded-xl overflow-hidden relative z-0">
             <iframe
               src={youtubeEmbedUrl}
               title={title || "Video"}
@@ -141,7 +208,10 @@ const VideoModal: React.FC<{
             />
           </div>
         ) : (
-          <div className="aspect-video rounded-xl overflow-hidden relative bg-black">
+          <div
+            ref={videoContainerRef}
+            className="aspect-video rounded-xl overflow-hidden relative bg-black"
+          >
             <video
               ref={videoRef}
               src={videoUrl}
@@ -150,11 +220,39 @@ const VideoModal: React.FC<{
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
-              onClick={() => {
+              onClick={(e) => {
+                // Double-tap detection for mobile fullscreen toggle
+                const now = Date.now();
+                if (now - lastTapRef.current < 350) {
+                  // Double-tap/click -> toggle fullscreen
+                  e.preventDefault();
+                  if (videoRef.current) {
+                    if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+                      document.exitFullscreen?.().catch(() => {});
+                    } else {
+                      enterFullscreen(videoRef.current, videoContainerRef.current);
+                    }
+                  }
+                  lastTapRef.current = 0;
+                } else {
+                  // Single tap -> play/pause (with delay to detect double)
+                  lastTapRef.current = now;
+                  setTimeout(() => {
+                    if (lastTapRef.current === now && videoRef.current) {
+                      isPlaying ? videoRef.current.pause() : videoRef.current.play();
+                    }
+                  }, 350);
+                }
+              }}
+              onDoubleClick={(e) => {
+                // Desktop double-click -> toggle fullscreen
+                e.preventDefault();
                 if (videoRef.current) {
-                  isPlaying
-                    ? videoRef.current.pause()
-                    : videoRef.current.play();
+                  if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+                    document.exitFullscreen?.().catch(() => {});
+                  } else {
+                    enterFullscreen(videoRef.current, videoContainerRef.current);
+                  }
                 }
               }}
             />
@@ -235,7 +333,14 @@ const VideoModal: React.FC<{
                   className="w-20 h-1 accent-gov-gold cursor-pointer"
                 />
                 <button
-                  onClick={() => videoRef.current?.requestFullscreen?.()}
+                  onClick={() => {
+                    if (videoRef.current) {
+                      enterFullscreen(
+                        videoRef.current,
+                        videoContainerRef.current,
+                      );
+                    }
+                  }}
                   className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors ml-auto"
                 >
                   <Maximize2 size={18} />
@@ -368,134 +473,72 @@ export default function VideoCard({
     };
   }, []);
 
-  // Mobile tap detection via touchend (fires immediately, no browser delay)
-  const handleTouchEnd = useCallback(
+  // ── Shared: detect scroll vs tap ──
+  const isTapNotScroll = useCallback((e: React.TouchEvent) => {
+    if (touchStartPos.current) {
+      const dx = Math.abs(
+        e.changedTouches[0].clientX - touchStartPos.current.x,
+      );
+      const dy = Math.abs(
+        e.changedTouches[0].clientY - touchStartPos.current.y,
+      );
+      if (dx > 10 || dy > 10) return false;
+    }
+    if ((e.target as HTMLElement).closest("button")) return false;
+    return true;
+  }, []);
+
+  const markTouchHandled = useCallback(() => {
+    touchHandled.current = true;
+    setTimeout(() => {
+      touchHandled.current = false;
+    }, 0);
+  }, []);
+
+  // ── YouTube: touch handler (mobile only) ──
+  // Single tap → open fullscreen modal directly (most intuitive on mobile)
+  const handleYouTubeTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      if (!isMobile) return;
-
-      // Check if finger moved >10px → ignore (was a scroll, not a tap)
-      if (touchStartPos.current) {
-        const dx = Math.abs(
-          e.changedTouches[0].clientX - touchStartPos.current.x,
-        );
-        const dy = Math.abs(
-          e.changedTouches[0].clientY - touchStartPos.current.y,
-        );
-        if (dx > 10 || dy > 10) return;
-      }
-
-      // Ignore if tapping a button (mute, etc.)
-      if ((e.target as HTMLElement).closest("button")) return;
-
-      // Set flag to prevent onClick from double-processing
-      touchHandled.current = true;
-      setTimeout(() => {
-        touchHandled.current = false;
-      }, 0);
-
-      const now = Date.now();
-      const DOUBLE_TAP_DELAY = 300;
-
-      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-        // Double tap → open fullscreen modal
-        e.preventDefault();
-        if (singleTapTimer.current) {
-          clearTimeout(singleTapTimer.current);
-          singleTapTimer.current = null;
-        }
-        setShowModal(true);
-        lastTapRef.current = 0;
-        return;
-      }
-
-      lastTapRef.current = now;
-
-      // Delay single-tap action to distinguish from double-tap
-      singleTapTimer.current = setTimeout(() => {
-        singleTapTimer.current = null;
-        // Single tap → toggle inline play/pause
-        if (isYoutube) {
-          if (youtubeActive) {
-            setYoutubeActive(false);
-            setYtMuted(true);
-          } else {
-            notifyPlaying();
-            setYoutubeActive(true);
-          }
-        } else if (videoRef.current) {
-          if (videoRef.current.paused) {
-            notifyPlaying();
-            videoRef.current.muted = true;
-            videoRef.current.play().catch(() => {});
-          } else {
-            videoRef.current.pause();
-          }
-        }
-      }, DOUBLE_TAP_DELAY);
+      if (!isTapNotScroll(e)) return;
+      markTouchHandled();
+      e.preventDefault();
+      setShowModal(true);
     },
-    [isMobile, isYoutube, youtubeActive, notifyPlaying],
+    [isTapNotScroll, markTouchHandled],
   );
 
-  // onClick handler: desktop opens modal instantly, mobile is handled by touchEnd
-  const handleTap = useCallback(
+  // ── YouTube: click handler ──
+  const handleYouTubeClick = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      // Skip if already handled by touch event
       if (touchHandled.current) return;
-
-      // Ignore if clicking mute button (stopPropagation handles it but just in case)
       if ((e.target as HTMLElement).closest("button")) return;
-
-      // Desktop: open modal instantly (no 300ms delay)
-      if (!isMobile) {
-        setShowModal(true);
-        return;
-      }
-
-      // Fallback for mobile devices that don't fire touch events (shouldn't happen)
-      const now = Date.now();
-      const DOUBLE_TAP_DELAY = 300;
-
-      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-        // Double tap → open fullscreen modal
-        e.preventDefault();
-        e.stopPropagation();
-        if (singleTapTimer.current) {
-          clearTimeout(singleTapTimer.current);
-          singleTapTimer.current = null;
-        }
-        setShowModal(true);
-        lastTapRef.current = 0;
-        return;
-      }
-
-      lastTapRef.current = now;
-
-      // Delay single-tap action to distinguish from double-tap
-      singleTapTimer.current = setTimeout(() => {
-        singleTapTimer.current = null;
-        // Single tap → toggle inline play/pause
-        if (isYoutube) {
-          if (youtubeActive) {
-            // Already playing, pause by deactivating
-            setYoutubeActive(false);
-            setYtMuted(true);
-          } else {
-            // Start playing
-            notifyPlaying();
-            setYoutubeActive(true);
-          }
-        } else if (videoRef.current) {
-          if (videoRef.current.paused) {
-            notifyPlaying();
-            videoRef.current.muted = true;
-            videoRef.current.play().catch(() => {});
-          } else {
-            videoRef.current.pause();
-          }
-        }
-      }, DOUBLE_TAP_DELAY);
+      // Both desktop and mobile → open modal
+      setShowModal(true);
     },
-    [isMobile, isYoutube, youtubeActive, notifyPlaying],
+    [],
+  );
+
+  // ── Native video: touch handler (mobile only) ──
+  // Single tap → open fullscreen modal directly (most intuitive on mobile)
+  const handleNativeVideoTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isTapNotScroll(e)) return;
+      markTouchHandled();
+      e.preventDefault();
+      setShowModal(true);
+    },
+    [isTapNotScroll, markTouchHandled],
+  );
+
+  // ── Native video: click handler ──
+  const handleNativeVideoClick = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (touchHandled.current) return;
+      if ((e.target as HTMLElement).closest("button")) return;
+      // Both desktop and mobile → open modal
+      setShowModal(true);
+    },
+    [],
   );
 
   return (
@@ -520,8 +563,10 @@ export default function VideoCard({
           }
         }}
         onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onClick={handleTap}
+        onTouchEnd={
+          isYoutube ? handleYouTubeTouchEnd : handleNativeVideoTouchEnd
+        }
+        onClick={isYoutube ? handleYouTubeClick : handleNativeVideoClick}
       >
         {isYoutube ? (
           <>
@@ -539,7 +584,6 @@ export default function VideoCard({
                 src={youtubeEmbedUrl}
                 title={title || "Video"}
                 allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
                 className="absolute inset-0 w-full h-full border-0 z-10 pointer-events-none"
               />
             )}
@@ -603,8 +647,8 @@ export default function VideoCard({
               </>
             )}
 
-            {/* Title when not active - show on mobile too, hidden during playback */}
-            {!youtubeActive && title && (
+            {/* Title when not active - hidden on mobile to avoid blocking content */}
+            {!youtubeActive && title && !isMobile && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10">
                 <span className="text-white text-sm font-medium truncate block">
                   {title}
@@ -646,10 +690,10 @@ export default function VideoCard({
                 </div>
               </div>
             )}
-            {/* Title overlay: visible on hover (desktop) or when not playing (mobile), hidden when playing on mobile */}
-            {title && (
+            {/* M6.10: On mobile, show a tap hint when playing */}
+            {title && !isMobile && (
               <div
-                className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-10 ${isPlaying && isMobile ? "opacity-0 pointer-events-none" : isHovered ? "opacity-100" : isMobile ? "opacity-100" : "opacity-0"}`}
+                className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-10 ${isMobile && isPlaying ? "opacity-0 pointer-events-none" : isHovered ? "opacity-100" : isMobile ? "opacity-100" : "opacity-0"}`}
               >
                 <span className="text-white text-sm font-medium truncate block">
                   {title}

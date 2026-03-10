@@ -382,6 +382,7 @@ const HeroGrid: React.FC = () => {
                   ) || "News"
                 }
                 fill
+                priority
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             )}
@@ -503,6 +504,7 @@ const HeroGrid: React.FC = () => {
                       ) || ""
                     }
                     fill
+                priority
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>

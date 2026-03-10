@@ -14,6 +14,8 @@ interface SuggestionRatingProps {
   existingRating?: number;
   /** Hide "Was the response helpful?" question (e.g. right after submission when no response exists yet) */
   hideHelpfulQuestion?: boolean;
+  /** Hide the success result card after submitting rating (just unmount instead) */
+  hideSuccessView?: boolean;
 }
 
 const SuggestionRating: React.FC<SuggestionRatingProps> = ({
@@ -23,6 +25,7 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
   isReadOnly = false,
   existingRating,
   hideHelpfulQuestion = false,
+  hideSuccessView = false,
 }) => {
   const [rating, setRating] = useState<number>(existingRating || 0);
   const [hoverRating, setHoverRating] = useState<number>(0);
@@ -93,6 +96,14 @@ const SuggestionRating: React.FC<SuggestionRatingProps> = ({
   };
 
   if (isSubmitted) {
+    if (hideSuccessView) return (
+      <div className="text-center py-3">
+        <p className="text-sm font-bold text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
+          <CheckCircle size={16} />
+          {isAr ? 'شكراً لتقييمك!' : 'Thanks for rating!'}
+        </p>
+      </div>
+    );
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

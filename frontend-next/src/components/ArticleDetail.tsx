@@ -191,7 +191,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                 {galleryImages.length > 1 && (
                                     <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Images size={16} />
-                                        <span>{galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'}</span>
+                                        <span>{galleryImages.length} {lang === 'ar' ? 'صورة' : 'photos'}</span>
                                     </div>
                                 )}
                             </div>
@@ -327,8 +327,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                             <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gov-border/15 print:hidden">
                                 <h2 className="text-xl font-display font-bold text-gov-forest dark:text-white mb-6 flex items-center gap-2">
                                     <Images size={22} className="text-gov-gold" />
-                                    {language === 'ar' ? 'معرض الصور' : 'Photo Gallery'}
-                                    <span className="text-sm font-normal text-gray-400 mr-2">({galleryImages.length} {language === 'ar' ? 'صورة' : 'photos'})</span>
+                                    {lang === 'ar' ? 'معرض الصور' : 'Photo Gallery'}
+                                    <span className="text-sm font-normal text-gray-400 mr-2">({galleryImages.length} {lang === 'ar' ? 'صورة' : 'photos'})</span>
                                 </h2>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                     {galleryImages.map((img, idx) => (
@@ -359,7 +359,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 {relatedItems && relatedItems.length > 0 && (
                     <div className="mt-16 print:hidden">
                         <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-8 border-r-4 border-gov-gold pr-4">
-                            {language === 'ar' ? 'مواضيع ذات صلة' : 'Related Topics'}
+                            {lang === 'ar' ? 'مواضيع ذات صلة' : 'Related Topics'}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {relatedItems.map((item) => (

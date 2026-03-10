@@ -490,6 +490,7 @@ const translations: Record<string, Record<Language, string>> = {
   'media_no_album_photos': { ar: 'لا توجد صور في هذا الألبوم', en: 'No photos in this album' },
   'media_browser_no_video': { ar: 'المتصفح لا يدعم تشغيل الفيديو.', en: 'Your browser does not support the video tag.' },
   'media_loading': { ar: 'جار التحميل...', en: 'Loading...' },
+  'media_fullscreen': { ar: 'ملء الشاشة', en: 'Fullscreen' },
   // News Page
   'news_page_title': { ar: 'المحتوى الإعلامي', en: 'Media Content' },
   'news_page_subtitle': { ar: 'تصفح كافة الأخبار والقرارات والتقارير الصحفية الصادرة.', en: 'Browse all news, decisions, and press reports.' },

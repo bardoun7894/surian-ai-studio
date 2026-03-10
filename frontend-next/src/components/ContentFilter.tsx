@@ -146,9 +146,9 @@ export default function ContentFilter({
 
             {/* Secondary Filters Row (Date, Extras, Count) */}
             {(showDateFilter || extraFilters || totalCount !== undefined) && (
-                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
+                <div className="flex flex-row flex-wrap items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-4">
 
-                    <div className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
 
                         {/* Date Filters */}
                         {showDateFilter && (
@@ -157,7 +157,7 @@ export default function ContentFilter({
                                     <Clock size={16} />
                                     <span className="text-sm font-bold">{isAr ? 'الفترة' : 'Period'}</span>
                                 </div>
-                                <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+                                <div className="w-px h-5 bg-gray-200 dark:bg-white/10 block"></div>
 
                                 {/* Month Dropdown */}
                                 <div className="relative">
@@ -174,7 +174,7 @@ export default function ContentFilter({
                                         <ChevronDown size={12} className={`transition-transform ${showMonthDropdown ? 'rotate-180' : ''}`} />
                                     </button>
                                     {showMonthDropdown && (
-                                        <div className="absolute top-full mt-2 left-0 rtl:right-0 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto">
+                                        <div className="absolute top-full mt-2 left-0 rtl:right-0 bg-white dark:bg-dm-surface rounded-xl shadow-xl border border-gray-200 dark:border-gov-border/15 py-1 w-44 z-50 max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
                                             <button
                                                 onClick={() => { onDateChange?.(null, selectedYear); setShowMonthDropdown(false); }}
                                                 className="w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500"
@@ -247,8 +247,8 @@ export default function ContentFilter({
                         {/* Extra Slot */}
                         {extraFilters && (
                             <>
-                                {showDateFilter && <div className="w-px h-5 bg-gray-200 dark:bg-white/10 hidden sm:block"></div>}
-                                <div className="flex w-full sm:w-auto flex-wrap items-stretch sm:items-center gap-2">
+                                {showDateFilter && <div className="w-px h-5 bg-gray-200 dark:bg-white/10 block"></div>}
+                                <div className="flex w-auto flex-wrap items-center gap-2">
                                     {extraFilters}
                                 </div>
                             </>
@@ -257,7 +257,7 @@ export default function ContentFilter({
 
                     {/* Results Count */}
                     {totalCount !== undefined && (
-                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap w-full sm:w-auto text-center sm:text-start">
+                        <div className="text-sm text-gray-400 dark:text-white/50 font-medium whitespace-nowrap">
                             {totalCount} {countLabel || (isAr ? 'عنصر' : 'items')}
                         </div>
                     )}

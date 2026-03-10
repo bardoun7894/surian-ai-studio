@@ -18,9 +18,7 @@ import {
     FileText,
     Users
 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
-import ContactSection from '@/components/ContactSection';
 
 const SubDirectorateDetail = () => {
     const { id, subId } = useParams();
@@ -88,19 +86,13 @@ const SubDirectorateDetail = () => {
     const description = typeof (subDirectorate as any).description === 'string' ? (subDirectorate as any).description : (isAr ? (subDirectorate as any).description?.ar : (subDirectorate as any).description?.en);
     const parentName = typeof parentDirectorate.name === 'string' ? parentDirectorate.name : (isAr ? parentDirectorate.name.ar : parentDirectorate.name.en);
 
-    return (
+    
+return (
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20 transition-colors duration-500">
             {/* Header */}
             <div className="bg-gov-forest dark:bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
                 {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <Image
-                        src="/images/pattern-islamic.png"
-                        alt="Pattern"
-                        fill
-                        className="object-cover"
-                    />
-                </div>
+                <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay"></div>
 
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-row items-start md:items-center gap-4 md:gap-6">
@@ -112,8 +104,8 @@ const SubDirectorateDetail = () => {
                         </Link>
 
                         <div className="flex-1">
-                            <div className="text-gov-gold text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Building2 size={16} />
+                            <div className="text-gov-gold text-sm sm:text-base font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Building2 size={18} className="flex-shrink-0" />
                                 <Link href={`/directorates/${id}`} className="hover:underline">
                                     {parentName}
                                 </Link>
@@ -173,7 +165,7 @@ const SubDirectorateDetail = () => {
                         {/* About Card */}
                         <div className="bg-white dark:bg-dm-surface rounded-3xl p-8 shadow-sm border border-gov-gold/10">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-bold text-gov-forest dark:text-white flex items-center gap-3">
+                                <h3 className="text-lg font-bold text-gov-forest dark:text-white flex items-center gap-3">
                                     <FileText className="text-gov-teal dark:text-gov-gold" />
                                     {t('about_portal') || (isAr ? "نبذة عامة" : "Overview")}
                                 </h3>
@@ -286,9 +278,7 @@ const SubDirectorateDetail = () => {
                                 </div>
                             </div>
 
-                            <a href="#contact-section" className="block w-full mt-8 py-3 bg-gov-teal text-white rounded-xl hover:bg-gov-emerald transition-colors font-bold shadow-lg shadow-gov-teal/20 text-center">
-                                {t('contact_us')}
-                            </a>
+
                         </div>
                             );
                         })()}
@@ -296,10 +286,7 @@ const SubDirectorateDetail = () => {
                 </div>
             </div>
 
-            {/* Contact Form */}
-            <div id="contact-section" className="mt-12">
-                <ContactSection />
-            </div>
+
         </div>
     );
 };

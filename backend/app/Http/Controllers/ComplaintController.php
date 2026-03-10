@@ -603,12 +603,32 @@ class ComplaintController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $complaint = Complaint::findOrFail($id);
+        // #185 fix: Support lookup by tracking_number or database id
+        $complaint = Complaint::where('tracking_number', $id)->first()
+            ?? Complaint::find($id);
 
-        // Check ownership
+        if (!$complaint) {
+            return response()->json(['message' => 'Complaint not found'], 404);
+        }
+
+        // Check ownership: authenticated user OR national_id verification
         $user = $request->user();
-        if (!$user || $complaint->user_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        $nationalId = $request->input('national_id');
+        $authorized = false;
+
+        if ($user && $complaint->user_id && $complaint->user_id === $user->id) {
+            // Authenticated owner
+            $authorized = true;
+        } elseif ($complaint->national_id && $nationalId && $complaint->national_id === $nationalId) {
+            // Guest verified by national_id (same mechanism as tracking)
+            $authorized = true;
+        } elseif (!$complaint->national_id && !$complaint->user_id) {
+            // Anonymous complaint with no ownership info — allow deletion by tracking number only
+            $authorized = true;
+        }
+
+        if (!$authorized) {
+            return response()->json(['message' => 'غير مصرح. يرجى التحقق من الرقم الوطني.', 'message_en' => 'Unauthorized. Please verify your national ID.'], 403);
         }
 
         // FR-22: Only allow deletion if status is 'new' or 'received' (#185 fix)
@@ -624,8 +644,9 @@ class ComplaintController extends Controller
         // Soft delete the complaint
         $complaint->delete();
 
-        $this->auditService->log($user, 'complaint_deleted', 'complaint', $id, [
-            'tracking_number' => $complaint->tracking_number
+        $this->auditService->log($user, 'complaint_deleted', 'complaint', $complaint->id, [
+            'tracking_number' => $complaint->tracking_number,
+            'deleted_by' => $user ? 'authenticated_user' : ($nationalId ? 'national_id_verified' : 'anonymous'),
         ]);
 
         return response()->json(['message' => 'Complaint deleted successfully']);

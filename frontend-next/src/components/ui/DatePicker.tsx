@@ -17,11 +17,6 @@ const EN_MONTHS = [
 const AR_DAYS_SHORT = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
 const EN_DAYS_SHORT = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function toArabicNumerals(n: number | string): string {
-    const digits = '٠١٢٣٤٥٦٧٨٩';
-    return String(n).replace(/[0-9]/g, (d) => digits[parseInt(d)]);
-}
-
 interface DatePickerProps {
     value: string; // YYYY-MM-DD
     onChange: (value: string) => void;
@@ -87,7 +82,7 @@ export default function DatePicker({ value, onChange, onBlur, min, max, classNam
         if (parts.length !== 3) return val;
         const [y, m, d] = parts;
         if (isAr) {
-            return `${toArabicNumerals(d)}/${toArabicNumerals(m)}/${toArabicNumerals(y)}`;
+            return `${d}/${m}/${y}`;
         }
         return `${d}/${m}/${y}`;
     };
@@ -179,7 +174,7 @@ export default function DatePicker({ value, onChange, onBlur, min, max, classNam
     const borderClass = error
         ? 'border-red-500 dark:border-red-400'
         : isValid
-            ? 'border-green-500 dark:border-emerald-400'
+            ? 'border-green-500 dark:border-green-400'
             : className || 'border-gov-gold/20 dark:border-gov-border/25';
 
     return (
@@ -213,7 +208,7 @@ export default function DatePicker({ value, onChange, onBlur, min, max, classNam
                                 <ChevronUp size={18} />
                             </button>
                             <span className="text-sm font-bold text-gov-charcoal dark:text-white">
-                                {months[viewMonth]} {isAr ? toArabicNumerals(viewYear) : viewYear}
+                                {months[viewMonth]} {viewYear}
                             </span>
                             <button type="button" onClick={nextMonth} className="p-1 rounded-lg hover:bg-gov-beige/30 dark:hover:bg-white/10 text-gov-charcoal dark:text-white transition-colors">
                                 <ChevronDown size={18} />
@@ -252,7 +247,7 @@ export default function DatePicker({ value, onChange, onBlur, min, max, classNam
                                             }
                                         `}
                                     >
-                                        {isAr ? toArabicNumerals(cell.day) : cell.day}
+                                        {cell.day}
                                     </button>
                                 );
                             })}

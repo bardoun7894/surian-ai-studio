@@ -137,14 +137,30 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
             }
         } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
             error = isAr ? 'البريد الإلكتروني غير صالح' : 'Invalid email address';
-        } else if (name === 'firstName' && !isAnonymous && !value.trim()) {
-            error = isAr ? 'الاسم الأول مطلوب' : 'First name is required';
-        } else if (name === 'lastName' && !isAnonymous && !value.trim()) {
-            error = isAr ? 'اسم العائلة مطلوب' : 'Last name is required';
-        } else if (name === 'fatherName' && !isAnonymous && !value.trim()) {
-            error = isAr ? 'اسم الأب مطلوب' : 'Father name is required';
-        } else if (name === 'description' && !value.trim()) {
-            error = isAr ? 'الوصف مطلوب' : 'Description is required';
+        } else if (name === 'firstName' && !isAnonymous) {
+            if (!value.trim()) {
+                error = isAr ? 'الاسم الأول مطلوب' : 'First name is required';
+            } else if (value.trim().length < 2) {
+                error = isAr ? 'الاسم الأول يجب أن يكون حرفين على الأقل' : 'First name must be at least 2 characters';
+            }
+        } else if (name === 'lastName' && !isAnonymous) {
+            if (!value.trim()) {
+                error = isAr ? 'اسم العائلة مطلوب' : 'Last name is required';
+            } else if (value.trim().length < 2) {
+                error = isAr ? 'اسم العائلة يجب أن يكون حرفين على الأقل' : 'Last name must be at least 2 characters';
+            }
+        } else if (name === 'fatherName' && !isAnonymous) {
+            if (!value.trim()) {
+                error = isAr ? 'اسم الأب مطلوب' : 'Father name is required';
+            } else if (value.trim().length < 2) {
+                error = isAr ? 'اسم الأب يجب أن يكون حرفين على الأقل' : 'Father name must be at least 2 characters';
+            }
+        } else if (name === 'description') {
+            if (!value.trim()) {
+                error = isAr ? 'الوصف مطلوب' : 'Description is required';
+            } else if (value.trim().length < 10) {
+                error = isAr ? 'الوصف يجب أن يكون 10 أحرف على الأقل' : 'Description must be at least 10 characters';
+            }
         }
         setErrors(prev => ({ ...prev, [name]: error }));
         return error;
@@ -668,19 +684,19 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     </p>
                                     <ul className="space-y-3">
                                         <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <span className="w-1.5 h-1.5 bg-red-500 dark:bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
                                             <p className="text-gov-charcoal dark:text-white text-sm">
                                                 {t('suggestion_condition_1')}
                                             </p>
                                         </li>
                                         <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <span className="w-1.5 h-1.5 bg-red-500 dark:bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
                                             <p className="text-gov-charcoal dark:text-white text-sm">
                                                 {t('suggestion_condition_2')}
                                             </p>
                                         </li>
                                         <li className="flex items-start gap-2">
-                                            <span className="w-1.5 h-1.5 bg-gov-cherry rounded-full mt-2 flex-shrink-0"></span>
+                                            <span className="w-1.5 h-1.5 bg-red-500 dark:bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
                                             <p className="text-gov-charcoal dark:text-white text-sm">
                                                 {t('suggestion_condition_3')}
                                             </p>
@@ -809,7 +825,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                         onBlur={() => handleBlur('firstName', formData.firstName)}
                                                         error={touched.firstName ? errors.firstName : undefined}
-                                                        isValid={touched.firstName && !errors.firstName && !!formData.firstName.trim()}
+                                                        isValid={touched.firstName && !errors.firstName && formData.firstName.trim().length >= 2}
                                                         icon={User}
                                                     />
                                                     <Input
@@ -819,7 +835,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                         onBlur={() => handleBlur('lastName', formData.lastName)}
                                                         error={touched.lastName ? errors.lastName : undefined}
-                                                        isValid={touched.lastName && !errors.lastName && !!formData.lastName.trim()}
+                                                        isValid={touched.lastName && !errors.lastName && formData.lastName.trim().length >= 2}
                                                         icon={User}
                                                     />
                                                 </div>
@@ -832,7 +848,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                         onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
                                                         onBlur={() => handleBlur('fatherName', formData.fatherName)}
                                                         error={touched.fatherName ? errors.fatherName : undefined}
-                                                        isValid={touched.fatherName && !errors.fatherName && !!formData.fatherName.trim()}
+                                                        isValid={touched.fatherName && !errors.fatherName && formData.fatherName.trim().length >= 2}
                                                         icon={User}
                                                     />
                                                     <NationalIdField
@@ -927,15 +943,15 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                             rows={6}
                                             className={`w-full p-4 rounded-xl bg-white dark:bg-white/10 border text-gov-charcoal dark:text-white focus:ring-2 transition-all outline-none resize-none ${
                                                 touched.description && errors.description
-                                                    ? 'border-red-500 dark:border-gov-cherry focus:border-red-500 focus:ring-red-500/20'
-                                                    : touched.description && !errors.description && formData.description.trim()
-                                                        ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 focus:ring-green-500/20'
+                                                    ? 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-red-500/20'
+                                                    : touched.description && !errors.description && formData.description.trim().length >= 10
+                                                        ? 'border-green-500 dark:border-green-400 focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500/20 dark:focus:ring-green-400/20'
                                                         : 'border-gray-200 dark:border-gov-border/25 focus:border-gov-forest dark:focus:border-gov-gold focus:ring-gov-teal/20'
                                             }`}
                                             placeholder={t('suggestion_description_placeholder')}
                                         />
                                         {touched.description && errors.description && (
-                                            <p className="text-xs text-red-500 dark:text-gov-cherry flex items-center gap-1 mt-1 animate-fade-in">
+                                            <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1 mt-1 animate-fade-in">
                                                 <AlertCircle size={12} className="shrink-0" />
                                                 {errors.description}
                                             </p>
@@ -1091,7 +1107,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                     {isTracking ? <Loader2 className="animate-spin" /> : <Search />}
                                     <span>{t('ui_search')}</span>
                                 </button>
-                                {trackError && <p className="text-gov-cherry text-sm mt-2 text-center">{trackError}</p>}
+                                {trackError && <p className="text-red-500 dark:text-red-400 text-sm mt-2 text-center">{trackError}</p>}
                             </form>
 
                             {trackingResult && (

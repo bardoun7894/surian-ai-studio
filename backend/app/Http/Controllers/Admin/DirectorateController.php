@@ -26,6 +26,11 @@ class DirectorateController extends Controller
             'description' => 'nullable|string',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
+            'address_ar' => 'nullable|string|max:500',
+            'address_en' => 'nullable|string|max:500',
+            'website' => 'nullable|string|max:255',
+            'working_hours_ar' => 'nullable|string|max:255',
+            'working_hours_en' => 'nullable|string|max:255',
         ]);
         
         Directorate::create($validated);
@@ -45,6 +50,11 @@ class DirectorateController extends Controller
             'description' => 'nullable|string',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
+            'address_ar' => 'nullable|string|max:500',
+            'address_en' => 'nullable|string|max:500',
+            'website' => 'nullable|string|max:255',
+            'working_hours_ar' => 'nullable|string|max:255',
+            'working_hours_en' => 'nullable|string|max:255',
         ]);
         
         $directorate->update($validated);

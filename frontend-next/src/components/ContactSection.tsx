@@ -72,7 +72,18 @@ function validateForm(
 }
 
 // ── Component ───────────────────────────────────────────────────────
-const ContactSection: React.FC = () => {
+interface ContactOverrides {
+  phone?: string;
+  email?: string;
+  address?: string;
+  workingHours?: string;
+}
+
+interface ContactSectionProps {
+  contactOverrides?: ContactOverrides;
+}
+
+const ContactSection: React.FC<ContactSectionProps> = ({ contactOverrides }) => {
   const { language, t } = useLanguage();
   const isAr = language === 'ar';
   const ref = useRef(null);
@@ -100,14 +111,16 @@ const ContactSection: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const phone = contactInfo.contact_phone || '19999';
-  const defaultEmail = contactInfo.contact_email || 'info@moe.gov.sy';
-  const address = isAr
-    ? 'دمشق - الجمارك مقابل الأمن الجنائي'
-    : (contactInfo.contact_address_en || 'Damascus - Customs, opposite Criminal Security');
-  const workingHours = isAr
-    ? (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 ص - 3:30 م')
-    : (contactInfo.contact_working_hours_en || 'Sunday - Thursday: 8:00 AM - 3:30 PM');
+  const phone = contactOverrides?.phone || contactInfo.contact_phone || '19999';
+  const defaultEmail = contactOverrides?.email || contactInfo.contact_email || 'info@moe.gov.sy';
+  const address = contactOverrides?.address
+    || (isAr
+      ? (contactInfo.contact_address_ar || 'دمشق - الجمارك مقابل الأمن الجنائي')
+      : (contactInfo.contact_address_en || 'Damascus - Customs, opposite Criminal Security'));
+  const workingHours = contactOverrides?.workingHours
+    || (isAr
+      ? (contactInfo.contact_working_hours_ar || 'الأحد - الخميس: 8:00 ص - 3:30 م')
+      : (contactInfo.contact_working_hours_en || 'Sunday - Thursday: 8:00 AM - 3:30 PM'));
 
   const [formData, setFormData] = useState({
     name: '',
@@ -408,7 +421,7 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-gov-forest dark:bg-gov-forest/90 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-gold-lg h-full"
+              className="bg-gov-forest dark:bg-gov-forest/90 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-gold-lg dark:shadow-none h-full"
             >
               {/* Background Effects */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gov-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -483,7 +496,7 @@ const ContactSection: React.FC = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-white dark:bg-dm-surface rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 shadow-gov border border-gov-gold/10 dark:border-gov-border/15 h-full"
+              className="bg-white dark:bg-dm-surface rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 shadow-gov dark:shadow-none border border-gov-gold/10 dark:border-gov-border/15 h-full"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
@@ -514,7 +527,7 @@ const ContactSection: React.FC = () => {
                 <form onSubmit={handleSubmit} noValidate className="space-y-5">
                   {/* General submit error */}
                   {submitError && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-xl text-sm">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm">
                       {submitError}
                     </div>
                   )}

@@ -166,6 +166,8 @@ class PublicApiController extends Controller
             'website' => $directorate->website,
             'address_ar' => $directorate->address_ar,
             'address_en' => $directorate->address_en,
+            'working_hours_ar' => $directorate->working_hours_ar,
+            'working_hours_en' => $directorate->working_hours_en,
         ]);
     }
 

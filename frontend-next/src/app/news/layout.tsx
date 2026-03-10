@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: "آخر الأخبار والمستجدات من وزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
     url: '/news',
     type: "website",
-    images: [{ url: '/assets/logo/11.png', width: 512, height: 512, alt: 'وزارة الاقتصاد والصناعة' }],
+    images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
   },
   twitter: {
     card: 'summary_large_image',

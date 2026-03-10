@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Directorate extends Model
@@ -28,6 +27,8 @@ class Directorate extends Model
         'email',
         'phone',
         'website',
+        'working_hours_ar',
+        'working_hours_en',
     ];
 
     protected $casts = [
@@ -72,9 +73,6 @@ class Directorate extends Model
         return $this->hasMany(DirectorateTeam::class)->orderBy('order');
     }
 
-    /**
-     * Scope to get only featured directorates
-     */
     public function scopeFeatured($query)
     {
         return $query->where('featured', true)->limit(3);

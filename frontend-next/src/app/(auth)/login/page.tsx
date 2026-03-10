@@ -107,7 +107,7 @@ const LoginPage = () => {
             return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
         }
         if (fieldValue && fieldIsValid) {
-            return 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20';
+            return 'border-green-500 dark:border-green-400 focus:border-green-500 dark:focus:border-green-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-green-400/20';
         }
         return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
     };
@@ -117,7 +117,7 @@ const LoginPage = () => {
             return 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20';
         }
         if (formData.password && isPasswordFilled(formData.password)) {
-            return 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20';
+            return 'border-green-500 dark:border-green-400 focus:border-green-500 dark:focus:border-green-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-green-400/20';
         }
         return 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20';
     };
@@ -128,7 +128,7 @@ const LoginPage = () => {
         const fieldIsValid = loginMethod === 'email' ? isEmailValid(formData.email) : isNationalIdValid(formData.nationalId);
 
         if (hasError) return 'text-red-500 dark:text-red-400';
-        if (fieldValue && fieldIsValid) return 'text-green-500 dark:text-emerald-400';
+        if (fieldValue && fieldIsValid) return 'text-green-500 dark:text-green-400';
         return 'text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold';
     };
 
@@ -466,18 +466,18 @@ const LoginPage = () => {
                                         </div>
                                         {/* Validation status icons */}
                                         {((loginMethod === 'national' && nationalIdFieldError) || (loginMethod === 'email' && emailFieldError)) && (
-                                            <div className="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <div className="absolute right-10 rtl:right-auto rtl:left-10 top-1/2 -translate-y-1/2 pointer-events-none">
                                                 <AlertCircle size={18} className="text-red-500 dark:text-red-400" />
                                             </div>
                                         )}
                                         {loginMethod === 'email' && !emailFieldError && formData.email && isEmailValid(formData.email) && (
-                                            <div className="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
+                                            <div className="absolute right-10 rtl:right-auto rtl:left-10 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-green-400" />
                                             </div>
                                         )}
                                         {loginMethod === 'national' && !nationalIdFieldError && formData.nationalId && isNationalIdValid(formData.nationalId) && (
-                                            <div className="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                <CheckCircle2 size={18} className="text-green-500 dark:text-emerald-400" />
+                                            <div className="absolute right-10 rtl:right-auto rtl:left-10 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <CheckCircle2 size={18} className="text-green-500 dark:text-green-400" />
                                             </div>
                                         )}
                                     </div>

@@ -917,7 +917,7 @@ export default function ProfilePage() {
                                         return (
                                             <div
                                                 key={complaint.id}
-                                                onClick={() => router.push(`/complaints?track=${complaint.tracking_number || complaint.id}`)}
+                                                onClick={() => router.push(`/complaints/${complaint.tracking_number || complaint.id}`)}
                                                 className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md hover:border-gov-teal/30 group"
                                             >
                                                 <div className="flex flex-col sm:flex-row justify-between gap-3">

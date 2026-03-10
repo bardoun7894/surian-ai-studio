@@ -164,17 +164,34 @@ export default function MediaPage() {
 
     const url = item.type === 'photo' ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
-    toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
+    
+    const ext = url.split('.').pop()?.split('?')[0] || (item.type === 'video' ? 'mp4' : 'jpg');
+    const filename = `${getMediaTitle(item) || 'download'}.${ext}`;
 
+    // For videos, use direct download link so it appears in browser download manager
+    if (item.type === 'video') {
+      toast(language === 'ar' ? 'جار بدء التحميل...' : 'Starting download...', { duration: 3000 });
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    // For images, use blob approach for proper filename
+    toast(language === 'ar' ? 'جار التحميل...' : 'Downloading...', { duration: 3000 });
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const ext = blob.type.split('/')[1]?.split('+')[0] || url.split('.').pop()?.split('?')[0] || 'jpg';
-      const filename = `${getMediaTitle(item) || 'download'}.${ext}`;
+      const blobExt = blob.type.split('/')[1]?.split('+')[0] || ext;
+      const blobFilename = `${getMediaTitle(item) || 'download'}.${blobExt}`;
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = blobFilename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -318,13 +335,15 @@ export default function MediaPage() {
           onDoubleClick={(e) => {
             e.stopPropagation();
             const videoEl = e.currentTarget;
-            if (document.fullscreenElement) {
-              document.exitFullscreen?.();
-            } else if ((videoEl as any).webkitEnterFullscreen) {
-              (videoEl as any).webkitEnterFullscreen();
-            } else if (videoEl.requestFullscreen) {
-              videoEl.requestFullscreen();
-            }
+            try {
+              if (document.fullscreenElement) {
+                document.exitFullscreen?.().catch(() => {});
+              } else if ((videoEl as any).webkitEnterFullscreen) {
+                (videoEl as any).webkitEnterFullscreen();
+              } else if (videoEl.requestFullscreen) {
+                videoEl.requestFullscreen().catch(() => {});
+              }
+            } catch { /* ignore fullscreen permission errors */ }
           }}
           onTouchEnd={(e) => {
             const now = Date.now();
@@ -333,11 +352,11 @@ export default function MediaPage() {
             if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
               e.preventDefault();
               if (document.fullscreenElement) {
-                document.exitFullscreen?.();
+                document.exitFullscreen?.().catch(() => {});
               } else if ((videoEl as any).webkitEnterFullscreen) {
                 (videoEl as any).webkitEnterFullscreen();
               } else if (videoEl.requestFullscreen) {
-                videoEl.requestFullscreen();
+                videoEl.requestFullscreen().catch(() => {});
               }
               (videoEl as any)._lastTap = 0;
             } else {
@@ -436,7 +455,7 @@ export default function MediaPage() {
                       }
                     }}
                     className={`group bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 ${
-                      viewMode === 'list' ? 'flex items-center' : ''
+                      viewMode === 'list' ? 'flex flex-row items-center gap-4' : ''
                     } hover:border-gov-gold/50 hover:shadow-xl hover:shadow-gov-gold/10 hover:-translate-y-1 ${
                       item.type !== 'video' ? 'cursor-pointer' : ''
                     }`}
@@ -491,7 +510,7 @@ export default function MediaPage() {
                       {/* Play Button for Videos (only when not playing - native controls handle playback) */}
                       {isVideo && !isPlaying && (
                         <button
-                          onClick={(e) => handlePlayInline(item, e)}
+                          onClick={(e) => { if (window.innerWidth < 768 && item.url && isYouTubeUrl(item.url)) { handleExpand(item, e); } else { handlePlayInline(item, e); } }}
                           className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer"
                         >
                           <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
@@ -556,9 +575,16 @@ export default function MediaPage() {
                           {/* Hide download button for YouTube videos */}
                           {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
                             <button
-                              onClick={(e) => handleDownload(item, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (item.count && item.count > 1) {
+                                  handleOpenAlbum(item);
+                                } else {
+                                  handleDownload(item, e);
+                                }
+                              }}
                               className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 flex items-center justify-center transition-colors"
-                              title={t('media_download')}
+                              title={item.count && item.count > 1 ? t('media_download_all') : t('media_download')}
                             >
                               <Download size={14} />
                             </button>
@@ -567,8 +593,8 @@ export default function MediaPage() {
                       )}
                     </div>
 
-                    {/* Content */}
-                    <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex flex-col justify-center' : ''}`}>
+                    {/* Content - hide on mobile when video is playing */}
+                    <div className={`p-4 ${viewMode === "list" ? "flex-1 min-w-0 flex flex-col justify-center" : ""} ${isPlaying ? "hidden md:block" : ""}`}>
                       <h3 className="font-bold text-gov-charcoal dark:text-gov-gold mb-2 group-hover:text-gov-teal dark:group-hover:text-white transition-colors line-clamp-2">
                         {getMediaTitle(item)}
                       </h3>
@@ -595,7 +621,7 @@ export default function MediaPage() {
                             />
                             {isVideo && (
                               <button
-                                onClick={(e) => handlePlayInline(item, e)}
+                                onClick={(e) => { if (window.innerWidth < 768 && item.url && isYouTubeUrl(item.url)) { handleExpand(item, e); } else { handlePlayInline(item, e); } }}
                                 className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Play size={14} />
@@ -612,11 +638,18 @@ export default function MediaPage() {
                             {/* Hide download button for YouTube videos */}
                             {!(item.type === 'video' && item.url && isYouTubeUrl(item.url)) && (
                               <button
-                                onClick={(e) => handleDownload(item, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (item.count && item.count > 1) {
+                                    handleOpenAlbum(item);
+                                  } else {
+                                    handleDownload(item, e);
+                                  }
+                                }}
                                 className="flex items-center gap-1 hover:text-gov-teal transition-colors"
                               >
                                 <Download size={14} />
-                                {t('media_download')}
+                                {item.count && item.count > 1 ? t('media_download_all') : t('media_download')}
                               </button>
                             )}
                           </div>
@@ -706,11 +739,11 @@ export default function MediaPage() {
                       e.stopPropagation();
                       const videoEl = e.currentTarget;
                       if (document.fullscreenElement) {
-                        document.exitFullscreen?.();
+                        document.exitFullscreen?.().catch(() => {});
                       } else if ((videoEl as any).webkitEnterFullscreen) {
                         (videoEl as any).webkitEnterFullscreen();
                       } else if (videoEl.requestFullscreen) {
-                        videoEl.requestFullscreen();
+                        videoEl.requestFullscreen().catch(() => {});
                       }
                     }}
                     onTouchEnd={(e) => {
@@ -720,11 +753,11 @@ export default function MediaPage() {
                       if ((videoEl as any)._lastTap && now - (videoEl as any)._lastTap < DOUBLE_TAP_DELAY) {
                         e.preventDefault();
                         if (document.fullscreenElement) {
-                          document.exitFullscreen?.();
+                          document.exitFullscreen?.().catch(() => {});
                         } else if ((videoEl as any).webkitEnterFullscreen) {
                           (videoEl as any).webkitEnterFullscreen();
                         } else if (videoEl.requestFullscreen) {
-                          videoEl.requestFullscreen();
+                          videoEl.requestFullscreen().catch(() => {});
                         }
                         (videoEl as any)._lastTap = 0;
                       } else {

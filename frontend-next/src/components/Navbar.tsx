@@ -184,9 +184,12 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
           <Link
             href="/"
             onClick={(e) => {
+              e.preventDefault();
               if (window.location.pathname === '/') {
-                e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (window.location.hash) window.history.replaceState(null, '', '/');
+              } else {
+                router.push('/').then(() => { window.scrollTo({ top: 0 }); setTimeout(() => window.scrollTo({ top: 0 }), 150); });
               }
             }}
             className={`${language === 'en' ? 'px-2 text-xs' : 'px-3 text-sm'} py-2 font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 whitespace-nowrap`}
@@ -459,10 +462,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   <Link
                     href="/"
                     onClick={(e) => {
+                      e.preventDefault();
                       setIsMobileMenuOpen(false);
                       if (window.location.pathname === '/') {
-                        e.preventDefault();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        if (window.location.hash) window.history.replaceState(null, '', '/');
+                      } else {
+                        router.push('/').then(() => { window.scrollTo({ top: 0 }); setTimeout(() => window.scrollTo({ top: 0 }), 150); });
                       }
                     }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gov-charcoal dark:text-white hover:bg-gov-beige/60 dark:hover:bg-white/10 transition-colors ${pathname === '/' ? 'bg-gov-beige/70 dark:bg-white/10 text-gov-forest dark:text-gov-gold border-s-4 border-gov-gold' : ''}`}

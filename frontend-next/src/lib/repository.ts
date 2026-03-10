@@ -210,7 +210,7 @@ class MockComplaintRepository implements IComplaintRepository {
       setTimeout(() => resolve('GOV-' + Math.floor(Math.random() * 100000)), 1500);
     });
   }
-  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
     return new Promise(resolve => {
       setTimeout(() => resolve({
         id: ticketId,
@@ -640,6 +640,7 @@ class ApiComplaintRepository implements IComplaintRepository {
     // Map frontend field names to backend expected field names
     const fullName = [data.firstName, data.fatherName, data.lastName].filter(Boolean).join(' ');
     if (fullName) formData.append('full_name', fullName);
+    if ((data as any).is_anonymous) formData.append('is_anonymous', '1');
     if (data.directorate) formData.append('directorate_id', data.directorate);
     // Description: use details field, or build from template_fields, or use category as fallback
     if (data.details) {
@@ -745,11 +746,11 @@ class ApiComplaintRepository implements IComplaintRepository {
       xhr.send(formData);
     });
   }
-  async track(ticketId: string, _nationalId?: string): Promise<Ticket | null> {
+  async track(ticketId: string, nationalId?: string): Promise<Ticket | null> {
     const res = await fetch(`${API_BASE_URL}/complaints/track/${ticketId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify(nationalId ? { national_id: nationalId } : {}),
     });
 
     if (res.status === 404) return null;
@@ -786,12 +787,13 @@ class ApiComplaintRepository implements IComplaintRepository {
     // Backend may return array directly or wrapped in { data: [...] }
     return Array.isArray(data) ? data : (data.data || []);
   }
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, nationalId?: string): Promise<boolean> {
     // Fetch CSRF cookie before DELETE (required by Laravel Sanctum)
     await getCsrfCookie();
 
     const headers: Record<string, string> = {
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     };
 
     // Include XSRF token from cookie
@@ -810,6 +812,7 @@ class ApiComplaintRepository implements IComplaintRepository {
       method: 'DELETE',
       headers,
       credentials: 'include',
+      body: JSON.stringify(nationalId ? { national_id: nationalId } : {}),
     });
     return res.ok;
   }
@@ -1091,9 +1094,14 @@ class ApiUserRepository implements IUserRepository {
   }
 
   async updateProfile(data: any): Promise<User | null> {
+    await getCsrfCookie();
+    const xsrfToken = getXsrfToken();
+    const headers: Record<string, string> = { ...this.getAuthHeaders() };
+    if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
     const res = await fetch(`${API_BASE_URL}/users/me`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
+      headers,
+      credentials: 'include',
       body: JSON.stringify(data)
     });
     if (!res.ok) {
@@ -1107,9 +1115,14 @@ class ApiUserRepository implements IUserRepository {
 
   async requestEmailChange(newEmail: string, password: string): Promise<{ success: boolean; message?: string }> {
     try {
+      await getCsrfCookie();
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = { ...this.getAuthHeaders() };
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
       const res = await fetch(`${API_BASE_URL}/users/me/email/request-change`, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ email: newEmail, password })
       });
       const json = await res.json();
@@ -1121,9 +1134,14 @@ class ApiUserRepository implements IUserRepository {
 
   async verifyEmailChange(code: string): Promise<{ success: boolean; message?: string }> {
     try {
+      await getCsrfCookie();
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = { ...this.getAuthHeaders() };
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
       const res = await fetch(`${API_BASE_URL}/users/me/email/verify-change`, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ code })
       });
       const json = await res.json();

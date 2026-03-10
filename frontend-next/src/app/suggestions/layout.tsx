@@ -8,7 +8,12 @@ export const metadata: Metadata = {
     description: "تقديم مقترحاتكم لتحسين خدمات وزارة الاقتصاد والصناعة",
     url: '/suggestions',
     type: "website",
-    images: [{ url: '/assets/logo/11.png', width: 512, height: 512, alt: 'وزارة الاقتصاد والصناعة' }],
+    images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: "المقترحات | وزارة الاقتصاد والصناعة",
+    description: "تقديم مقترحاتكم لتحسين خدمات وزارة الاقتصاد والصناعة",
   },
   alternates: { canonical: '/suggestions' },
 };

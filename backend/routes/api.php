@@ -53,6 +53,7 @@ Route::prefix('v1')->group(function () {
         Route::post('track/{trackingNumber}', [\App\Http\Controllers\ComplaintController::class, 'track']); // T066
         Route::get('{trackingNumber}/print', [\App\Http\Controllers\ComplaintController::class, 'print']); // FR-28
         Route::get('{trackingNumber}/pdf', [\App\Http\Controllers\ComplaintController::class, 'printPdf']); // FR-28: PDF Download
+        Route::delete('{id}', [\App\Http\Controllers\ComplaintController::class, 'destroy']); // #185: Delete complaint (supports auth + national_id verification)
         Route::post('{trackingNumber}/rate', [\App\Http\Controllers\ComplaintController::class, 'rate']); // FR-25: User satisfaction rating
     });
 
@@ -232,7 +233,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:10,15');
         Route::get('users/me/complaints', [\App\Http\Controllers\ComplaintController::class, 'myComplaints']); // T067
         Route::get('users/me/suggestions', [\App\Http\Controllers\Api\V1\SuggestionController::class, 'mySuggestions']); // Get user's suggestions
-        Route::delete('complaints/{id}', [\App\Http\Controllers\ComplaintController::class, 'destroy']); // FR-22: Delete complaint
+        // Route::delete('complaints/{id}', ...) — moved to public complaints group with national_id verification (#185)
 
         // User Notification Preferences
         Route::get('user/notification-preferences', [\App\Http\Controllers\UserController::class, 'getNotificationPreferences']);

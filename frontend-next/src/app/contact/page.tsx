@@ -222,9 +222,9 @@ export default function ContactPage() {
                                                     required
                                                     value={formData.name}
                                                     onChange={(e) => { { setFormData({ ...formData, name: e.target.value }); if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' })); }; setFieldErrors(prev => ({ ...prev, name: '' })); }}
-                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.name ? 'border-red-500 dark:border-red-400' : formData.name.trim().length >= 3 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.name ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20' : formData.name.trim().length >= 3 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                                 />
-                                                {fieldErrors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.name}</p>}
+                                                {fieldErrors.name && <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-1.5">{fieldErrors.name}</p>}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
@@ -233,9 +233,9 @@ export default function ContactPage() {
                                                     required
                                                     value={formData.email}
                                                     onChange={(e) => { { setFormData({ ...formData, email: e.target.value }); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })); }; setFieldErrors(prev => ({ ...prev, email: '' })); }}
-                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.email ? 'border-red-500 dark:border-red-400' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
+                                                    className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.email ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                                 />
-                                                {fieldErrors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.email}</p>}
+                                                {fieldErrors.email && <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-1.5">{fieldErrors.email}</p>}
                                             </div>
                                         </div>
                                         <div>
@@ -245,9 +245,9 @@ export default function ContactPage() {
                                                 required
                                                 value={formData.subject}
                                                 onChange={(e) => { { setFormData({ ...formData, subject: e.target.value }); if (fieldErrors.subject) setFieldErrors(prev => ({ ...prev, subject: '' })); }; setFieldErrors(prev => ({ ...prev, subject: '' })); }}
-                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.subject ? 'border-red-500 dark:border-red-400' : formData.subject.trim().length >= 5 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.subject ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20' : formData.subject.trim().length >= 5 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 outline-none transition-all`}
                                             />
-                                            {fieldErrors.subject && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.subject}</p>}
+                                            {fieldErrors.subject && <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-1.5">{fieldErrors.subject}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">
@@ -260,15 +260,15 @@ export default function ContactPage() {
                                                 required
                                                 value={formData.department}
                                                 onChange={(e) => { { setFormData({ ...formData, department: e.target.value }); if (fieldErrors.department) setFieldErrors(prev => ({ ...prev, department: '' })); }; setFieldErrors(prev => ({ ...prev, department: '' })); }}
-                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.department ? 'border-red-500 dark:border-red-400' : formData.department ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white`}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.department ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20' : formData.department ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors text-gov-charcoal dark:text-white`}
                                             >
-                                                <option value="">{language === 'ar' ? '-- اختر القسم المعني --' : '-- Select Department --'}</option>
+                                                <option value="">{language === 'ar' ? 'اختر القسم' : 'Select Department'}</option>
                                                 <option value="general">{language === 'ar' ? 'الإدارة العامة' : 'General Administration'}</option>
                                                 <option value="complaints">{language === 'ar' ? 'قسم الشكاوى' : 'Complaints Department'}</option>
                                                 <option value="media">{language === 'ar' ? 'الإدارة الإعلامية' : 'Media Department'}</option>
                                                 <option value="investment">{language === 'ar' ? 'قسم الاستثمار' : 'Investment Department'}</option>
                                             </select>
-                                            {fieldErrors.department && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.department}</p>}
+                                            {fieldErrors.department && <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-1.5">{fieldErrors.department}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-white/70 mb-2">{language === 'ar' ? 'الرسالة' : 'Message'}</label>
@@ -277,9 +277,9 @@ export default function ContactPage() {
                                                 rows={5}
                                                 value={formData.message}
                                                 onChange={(e) => { { setFormData({ ...formData, message: e.target.value }); if (fieldErrors.message) setFieldErrors(prev => ({ ...prev, message: '' })); }; setFieldErrors(prev => ({ ...prev, message: '' })); }}
-                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.message ? 'border-red-500 dark:border-red-400' : formData.message.trim().length >= 10 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors resize-none`}
+                                                className={`w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-white/10 border ${fieldErrors.message ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20' : formData.message.trim().length >= 10 ? 'border-green-500 dark:border-emerald-400' : 'border-gray-200 dark:border-gov-border/25'} focus:border-gov-teal outline-none transition-colors resize-none`}
                                             />
-                                            {fieldErrors.message && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.message}</p>}
+                                            {fieldErrors.message && <p className="text-red-600 dark:text-red-400 text-sm font-medium mt-1.5">{fieldErrors.message}</p>}
                                         </div>
                                         <button
                                             type="submit"

@@ -103,7 +103,7 @@ const translations: Record<string, Record<Language, string>> = {
   'open_data': { ar: 'البيانات المفتوحة', en: 'Open Data' },
   'site_map': { ar: 'خريطة الموقع (Site Map)', en: 'Site Map' },
   'contact_center': { ar: 'مركز الاتصال الموحد', en: 'Unified Contact Center' },
-  'damascus_address': { ar: 'دمشق - الجمارك مقابل الأمن الجنائي', en: 'Damascus - Customs, opposite Criminal Security' },
+  'damascus_address': { ar: 'دمشق - ساحة المحافظة - مبنى وزارة الاقتصاد والصناعة', en: 'Damascus - Governorate Square - Ministry of Economy and Industry Building' },
   'copyright': { ar: '© 2026 وزارة الاقتصاد والصناعة - جميع الحقوق محفوظة.', en: '© 2026 Ministry of Economy and Industry - All Rights Reserved.' },
   'footer_desc': { ar: 'المصدر الموثوق للمعلومات والخدمات.', en: 'The trusted source for information and services.' },
 
@@ -755,6 +755,7 @@ const translations: Record<string, Record<Language, string>> = {
   'validation_national_id_max': { ar: 'الرقم الوطني يجب ألا يتجاوز 11 خانة', en: 'National ID must not exceed 11 digits' },
   'validation_phone_max': { ar: 'رقم الهاتف يجب ألا يتجاوز 10 خانات', en: 'Phone number must not exceed 10 digits' },
   'validation_phone_invalid': { ar: 'يرجى إدخال رقم هاتف صالح متوافق مع رمز الدولة', en: 'Please enter a valid phone number matching the country code' },
+  'complaint_phone_invalid': { ar: 'يرجى إدخال رقم هاتف صالح متوافق مع رمز الدولة المختارة', en: 'Please enter a valid phone number matching the selected country code' },
   'validation_email_invalid': { ar: 'يرجى إدخال بريد إلكتروني صالح', en: 'Please enter a valid email address' },
   'validation_dob_invalid': { ar: 'يرجى إدخال تاريخ ميلاد صالح', en: 'Please enter a valid date of birth' },
   'validation_dob_future': { ar: 'تاريخ الميلاد لا يمكن أن يكون في المستقبل', en: 'Date of birth cannot be in the future' },

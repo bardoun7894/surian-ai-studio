@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Loader2,
   Eye,
+  EyeOff,
   Plus,
   Trash2,
   AlertTriangle,
@@ -31,11 +32,10 @@ import { Ticket, Suggestion, Favorite } from '@/types';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import dynamic from "next/dynamic";
-const GovernmentPartners = dynamic(() => import("@/components/GovernmentPartners"));
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getPhoneHelperText, detectCountryRule, normalizePhoneWithCountryCode } from '@/lib/phone';
+import PhoneInput from '@/components/ui/PhoneInput';
 
 interface Notification {
   id: string;
@@ -89,10 +89,14 @@ export default function UserDashboard() {
   const [profileData, setProfileData] = useState({ first_name: '', father_name: '', last_name: '', email: '', phone: '', birth_date: '', governorate: '', current_password: '', password: '', password_confirmation: '' });
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; complaint: Ticket | null }>({ open: false, complaint: null });
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
+  const [settingsTouched, setSettingsTouched] = useState<Record<string, boolean>>({});
   const [notifPrefsLoading, setNotifPrefsLoading] = useState(false);
   const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
 
@@ -705,10 +709,13 @@ export default function UserDashboard() {
                       <h3 className="text-xl font-display font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'آخر الشكاوى' : 'Recent Complaints'}
                       </h3>
-                      <Link href="/complaints/track" className="text-gov-teal dark:text-gov-gold font-bold text-sm flex items-center gap-1 hover:underline">
+                      <button
+                        onClick={() => setActiveTab('complaints')}
+                        className="text-gov-teal dark:text-gov-gold font-bold text-sm flex items-center gap-1 hover:underline"
+                      >
                         {language === 'ar' ? 'عرض الكل' : 'View All'}
                         <ForwardArrow size={16} />
-                      </Link>
+                      </button>
                     </div>
 
                     {isLoading ? (
@@ -1142,8 +1149,18 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.first_name}
                           onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          onBlur={() => setSettingsTouched(prev => ({ ...prev, first_name: true }))}
+                          className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white ${
+                            settingsTouched.first_name && !profileData.first_name.trim()
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                              : settingsTouched.first_name && profileData.first_name.trim()
+                                ? 'border-green-500 dark:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
+                                : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                          }`}
                         />
+                        {settingsTouched.first_name && !profileData.first_name.trim() && (
+                          <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{language === 'ar' ? 'الاسم الأول مطلوب' : 'First name is required'}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
@@ -1153,8 +1170,18 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.father_name}
                           onChange={(e) => setProfileData({ ...profileData, father_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          onBlur={() => setSettingsTouched(prev => ({ ...prev, father_name: true }))}
+                          className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white ${
+                            settingsTouched.father_name && !profileData.father_name.trim()
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                              : settingsTouched.father_name && profileData.father_name.trim()
+                                ? 'border-green-500 dark:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
+                                : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                          }`}
                         />
+                        {settingsTouched.father_name && !profileData.father_name.trim() && (
+                          <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{language === 'ar' ? 'اسم الأب مطلوب' : 'Father name is required'}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
@@ -1164,8 +1191,18 @@ export default function UserDashboard() {
                           type="text"
                           value={profileData.last_name}
                           onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                          onBlur={() => setSettingsTouched(prev => ({ ...prev, last_name: true }))}
+                          className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white ${
+                            settingsTouched.last_name && !profileData.last_name.trim()
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                              : settingsTouched.last_name && profileData.last_name.trim()
+                                ? 'border-green-500 dark:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
+                                : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                          }`}
                         />
+                        {settingsTouched.last_name && !profileData.last_name.trim() && (
+                          <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{language === 'ar' ? 'الكنية مطلوبة' : 'Last name is required'}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -1176,19 +1213,27 @@ export default function UserDashboard() {
                         type="email"
                         value={profileData.email}
                         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white"
+                        onBlur={() => setSettingsTouched(prev => ({ ...prev, email: true }))}
+                        className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white ${
+                          settingsTouched.email && profileData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email)
+                            ? 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                            : settingsTouched.email && profileData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email)
+                              ? 'border-green-500 dark:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
+                              : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
+                        }`}
                       />
+                      {settingsTouched.email && profileData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email) && (
+                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{language === 'ar' ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email format'}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                         {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
                       </label>
-                      <input
-                        type="tel"
+                      <PhoneInput
                         value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                        placeholder={getPhoneHelperText(detectCountryRule(normalizePhoneWithCountryCode(profileData.phone))?.code || '+963')}
-                        className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                        onChange={(val) => setProfileData({ ...profileData, phone: val })}
+                        placeholder={language === 'ar' ? 'أدخل رقم الهاتف' : 'Enter phone number'}
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1246,24 +1291,30 @@ export default function UserDashboard() {
                           <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'كلمة المرور الحالية' : 'Current Password'}
                           </label>
-                          <input
-                            type="password"
-                            value={profileData.current_password}
-                            onChange={(e) => setProfileData({ ...profileData, current_password: e.target.value })}
-                            placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
-                            className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
-                          />
+                          <div className="relative">
+                            <input
+                              type={showCurrentPw ? 'text' : 'password'}
+                              value={profileData.current_password}
+                              onChange={(e) => setProfileData({ ...profileData, current_password: e.target.value })}
+                              placeholder={language === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'}
+                              className="w-full px-5 py-3.5 ltr:pr-12 rtl:pl-12 rounded-xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal"
+                            />
+                            <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors">
+                              {showCurrentPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
                           </label>
+                          <div className="relative">
                           <input
-                            type="password"
+                            type={showNewPw ? 'text' : 'password'}
                             value={profileData.password}
                             onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                             placeholder={language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'}
-                            className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
+                            className={`w-full px-5 py-3.5 ltr:pr-12 rtl:pl-12 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
                               ${profileData.password && profileData.password.length >= 8
                                 ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                 : profileData.password && profileData.password.length > 0 && profileData.password.length < 8
@@ -1271,6 +1322,10 @@ export default function UserDashboard() {
                                     : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                               }`}
                           />
+                            <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors">
+                              {showNewPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
                           {profileData.password && profileData.password.length > 0 && profileData.password.length < 8 && (
                             <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
                               <AlertCircle size={12} />
@@ -1288,12 +1343,13 @@ export default function UserDashboard() {
                           <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-3 ml-1">
                             {language === 'ar' ? 'تأكيد كلمة المرور الجديدة' : 'Confirm New Password'}
                           </label>
+                          <div className="relative">
                           <input
-                            type="password"
+                            type={showConfirmPw ? 'text' : 'password'}
                             value={profileData.password_confirmation}
                             onChange={(e) => setProfileData({ ...profileData, password_confirmation: e.target.value })}
                             placeholder={language === 'ar' ? 'أعد إدخال كلمة المرور الجديدة' : 'Re-enter new password'}
-                            className={`w-full px-5 py-3.5 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
+                            className={`w-full px-5 py-3.5 ltr:pr-12 rtl:pl-12 rounded-xl bg-white dark:bg-dm-surface border outline-none transition-all font-bold text-gov-charcoal dark:text-white placeholder:font-normal
                               ${profileData.password_confirmation && profileData.password_confirmation === profileData.password && profileData.password.length >= 8
                                 ? 'border-green-500 dark:border-gov-emerald focus:border-green-500 dark:focus:border-gov-emerald focus:ring-2 focus:ring-green-500/20 dark:focus:ring-gov-emerald/20'
                                 : profileData.password_confirmation && profileData.password_confirmation !== profileData.password
@@ -1301,6 +1357,10 @@ export default function UserDashboard() {
                                     : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                               }`}
                           />
+                            <button type="button" onClick={() => setShowConfirmPw(!showConfirmPw)} className="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gov-teal transition-colors">
+                              {showConfirmPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
                           {profileData.password_confirmation && profileData.password_confirmation !== profileData.password && (
                             <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
                               <AlertCircle size={12} />
@@ -1459,7 +1519,6 @@ export default function UserDashboard() {
       </AnimatePresence>
 
       {/* Government Partners Section */}
-      <GovernmentPartners />
       <Footer
         onIncreaseFont={() => { }}
         onDecreaseFont={() => { }}

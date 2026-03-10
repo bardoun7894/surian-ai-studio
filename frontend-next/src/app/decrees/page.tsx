@@ -62,7 +62,7 @@ const MONTHS_EN = [
   "December",
 ];
 const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
+const YEARS = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
 export default function DecreesPage() {
   const { language } = useLanguage();
@@ -106,13 +106,34 @@ export default function DecreesPage() {
     return type;
   };
 
+  // Format decree date with proper locale and fallback to year
+  const formatDecreeDate = (decree: Decree) => {
+    if (decree.date && decree.date !== 'null' && decree.date.length >= 8) {
+      try {
+        const d = new Date(decree.date);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString(isAr ? 'ar-SY' : 'en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        }
+      } catch {}
+    }
+    // Fallback to year from metadata if date is invalid
+    if (decree.year) {
+      return isAr ? `عام ${decree.year}` : `Year ${decree.year}`;
+    }
+    return isAr ? 'غير محدد' : 'Not specified';
+  };
+
   const handleAISummary = async (decree: Decree) => {
     const title = getLocalizedField(decree, "title", lang);
     setSummaryModal({ isOpen: true, title, summary: "", loading: true });
     try {
       const desc = getLocalizedField(decree, "description", lang);
       const textToSummarize = `${title}. ${desc}`;
-      const summary = await aiService.summarize(textToSummarize);
+      const summary = await aiService.summarize(textToSummarize, lang);
       setSummaryModal((prev) => ({ ...prev, summary, loading: false }));
     } catch (e) {
       setSummaryModal((prev) => ({
@@ -130,7 +151,10 @@ export default function DecreesPage() {
     if (decree.attachments && decree.attachments.length > 0) {
       // Download first attachment (usually the PDF)
       const attachment = decree.attachments[0];
-      window.open(attachment.download_url, "_blank");
+      // Build correct download URL through Next.js proxy instead of using
+      // backend's download_url which may point to incorrect host (localhost)
+      const downloadUrl = `/api/v1/public/decrees/${decree.id}/attachments/${attachment.id}/download`;
+      window.open(downloadUrl, "_blank");
     } else {
       // Fallback: if no attachments, show a message or open content in new window
       // For now, open the detail modal so user can see the full text
@@ -147,7 +171,7 @@ export default function DecreesPage() {
   useEffect(() => {
     const fetchDirectorates = async () => {
       try {
-        const dirs = await API.directorates.getFeatured();
+        const dirs = await API.directorates.getAll();
         setDirectorates(dirs);
       } catch (e) {
         console.error("Failed to fetch directorates", e);
@@ -161,7 +185,7 @@ export default function DecreesPage() {
       setLoading(true);
       try {
         const dirId =
-          filterDirectorate !== "all" ? filterDirectorate : undefined;
+          filterDirectorate !== "all" && filterDirectorate !== "ministry" ? filterDirectorate : undefined;
         const data = await API.decrees.search(searchTerm, filterType, dirId);
         setDecrees(data);
       } catch (e) {
@@ -188,11 +212,14 @@ export default function DecreesPage() {
   ];
 
   const filteredDecrees = decrees.filter((decree) => {
-    const date = new Date(decree.date);
+    const date = decree.date ? new Date(decree.date) : null;
+    const isValidDate = date && !isNaN(date.getTime());
     const matchesMonth =
-      selectedMonth === null || date.getMonth() === selectedMonth;
+      selectedMonth === null || (isValidDate && date.getMonth() === selectedMonth);
     const matchesYear =
-      selectedYear === null || date.getFullYear() === selectedYear;
+      selectedYear === null ||
+      (isValidDate && date.getFullYear() === selectedYear) ||
+      (decree.year && Number(decree.year) === selectedYear);
     return matchesMonth && matchesYear;
   });
 
@@ -211,6 +238,8 @@ export default function DecreesPage() {
   const selectedDirName = useMemo(() => {
     if (filterDirectorate === "all")
       return isAr ? "جميع الجهات" : "All Departments";
+    if (filterDirectorate === "ministry")
+      return isAr ? "وزارة الاقتصاد والصناعة" : "Ministry of Economy and Industry";
     return (
       getDirectorateName(filterDirectorate) ||
       (isAr ? "جهة غير معروفة" : "Unknown")
@@ -225,7 +254,7 @@ export default function DecreesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 flex items-center justify-center gap-2">
+            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 inline-flex items-center justify-center gap-2 w-full">
               <Scale size={26} className="text-gov-gold" />
               {isAr ? "القوانين والتشريعات" : "Laws & Legislation"}
             </h2>
@@ -285,6 +314,17 @@ export default function DecreesPage() {
                     >
                       {isAr ? "جميع الجهات" : "All Departments"}
                     </button>
+                    {/* Ministry of Economy and Industry - static option */}
+                    <button
+                      onClick={() => {
+                        setFilterDirectorate("ministry");
+                        setShowDirDropdown(false);
+                      }}
+                      className={`w-full text-right rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-bold ${filterDirectorate === "ministry" ? "bg-gov-forest/10 dark:bg-gov-gold/20 text-gov-forest dark:text-gov-gold" : "text-gov-forest dark:text-gov-gold"}`}
+                    >
+                      {isAr ? "وزارة الاقتصاد والصناعة" : "Ministry of Economy and Industry"}
+                    </button>
+                    <div className="border-b border-gray-100 dark:border-gov-border/15 my-1"></div>
                     {directorates.map((dir) => {
                       const dirName =
                         typeof dir.name === "object" && dir.name !== null
@@ -472,17 +512,17 @@ export default function DecreesPage() {
                         >
                           {getTypeLabel(decree.type)}
                         </span>
-                        <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-2 py-1 rounded">
+                        <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-2 py-1 rounded inline-flex items-center">
                           {isAr
                             ? `رقم ${decree.number}`
                             : `No. ${decree.number}`}
                         </span>
-                        <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-2 py-1 rounded">
+                        <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-2 py-1 rounded inline-flex items-center">
                           {isAr ? `عام ${decree.year}` : `Year ${decree.year}`}
                         </span>
                         {/* Show directorate badge if available */}
                         {decree.directorate_name && (
-                          <span className="text-xs font-bold text-gov-teal dark:text-gov-teal bg-gov-teal/10 dark:bg-gov-teal/20 px-2 py-1 rounded flex items-center gap-1">
+                          <span className="text-xs font-bold text-gov-teal dark:text-gov-teal bg-gov-teal/10 dark:bg-gov-teal/20 px-2 py-1 rounded inline-flex items-center gap-1">
                             <Building2 size={10} />
                             {isAr
                               ? decree.directorate_name
@@ -499,13 +539,13 @@ export default function DecreesPage() {
                         {getLocalizedField(decree, "description", lang)}
                       </p>
 
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <div className="flex items-center gap-3 text-xs text-gray-400 leading-none">
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>
                             {isAr
-                              ? `تاريخ الصدور: ${decree.date}`
-                              : `Issued: ${decree.date}`}
+                              ? `تاريخ الصدور: ${formatDecreeDate(decree)}`
+                              : `Issued: ${formatDecreeDate(decree)}`}
                           </span>
                         </div>
                         {decree.attachments &&
@@ -607,7 +647,7 @@ export default function DecreesPage() {
                     : "How do I search for a specific decree?"}
                   <ChevronDown
                     size={16}
-                    className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2"
+                    className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2 rtl:mr-2 rtl:ml-0 align-middle"
                   />
                 </summary>
                 <p className="p-3 sm:p-4 text-xs sm:text-sm text-gray-600 dark:text-white/70 leading-relaxed">
@@ -623,7 +663,7 @@ export default function DecreesPage() {
                     : "What is the difference between a legislative decree and a law?"}
                   <ChevronDown
                     size={16}
-                    className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2"
+                    className="text-gray-400 group-open:rotate-180 transition-transform shrink-0 ml-2 rtl:mr-2 rtl:ml-0 align-middle"
                   />
                 </summary>
                 <p className="p-3 sm:p-4 text-xs sm:text-sm text-gray-600 dark:text-white/70 leading-relaxed">
@@ -704,8 +744,8 @@ export default function DecreesPage() {
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gov-border/15 shrink-0">
-              <div className="flex items-center gap-2">
-                <Scale size={20} className="text-gov-gold" />
+              <div className="inline-flex items-center gap-2">
+                <Scale size={20} className="text-gov-gold shrink-0" />
                 <h3 className="font-bold text-gov-forest dark:text-gov-gold">
                   {isAr ? "تفاصيل الوثيقة" : "Document Details"}
                 </h3>
@@ -743,15 +783,15 @@ export default function DecreesPage() {
                     ? `عام ${detailModal.decree.year}`
                     : `Year ${detailModal.decree.year}`}
                 </span>
-                <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                <span className="text-xs font-bold text-gray-500 dark:text-white/70 bg-gray-50 dark:bg-white/10 px-3 py-1.5 rounded-lg inline-flex items-center gap-1">
                   <Calendar size={12} />
-                  {detailModal.decree.date}
+                  {formatDecreeDate(detailModal.decree)}
                 </span>
               </div>
 
               {/* Directorate */}
               {detailModal.decree.directorate_name && (
-                <div className="flex items-center gap-2 mb-4 text-sm text-gov-teal dark:text-gov-teal">
+                <div className="inline-flex items-center gap-2 mb-4 text-sm text-gov-teal dark:text-gov-teal">
                   <Building2 size={16} />
                   <span className="font-bold">
                     {isAr
@@ -805,7 +845,7 @@ export default function DecreesPage() {
                       {detailModal.decree.attachments.map((att) => (
                         <a
                           key={att.id}
-                          href={att.download_url}
+                          href={`/api/v1/public/decrees/${detailModal.decree.id}/attachments/${att.id}/download`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 bg-gov-beige/50 dark:bg-gov-card/10 rounded-xl hover:bg-gov-forest/10 dark:hover:bg-gov-gold/10 transition-colors group/att"
@@ -841,7 +881,7 @@ export default function DecreesPage() {
             <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-gov-border/15 shrink-0">
               <button
                 onClick={() => handleAISummary(detailModal.decree!)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gov-gold/10 text-gov-gold font-bold hover:bg-gov-gold hover:text-white transition-all text-sm"
               >
                 <Sparkles size={16} />
                 {isAr ? "ملخص ذكي" : "AI Summary"}

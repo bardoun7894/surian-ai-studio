@@ -8,7 +8,12 @@ export const metadata: Metadata = {
     description: "الصور والفيديوهات والمواد الإعلامية لوزارة الاقتصاد والصناعة",
     url: '/media',
     type: "website",
-    images: [{ url: '/assets/logo/11.png', width: 512, height: 512, alt: 'وزارة الاقتصاد والصناعة' }],
+    images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: "المكتبة الإعلامية | وزارة الاقتصاد والصناعة",
+    description: "الصور والفيديوهات والمواد الإعلامية لوزارة الاقتصاد والصناعة",
   },
   alternates: { canonical: '/media' },
 };

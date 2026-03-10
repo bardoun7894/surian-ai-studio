@@ -8,7 +8,12 @@ export const metadata: Metadata = {
     description: "البيانات والإحصائيات المفتوحة من وزارة الاقتصاد والصناعة",
     url: '/open-data',
     type: "website",
-    images: [{ url: '/assets/logo/11.png', width: 512, height: 512, alt: 'وزارة الاقتصاد والصناعة' }],
+    images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: "البيانات المفتوحة | وزارة الاقتصاد والصناعة",
+    description: "البيانات والإحصائيات المفتوحة من وزارة الاقتصاد والصناعة",
   },
   alternates: { canonical: '/open-data' },
 };

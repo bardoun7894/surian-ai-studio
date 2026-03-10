@@ -93,8 +93,16 @@ export function useNationalIdVerification(): UseNationalIdVerificationReturn {
                 setMismatchedFields(result.mismatched_fields);
                 setCitizenData(null);
             } else {
-                setVerificationStatus('error');
-                setVerificationMessage(result.message || (isAr ? 'الرقم الوطني غير مسجل في السجل المدني' : 'National ID is not registered in the civil registry'));
+                // Silently ignore rate limit errors - they don't affect system behavior
+                const msg = (result.message || '').toLowerCase();
+                const isRateLimit = msg.includes('too many') || msg.includes('rate limit') || result.message?.includes('تجاوز الحد');
+                if (isRateLimit) {
+                    setVerificationStatus('idle');
+                    setVerificationMessage('');
+                } else {
+                    setVerificationStatus('error');
+                    setVerificationMessage(result.message || (isAr ? 'الرقم الوطني غير مسجل في السجل المدني' : 'National ID is not registered in the civil registry'));
+                }
                 setCitizenData(null);
             }
 

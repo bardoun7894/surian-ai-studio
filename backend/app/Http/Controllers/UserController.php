@@ -499,7 +499,7 @@ class UserController extends Controller
                 'regex:/[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?`~]/', // At least one special character
             ],
             'national_id' => 'required|string|size:11|regex:/^\d{11}$/|unique:users,national_id',
-            'phone' => 'required|string|min:7|max:20',
+            'phone' => 'required|string|min:7|max:20|unique:users,phone',
             'birth_date' => 'required|date|before:today',
             'governorate' => 'required|string|max:255',
             'recaptcha_token' => 'nullable|string',
@@ -529,6 +529,7 @@ class UserController extends Controller
             'phone.required' => __('validation.required', ['attribute' => __('validation.attributes.phone')]),
             'phone.min' => __('validation.min.string', ['attribute' => __('validation.attributes.phone'), 'min' => 7]),
             'phone.max' => __('validation.max.string', ['attribute' => __('validation.attributes.phone'), 'max' => 20]),
+            'phone.unique' => 'رقم الهاتف مستخدم مشبقا في النظام',
             // Birth date
             'birth_date.required' => __('validation.required', ['attribute' => __('validation.attributes.birth_date')]),
             'birth_date.date' => __('validation.date', ['attribute' => __('validation.attributes.birth_date')]),

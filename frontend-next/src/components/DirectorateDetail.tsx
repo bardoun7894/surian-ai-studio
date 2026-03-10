@@ -416,7 +416,16 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             {/* 10. CONTACT FORM (same as homepage) */}
             {/* ═══════════════════════════════════════════════════ */}
-            <ContactSection />
+            <ContactSection contactOverrides={{
+                phone: directorate?.phone || undefined,
+                email: directorate?.email || undefined,
+                address: isAr
+                    ? (directorate?.address_ar || undefined)
+                    : (directorate?.address_en || directorate?.address_ar || undefined),
+                workingHours: isAr
+                    ? (directorate?.working_hours_ar || undefined)
+                    : (directorate?.working_hours_en || undefined),
+            }} />
         </div>
     );
 };

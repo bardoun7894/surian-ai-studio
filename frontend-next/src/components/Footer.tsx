@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Youtube, Send } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { API } from '@/lib/repository';
 import Link from 'next/link';
@@ -41,11 +41,15 @@ const Footer: React.FC = () => {
       .catch(() => { });
   }, []);
 
-  const phone = contactInfo.contact_phone || '19999';
+  const phone = contactInfo.contact_phone || '+963 11 222 9800';
   const email = contactInfo.contact_email || 'info@moe.gov.sy';
   const address = language === 'en' && contactInfo.contact_address_en
     ? contactInfo.contact_address_en
     : (contactInfo.contact_address_ar || t('damascus_address'));
+
+  const workingHours = language === 'en' && contactInfo.contact_working_hours_en
+    ? contactInfo.contact_working_hours_en
+    : (contactInfo.contact_working_hours_ar || t('contact_hours_value'));
 
   return (
     <footer className="mt-8 md:mt-12 bg-white dark:bg-dm-surface text-gov-forest dark:text-gov-teal pt-10 md:pt-16 pb-6 md:pb-8 border-t-4 border-gov-forest dark:border-gov-teal relative overflow-hidden transition-colors duration-500">
@@ -114,6 +118,13 @@ const Footer: React.FC = () => {
               <li className="flex items-start gap-2 md:gap-3">
                 <MapPin size={16} className="text-gov-forest dark:text-gov-teal mt-0.5 md:mt-1 w-4 h-4 md:w-4 md:h-4" />
                 <span>{address}</span>
+              </li>
+              <li className="flex items-start gap-2 md:gap-3">
+                <Clock size={16} className="text-gov-forest dark:text-gov-teal mt-0.5 md:mt-1 w-4 h-4 md:w-4 md:h-4" />
+                <div>
+                  <span className="block text-xs text-gov-forest/70 dark:text-gov-teal/70">{language === 'ar' ? 'ساعات العمل' : 'Working Hours'}</span>
+                  <span className="font-bold text-gov-forest dark:text-gov-teal text-sm transition-colors">{workingHours}</span>
+                </div>
               </li>
             </ul>
           </div>

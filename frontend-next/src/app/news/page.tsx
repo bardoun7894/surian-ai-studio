@@ -359,10 +359,10 @@ function NewsPageContent() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main featured article - spans 2 columns */}
-                <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-2 lg:row-span-3">
-                  <div className="relative rounded-3xl overflow-hidden bg-gov-forest h-[300px] md:h-[400px] lg:h-full lg:min-h-[420px]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+                {/* Main featured article - spans 2 columns, matching home page card proportions */}
+                <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
+                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[250px] md:min-h-[320px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
                     {featuredNews.imageUrl ? (
                       <Image
                         src={featuredNews.imageUrl}
@@ -403,10 +403,40 @@ function NewsPageContent() {
                   </div>
                 </Link>
 
-                {/* 3 Recent articles stacked on the right */}
-                {recentNews.map((item, idx) => (
-                  <NewsCard key={`recent-${item.id}`} item={item} index={idx} compact />
-                ))}
+                {/* 3 Recent articles stacked on the right - matching home page layout */}
+                <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
+                  {recentNews.map((item) => (
+                    <Link
+                      key={`recent-${item.id}`}
+                      href={`/news/${item.id}`}
+                      className="group flex gap-2 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-2 md:p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex-1"
+                    >
+                      {item.imageUrl && (
+                        <div className="relative w-24 h-20 md:w-32 md:h-28 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image
+                            src={item.imageUrl}
+                            alt={isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 flex flex-col justify-center min-w-0">
+                        {(item as any).directorate_name && (
+                          <span className="text-[10px] md:text-xs text-gov-gold font-bold mb-1">
+                            {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
+                          </span>
+                        )}
+                        <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors">
+                          {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+                        </h3>
+                        <span className="text-[10px] md:text-xs text-gray-400 dark:text-white/50 mt-1">
+                          {formatRelativeTime(item.date, language as 'ar' | 'en')}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </section>
           </ScrollAnimation>

@@ -226,13 +226,13 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
             className="relative max-w-xl mx-auto px-4 sm:px-0"
           >
             <div className="relative">
-              <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
+              <Search className="absolute left-3 rtl:left-auto rtl:right-3 md:left-4 rtl:md:left-auto rtl:md:right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isAr ? 'ابحث في الأسئلة الشائعة...' : 'Search FAQs...'}
-                className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-sm md:text-base text-gov-forest dark:text-white placeholder:text-gray-400"
+                className="w-full pl-10 rtl:pl-4 md:pl-12 rtl:md:pl-4 pr-4 rtl:pr-10 md:pr-4 rtl:md:pr-12 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-dm-surface border border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-gold focus:ring-2 focus:ring-gov-gold/20 outline-none transition-all text-sm md:text-base text-gov-forest dark:text-white placeholder:text-gray-400"
               />
             </div>
           </motion.div>

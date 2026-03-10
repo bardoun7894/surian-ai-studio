@@ -38,7 +38,7 @@ import PrintHeader from './PrintHeader';
 import PrintFooter from './PrintFooter';
 import { Ticket } from '@/types';
 import { focusPulse } from '@/lib/animations';
-import { validatePhoneWithCountryCode } from '@/lib/phone';
+import { validatePhoneWithCountryCode, COUNTRY_PHONE_RULES } from '@/lib/phone';
 import ImportedSatisfactionRating from './SatisfactionRating'; // Import Rating Component
 import UploadProgress, { MultiUploadProgress } from './UploadProgress';
 import { toast } from 'sonner';
@@ -73,20 +73,34 @@ const SubmissionExperienceRating: React.FC = () => {
     const handleRate = async (star: number) => {
         setRating(star);
         setSubmitting(true);
-        try {
-            const mapped = mapToHappinessScale(star);
-            const ok = await API.happiness.submit(mapped, 'complaint_submission');
-            if (!ok) {
-                toast.error(isAr ? 'فشل إرسال التقييم' : 'Failed to submit rating');
-                return;
+        const mapped = mapToHappinessScale(star);
+        // Card 441: Retry up to 3 times with increasing delay (race condition after fresh submission)
+        let lastError: any = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                // Wait before first attempt to give backend time to persist the complaint
+                if (attempt === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+                const ok = await API.happiness.submit(mapped, 'complaint_submission');
+                if (ok) {
+                    setSubmitted(true);
+                    toast.success(isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!');
+                    setSubmitting(false);
+                    return;
+                }
+                lastError = new Error('API returned failure');
+            } catch (err) {
+                lastError = err;
             }
-            setSubmitted(true);
-            toast.success(isAr ? 'شكراً لتقييمك!' : 'Thank you for your rating!');
-        } catch {
-            toast.error(isAr ? 'فشل إرسال التقييم' : 'Failed to submit rating');
-        } finally {
-            setSubmitting(false);
+            // Wait before retry with increasing delay
+            if (attempt < 2) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            }
         }
+        // All retries failed
+        toast.error(isAr ? 'فشل إرسال التقييم' : 'Failed to submit rating');
+        setSubmitting(false);
     };
 
     if (submitted) {
@@ -243,8 +257,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     const [trackingResult, setTrackingResult] = useState<Ticket | null>(null);
     const [isTracking, setIsTracking] = useState(false);
     const [trackError, setTrackError] = useState<string | null>(null);
+    // Track form validation (#547)
+    const [trackIdTouched, setTrackIdTouched] = useState(false);
+    const [trackNationalIdTouched, setTrackNationalIdTouched] = useState(false);
     const isAuthenticatedTracker = Boolean(isAuthenticated && user);
     const requiresNationalIdForTracking = trackMode === 'identified';
+    // Track form field validation (#547)
+    const trackIdError = trackIdTouched && !trackId.trim() ? (isAr ? 'يرجى إدخال رقم المتابعة' : 'Please enter a tracking number') : null;
+    const trackIdValid = trackIdTouched && trackId.trim().length > 0;
+    const trackNationalIdError = trackNationalIdTouched && requiresNationalIdForTracking && trackNationalId.length > 0 && trackNationalId.length !== 11
+        ? (isAr ? 'الرقم الوطني يجب أن يتكون من ١١ رقماً' : 'National ID must be 11 digits')
+        : trackNationalIdTouched && requiresNationalIdForTracking && trackNationalId.length === 0
+            ? (isAr ? 'يرجى إدخال الرقم الوطني' : 'Please enter your national ID')
+            : null;
+    const trackNationalIdValid = trackNationalIdTouched && requiresNationalIdForTracking && trackNationalId.length === 11;
     const autoTrackedFromProfileRef = useRef(false);
 
     // Validation State
@@ -263,7 +289,22 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
         } else if (name === 'phone') {
             const phoneResult = validatePhoneWithCountryCode(value);
             if (!phoneResult.isValid) {
-                error = t('complaint_phone_invalid');
+                if (phoneResult.reason === 'invalid_format' && phoneResult.countryCode) {
+                    const rule = COUNTRY_PHONE_RULES.find(r => r.code === phoneResult.countryCode);
+                    if (rule?.startDigits) {
+                        error = isAr
+                            ? `رقم الهاتف يجب أن يبدأ بالرقم ${rule.startDigits} بعد رمز الدولة ${rule.code}`
+                            : `Phone number must start with ${rule.startDigits} after country code ${rule.code}`;
+                    } else {
+                        error = t('validation_phone_invalid');
+                    }
+                } else if (phoneResult.reason === 'invalid_length' && phoneResult.countryCode && phoneResult.maxDigits) {
+                    error = isAr
+                        ? `رقم الهاتف يجب أن يتكون من ${phoneResult.maxDigits} أرقام بعد رمز الدولة`
+                        : `Phone number must be ${phoneResult.maxDigits} digits after country code`;
+                } else {
+                    error = t('validation_phone_invalid');
+                }
             }
         } else if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
             error = t('validation_email_invalid') || 'Invalid email address';
@@ -371,7 +412,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     // Handle delete complaint (only for "pending/new" status)
     const handleDeleteComplaint = async () => {
-        if (!trackingResult || (trackingResult.status !== 'new' && trackingResult.status !== 'pending')) {
+        if (!trackingResult || (trackingResult.status !== 'new' && trackingResult.status !== 'received')) {
             toast.error(t('complaint_delete_not_allowed'), {
                 description: t('complaint_delete_error_status'),
             });
@@ -380,7 +421,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
         setIsDeleting(true);
         try {
-            const success = await API.complaints.delete(trackingResult.id);
+            const success = await API.complaints.delete(
+                trackingResult.tracking_number || trackingResult.id,
+                trackNationalId || undefined
+            );
             if (success) {
                 toast.success(t('complaint_delete_success'));
                 setTrackingResult(null);
@@ -639,12 +683,23 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             // Build submission data with file and template info
             const submitData: any = {
                 ...formData,
+                is_anonymous: isAnonymous,
                 recaptcha_token: recaptchaToken,
                 files: selectedFiles.length > 0 ? selectedFiles : undefined,
                 staged_attachment_ids: selectedFiles.length > 0 ? selectedFiles.map(f => stagedIds[`${f.name}:${f.size}:${f.lastModified}`]).filter(Boolean) : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
             };
+            // Card 540: Strip personal fields for anonymous submissions so backend doesn't reject
+            if (isAnonymous) {
+                delete submitData.nationalId;
+                delete submitData.firstName;
+                delete submitData.lastName;
+                delete submitData.fatherName;
+                delete submitData.dob;
+                delete submitData.email;
+                delete submitData.phone;
+            }
             if (shouldLockPersonalInfo && authenticatedProfileData) {
                 Object.entries(authenticatedProfileData).forEach(([fieldName, fieldValue]) => {
                     if (fieldValue) {
@@ -677,8 +732,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             const translatedMessage = !isAr ? translateBackendError(rawMessage) : rawMessage;
             const errorMessage = translatedMessage || t('complaint_try_again');
             setSubmitError(errorMessage);
+            // Card 544: Show bilingual error in toast
+            const toastDesc = !isAr && translateBackendError(rawMessage) !== rawMessage
+                ? translateBackendError(rawMessage)
+                : isAr && translateBackendError(rawMessage) !== rawMessage
+                    ? `${rawMessage} — ${translateBackendError(rawMessage)}`
+                    : errorMessage;
             toast.error(t('complaint_submit_fail'), {
-                description: errorMessage,
+                description: toastDesc,
             });
         } finally {
             setIsSubmitting(false);
@@ -742,6 +803,10 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
 
     const handleTrack = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Mark fields as touched to show validation (#547)
+        setTrackIdTouched(true);
+        setTrackNationalIdTouched(true);
 
         const normalizedTicket = trackId.trim();
         const normalizedNationalId = trackNationalId.trim();
@@ -833,6 +898,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             'الرقم الوطني مطلوب': 'National ID is required.',
             'الوصف مطلوب': 'Description is required.',
             'الوصف يجب ان يكون على الأقل 10 أحرف': 'Description must be at least 10 characters.',
+            'رقم الهاتف مطلوب': 'Phone number is required.',
+            'البريد الإلكتروني مطلوب': 'Email is required.',
+            'الاسم الأول مطلوب': 'First name is required.',
+            'اسم العائلة مطلوب': 'Last name is required.',
+            'اسم الأب مطلوب': 'Father name is required.',
+            'تاريخ الميلاد مطلوب': 'Date of birth is required.',
+            'يرجى اختيار نوع الشكوى': 'Please select a complaint type.',
+            'حدث خطأ أثناء إرسال الشكوى': 'An error occurred while submitting the complaint.',
+            'فشل في إرسال الشكوى': 'Failed to submit the complaint.',
+            'الرجاء المحاولة مرة أخرى': 'Please try again.',
+            'رمز التحقق غير صالح': 'Invalid verification code.',
+            'انتهت صلاحية رمز التحقق': 'Verification code has expired.',
         };
         for (const [ar, en] of Object.entries(translations)) {
             if (msg.includes(ar)) return en;
@@ -1482,11 +1559,28 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 required={!isAnonymous}
                                                 value={formData.phone}
                                                 onChange={(val) => {
-                                                    setFormData({ ...formData, phone: val });
+                                                    setFormData(prev => ({ ...prev, phone: val }));
+                                                    // Real-time validation: check starting digit as user types
+                                                    const phoneResult = validatePhoneWithCountryCode(val);
+                                                    if (phoneResult.reason === 'invalid_format' && phoneResult.countryCode) {
+                                                        // Wrong starting digit - show error immediately
+                                                        setTouched(prev => ({ ...prev, phone: true }));
+                                                        validateField('phone', val);
+                                                    } else if (phoneResult.isValid) {
+                                                        // Valid number - clear any existing error
+                                                        setErrors(prev => ({ ...prev, phone: '' }));
+                                                        setTouched(prev => ({ ...prev, phone: true }));
+                                                    } else if (touched.phone) {
+                                                        // Already touched, continue validating (e.g. length)
+                                                        validateField('phone', val);
+                                                    }
                                                 }}
-                                                onBlur={() => validateField('phone', formData.phone)}
+                                                onBlur={() => {
+                                                    setTouched(prev => ({ ...prev, phone: true }));
+                                                    validateField('phone', formData.phone);
+                                                }}
                                                 error={touched.phone ? errors.phone : undefined}
-                                                isValid={touched.phone && !errors.phone && formData.phone.length > 10}
+                                                isValid={touched.phone && !errors.phone && (() => { const r = validatePhoneWithCountryCode(formData.phone); return r.isValid; })()}
                                                 disabled={shouldLockPersonalInfo}
                                                 disableCountryCode={shouldLockPersonalInfo}
                                             />
@@ -1577,6 +1671,26 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
 
                                 <div className="pt-4">
+                                    {/* Card 544: Error message above submit button with bilingual support */}
+                                    {submitError && (
+                                        <div className="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30" role="alert">
+                                            <div className="flex items-start gap-3">
+                                                <AlertCircle size={20} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold text-red-700 dark:text-red-300">
+                                                        {submitError}
+                                                    </p>
+                                                    {/* Show English translation when in Arabic mode */}
+                                                    {isAr && translateBackendError(submitError) !== submitError && (
+                                                        <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1" dir="ltr">
+                                                            {translateBackendError(submitError)}
+                                                        </p>
+                                                    )}
+                
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
@@ -1585,11 +1699,6 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} className="rtl:-scale-x-100" />}
                                         {isSubmitting ? t('complaint_sending') : t('complaint_submit')}
                                     </button>
-                                    {submitError && (
-                                        <p className="mt-3 text-sm text-red-600 dark:text-red-300 font-bold" role="alert">
-                                            {submitError}
-                                        </p>
-                                    )}
                                 </div>
                             </fieldset>
                         </form>
@@ -1666,6 +1775,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 setTrackMode('identified');
                                                 setTrackError(null);
                                                 setTrackingResult(null);
+                                                setTrackIdTouched(false);
+                                                setTrackNationalIdTouched(false);
                                             }}
                                             className={`rounded-xl border p-3 text-start transition-all ${trackMode === 'identified'
                                                 ? 'border-gov-forest dark:border-gov-teal bg-gov-forest/5 dark:bg-gov-teal/10'
@@ -1682,6 +1793,8 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 setTrackNationalId('');
                                                 setTrackError(null);
                                                 setTrackingResult(null);
+                                                setTrackIdTouched(false);
+                                                setTrackNationalIdTouched(false);
                                             }}
                                             className={`rounded-xl border p-3 text-start transition-all ${trackMode === 'anonymous'
                                                 ? 'border-gov-forest dark:border-gov-teal bg-gov-forest/5 dark:bg-gov-teal/10'
@@ -1701,9 +1814,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         placeholder={t('complaint_ticket_placeholder')}
                                         value={trackId}
                                         onChange={(e) => setTrackId(e.target.value)}
-                                        className="w-full p-3 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none"
+                                        onBlur={() => setTrackIdTouched(true)}
+                                        className={`w-full p-3 rounded-xl bg-white dark:bg-white/10 border text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors ${
+                                            trackIdError ? 'border-red-500 dark:border-red-400' :
+                                            trackIdValid ? 'border-green-500 dark:border-green-400' :
+                                            'border-gray-200 dark:border-gov-border/25'
+                                        }`}
                                         required
                                     />
+                                    {trackIdError && (
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1 font-bold flex items-center gap-1">
+                                            <AlertCircle size={12} />
+                                            {trackIdError}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {requiresNationalIdForTracking && (
@@ -1717,7 +1841,14 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             placeholder={t('complaint_national_id_placeholder')}
                                             value={trackNationalId}
                                             onChange={(e) => setTrackNationalId(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                                            className={"w-full p-3 rounded-xl border text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none " + (isAuthenticatedTracker && user?.national_id ? 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-gov-border/25 cursor-not-allowed' : 'bg-white dark:bg-white/10 border-gray-200 dark:border-gov-border/25')}
+                                            onBlur={() => setTrackNationalIdTouched(true)}
+                                            className={`w-full p-3 rounded-xl border text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold outline-none transition-colors ${
+                                                isAuthenticatedTracker && user?.national_id
+                                                    ? 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-gov-border/25 cursor-not-allowed'
+                                                    : trackNationalIdError ? 'border-red-500 dark:border-red-400 bg-white dark:bg-white/10'
+                                                    : trackNationalIdValid ? 'border-green-500 dark:border-green-400 bg-white dark:bg-white/10'
+                                                    : 'bg-white dark:bg-white/10 border-gray-200 dark:border-gov-border/25'
+                                            }`}
                                             disabled={Boolean(isAuthenticatedTracker && user?.national_id)}
                                             required
                                         />
@@ -1725,6 +1856,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             <p className="text-xs text-gov-teal dark:text-gov-gold mt-1 flex items-center gap-1">
                                                 <CheckCircle size={12} />
                                                 {isAr ? 'تم ملء الرقم الوطني تلقائياً من حسابك' : 'National ID auto-filled from your account'}
+                                            </p>
+                                        )}
+                                        {trackNationalIdError && !(isAuthenticatedTracker && user?.national_id) && (
+                                            <p className="text-red-500 dark:text-red-400 text-xs mt-1 font-bold flex items-center gap-1">
+                                                <AlertCircle size={12} />
+                                                {trackNationalIdError}
+                                            </p>
+                                        )}
+                                        {trackNationalIdValid && !(isAuthenticatedTracker && user?.national_id) && (
+                                            <p className="text-green-500 dark:text-green-400 text-xs mt-1 flex items-center gap-1">
+                                                <CheckCircle size={12} />
+                                                {isAr ? 'الرقم الوطني صحيح' : 'Valid national ID'}
                                             </p>
                                         )}
                                     </div>
@@ -1860,7 +2003,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                     <div key={response.id} className="bg-gov-ocean/5 dark:bg-gov-ocean/10 p-4 rounded-xl border border-gov-ocean/10 dark:border-gov-ocean/20">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <span className="font-bold text-gov-forest dark:text-gov-oceanLight text-sm">{response.user?.full_name || t('complaint_responses_subtitle')}</span>
-                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString('ar-SY-u-nu-latn')}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-white/70">{new Date(response.created_at).toLocaleString(isAr ? 'ar-SY-u-nu-latn' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                                         </div>
                                                         <p className="text-gray-700 dark:text-white/70 text-sm whitespace-pre-wrap">{response.content}</p>
                                                     </div>
@@ -1876,7 +2019,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         />
 
                                         {/* FR-22: Delete button for "pending/new" status */}
-                                        {(trackingResult.status === 'new' || trackingResult.status === 'pending') && (
+                                        {(trackingResult.status === 'new' || trackingResult.status === 'received') && (
                                             <button
                                                 onClick={handleDeleteComplaint}
                                                 disabled={isDeleting}

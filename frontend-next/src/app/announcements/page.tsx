@@ -299,7 +299,7 @@ export default function AnnouncementsPage() {
       <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-16 transition-colors duration-500">
           {/* Hero Header */}
-          <div className="bg-gov-forest dark:bg-gov-forest/80 py-10 md:py-16 mb-6 md:mb-8 animate-fade-in-up">
+          <div className="bg-gov-forest dark:bg-gov-forest/80 pt-20 pb-10 md:pt-32 md:pb-16 mb-6 md:mb-8 animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-gov-gold/20 rounded-full mb-3 md:mb-4">
                 <Megaphone className="text-gov-gold w-4 h-4 md:w-5 md:h-5" />
@@ -464,85 +464,91 @@ export default function AnnouncementsPage() {
               ) : filteredAnnouncements.map((announcement) => {
                 const styles = getTypeStyles(announcement.type);
                 const expired = isExpired(announcement.expires_at);
-                const cardBorderClass = expired ? 'border-gov-red/30 dark:border-gov-red/30' : styles.border;
-                const cardBgClass = expired ? 'bg-red-50/50 dark:bg-red-950/10' : styles.bg;
                 return (
                   <Link
                     key={announcement.id}
                     href={`/announcements/${announcement.id}`}
-                    className={`${cardBgClass} ${cardBorderClass} border rounded-2xl p-6 hover:shadow-[5px_5px_10px_#b9a779] transition-all duration-300 group block cursor-pointer flex flex-col min-h-[340px] ${expired ? 'opacity-60' : ''}`}
+                    className="block group"
                   >
-                    {/* Expired Badge */}
-                    {expired && (
-                      <div className="mb-3">
-                        <span className="bg-gov-red text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
-                          {isAr ? 'انتهى التقديم' : 'Application Closed'}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Header */}
-                    <div className="flex flex-wrap items-center gap-2 mb-4">
-                      <span className={`${styles.badge} px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1`}>
-                        {styles.icon}
-                        {getTypeLabel(announcement.type)}
-                      </span>
-                      <span className="px-2.5 py-0.5 bg-gray-200 dark:bg-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/70 border border-transparent dark:border-gov-border/15">
-                        {getCategoryLabel(announcement.category)}
-                      </span>
-                    </div>
-
-                    {/* Title - M9.7: Consistent height */}
-                    <h3 className={`text-lg font-bold mb-3 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 min-h-[3.25rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
-                      {getLocalizedField(announcement, 'title', language as 'ar' | 'en')}
-                    </h3>
-
-                    {/* Description - M9.7: Consistent height with line-clamp */}
-                    <p className="text-gray-600 dark:text-white/70 text-sm mb-4 line-clamp-3 min-h-[3.75rem] flex-grow">
-                      {getLocalizedField(announcement, 'description', language as 'ar' | 'en')}
-                    </p>
-
-                    {/* M9.4: Share button only (print available on detail page, M9.6: download removed) */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault(); e.stopPropagation();
-                          setShareData({
-                            title: getLocalizedField(announcement, 'title', language as 'ar' | 'en'),
-                            url: `${window.location.origin}/announcements/${announcement.id}`
-                          });
-                        }}
-                        className="p-2 rounded-lg bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 dark:hover:bg-white/10 transition-colors"
-                        title={isAr ? 'مشاركة' : 'Share'}
-                        aria-label={isAr ? 'مشاركة' : 'Share'}
+                    <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
+                      <article
+                        className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-3 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[180px] md:min-h-[360px]`}
                       >
-                        <Share2 size={14} />
-                      </button>
-                    </div>
+                        {/* Abstract Shapes */}
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-gov-teal/5 dark:from-gov-teal/[0.02] to-transparent rounded-tr-[100px] -z-10 transition-transform duration-500 group-hover:scale-150" />
 
-                    {/* Footer (Date & CTA) - Push to bottom */}
-                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/70 text-xs">
-                        <Calendar size={14} />
-                        <span>{formatDate(announcement.date)}</span>
-                      </div>
-
-                      {announcement.expires_at && (
-                        <div className={`text-xs font-medium flex items-center gap-1.5 ${expired ? 'text-gov-red dark:text-gov-red' : 'text-gov-teal dark:text-gov-teal'}`}>
-                          <Calendar size={12} />
-                          {expired
-                            ? (isAr ? `انتهى بتاريخ: ${formatDate(announcement.expires_at)}` : `Expired on: ${formatDate(announcement.expires_at)}`)
-                            : (isAr ? `ينتهي بتاريخ: ${formatDate(announcement.expires_at)}` : `Expires on: ${formatDate(announcement.expires_at)}`)
-                          }
+                        {/* Top Bar with Badges & Date */}
+                        <div className="flex flex-wrap items-start justify-between gap-2 mb-3 md:mb-6 z-10 relative">
+                          <div className="flex flex-col gap-2">
+                            <span className={`${styles.badge} w-fit px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider shadow-sm`}>
+                              {styles.icon}
+                              {getTypeLabel(announcement.type)}
+                            </span>
+                            {expired && (
+                              <span className="bg-gov-red/10 text-gov-red dark:bg-gov-red/20 dark:text-red-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-gov-red/20 w-fit">
+                                {isAr ? 'انتهى التقديم' : 'Application Closed'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-gov-forest/60 dark:text-gov-teal/60 font-medium text-[10px] md:text-xs bg-gov-beige/30 dark:bg-black/20 px-2 py-1 md:px-3 md:py-1.5 rounded-full">
+                            <Calendar size={12} className="md:w-3.5 md:h-3.5" />
+                            <span>{formatDate(announcement.date)}</span>
+                          </div>
                         </div>
-                      )}
 
-                      <div className="flex items-center gap-1.5 text-gov-gold dark:text-gov-teal font-bold text-sm uppercase tracking-wide group-hover:gap-2.5 transition-all">
-                        <span>{t('announcements_read_more') || t('announcements_details')}</span>
-                        <div className="w-5 h-5 rounded-full bg-gov-gold/10 flex items-center justify-center group-hover:bg-gov-gold/20 transition-colors">
-                          <ArrowIcon size={11} className="group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
+                        {/* Title - M9.7: Fixed height for consistency */}
+                        <h3 className={`text-base md:text-xl font-display font-bold mb-2 md:mb-4 group-hover:text-gov-teal dark:group-hover:text-gov-gold transition-colors line-clamp-2 leading-snug drop-shadow-sm min-h-[2.25rem] md:min-h-[3.5rem] ${expired ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gov-forest dark:text-white'}`}>
+                          {getLocalizedField(announcement, 'title', language as 'ar' | 'en')}
+                        </h3>
+
+                        {/* Description - M9.7: Fixed line-clamp and min-height */}
+                        <p className="text-gov-stone/70 dark:text-white/70 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3 leading-relaxed min-h-[2rem] md:min-h-[3.75rem] flex-grow">
+                          {getLocalizedField(announcement, 'description', language as 'ar' | 'en')}
+                        </p>
+
+                        {/* Expiry Date */}
+                        {announcement.expires_at && (
+                          <div className={`text-xs font-medium flex items-center gap-1.5 mb-5 p-2 rounded-lg bg-black/5 dark:bg-white/5 ${expired ? 'text-gov-red dark:text-gov-red' : 'text-gov-teal dark:text-gov-teal'}`}>
+                            <Calendar size={14} />
+                            {expired
+                              ? (isAr ? `انتهى بتاريخ: ${formatDate(announcement.expires_at)}` : `Expired on: ${formatDate(announcement.expires_at)}`)
+                              : (isAr ? `ينتهي بتاريخ: ${formatDate(announcement.expires_at)}` : `Expires on: ${formatDate(announcement.expires_at)}`)
+                            }
+                          </div>
+                        )}
+
+                        {/* Footer Actions - M9.4: Share button left, Read More right */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gov-gold/10 dark:border-white/10 mt-auto z-10 relative">
+                          {/* Share button */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault(); e.stopPropagation();
+                                setShareData({
+                                  title: getLocalizedField(announcement, 'title', language as 'ar' | 'en'),
+                                  url: `${window.location.origin}/announcements/${announcement.id}`
+                                });
+                              }}
+                              className="p-2 rounded-xl bg-gov-forest/5 dark:bg-white/5 text-gov-forest dark:text-gov-teal hover:bg-gov-forest/10 hover:text-gov-gold dark:hover:bg-white/10 transition-colors"
+                              title={isAr ? 'مشاركة' : 'Share'}
+                              aria-label={isAr ? 'مشاركة' : 'Share'}
+                            >
+                              <Share2 size={16} />
+                            </button>
+                          </div>
+
+                          {/* Read More CTA */}
+                          <div className="flex items-center gap-2 text-gov-gold dark:text-gov-teal font-bold text-xs md:text-sm uppercase tracking-[0.1em] group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors">
+                            <span>{t('announcements_read_more') || t('announcements_details')}</span>
+                            <div className="w-6 h-6 rounded-full bg-gov-gold/10 flex items-center justify-center group-hover:bg-gov-gold/20 transition-colors">
+                              <ArrowIcon size={12} className="group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+
+                        {/* Animated Gradient Border at Bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-gov-forest via-gov-gold to-gov-teal transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
+                      </article>
                     </div>
                   </Link>
 

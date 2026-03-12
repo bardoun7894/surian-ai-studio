@@ -96,13 +96,14 @@ class UserController extends Controller
             'father_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'role_id' => 'nullable|exists:roles,id',
             'directorate_id' => 'nullable|exists:directorates,id',
             'national_id' => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
         ], [
+            'phone.unique' => 'رقم الهاتف مستخدم مسبقاً في النظام / This phone number is already registered.',
             'national_id.size' => 'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط',
             'national_id.regex' => 'الرقم الوطني يجب أن يحتوي على أرقام فقط',
             'national_id.unique' => 'الرقم الوطني مسجل مسبقاً في النظام',
@@ -190,7 +191,7 @@ class UserController extends Controller
             'first_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
@@ -203,6 +204,7 @@ class UserController extends Controller
         }
 
         $request->validate($rules, [
+            'phone.unique' => 'رقم الهاتف مستخدم مسبقاً في النظام / This phone number is already registered.',
             'password.min' => __('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
             'password.confirmed' => __('تأكيد كلمة المرور غير مطابق'),
             'password.regex' => __('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل'),
@@ -529,7 +531,7 @@ class UserController extends Controller
             'phone.required' => __('validation.required', ['attribute' => __('validation.attributes.phone')]),
             'phone.min' => __('validation.min.string', ['attribute' => __('validation.attributes.phone'), 'min' => 7]),
             'phone.max' => __('validation.max.string', ['attribute' => __('validation.attributes.phone'), 'max' => 20]),
-            'phone.unique' => 'رقم الهاتف مستخدم مشبقا في النظام',
+            'phone.unique' => 'رقم الهاتف مستخدم مسبقاً في النظام / This phone number is already registered.',
             // Birth date
             'birth_date.required' => __('validation.required', ['attribute' => __('validation.attributes.birth_date')]),
             'birth_date.date' => __('validation.date', ['attribute' => __('validation.attributes.birth_date')]),

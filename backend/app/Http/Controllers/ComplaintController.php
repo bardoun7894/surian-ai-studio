@@ -68,7 +68,7 @@ class ComplaintController extends Controller
         Cache::put($key, $otp, 600);
         Cache::put("complaint_data_{$request->national_id}", $request->only('phone', 'national_id'), 600);
 
-        Log::info("Guest OTP sent for {$request->national_id}");
+        Log::info("Guest complaint OTP sent");
         // Send SMS logic here
 
         return response()->json(['message' => 'OTP sent.', 'req_key' => $request->national_id]); // returning national_id as key for simplicity
@@ -110,6 +110,9 @@ class ComplaintController extends Controller
         // Validate Request including CAPTCHA (#488: Full form validation)
         $isAnonymous = $request->boolean('is_anonymous');
 
+        // Determine if previous_tracking_number is required
+        $hasPreviousComplaint = $request->boolean('has_previous_complaint');
+
         $request->validate([
             'is_anonymous' => 'nullable|boolean',
             'full_name' => $isAnonymous ? 'nullable|string|max:255' : 'required|string|min:3|max:255',
@@ -117,11 +120,17 @@ class ComplaintController extends Controller
             'phone' => $isAnonymous ? 'nullable|string|max:20' : 'required|string|min:7|max:20',
             'email' => 'nullable|email:rfc|max:255',
             'directorate_id' => 'nullable|exists:directorates,id',
+            'template_id' => 'nullable|exists:complaint_templates,id',
             'description' => 'required|string|min:10|max:5000',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // 5MB max
             'attachments' => 'max:5', // Max 5 files
             'recaptcha_token' => 'nullable|string', // Optional pending Config
-            'previous_tracking_number' => 'nullable|string|exists:complaints,tracking_number', // T-MOD-055
+            'has_previous_complaint' => 'nullable|boolean',
+            'previous_tracking_number' => [
+                $hasPreviousComplaint ? 'required' : 'nullable',
+                'string',
+                'exists:complaints,tracking_number',
+            ], // T-MOD-055: Required when user indicates a previous related complaint
         ], [
             'full_name.required' => "الاسم الكامل مطلوب",
             'full_name.min' => "الاسم يجب أن يتكون من 3 أحرف على الأقل",
@@ -132,9 +141,12 @@ class ComplaintController extends Controller
             'phone.min' => "رقم الهاتف غير صالح",
             'directorate_id.required' => "يرجى تحديد الجهة المختصة",
             'directorate_id.exists' => "الجهة المختصة غير موجودة",
+            'template_id.exists' => "نموذج الشكوى المحدد غير موجود",
             'description.required' => "وصف الشكوى مطلوب",
             'description.min' => "وصف الشكوى يجب أن يتكون من 10 أحرف على الأقل",
             'description.max' => "وصف الشكوى يجب ألا يتجاوز 5000 حرف",
+            'previous_tracking_number.required' => "رقم الشكوى السابقة مطلوب عند تحديد وجود شكوى سابقة مرتبطة",
+            'previous_tracking_number.exists' => "رقم الشكوى السابقة غير موجود في النظام",
         ]);
 
         // Verify CAPTCHA (T060)
@@ -146,8 +158,9 @@ class ComplaintController extends Controller
              }
         }
 
-        // Identity resolution
-        $user = $request->user();
+        // Identity resolution: try Sanctum guard explicitly so authenticated
+        // users are linked even though this route has no auth middleware.
+        $user = $request->user('sanctum');
         $guestData = null;
 
         if (!$user) {
@@ -284,29 +297,39 @@ class ComplaintController extends Controller
             ->first();
 
         if (!$complaint) {
-            return response()->json(['message' => 'لم يتم العثور على شكوى بهذا الرقم.'], 404);
+            return response()->json(['message' => 'لم يتم العثور على شكوى بهذا الرقم.', 'message_en' => 'No complaint found with this number.', 'error' => 'complaint_not_found'], 404);
         }
 
         // Enforce matching tracking mode: identified complaints need national_id, anonymous don't
         if ($complaint->national_id) {
             // Identified complaint: require matching national_id
             if (!$request->national_id) {
-                return response()->json(['message' => 'الرقم الوطني مطلوب لتتبع هذه الشكوى.'], 403);
+                return response()->json(['message' => 'الرقم الوطني مطلوب لتتبع هذه الشكوى.', 'message_en' => 'National ID is required to track this complaint.', 'error' => 'national_id_required'], 403);
             }
             if ($complaint->national_id !== $request->national_id) {
-                return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.'], 403);
+                return response()->json(['message' => 'الرقم الوطني لا يتطابق مع الشكوى المسجلة.', 'message_en' => 'National ID does not match the registered complaint.', 'error' => 'national_id_mismatch'], 403);
             }
         } else {
             // Anonymous complaint: reject if national_id was provided (wrong mode)
             if ($request->national_id) {
-                return response()->json(['message' => 'هذه شكوى مجهولة. يرجى استخدام وضع التتبع المجهول.'], 403);
+                return response()->json(['message' => 'هذه شكوى مجهولة. يرجى استخدام وضع التتبع المجهول.', 'message_en' => 'This is an anonymous complaint. Please use anonymous tracking mode.', 'error' => 'tracking_mode_mismatch'], 403);
             }
         }
 
         // Also load attachments for full detail display
         $complaint->load('attachments');
 
-        return response()->json($complaint);
+        // Strip PII from response - only show tracking-relevant data
+        $safeData = $complaint->only([
+            'id', 'tracking_number', 'subject', 'description', 'status',
+            'priority', 'created_at', 'updated_at', 'directorate_id',
+            'resolved_at', 'rating', 'rating_comment',
+        ]);
+        $safeData['directorate'] = $complaint->directorate;
+        $safeData['responses'] = $complaint->responses;
+        $safeData['attachments'] = $complaint->attachments;
+
+        return response()->json($safeData);
     }
 
     /**

@@ -45,7 +45,7 @@ class SuggestionService
                 'is_anonymous' => $data['is_anonymous'] ?? false,
                 'description' => $data['description'],
                 'status' => Suggestion::STATUS_PENDING,
-                'user_id' => auth()->id(),
+                'user_id' => $data['user_id'] ?? null,
             ]);
 
             // Handle file uploads

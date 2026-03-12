@@ -88,6 +88,13 @@ class SuggestionController extends Controller
             $data = $request->only(['name', 'email', 'phone', 'description', 'national_id', 'dob', 'directorate_id']);
             $data['is_anonymous'] = $isAnonymous;
 
+            // Resolve authenticated user via Sanctum guard explicitly
+            // (this route is public, so auth middleware is not applied)
+            $user = $request->user('sanctum');
+            if ($user) {
+                $data['user_id'] = $user->id;
+            }
+
             // Sanitize string inputs
             if (isset($data['name'])) {
                 $data['name'] = strip_tags(trim($data['name']));
@@ -102,8 +109,8 @@ class SuggestionController extends Controller
             );
 
             // Send notification to authenticated user
-            if (auth()->check()) {
-                auth()->user()->notify(new SuggestionSubmitted($suggestion));
+            if ($user) {
+                $user->notify(new SuggestionSubmitted($suggestion));
             }
 
             // FR-70: Notify staff about new suggestion
@@ -115,7 +122,7 @@ class SuggestionController extends Controller
 
             // Log the action
             $this->auditService->log(
-                auth()->user(),
+                $user,
                 'suggestion_submitted',
                 'suggestion',
                 $suggestion->id,

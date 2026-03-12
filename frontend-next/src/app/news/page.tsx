@@ -174,7 +174,7 @@ function NewsPageContent() {
     const fetchPaginated = async () => {
       setLoading(true);
       try {
-        const directorateId = (activeView !== 'all' && activeView !== 'central') ? activeView : undefined;
+        const directorateId = activeView !== 'all' ? activeView : undefined;
         const response = await API.news.getPaginated(currentPage, perPage, directorateId);
         setAllNews(response.data);
         setCurrentPage(response.current_page);
@@ -217,12 +217,8 @@ function NewsPageContent() {
     let result = [...allNews];
 
     // View filter
-    if (activeView !== 'organized' && activeView !== 'all') {
-      if (activeView === 'central') {
-        result = result.filter(item => !(item as any).directorate_id && !(item as any).directorate_name);
-      } else {
-        result = result.filter(item => String((item as any).directorate_id) === activeView);
-      }
+    if (activeView !== 'organized' && activeView !== 'all' && activeView !== 'central') {
+      result = result.filter(item => String((item as any).directorate_id) === activeView);
     }
 
     // Search filter
@@ -362,7 +358,7 @@ function NewsPageContent() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
                 {/* Main featured article - spans 2 columns, matching home page card proportions */}
                 <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
-                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[250px] md:min-h-[320px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
+                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[320px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
                     {featuredNews.imageUrl ? (
                       <Image
                         src={featuredNews.imageUrl}
@@ -387,10 +383,10 @@ function NewsPageContent() {
                           {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                         </span>
                       )}
-                      <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                      <h3 className="text-lg md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
                         {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                       </h3>
-                      <p className="text-white/70 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
+                      <p className="text-white/70 text-xs md:text-base max-w-2xl line-clamp-2 mb-4">
                         {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
                       </p>
                       <div className="flex items-center gap-4 text-white/60 text-sm">
@@ -442,38 +438,7 @@ function NewsPageContent() {
           </ScrollAnimation>
         )}
 
-        {/* 2. News Per Department (3 per department - only main departments) */}
-        {filteredGroupedNews.map((group, gIdx) => (
-          <ScrollAnimation key={group.directorate.id} delay={gIdx * 0.05}>
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gov-forest/10 dark:bg-gov-gold/20 flex items-center justify-center">
-                    <Building2 size={20} className="text-gov-forest dark:text-gov-gold" />
-                  </div>
-                  <h2 className="text-xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                    {isAr ? (group.directorate.name_ar || group.directorate.name) : (group.directorate.name_en || group.directorate.name)}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => { setActiveView(group.directorate.id); setVisibleCount(12); }}
-                  className="text-sm font-bold text-gov-teal dark:text-gov-gold hover:underline flex items-center gap-1"
-                >
-                  {t('news_view_all_btn')}
-                  <ArrowLeft size={14} className={isAr ? '' : 'rotate-180'} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {group.news.slice(0, 3).map((item, idx) => (
-                  <NewsCard key={item.id} item={item} index={idx} compact />
-                ))}
-              </div>
-            </section>
-          </ScrollAnimation>
-        ))}
-
-        {/* 3. All News */}
+        {/* All News (directly below featured) */}
         <ScrollAnimation>
           <section>
             <div className="flex items-center gap-3 mb-6">
@@ -553,7 +518,7 @@ function NewsPageContent() {
 
       <main className="flex-grow pt-0">
         {/* Hero Header */}
-        <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
+        <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-4">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
               {t('news_page_title')}

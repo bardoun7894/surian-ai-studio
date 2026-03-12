@@ -93,7 +93,7 @@ const Announcements: React.FC = () => {
     if (loading) {
         return (
             <section className="py-24 bg-white dark:bg-dm-bg relative overflow-hidden scroll-mt-24" id="announcements">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <SkeletonText lines={1} className="max-w-48 mx-auto mb-6" />
                         <SkeletonText lines={1} className="max-w-96 mx-auto" />
@@ -107,7 +107,7 @@ const Announcements: React.FC = () => {
     return (
         <>
             <section className="py-12 md:py-24 bg-white dark:bg-dm-bg relative overflow-hidden scroll-mt-16 md:scroll-mt-24" id="announcements">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
                     <div className="text-center mb-8 md:mb-16">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gov-gold/10 dark:bg-gov-emerald/20 rounded-full mb-4 md:mb-6">
                             <Megaphone className="text-gov-gold w-4 h-4 md:w-5 md:h-5" />
@@ -136,7 +136,7 @@ const Announcements: React.FC = () => {
                                 >
                                     <div className="relative h-full transition-all duration-500 hover:-translate-y-2">
                                         <article
-                                            className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-3 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[220px] md:min-h-[360px]`}
+                                            className={`relative flex flex-col ${expired ? 'bg-red-50/50 dark:bg-red-950/10 border-gov-red/30' : 'bg-white/80 dark:bg-dm-surface/80 border-2 border-gov-gold/20 dark:border-gov-gold/10 hover:border-gov-gold/50 dark:hover:border-gov-gold/30'} backdrop-blur-xl border rounded-2xl md:rounded-3xl p-3 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(185,167,121,0.25)] dark:hover:shadow-[0_20px_40px_rgba(185,167,121,0.1)] transition-all duration-500 overflow-hidden ${expired ? 'opacity-70 grayscale-[0.8]' : ''} min-h-[180px] md:min-h-[360px]`}
                                         >
                                             {/* Abstract Shapes */}
                                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-gov-teal/5 dark:from-gov-teal/[0.02] to-transparent rounded-tr-[100px] -z-10 transition-transform duration-500 group-hover:scale-150" />

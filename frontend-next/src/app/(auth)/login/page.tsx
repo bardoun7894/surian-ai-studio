@@ -237,7 +237,7 @@ const LoginPage = () => {
     const BackIcon = language === 'ar' ? ChevronRight : ChevronLeft;
 
     return (
-        <div className="min-h-screen flex">
+        <div className="min-h-screen flex overflow-x-hidden max-w-[100vw]">
             {/* Left Panel - Branding (hidden on mobile) */}
             <div className="hidden lg:flex lg:w-1/2 bg-gov-forest relative overflow-hidden lg:fixed lg:inset-y-0 lg:left-0 rtl:lg:left-auto rtl:lg:right-0">
                 {/* Decorative Pattern */}
@@ -321,7 +321,7 @@ const LoginPage = () => {
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="flex-1 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto min-h-screen">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto min-h-screen">
                 <div className="w-full max-w-md" ref={formRef}>
                     {/* Back Button */}
                     <Link

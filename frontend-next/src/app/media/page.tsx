@@ -45,9 +45,20 @@ export default function MediaPage() {
 
   // Helper to get localized media title
   const getMediaTitle = (item: MediaItem) => {
-    if (language === "en" && item.title_en) return item.title_en;
-    if (item.title_ar) return item.title_ar;
-    return item.title;
+    if (language === "en") return item.title_en || item.title || item.title_ar || "";
+    return item.title_ar || item.title || "";
+  };
+
+  // Helper to get localized album title
+  const getAlbumTitle = (album: AlbumData) => {
+    if (language === "en") return album.title_en || album.title || album.title_ar || "";
+    return album.title_ar || album.title || "";
+  };
+
+  // Helper to get localized photo title
+  const getPhotoTitle = (photo: { title: string; title_ar?: string; title_en?: string }) => {
+    if (language === "en") return photo.title_en || photo.title || photo.title_ar || "";
+    return photo.title_ar || photo.title || "";
   };
   const [activeFilter, setActiveFilter] = useState<MediaType>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -94,9 +105,9 @@ export default function MediaPage() {
           currentPage,
           perPage,
           activeFilter,
-          null,
-          null,
-          language as "ar" | "en",
+          undefined,
+          undefined,
+          language,
         );
         setMedia(response.data);
         setLastPage(response.last_page);
@@ -194,7 +205,7 @@ export default function MediaPage() {
     }
 
     const url =
-      item.type === "photo" ? item.thumbnailUrl || item.url : item.url;
+      (item.type === "photo" || item.type === "infographic") ? (item.thumbnailUrl || item.url) : item.url;
     if (!url) return;
 
     const ext =
@@ -220,14 +231,8 @@ export default function MediaPage() {
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
       } catch {
-        // Fallback: direct link download
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Fallback: open in new tab (download attribute doesn't work cross-origin)
+        window.open(url, '_blank');
       }
       return;
     }
@@ -267,7 +272,7 @@ export default function MediaPage() {
       try {
         const JSZip = (await import("jszip")).default;
         const zip = new JSZip();
-        const folder = zip.folder(album.title || "album");
+        const folder = zip.folder(getAlbumTitle(album) || "album");
 
         if (!folder) {
           throw new Error("Failed to create zip folder");
@@ -293,7 +298,7 @@ export default function MediaPage() {
               "jpg";
             const fileName =
               photo.file_name ||
-              `${photo.title || `photo-${index + 1}`}.${ext}`;
+              `${getPhotoTitle(photo) || `photo-${index + 1}`}.${ext}`;
             folder.file(fileName, blob);
           } catch (err) {
             console.warn(`Failed to download image ${index + 1}:`, err);
@@ -320,7 +325,7 @@ export default function MediaPage() {
         const zipUrl = URL.createObjectURL(zipBlob);
         const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${album.title || "album"}.zip`;
+        link.download = `${getAlbumTitle(album) || "album"}.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -349,7 +354,7 @@ export default function MediaPage() {
     setExpandedAlbum(item);
     setLoadingAlbum(true);
     try {
-      const data = await API.media.getAlbumPhotos(item.id);
+      const data = await API.media.getAlbumPhotos(item.id, language);
       setAlbumData(data);
     } catch (error) {
       console.error("Failed to load album photos:", error);
@@ -363,7 +368,7 @@ export default function MediaPage() {
     e.stopPropagation();
     try {
       toast(t('media_preparing_download'), { duration: 3000 });
-      const data = await API.media.getAlbumPhotos(item.id);
+      const data = await API.media.getAlbumPhotos(item.id, language);
       if (data && data.photos && data.photos.length > 0) {
         handleDownloadAlbum(data);
       } else {
@@ -404,6 +409,7 @@ export default function MediaPage() {
           src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
           title={getMediaTitle(item)}
           allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
           className="absolute inset-0 w-full h-full border-0 z-10"
         />
       );
@@ -512,7 +518,7 @@ export default function MediaPage() {
       <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
-          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white py-12 px-4">
+          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-6">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
                 {t("media_center_title")}
@@ -523,7 +529,7 @@ export default function MediaPage() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 py-8">
             {/* Unified Content Filter with Date Filter */}
             <ContentFilter
               tabs={filters}
@@ -708,7 +714,7 @@ export default function MediaPage() {
                             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
                               <Play
                                 size={28}
-                                className="text-gov-forest ltr:ml-1 rtl:mr-1"
+                                className="text-gov-forest"
                                 fill="currentColor"
                               />
                             </div>
@@ -747,7 +753,7 @@ export default function MediaPage() {
 
                         {/* Hover Actions Bar */}
                         {!isPlaying && (
-                          <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-end gap-2 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                          <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-end gap-2 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                             <FavoriteButton
                               contentType="media"
                               contentId={item.id}
@@ -944,6 +950,7 @@ export default function MediaPage() {
                     src={`https://www.youtube.com/embed/${getYouTubeId(expandedVideo.url)}?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1`}
                     title={getMediaTitle(expandedVideo)}
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                     className="w-full h-full border-0"
                   />
                 ) : (
@@ -1223,7 +1230,7 @@ export default function MediaPage() {
                           setAlbumData(null);
                           setExpandedImage({
                             id: photo.id,
-                            title: photo.title,
+                            title: getPhotoTitle(photo),
                             type: "photo",
                             thumbnailUrl: photo.url,
                             url: photo.url,
@@ -1233,7 +1240,7 @@ export default function MediaPage() {
                       >
                         <Image
                           src={photo.url}
-                          alt={photo.title}
+                          alt={getPhotoTitle(photo)}
                           fill
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           className="object-cover"
@@ -1249,7 +1256,7 @@ export default function MediaPage() {
                                 handleDownload(
                                   {
                                     id: photo.id,
-                                    title: photo.title,
+                                    title: getPhotoTitle(photo),
                                     type: "photo",
                                     thumbnailUrl: photo.url,
                                     url: photo.url,

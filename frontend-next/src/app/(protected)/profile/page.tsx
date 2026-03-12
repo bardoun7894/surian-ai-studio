@@ -35,6 +35,7 @@ import Footer from '@/components/Footer';
 import PhoneInput from '@/components/ui/PhoneInput';
 import { useRouter } from 'next/navigation';
 import { formatDate as formatDateUtil } from '@/lib/utils';
+import { validatePhoneWithCountryCode } from '@/lib/phone';
 
 export default function ProfilePage() {
     const { language, t } = useLanguage();
@@ -235,6 +236,28 @@ export default function ProfilePage() {
 
     const handlePhoneUpdate = async () => {
         if (!newPhone.trim()) return;
+        // Validate phone against country code rules
+        const phoneValidation = validatePhoneWithCountryCode(newPhone);
+        if (!phoneValidation.isValid) {
+            if (phoneValidation.reason === 'invalid_length' && phoneValidation.countryCode === '+963') {
+                setPhoneError(language === 'ar'
+                    ? `يجب أن يتكون رقم الهاتف السوري من ${phoneValidation.maxDigits} أرقام`
+                    : `Syrian phone number must be ${phoneValidation.maxDigits} digits`);
+            } else if (phoneValidation.reason === 'invalid_format' && phoneValidation.countryCode === '+963') {
+                setPhoneError(language === 'ar'
+                    ? 'يجب أن يبدأ رقم الهاتف السوري بالرقم 9 ويتكون من 9 أرقام'
+                    : 'Syrian phone number must start with 9 and be 9 digits');
+            } else if (phoneValidation.reason === 'invalid_length' && phoneValidation.maxDigits) {
+                setPhoneError(language === 'ar'
+                    ? `رقم الهاتف يجب أن يتكون من ${phoneValidation.maxDigits} أرقام`
+                    : `Phone number must be ${phoneValidation.maxDigits} digits`);
+            } else if (phoneValidation.reason === 'invalid_format') {
+                setPhoneError(language === 'ar' ? 'صيغة رقم الهاتف غير صحيحة' : 'Invalid phone number format');
+            } else {
+                setPhoneError(language === 'ar' ? 'رقم الهاتف غير صالح' : 'Invalid phone number');
+            }
+            return;
+        }
         setPhoneLoading(true);
         setPhoneError(null);
         setPhoneSuccess(null);
@@ -286,10 +309,32 @@ export default function ProfilePage() {
                 setIsLoading(false);
                 return;
             }
-            if (formData.password && formData.password.length < 8) {
-                setError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
-                setIsLoading(false);
-                return;
+            if (formData.password) {
+                if (formData.password.length < 8) {
+                    setError(language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters');
+                    setIsLoading(false);
+                    return;
+                }
+                if (!/[A-Z]/.test(formData.password)) {
+                    setError(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' : 'Password must contain at least one uppercase letter');
+                    setIsLoading(false);
+                    return;
+                }
+                if (!/[a-z]/.test(formData.password)) {
+                    setError(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' : 'Password must contain at least one lowercase letter');
+                    setIsLoading(false);
+                    return;
+                }
+                if (!/[0-9]/.test(formData.password)) {
+                    setError(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' : 'Password must contain at least one number');
+                    setIsLoading(false);
+                    return;
+                }
+                if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)) {
+                    setError(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل' : 'Password must contain at least one special character');
+                    setIsLoading(false);
+                    return;
+                }
             }
 
         try {
@@ -316,7 +361,23 @@ export default function ProfilePage() {
             setSuccess(true);
             setTimeout(() => setSuccess(false), 5000);
         } catch (err: any) {
-            setError(err.message || 'Failed to update profile');
+            const errorMsg = err.message || '';
+            // Map backend error messages to specific user-friendly messages
+            if (errorMsg.includes('كلمة المرور الحالية غير صحيحة') || errorMsg.toLowerCase().includes('current password')) {
+                setError(language === 'ar' ? 'كلمة المرور الحالية المدخلة غير صحيحة' : 'The current password entered is incorrect');
+            } else if (errorMsg.includes('تأكيد كلمة المرور') || errorMsg.toLowerCase().includes('confirmed') || errorMsg.toLowerCase().includes('confirmation')) {
+                setError(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
+            } else if (errorMsg.includes('كلمة المرور يجب') || errorMsg.toLowerCase().includes('password must') || errorMsg.toLowerCase().includes('min:8') || errorMsg.toLowerCase().includes('at least 8')) {
+                setError(language === 'ar' ? 'كلمة المرور الجديدة لا تستوفي المتطلبات' : 'The new password does not meet the requirements');
+            } else if (errorMsg.includes('البريد الإلكتروني') || errorMsg.toLowerCase().includes('email')) {
+                setError(language === 'ar' ? 'البريد الإلكتروني غير صالح أو مستخدم مسبقاً' : 'Email is invalid or already in use');
+            } else if (errorMsg.includes('الهاتف') || errorMsg.toLowerCase().includes('phone')) {
+                setError(language === 'ar' ? 'رقم الهاتف غير صالح' : 'Phone number is invalid');
+            } else if (errorMsg) {
+                setError(errorMsg);
+            } else {
+                setError(language === 'ar' ? 'فشل تحديث الملف الشخصي. يرجى المحاولة مرة أخرى' : 'Failed to update profile. Please try again');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -334,11 +395,11 @@ export default function ProfilePage() {
         <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors">
             <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
-            <main className="flex-grow pt-0 pb-12">
+            <main className="flex-grow pt-20 md:pt-32 pb-12">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
+                    <div className="mb-4 md:mb-8">
+                        <h1 className="text-2xl md:text-3xl font-display font-bold text-gov-charcoal dark:text-white mb-1 md:mb-2">
                             {language === 'ar' ? 'الملف الشخصي' : 'User Profile'}
                         </h1>
                         <p className="text-gray-500 dark:text-white/70">
@@ -347,25 +408,25 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex gap-1.5 md:gap-2 mb-6 md:mb-8 overflow-x-auto pb-2 scrollbar-hide">
                         <button
                             onClick={() => setActiveTab('profile')}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'profile'
+                            className={`px-3 py-2 md:px-6 md:py-3 rounded-xl text-sm md:text-base font-bold transition-all whitespace-nowrap flex items-center gap-1.5 md:gap-2 ${activeTab === 'profile'
                                 ? 'bg-gov-teal text-white shadow-lg'
                                 : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-gov-border/15'
                                 }`}
                         >
-                            <User size={18} />
+                            <User size={16} className="md:w-[18px] md:h-[18px]" />
                             {language === 'ar' ? 'بياناتي' : 'My Info'}
                         </button>
                         <button
                             onClick={() => setActiveTab('complaints')}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'complaints'
+                            className={`px-3 py-2 md:px-6 md:py-3 rounded-xl text-sm md:text-base font-bold transition-all whitespace-nowrap flex items-center gap-1.5 md:gap-2 ${activeTab === 'complaints'
                                 ? 'bg-gov-teal text-white shadow-lg'
                                 : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-gov-border/15'
                                 }`}
                         >
-                            <Shield size={18} />
+                            <Shield size={16} className="md:w-[18px] md:h-[18px]" />
                             {language === 'ar' ? 'شكاويّ' : 'My Complaints'}
                             {myComplaints.length > 0 && (
                                 <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
@@ -375,12 +436,12 @@ export default function ProfilePage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('suggestions')}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'suggestions'
+                            className={`px-3 py-2 md:px-6 md:py-3 rounded-xl text-sm md:text-base font-bold transition-all whitespace-nowrap flex items-center gap-1.5 md:gap-2 ${activeTab === 'suggestions'
                                 ? 'bg-gov-teal text-white shadow-lg'
                                 : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-gov-border/15'
                                 }`}
                         >
-                            <ClipboardList size={18} />
+                            <ClipboardList size={16} className="md:w-[18px] md:h-[18px]" />
                             {language === 'ar' ? 'مقترحاتي' : 'My Suggestions'}
                             {mySuggestions.length > 0 && (
                                 <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
@@ -390,12 +451,12 @@ export default function ProfilePage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('favorites')}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'favorites'
+                            className={`px-3 py-2 md:px-6 md:py-3 rounded-xl text-sm md:text-base font-bold transition-all whitespace-nowrap flex items-center gap-1.5 md:gap-2 ${activeTab === 'favorites'
                                 ? 'bg-gov-teal text-white shadow-lg'
                                 : 'bg-white dark:bg-gov-card/10 text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-gov-border/15'
                                 }`}
                         >
-                            <Heart size={18} />
+                            <Heart size={16} className="md:w-[18px] md:h-[18px]" />
                             {language === 'ar' ? 'المفضلة' : 'Favorites'}
                         </button>
                     </div>
@@ -506,7 +567,7 @@ export default function ProfilePage() {
 
                                         {/* Email edit inline panel */}
                                         {emailEditMode !== 'view' && (
-                                            <div className="md:col-span-2 bg-gov-teal/5 dark:bg-gov-teal/10 border border-gov-teal/20 rounded-2xl p-6 space-y-4">
+                                            <div className="md:col-span-2 bg-gov-teal/5 dark:bg-gov-teal/10 border border-gov-teal/20 rounded-2xl p-4 sm:p-6 space-y-4 mx-auto w-full max-w-lg md:max-w-none">
                                                 <div className="flex items-center justify-between">
                                                     <h4 className="font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
                                                         <Mail size={18} className="text-gov-teal" />
@@ -569,7 +630,7 @@ export default function ProfilePage() {
                                                                 <Lock className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                                             </div>
                                                         </div>
-                                                        <div className="flex gap-3 pt-2">
+                                                        <div className="flex flex-wrap gap-3 pt-2 justify-center sm:justify-start">
                                                             <button
                                                                 type="button"
                                                                 onClick={handleRequestEmailChange}
@@ -614,7 +675,7 @@ export default function ProfilePage() {
                                                                 <KeyRound className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gov-teal transition-colors" size={20} />
                                                             </div>
                                                         </div>
-                                                        <div className="flex gap-3 pt-2">
+                                                        <div className="flex flex-wrap gap-3 pt-2 justify-center sm:justify-start">
                                                             <button
                                                                 type="button"
                                                                 onClick={handleVerifyEmailChange}
@@ -791,9 +852,9 @@ export default function ProfilePage() {
                                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                     placeholder={language === 'ar' ? 'اتركه فارغاً للاحتفاظ بالحالي' : 'Leave empty to keep current'}
                                                     className={`w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
-                                                        ${formData.password && formData.password.length >= 8
+                                                        ${formData.password && formData.password.length >= 8 && /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) && /[0-9]/.test(formData.password) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)
                                                             ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
-                                                            : formData.password && formData.password.length > 0 && formData.password.length < 8
+                                                            : formData.password && formData.password.length > 0
                                                                 ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                                 : 'border-gov-gold/20 dark:border-gov-border/25 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
                                                         }`}
@@ -819,7 +880,7 @@ export default function ProfilePage() {
                                                     value={formData.password_confirmation}
                                                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
                                                     className={`w-full py-3 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all
-                                                        ${formData.password_confirmation && formData.password_confirmation === formData.password && formData.password.length >= 8
+                                                        ${formData.password_confirmation && formData.password_confirmation === formData.password && formData.password.length >= 8 && /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) && /[0-9]/.test(formData.password) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)
                                                             ? 'border-green-500 dark:border-emerald-400 focus:border-green-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-emerald-400/20'
                                                             : formData.password_confirmation && formData.password_confirmation !== formData.password
                                                                 ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
@@ -855,6 +916,22 @@ export default function ProfilePage() {
                                             <li className={`flex items-center gap-2 ${formData.password.length >= 8 ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
                                                 {formData.password.length >= 8 ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
                                                 {language === 'ar' ? '8 أحرف على الأقل' : 'At least 8 characters'}
+                                            </li>
+                                            <li className={`flex items-center gap-2 ${/[A-Z]/.test(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {/[A-Z]/.test(formData.password) ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? 'حرف كبير واحد على الأقل' : 'At least one uppercase letter'}
+                                            </li>
+                                            <li className={`flex items-center gap-2 ${/[a-z]/.test(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {/[a-z]/.test(formData.password) ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? 'حرف صغير واحد على الأقل' : 'At least one lowercase letter'}
+                                            </li>
+                                            <li className={`flex items-center gap-2 ${/[0-9]/.test(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {/[0-9]/.test(formData.password) ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? 'رقم واحد على الأقل' : 'At least one number'}
+                                            </li>
+                                            <li className={`flex items-center gap-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(formData.password) ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
+                                                {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(formData.password) ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                                {language === 'ar' ? 'رمز خاص واحد على الأقل' : 'At least one special character'}
                                             </li>
                                             <li className={`flex items-center gap-2 ${formData.password === formData.password_confirmation && formData.password_confirmation ? 'text-green-500 dark:text-emerald-400' : 'text-gray-400 dark:text-white/40'}`}>
                                                 {formData.password === formData.password_confirmation && formData.password_confirmation ? <CheckCircle size={14} /> : <AlertCircle size={14} />}

@@ -239,7 +239,9 @@ const VideoModal: React.FC<{
                   lastTapRef.current = now;
                   setTimeout(() => {
                     if (lastTapRef.current === now && videoRef.current) {
-                      isPlaying ? videoRef.current.pause() : videoRef.current.play();
+                      videoRef.current.paused
+                        ? videoRef.current.play()
+                        : videoRef.current.pause();
                     }
                   }, 350);
                 }
@@ -594,7 +596,7 @@ export default function VideoCard({
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                    <Play size={28} className="text-white ml-1" fill="white" />
+                    <Play size={28} className="text-white" fill="white" />
                   </div>
                 </div>
               </>
@@ -686,14 +688,14 @@ export default function VideoCard({
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                  <Play size={28} className="text-gov-forest ml-1" />
+                  <Play size={28} className="text-gov-forest" />
                 </div>
               </div>
             )}
-            {/* M6.10: On mobile, show a tap hint when playing */}
-            {title && !isMobile && (
+            {/* M6.10: Show title overlay; hide on mobile when video is playing */}
+            {title && (
               <div
-                className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-10 ${isMobile && isPlaying ? "opacity-0 pointer-events-none" : isHovered ? "opacity-100" : isMobile ? "opacity-100" : "opacity-0"}`}
+                className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-10 ${isMobile && isPlaying ? "opacity-0 pointer-events-none" : isHovered || isMobile ? "opacity-100" : "opacity-0"}`}
               >
                 <span className="text-white text-sm font-medium truncate block">
                   {title}

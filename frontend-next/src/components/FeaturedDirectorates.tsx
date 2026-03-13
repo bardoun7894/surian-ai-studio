@@ -32,7 +32,7 @@ export default function FeaturedDirectorates() {
     if (loading) {
         return (
             <section className="py-12 md:py-20 bg-gradient-to-br from-gov-beige/30 via-white to-gov-gold/10 dark:from-dm-bg dark:via-dm-bg dark:to-dm-surface relative overflow-hidden transition-colors">
-                <div className="container mx-auto px-4 z-10 relative">
+                <div className="container mx-auto px-5 z-10 relative">
                     <div className="text-center mb-10 md:mb-16">
                         <div className="h-6 md:h-8 w-32 md:w-40 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 md:mb-6 animate-pulse" />
                         <div className="h-8 md:h-12 w-64 md:w-80 max-w-full bg-gray-200 dark:bg-dm-surface rounded-xl md:rounded-2xl mx-auto mb-3 md:mb-4 animate-pulse" />
@@ -89,7 +89,7 @@ export default function FeaturedDirectorates() {
                 style={{ backgroundImage: 'linear-gradient(#b9a779 1px, transparent 1px), linear-gradient(90deg, #b9a779 1px, transparent 1px)', backgroundSize: '30px 30px' }}
             />
 
-            <div className="container mx-auto px-4 relative z-10">
+            <div className="container mx-auto px-5 relative z-10">
                 {/* Section Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

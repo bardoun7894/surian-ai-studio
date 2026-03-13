@@ -293,7 +293,7 @@ const VideoModal: React.FC<{
                   {isPlaying ? (
                     <Pause size={18} />
                   ) : (
-                    <Play size={18} className="ml-0.5" />
+                    <Play size={18} className="ms-0.5" />
                   )}
                 </button>
                 <button

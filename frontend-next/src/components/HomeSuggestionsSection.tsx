@@ -60,7 +60,7 @@ const HomeSuggestionsSection = () => {
     if (loading) {
         return (
             <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
-                <div className="container mx-auto px-4">
+                <div className="container mx-auto px-5">
                     <div className="max-w-5xl mx-auto">
                         <div className="text-center mb-10 md:mb-16">
                             <SkeletonText lines={1} className="max-w-16 md:max-w-20 mx-auto mb-4 md:mb-6" />
@@ -91,7 +91,7 @@ const HomeSuggestionsSection = () => {
             <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-gradient-radial from-gov-gold/10 via-transparent to-transparent rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-gradient-radial from-gov-teal/10 via-transparent to-transparent rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
 
-            <div className="container mx-auto px-4 relative z-10">
+            <div className="container mx-auto px-5 relative z-10">
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"

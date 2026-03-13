@@ -15,6 +15,7 @@ interface DirectorateLocation {
   address_en: string;
   phone?: string;
   email?: string;
+  google_maps_url?: string;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api/v1';
@@ -28,7 +29,7 @@ export default function AdminDirectoratesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
-  const [editData, setEditData] = useState<Record<string, { latitude: string; longitude: string; address_ar: string; address_en: string }>>({});
+  const [editData, setEditData] = useState<Record<string, { latitude: string; longitude: string; address_ar: string; address_en: string; google_maps_url: string }>>({});
 
   useEffect(() => {
     fetchDirectorates();
@@ -42,13 +43,14 @@ export default function AdminDirectoratesPage() {
         const dirs = Array.isArray(data) ? data : (data.data || []);
         setDirectorates(dirs);
         // Init edit data from existing values
-        const initial: Record<string, { latitude: string; longitude: string; address_ar: string; address_en: string }> = {};
+        const initial: Record<string, { latitude: string; longitude: string; address_ar: string; address_en: string; google_maps_url: string }> = {};
         for (const d of dirs) {
           initial[d.id] = {
             latitude: d.latitude != null ? String(d.latitude) : '',
             longitude: d.longitude != null ? String(d.longitude) : '',
             address_ar: d.address_ar || '',
             address_en: d.address_en || '',
+            google_maps_url: d.google_maps_url || '',
           };
         }
         setEditData(initial);
@@ -77,6 +79,7 @@ export default function AdminDirectoratesPage() {
           longitude: parseFloat(data.longitude),
           address_ar: data.address_ar || null,
           address_en: data.address_en || null,
+          google_maps_url: data.google_maps_url || null,
         }),
       });
 
@@ -119,7 +122,7 @@ export default function AdminDirectoratesPage() {
 
       <div className="space-y-4">
         {directorates.map((dir) => {
-          const data = editData[dir.id] || { latitude: '', longitude: '', address_ar: '', address_en: '' };
+          const data = editData[dir.id] || { latitude: '', longitude: '', address_ar: '', address_en: '', google_maps_url: '' };
           const hasCoords = data.latitude && data.longitude;
           const isSaving = saving === dir.id;
           const isSaved = saved === dir.id;
@@ -206,6 +209,20 @@ export default function AdminDirectoratesPage() {
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gov-border/25 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white text-sm focus:outline-none focus:border-gov-gold"
                   />
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-xs font-medium text-gray-500 dark:text-white/50 mb-1">
+                  {isAr ? 'رابط خرائط غوغل' : 'Google Maps URL'}
+                </label>
+                <input
+                  type="url"
+                  value={data.google_maps_url}
+                  onChange={(e) => updateField(dir.id, 'google_maps_url', e.target.value)}
+                  placeholder="https://maps.google.com/..."
+                  dir="ltr"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gov-border/25 bg-white dark:bg-dm-surface text-gov-charcoal dark:text-white text-sm focus:outline-none focus:border-gov-gold"
+                />
               </div>
 
               <div className="mt-4 flex justify-end">

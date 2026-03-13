@@ -124,7 +124,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
   if (loading) {
     return (
       <section id="faq" className="py-24 bg-gov-beige/30 dark:bg-dm-bg scroll-mt-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <SkeletonText lines={1} className="max-w-xs mx-auto mb-4" />
             <SkeletonText lines={1} className="max-w-sm mx-auto" />
@@ -150,7 +150,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ directorateId }) => {
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-gov-gold/10 via-transparent to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-radial from-gov-teal/10 via-transparent to-transparent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}

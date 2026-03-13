@@ -29,7 +29,7 @@ class ServiceController extends Controller
 
     public function create()
     {
-        $directorates = Directorate::all();
+        $directorates = Directorate::orderBy('name_ar')->get();
         return view('admin.services.create', compact('directorates'));
     }
 
@@ -61,7 +61,7 @@ class ServiceController extends Controller
 
     public function edit(Service $service)
     {
-        $directorates = Directorate::all();
+        $directorates = Directorate::orderBy('name_ar')->get();
         return view('admin.services.edit', compact('service', 'directorates'));
     }
 

@@ -24,7 +24,7 @@ class SecurityHeadersMiddleware
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' " . config('app.frontend_url', 'http://localhost:3000'),
+            "connect-src 'self' " . config('app.frontend_url', 'http://localhost:3002'),
             "frame-src 'self' https://www.youtube.com https://youtube.com",
             "frame-ancestors 'none'",
             "base-uri 'self'",

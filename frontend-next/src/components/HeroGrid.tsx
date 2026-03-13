@@ -328,7 +328,7 @@ const HeroGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+      <section className="py-8 px-5 sm:px-6 lg:px-8 max-w-8xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
           {/* Main Hero Skeleton */}
           <div className="lg:col-span-8 lg:row-span-2 min-h-[400px]">
@@ -365,7 +365,7 @@ const HeroGrid: React.FC = () => {
   const sideArticles = gridArticles.slice(0, 3);
 
   return (
-    <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <section className="py-10 md:py-16 px-5 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Main headline + 3 side headlines */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
         {/* Main Headline (latest hero news) */}

@@ -144,7 +144,8 @@ export default function AnnouncementsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const isAr = language === 'ar';
 
   // Debounce searchQuery into debouncedSearch
@@ -361,8 +362,17 @@ export default function AnnouncementsPage() {
                   </div>
                 </div>
 
+                {/* Mobile filter toggle */}
+                <button
+                  onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+                  className="md:hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-gov-forest text-white font-bold text-sm"
+                >
+                  <ChevronDown size={16} className={`transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} />
+                  {isAr ? 'فلاتر إضافية' : 'More Filters'}
+                </button>
+
                 {/* Type Filter */}
-                <div className="min-w-[160px]">
+                <div className={`min-w-[160px] ${mobileFiltersOpen ? '' : 'hidden md:block'}`}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
                     {isAr ? 'النوع' : 'Type'}
                   </label>
@@ -383,7 +393,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 {/* Month Filter */}
-                <div className="min-w-[140px]">
+                <div className={`min-w-[140px] ${mobileFiltersOpen ? '' : 'hidden md:block'}`}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
                     {isAr ? 'الشهر' : 'Month'}
                   </label>
@@ -407,7 +417,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 {/* Year Filter */}
-                <div className="min-w-[120px]">
+                <div className={`min-w-[120px] ${mobileFiltersOpen ? '' : 'hidden md:block'}`}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
                     {isAr ? 'السنة' : 'Year'}
                   </label>
@@ -444,15 +454,16 @@ export default function AnnouncementsPage() {
                 )}
               </div>
 
-              {/* Results Count */}
-              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15">
-                <p className="text-sm text-gray-600 dark:text-white/70">
-                  {isAr
-                    ? `عرض ${filteredAnnouncements.length} من ${totalItems} إعلان`
-                    : `Showing ${filteredAnnouncements.length} of ${totalItems} announcements`
-                  }
-                </p>
-              </div>
+            </div>
+
+            {/* Results Count - above grid */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-white/70">
+                {isAr
+                  ? `عرض ${filteredAnnouncements.length} من ${totalItems} إعلان`
+                  : `Showing ${filteredAnnouncements.length} of ${totalItems} announcements`
+                }
+              </p>
             </div>
 
             {/* Announcements List - 3x3 Grid */}

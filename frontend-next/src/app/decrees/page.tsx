@@ -427,10 +427,10 @@ export default function DecreesPage() {
       <Navbar />
 
       <main className="flex-grow pt-16 md:pt-[5.75rem]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-4 pb-2 md:pb-4 animate-fade-in-up">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-2 md:pb-4 animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-2 md:mb-4">
-            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-1 md:mb-2 inline-flex items-center justify-center gap-2 w-full">
+            <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2 md:mb-3 inline-flex items-center justify-center gap-2 w-full">
               <Scale size={26} className="text-gov-gold" />
               {isAr ? "القوانين والتشريعات" : "Laws & Legislation"}
             </h2>
@@ -442,10 +442,10 @@ export default function DecreesPage() {
           </div>
 
           {/* Filter Section */}
-          <div className="mb-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-4 space-y-4">
+          <div className="mb-6 md:mb-8 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-4 space-y-4">
 
             {/* Search Input */}
-            <div className="relative">
+            <div className="relative max-w-[720px] mx-auto">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                 <Search size={16} className="text-gray-400 dark:text-white/40" />
               </div>

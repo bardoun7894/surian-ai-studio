@@ -58,6 +58,7 @@ class DirectorateMapController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'address_ar' => 'nullable|string|max:500',
             'address_en' => 'nullable|string|max:500',
+            'google_maps_url' => 'nullable|string|max:1024|url',
         ]);
 
         $directorate = Directorate::find($id);
@@ -71,6 +72,7 @@ class DirectorateMapController extends Controller
             'longitude' => $directorate->longitude,
             'address_ar' => $directorate->address_ar,
             'address_en' => $directorate->address_en,
+            'google_maps_url' => $directorate->google_maps_url,
         ];
 
         $directorate->update([
@@ -78,6 +80,7 @@ class DirectorateMapController extends Controller
             'longitude' => $validated['longitude'],
             'address_ar' => $validated['address_ar'] ?? $directorate->address_ar,
             'address_en' => $validated['address_en'] ?? $directorate->address_en,
+            'google_maps_url' => $validated['google_maps_url'] ?? $directorate->google_maps_url,
         ]);
 
         // Clear the map cache so fresh data is served
@@ -120,6 +123,7 @@ class DirectorateMapController extends Controller
                 'longitude' => (float) $directorate->longitude,
                 'address_ar' => $directorate->address_ar ?? '',
                 'address_en' => $directorate->address_en ?? '',
+                'google_maps_url' => $directorate->google_maps_url,
             ],
         ]);
     }

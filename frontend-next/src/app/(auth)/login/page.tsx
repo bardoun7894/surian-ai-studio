@@ -321,7 +321,7 @@ const LoginPage = () => {
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8 overflow-y-auto min-h-screen">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-8 sm:py-12 px-3 sm:px-6 md:px-8 overflow-y-auto min-h-screen">
                 <div className="w-full max-w-md" ref={formRef}>
                     {/* Back Button */}
                     <Link
@@ -357,7 +357,7 @@ const LoginPage = () => {
                     </div>
 
                     {/* Login Card */}
-                    <div className="relative bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
+                    <div className="relative bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-hidden">
                         {/* Loading Overlay */}
                         {isLoading && (
                             <div className="absolute inset-0 z-50 bg-white/80 dark:bg-dm-surface/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">

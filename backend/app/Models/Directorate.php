@@ -29,6 +29,7 @@ class Directorate extends Model
         'website',
         'working_hours_ar',
         'working_hours_en',
+        'google_maps_url',
     ];
 
     protected $casts = [

@@ -149,7 +149,7 @@ const GovernmentPartners: React.FC = () => {
     if (loading) {
         return (
             <section className="py-12 md:py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
                     <div className="text-center mb-10 md:mb-16">
                         <div className="h-5 w-24 md:h-6 md:w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 md:mb-6 animate-pulse" />
                         <div className="h-8 w-48 md:h-12 md:w-64 bg-gray-200 dark:bg-dm-surface rounded mx-auto mb-4 md:mb-6 animate-pulse" />
@@ -173,7 +173,7 @@ const GovernmentPartners: React.FC = () => {
 
     return (
         <section className="py-12 md:py-24 bg-white dark:bg-dm-bg border-t border-gray-100 dark:border-gov-border/15 transition-colors">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
 
                 {/* Centered Header - matching Announcements pattern */}
                 <div className="text-center mb-10 md:mb-16">

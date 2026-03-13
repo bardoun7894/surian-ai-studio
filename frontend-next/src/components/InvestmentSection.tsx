@@ -89,7 +89,7 @@ export default function InvestmentSection() {
     if (loading) {
         return (
             <section className="py-12 md:py-24 relative overflow-hidden bg-gov-beige dark:bg-dm-bg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-8 md:mb-16">
                         <div className="h-6 w-32 bg-gray-200 dark:bg-dm-surface rounded-full mx-auto mb-4 animate-pulse" />
                         <div className="h-12 md:h-16 w-3/4 max-w-2xl bg-gray-200 dark:bg-dm-surface rounded-xl md:rounded-2xl mx-auto mb-4 md:mb-6 animate-pulse" />
@@ -134,7 +134,7 @@ export default function InvestmentSection() {
             <div className="absolute top-0 right-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-gradient-radial from-gov-gold/10 via-transparent to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 left-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-gradient-radial from-gov-teal/10 via-transparent to-transparent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
                 {/* Header Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

@@ -42,7 +42,7 @@ const HomeComplaintsSection = () => {
     if (loading) {
         return (
             <section className="py-24 relative overflow-hidden bg-gov-forest dark:bg-gov-charcoal">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                         <div className="space-y-6">
                             <SkeletonText lines={1} />
@@ -79,7 +79,7 @@ const HomeComplaintsSection = () => {
             <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-radial from-gov-gold/20 via-transparent to-transparent rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-radial from-gov-teal/20 via-transparent to-transparent rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-10 md:gap-16">
                     {/* Left Content */}
                     <motion.div

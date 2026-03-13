@@ -101,6 +101,22 @@ class AuthController extends Controller
 
         $user = User::where($loginField, $loginValue)->first();
 
+        // Security: Detect duplicate phone numbers (pre-existing data before unique constraint)
+        if ($loginField === 'phone') {
+            $duplicateCount = User::where('phone', $loginValue)->count();
+            if ($duplicateCount > 1) {
+                Log::warning("Duplicate phone detected during login", [
+                    'phone' => $loginValue,
+                    'count' => $duplicateCount,
+                    'ip' => $request->ip(),
+                ]);
+                // Block login for safety - admin must resolve duplicate
+                throw ValidationException::withMessages([
+                    'phone' => [__('auth.phone_duplicate_contact_admin', [], 'ar') ?: 'يوجد خطأ في الحساب. يرجى التواصل مع الدعم الفني.'],
+                ]);
+            }
+        }
+
         if (! $user || ! Hash::check($request->password, $user->password)) {
             RateLimiter::hit($throttleKey);
 
@@ -302,7 +318,7 @@ class AuthController extends Controller
         $user->save();
 
         // Build reset URL and send email
-        $resetUrl = config('app.frontend_url', 'http://localhost:3000') . "/reset-password?token={$token}&email=" . urlencode($user->email);
+        $resetUrl = rtrim(config('app.frontend_url', 'http://localhost:3002'), '/') . "/reset-password?token={$token}&email=" . urlencode($user->email);
         Log::info("Password reset requested for {$user->email}");
 
         // Send password reset email

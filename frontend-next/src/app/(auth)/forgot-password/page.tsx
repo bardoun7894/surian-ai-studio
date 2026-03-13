@@ -18,6 +18,9 @@ const ForgotPasswordPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSent, setIsSent] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [emailError, setEmailError] = useState<string | null>(null);
+
+    const isEmailValid = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
 
     // Redirect away if already authenticated
     useEffect(() => {
@@ -28,8 +31,19 @@ const ForgotPasswordPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
+        setEmailError(null);
         setError(null);
+
+        if (!email.trim() || !isEmailValid(email)) {
+            setEmailError(
+                language === 'ar'
+                    ? 'يرجى إدخال بريد إلكتروني صالح'
+                    : 'Please enter a valid email address'
+            );
+            return;
+        }
+
+        setIsLoading(true);
         try {
             await auth.forgotPassword(email);
             setIsSent(true);
@@ -131,7 +145,7 @@ const ForgotPasswordPage = () => {
             </div>
 
             {/* Right Panel - Form (Pushed by fixed left panel on desktop) */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-8 sm:py-12 px-3 sm:px-6 md:px-8">
                 <div className="w-full max-w-md">
                     <Link
                         href="/login"
@@ -152,7 +166,7 @@ const ForgotPasswordPage = () => {
                         </p>
                     </div>
 
-                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-hidden">
                         {isSent ? (
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -201,6 +215,9 @@ const ForgotPasswordPage = () => {
                                         />
                                         <Mail className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                     </div>
+                                    {emailError && (
+                                        <p className="text-xs text-red-500 dark:text-red-400 mt-1.5">{emailError}</p>
+                                    )}
                                 </div>
 
                                 <button

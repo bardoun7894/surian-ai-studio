@@ -61,6 +61,7 @@ class PublicApiController extends Controller
                     'longitude' => $d->longitude,
                     'address_ar' => $d->address_ar ?? '',
                     'address_en' => $d->address_en ?? '',
+                    'google_maps_url' => $d->google_maps_url,
                     'subDirectorates' => $d->subDirectorates->map(function ($sub) {
                         return [
                             'id' => (string) $sub->id,
@@ -168,6 +169,7 @@ class PublicApiController extends Controller
             'address_en' => $directorate->address_en,
             'working_hours_ar' => $directorate->working_hours_ar,
             'working_hours_en' => $directorate->working_hours_en,
+            'google_maps_url' => $directorate->google_maps_url,
         ]);
     }
 

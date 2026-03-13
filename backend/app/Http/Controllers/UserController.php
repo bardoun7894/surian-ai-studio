@@ -192,7 +192,6 @@ class UserController extends Controller
             'father_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'birth_date' => 'nullable|date',
             'governorate' => 'nullable|string|max:255',
             'password' => ['nullable', 'min:8', 'confirmed', 'regex:/[0-9]/'],
@@ -220,14 +219,23 @@ class UserController extends Controller
             }
         }
 
-        $oldData = $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate']);
+        // Security: Email changes must go through requestEmailChange/verifyEmailChange flow.
+        // Reject attempts to change email directly through profile update.
+        if ($request->filled('email') && $request->email !== $user->email) {
+            return response()->json([
+                'message' => 'لتغيير البريد الإلكتروني، يرجى استخدام خيار تغيير البريد الإلكتروني المخصص مع رمز التحقق.',
+                'message_en' => 'To change your email, please use the dedicated email change option with verification code.',
+                'requires_email_verification' => true,
+            ], 422);
+        }
+
+        $oldData = $user->only(['first_name', 'father_name', 'last_name', 'phone', 'birth_date', 'governorate']);
 
         $updateData = [
             'first_name' => $request->first_name,
             'father_name' => $request->father_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
-            'email' => $request->email,
             'birth_date' => $request->birth_date,
             'governorate' => $request->governorate,
         ];
@@ -237,10 +245,10 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
-        
+
         $this->auditService->log($user, 'profile_updated', 'user', $user->id, [
             'old' => $oldData,
-            'new' => $user->only(['first_name', 'father_name', 'last_name', 'phone', 'email', 'birth_date', 'governorate']),
+            'new' => $user->only(['first_name', 'father_name', 'last_name', 'phone', 'birth_date', 'governorate']),
             'password_changed' => $request->filled('password'),
         ]);
 

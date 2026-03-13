@@ -333,7 +333,7 @@ const LoginPage = () => {
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-3">
+                    <div className="hidden sm:block lg:hidden text-center mb-3">
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Logo"
@@ -346,7 +346,7 @@ const LoginPage = () => {
 
                     {/* Header */}
                     <div className="mb-4 sm:mb-8">
-                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
+                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
                             {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
                         </h1>
                         <p className="text-gray-500 dark:text-white/70">
@@ -357,7 +357,7 @@ const LoginPage = () => {
                     </div>
 
                     {/* Login Card */}
-                    <div className="relative bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-hidden">
+                    <div className="relative bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-5 md:p-8 overflow-hidden">
                         {/* Loading Overlay */}
                         {isLoading && (
                             <div className="absolute inset-0 z-50 bg-white/80 dark:bg-dm-surface/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -391,7 +391,7 @@ const LoginPage = () => {
                                             setNationalIdFieldError(null);
                                         }
                                     }}
-                                    className={`flex-1 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
+                                    className={`flex-1 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${loginMethod === key
                                         ? 'bg-white dark:bg-gov-button text-gov-forest dark:text-white shadow-sm border border-gray-200/50 dark:border-white/10'
                                         : 'text-gray-500 dark:text-white/60 hover:text-gov-forest dark:hover:text-white hover:bg-white/50'
                                         }`}
@@ -402,7 +402,7 @@ const LoginPage = () => {
                             ))}
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
                             {/* Dynamic Input Field */}
                             <div>
                                 <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
@@ -455,7 +455,7 @@ const LoginPage = () => {
                                                     ? (language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email')
                                                     : '12345678901'
                                             }
-                                            className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                            className={`w-full py-3 sm:py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
                                                 ${getIdentifierBorderClass()}`}
                                             required
                                         />
@@ -521,7 +521,7 @@ const LoginPage = () => {
                                             }
                                         }}
                                         placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
-                                        className={`w-full py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
+                                        className={`w-full py-3 sm:py-4 px-4 pr-12 rtl:pr-4 rtl:pl-12 rounded-2xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all text-sm
                                             ${getPasswordBorderClass()}`}
                                         required
                                     />
@@ -566,7 +566,7 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-4 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="w-full py-3 sm:py-4 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
                                 <>
                                     {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
@@ -576,7 +576,7 @@ const LoginPage = () => {
                         </form>
 
                         {/* Security Badge */}
-                        <div className="flex items-center justify-center gap-2 mt-6 py-3 border-t border-gray-100 dark:border-gov-border/15 text-xs text-gray-500 dark:text-white/70">
+                        <div className="flex items-center justify-center gap-2 mt-3 sm:mt-6 py-2 sm:py-3 border-t border-gray-100 dark:border-gov-border/15 text-xs text-gray-500 dark:text-white/70">
                             <Shield size={14} className="text-gov-teal" />
                             {language === 'ar' ? 'اتصال آمن ومشفر بتقنية SSL' : 'Secure SSL encrypted connection'}
                         </div>

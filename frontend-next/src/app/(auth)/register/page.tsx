@@ -484,7 +484,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Right Panel - Register Form */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-8 sm:py-12 px-3 sm:px-6 md:px-8 overflow-y-auto min-h-screen">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8 overflow-hidden min-h-screen">
                 <div className="w-full max-w-lg">
                     {/* Back Button */}
                     <Link

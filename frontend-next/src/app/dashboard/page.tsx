@@ -590,7 +590,7 @@ export default function UserDashboard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="mt-4 md:mt-0 flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 transition-colors backdrop-blur-sm border border-red-500/20 text-sm md:text-base"
+              className="mt-2 md:mt-0 flex items-center gap-1 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg md:rounded-xl hover:bg-red-500/20 transition-colors backdrop-blur-sm border border-red-500/20 text-xs md:text-sm"
             >
               <LogOut size={16} className="md:w-5 md:h-5" />
               <span className="font-bold">{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>

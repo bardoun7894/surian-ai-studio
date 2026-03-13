@@ -364,26 +364,19 @@ export default function UserDashboard() {
     } catch (e: any) {
       console.error(e);
       // Handle specific password errors from the API
-      const errorData = e?.response?.data || e?.data;
+      const errorData = e?.response?.data || e?.data
       if (errorData?.errors?.current_password) {
-        toast.error(language === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect');
-      } else if (errorData?.errors?.email) {
-        const emailErr = Array.isArray(errorData.errors.email) ? errorData.errors.email.join(, ) : errorData.errors.email;
-        if (String(emailErr).includes(taken) || String(emailErr).includes(unique)) {
-          toast.error(language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل' : 'The email address is already in use');
-        } else {
-          toast.error(emailErr);
-        }
+        toast.error(language === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect')
       } else if (errorData?.errors?.password) {
-        const pwErrors = Array.isArray(errorData.errors.password) ? errorData.errors.password.join(', ') : errorData.errors.password;
-        toast.error(pwErrors);
+        const pwErrors = Array.isArray(errorData.errors.password) ? errorData.errors.password.join(', ') : errorData.errors.password
+        toast.error(pwErrors)
       } else if (errorData?.errors?.email) {
-        toast.error(language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل' : 'Email is already in use');
+        toast.error(language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل' : 'Email is already in use')
       } else if (errorData?.errors?.phone) {
-        toast.error(language === 'ar' ? 'رقم الهاتف غير صالح أو مستخدم بالفعل' : 'Phone number is invalid or already in use');
+        toast.error(language === 'ar' ? 'رقم الهاتف غير صالح أو مستخدم بالفعل' : 'Phone number is invalid or already in use')
       } else {
-        const msg = errorData?.message || e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
-        toast.error(msg);
+        const msg = errorData?.message || e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile')
+        toast.error(msg)
       }
     } finally {
       setIsUpdating(false);

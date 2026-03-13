@@ -541,7 +541,7 @@ function NewsPageContent() {
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
             onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setVisibleCount(12); }}
-            onSearch={ (q) => setSearchQuery(q) : undefined}
+            onSearch={(q) => setSearchQuery(q)}
             searchValue={searchQuery}
             totalCount={totalItems}
             countLabel={t('news_article_count')}

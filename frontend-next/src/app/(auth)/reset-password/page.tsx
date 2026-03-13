@@ -166,8 +166,8 @@ const ResetPasswordPage = () => {
                         </Link>
                     )}
 
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                    <div className="mb-4 sm:mb-8">
+                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                             {language === 'ar' ? 'إعادة تعيين كلمة المرور' : 'Reset Password'}
                         </h1>
                         <p className="text-gray-500 dark:text-white/70">
@@ -177,7 +177,7 @@ const ResetPasswordPage = () => {
                         </p>
                     </div>
 
-                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-hidden">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-5 md:p-8 overflow-hidden">
                         {isSuccess ? (
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -199,7 +199,7 @@ const ResetPasswordPage = () => {
                                 </Link>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit} className="space-y-5">
+                            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
                                 {error && (
                                     <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
                                         {error}

@@ -299,19 +299,19 @@ const TwoFactorContent = () => {
             </div>
 
             {/* Right Panel - 2FA Form (Pushed by fixed left panel on desktop) */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-12 px-4 sm:px-8">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8">
                 <div className="w-full max-w-md">
                     {/* Back Button */}
                     <Link
                         href="/login"
-                        className="flex items-center gap-1 text-gray-500 dark:text-white/60 hover:text-gov-teal transition-colors mb-6 group"
+                        className="flex items-center gap-1 text-gray-500 dark:text-white/60 hover:text-gov-teal transition-colors mb-3 sm:mb-6 group"
                     >
                         <BackIcon size={18} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform" />
                         {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-8">
+                    <div className="hidden sm:block lg:hidden text-center mb-4">
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Logo"
@@ -323,11 +323,11 @@ const TwoFactorContent = () => {
                     </div>
 
                     {/* Header */}
-                    <div className="mb-8 text-center">
+                    <div className="mb-4 sm:mb-8 text-center">
                         <div className="w-16 h-16 bg-gov-teal/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <Shield size={32} className="text-gov-teal" />
                         </div>
-                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                             {t('twofa_title')}
                         </h1>
                         <p className="text-gray-500 dark:text-white/70">
@@ -342,7 +342,7 @@ const TwoFactorContent = () => {
                     </div>
 
                     {/* 2FA Card */}
-                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-6 sm:p-8">
+                    <div className="bg-white dark:bg-gov-card/10 rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-5 md:p-8">
                         {/* Error Message */}
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
@@ -374,7 +374,7 @@ const TwoFactorContent = () => {
                             </div>
                         )}
 
-                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                             {/* OTP Code Input */}
                             <div>
                                 <label className="block text-sm font-medium text-gov-charcoal dark:text-white mb-3 text-center">

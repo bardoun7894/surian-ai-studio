@@ -155,8 +155,8 @@ const ForgotPasswordPage = () => {
                         {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
                     </Link>
 
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                    <div className="mb-4 sm:mb-8">
+                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
                             {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
                         </h1>
                         <p className="text-gray-500 dark:text-white/70">

@@ -321,31 +321,31 @@ const LoginPage = () => {
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-8 sm:py-12 px-3 sm:px-6 md:px-8 overflow-y-auto min-h-screen">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8 overflow-hidden min-h-screen">
                 <div className="w-full max-w-md" ref={formRef}>
                     {/* Back Button */}
                     <Link
                         href="/"
-                        className="flex items-center gap-1 text-gray-500 hover:text-gov-teal transition-colors mb-6 group"
+                        className="flex items-center gap-1 text-gray-500 hover:text-gov-teal transition-colors mb-3 sm:mb-6 group"
                     >
                         <BackIcon size={18} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform" />
                         {language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-6">
+                    <div className="lg:hidden text-center mb-3">
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Logo"
-                            width={112}
-                            height={112}
-                            className="mx-auto mb-3 max-w-[112px] max-h-[112px]"
+                            width={80}
+                            height={80}
+                            className="mx-auto mb-3 max-w-[80px] max-h-[80px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-4 sm:mb-8">
                         <h1 className="text-3xl font-display font-bold text-gov-forest dark:text-gov-gold mb-2">
                             {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
                         </h1>

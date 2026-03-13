@@ -374,12 +374,12 @@ function NewsPageContent() {
                     {/* Featured/Breaking badges at top */}
                     <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
                       {featuredNews.isUrgent && (
-                        <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                        <span className="inline-block px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
                           {t('ui_breaking')}
                         </span>
                       )}
                       {(featuredNews as any).directorate_name && (
-                        <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full">
+                        <span className="inline-block px-2 py-0.5 bg-gov-gold/80 text-gov-forest text-[10px] font-bold rounded-full">
                           {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                         </span>
                       )}
@@ -517,12 +517,12 @@ function NewsPageContent() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                   <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
                     {featuredNews.isUrgent && (
-                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                      <span className="inline-block px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
                         {t('ui_breaking')}
                       </span>
                     )}
                     {(featuredNews as any).directorate_name && (
-                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full">
+                      <span className="inline-block px-2 py-0.5 bg-gov-gold/80 text-gov-forest text-[10px] font-bold rounded-full">
                         {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                       </span>
                     )}
@@ -532,10 +532,10 @@ function NewsPageContent() {
                       <Calendar size={14} />
                       {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
                     </div>
-                    <h3 className="text-lg md:text-3xl font-display font-bold text-white mb-2 group-hover:text-gov-gold transition-colors leading-tight">
+                    <h3 className="text-base md:text-xl font-display font-bold text-white mb-1.5 group-hover:text-gov-gold transition-colors leading-tight">
                       {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                     </h3>
-                    <p className="text-white/70 text-xs md:text-sm max-w-2xl line-clamp-2">
+                    <p className="text-white/60 text-[11px] md:text-xs max-w-2xl line-clamp-2">
                       {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
                     </p>
                   </div>

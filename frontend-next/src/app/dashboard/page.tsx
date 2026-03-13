@@ -22,7 +22,10 @@ import {
   Lightbulb,
   CheckCheck,
   Heart,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -93,6 +96,8 @@ export default function UserDashboard() {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [expandedComplaintIds, setExpandedComplaintIds] = useState<Set<number | string>>(new Set());
+  const [expandedSuggestionIds, setExpandedSuggestionIds] = useState<Set<number | string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
@@ -292,6 +297,22 @@ export default function UserDashboard() {
         toast.error(language === 'ar' ? 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل' : 'New password must be at least 8 characters');
         return;
       }
+      if (!/[A-Z]/.test(newPassword)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف كبير' : 'Password must contain an uppercase letter');
+        return;
+      }
+      if (!/[a-z]/.test(newPassword)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف صغير' : 'Password must contain a lowercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(newPassword)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رقم' : 'Password must contain a number');
+        return;
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رمز خاص' : 'Password must contain a special character');
+        return;
+      }
       if (profileData.password !== profileData.password_confirmation) {
         toast.error(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
         return;
@@ -330,6 +351,13 @@ export default function UserDashboard() {
       const errorData = e?.response?.data || e?.data;
       if (errorData?.errors?.current_password) {
         toast.error(language === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect');
+      } else if (errorData?.errors?.email) {
+        const emailErr = Array.isArray(errorData.errors.email) ? errorData.errors.email.join(, ) : errorData.errors.email;
+        if (String(emailErr).includes(taken) || String(emailErr).includes(unique)) {
+          toast.error(language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل' : 'The email address is already in use');
+        } else {
+          toast.error(emailErr);
+        }
       } else if (errorData?.errors?.password) {
         const pwErrors = Array.isArray(errorData.errors.password) ? errorData.errors.password.join(', ') : errorData.errors.password;
         toast.error(pwErrors);
@@ -527,7 +555,7 @@ export default function UserDashboard() {
     <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg transition-colors font-sans">
       <Navbar onSearch={(q) => window.location.href = `/search?q=${encodeURIComponent(q)}`} />
 
-      <main className="flex-grow pt-28 pb-12">
+      <main className="flex-grow pt-16 sm:pt-20 pb-8 sm:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}
@@ -535,13 +563,13 @@ export default function UserDashboard() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
+            className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 sm:mb-8"
           >
             <div>
-              <h1 className="text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
+              <h1 className="text-2xl sm:text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? `مرحباً، ${authUser?.first_name || 'مستخدم'}` : `Welcome, ${authUser?.first_name || 'User'}`}
               </h1>
-              <p className="text-gov-stone dark:text-white/70 text-lg">
+              <p className="text-gov-stone dark:text-white/70 text-sm sm:text-lg">
                 {language === 'ar' ? 'إدارة شكاواك واقتراحاتك وإعدادات حسابك' : 'Manage your complaints, suggestions, and account settings'}
               </p>
             </div>
@@ -561,7 +589,7 @@ export default function UserDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-none"
+            className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-none"
           >
             {tabs.map((tab) => (
               <motion.button
@@ -569,7 +597,7 @@ export default function UserDashboard() {
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold whitespace-nowrap transition-all shadow-sm ${activeTab === tab.id
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-3 rounded-2xl text-sm sm:text-base font-bold whitespace-nowrap transition-all shadow-sm ${activeTab === tab.id
                   ? 'bg-gov-teal text-white shadow-lg border border-gov-teal ring-2 ring-gov-teal/20'
                   : 'glass-card text-gov-charcoal dark:text-white hover:bg-white dark:hover:bg-white/10'
                   }`}
@@ -614,9 +642,27 @@ export default function UserDashboard() {
                             {stat.icon}
                           </div>
                           <div>
-                            <p className="text-4xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
+                            <p className="text-2xl sm:text-4xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
                             <p className="text-sm font-bold text-gov-stone dark:text-white/70 uppercase tracking-wide">{stat.label}</p>
                           </div>
+                          {expandedComplaintId === complaint.id && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15 text-sm space-y-2">
+                              {complaint.description && (
+                                <p className="text-gray-600 dark:text-white/70">{complaint.description}</p>
+                              )}
+                              <div className="flex flex-wrap gap-4 text-gray-500 dark:text-white/50">
+                                {complaint.directorate_name && <span>{language === 'ar' ? 'الجهة: ' : 'Dept: '}{complaint.directorate_name}</span>}
+                                {complaint.priority && <span>{language === 'ar' ? 'الأولوية: ' : 'Priority: '}{complaint.priority}</span>}
+                                {complaint.updated_at && <span>{language === 'ar' ? 'آخر تحديث: ' : 'Updated: '}{new Date(complaint.updated_at).toLocaleDateString('ar-SY-u-nu-latn')}</span>}
+                              </div>
+                              {complaint.admin_notes && (
+                                <div className="bg-gov-teal/5 dark:bg-gov-teal/10 p-3 rounded-lg">
+                                  <p className="text-xs font-bold text-gov-teal mb-1">{language === 'ar' ? 'ملاحظات' : 'Notes'}</p>
+                                  <p className="text-gray-700 dark:text-white/80">{complaint.admin_notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -874,9 +920,9 @@ export default function UserDashboard() {
                           <div className="flex items-center gap-4">
                             {getStatusBadge(complaint.status)}
                             <div className="flex items-center gap-2">
-                              <Link href={`/complaints/${complaint.tracking_number}`} className="p-2.5 bg-gray-50 dark:bg-white/10 rounded-xl hover:bg-gov-teal hover:text-white transition-colors text-gray-600 dark:text-white/70" title={language === 'ar' ? 'عرض التفاصيل' : 'View Details'}>
+                              <button onClick={() => setExpandedComplaintId(expandedComplaintId === complaint.id ? null : complaint.id)} className="p-2.5 bg-gray-50 dark:bg-white/10 rounded-xl hover:bg-gov-teal hover:text-white transition-colors text-gray-600 dark:text-white/70" title={language === 'ar' ? 'عرض التفاصيل' : 'View Details'}>
                                 <Eye size={20} />
-                              </Link>
+                              </button>
                               {c_delete(complaint) && (
                                 <button
                                   onClick={() => setDeleteModal({ open: true, complaint })}
@@ -941,7 +987,25 @@ export default function UserDashboard() {
                           </div>
                           <div className="flex items-center gap-4">
                             {getSuggestionStatusBadge(suggestion.status)}
+                            <button onClick={() => setExpandedSuggestionId(expandedSuggestionId === suggestion.id ? null : suggestion.id)} className="p-2.5 bg-gray-50 dark:bg-white/10 rounded-xl hover:bg-gov-gold hover:text-gov-forest transition-colors text-gray-600 dark:text-white/70">
+                              <Eye size={20} />
+                            </button>
                           </div>
+                          {expandedSuggestionId === suggestion.id && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15 text-sm space-y-2 w-full">
+                              <p className="text-gray-600 dark:text-white/70">{suggestion.description}</p>
+                              <div className="flex flex-wrap gap-4 text-gray-500 dark:text-white/50">
+                                <span>{language === 'ar' ? 'رقم التتبع: ' : 'Tracking: '}#{suggestion.tracking_number}</span>
+                                {suggestion.updated_at && <span>{language === 'ar' ? 'آخر تحديث: ' : 'Updated: '}{new Date(suggestion.updated_at).toLocaleDateString('ar-SY-u-nu-latn')}</span>}
+                              </div>
+                              {suggestion.response && (
+                                <div className="bg-gov-gold/5 dark:bg-gov-gold/10 p-3 rounded-lg">
+                                  <p className="text-xs font-bold text-gov-gold mb-1">{language === 'ar' ? 'الرد' : 'Response'}</p>
+                                  <p className="text-gray-700 dark:text-white/80">{suggestion.response}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </motion.div>
                       ))}
                     </div>

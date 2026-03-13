@@ -70,7 +70,7 @@ export const ComplaintPrintButton: React.FC<ComplaintPrintButtonProps> = ({
     <button
       type="button"
       onClick={handlePrint}
-      className={`flex items-center gap-2 px-4 py-2 bg-gov-teal text-white font-bold rounded-xl
+      className={`flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto text-center bg-gov-teal text-white font-bold rounded-xl
         hover:bg-gov-emerald transition-all ${className}`}
     >
       <Printer size={18} />

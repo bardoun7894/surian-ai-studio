@@ -584,7 +584,7 @@ export default function MediaPage() {
             <div
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-visible"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   : "flex flex-col gap-4"
               }
             >
@@ -620,7 +620,7 @@ export default function MediaPage() {
                           setExpandedImage(item);
                         }
                       }}
-                      className={`group relative bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 hover:z-10 ${
+                      className={`group relative bg-white dark:bg-dm-surface rounded-2xl border border-gray-100 dark:border-gov-border/15 overflow-hidden transition-all duration-300 hover:z-10 h-full ${
                         viewMode === "list"
                           ? "flex flex-row items-center gap-4"
                           : ""

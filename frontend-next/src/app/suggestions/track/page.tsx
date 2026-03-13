@@ -8,7 +8,7 @@ import Link from 'next/link';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
 import { formatDate as formatDateUtil, localizeDigits } from '@/lib/utils';
-import SuggestionRating from '@/components/SuggestionRating';
+
 
 interface SuggestionStatus {
     tracking_number: string;
@@ -260,18 +260,6 @@ function SuggestionTrackPageContent() {
                                             </p>
                                         )}
                                     </div>
-                                </div>
-                            )}
-
-
-                            {/* Rating Section - allow rating but hide success result */}
-                            {(result.response || result.status === 'completed' || result.status === 'reviewed' || result.status === 'responded') && (
-                                <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gov-border/15">
-                                    <SuggestionRating
-                                        trackingNumber={result.tracking_number}
-                                        language="ar"
-                                        hideSuccessView={true}
-                                    />
                                 </div>
                             )}
                         </div>

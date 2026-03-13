@@ -971,6 +971,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     color: #161616 !important;
   }
 
+
+  body.complaint-print-mode [data-complaint-print-target="true"] button,
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="print:hidden"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] span,
+  body.complaint-print-mode [data-complaint-print-target="true"] p,
+  body.complaint-print-mode [data-complaint-print-target="true"] div,
+  body.complaint-print-mode [data-complaint-print-target="true"] h3,
+  body.complaint-print-mode [data-complaint-print-target="true"] h4 {
+    color: #161616 !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="grid"] {
+    display: block !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="rounded"] {
+    border-radius: 4px !important;
+    border-color: #d0d0d0 !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="text-gray-500"],
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="text-gray-400"] {
+    color: #666 !important;
+  }
+
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="text-gov-charcoal"],
+  body.complaint-print-mode [data-complaint-print-target="true"] [class*="text-gov-forest"] {
+    color: #094239 !important;
+  }
   /* --- Suggestion Track Print --- */
   .print\:shadow-none {
     box-shadow: none !important;

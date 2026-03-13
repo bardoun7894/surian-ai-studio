@@ -151,7 +151,7 @@ export default function ContentFilter({
                     )}
 
                     {/* Date filters, extras, and count row */}
-                    <div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-4 flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                    <div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-4 flex-1 min-w-0 overflow-visible" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
                         <div className="flex flex-wrap md:flex-nowrap items-center gap-2 sm:gap-4 min-w-0">
 

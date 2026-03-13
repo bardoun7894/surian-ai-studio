@@ -518,7 +518,7 @@ export default function MediaPage() {
       <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
-          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-6">
+          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-4 md:px-6">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
                 {t("media_center_title")}
@@ -529,7 +529,7 @@ export default function MediaPage() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Unified Content Filter with Date Filter */}
             <ContentFilter
               tabs={filters}

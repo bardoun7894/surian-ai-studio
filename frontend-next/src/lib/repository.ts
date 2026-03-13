@@ -2387,7 +2387,7 @@ export const API = {
   reports: USE_MOCK_DATA ? new MockReportsRepository() : new ApiReportsRepository(),
   announcements: USE_MOCK_DATA ? new MockAnnouncementsRepository() : new ApiAnnouncementsRepository(),
   suggestions: USE_MOCK_DATA ? new MockSuggestionRepository() : new ApiSuggestionRepository(),
-  media: new MockMediaRepository(),
+  media: new ApiMediaRepository(),
   services: USE_MOCK_DATA ? new MockServicesRepository() : new ApiServicesRepository(),
   investments: USE_MOCK_DATA ? new MockInvestmentRepository() : new ApiInvestmentRepository(),
   investmentApplications: new ApiInvestmentApplicationRepository(),

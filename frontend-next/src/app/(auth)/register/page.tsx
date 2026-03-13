@@ -484,7 +484,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Right Panel - Register Form */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8 overflow-hidden min-h-screen">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8 overflow-x-hidden min-h-screen">
                 <div className="w-full max-w-lg">
                     {/* Back Button */}
                     <Link
@@ -544,7 +544,7 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Register Card */}
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-hidden">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-visible">
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>

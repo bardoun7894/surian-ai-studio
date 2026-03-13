@@ -170,6 +170,11 @@ export default function MediaPage() {
     }
   };
 
+  const getYouTubeThumbnail = (url: string): string => {
+    const id = getYouTubeId(url);
+    return id ? "https://img.youtube.com/vi/" + id + "/hqdefault.jpg" : "";
+  };
+
   const getYouTubeId = (url: string): string | null => {
     const match = url.match(
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -442,7 +447,7 @@ export default function MediaPage() {
         <video
           id={`video-${item.id}`}
           src={item.url}
-          poster={item.thumbnailUrl}
+          poster={item.thumbnailUrl || (isYouTubeUrl(item.url) ? getYouTubeThumbnail(item.url) : undefined)}
           controls
           autoPlay
           muted
@@ -653,7 +658,7 @@ export default function MediaPage() {
                               </div>
                             )}
                             <Image
-                              src={item.thumbnailUrl}
+                              src={item.thumbnailUrl || (isYouTubeUrl(item.url) ? getYouTubeThumbnail(item.url) : item.url)}
                               alt={getMediaTitle(item)}
                               fill
                               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

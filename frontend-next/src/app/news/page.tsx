@@ -496,6 +496,91 @@ function NewsPageContent() {
 
     return (
       <>
+        {/* Featured Hero Section - show on "all" tab, first page only */}
+        {activeView === 'all' && currentPage === 1 && featuredNews && (
+          <div className="mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+              {/* Main featured article */}
+              <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
+                <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[240px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
+                  {featuredNews.imageUrl ? (
+                    <Image
+                      src={featuredNews.imageUrl}
+                      alt={featuredNews.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      priority
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
+                    {featuredNews.isUrgent && (
+                      <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                        {t('ui_breaking')}
+                      </span>
+                    )}
+                    {(featuredNews as any).directorate_name && (
+                      <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full">
+                        {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+                    <div className="flex items-center gap-2 text-white/60 text-xs mb-2">
+                      <Calendar size={14} />
+                      {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
+                    </div>
+                    <h3 className="text-lg md:text-3xl font-display font-bold text-white mb-2 group-hover:text-gov-gold transition-colors leading-tight">
+                      {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
+                    </h3>
+                    <p className="text-white/70 text-xs md:text-sm max-w-2xl line-clamp-2">
+                      {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* 3 Recent articles stacked */}
+              <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
+                {recentNews.map((item) => (
+                  <Link
+                    key={`hero-recent-${item.id}`}
+                    href={`/news/${item.id}`}
+                    className="group flex gap-3 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-2.5 md:p-3 hover:shadow-md hover:border-gov-gold/30 hover:-translate-y-0.5 transition-all duration-300 flex-1"
+                  >
+                    {item.imageUrl && (
+                      <div className="relative w-24 h-20 md:w-32 md:h-28 rounded-lg overflow-hidden flex-shrink-0">
+                        <Image
+                          src={item.imageUrl}
+                          alt={isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      {(item as any).directorate_name && (
+                        <span className="text-[10px] md:text-xs text-gov-gold font-bold mb-1">
+                          {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
+                        </span>
+                      )}
+                      <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors">
+                        {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
+                      </h3>
+                      <span className="text-[10px] md:text-xs text-gray-400 dark:text-white/50 mt-1 flex items-center gap-1">
+                        <Calendar size={10} className="text-gov-gold" />
+                        {formatRelativeTime(item.date, language as 'ar' | 'en')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {filteredFlatNews.map((item, index) => (
             <ScrollAnimation key={`${item.id}-${index}`} delay={index * 0.05}>

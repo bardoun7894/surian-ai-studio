@@ -45,7 +45,7 @@ function NewsPageContent() {
     usePageLoading(loading);
 
   // Filter state
-  const [activeView, setActiveView] = useState<string>(() => searchParams.get('directorate') || 'organized');
+  const [activeView, setActiveView] = useState<string>(() => searchParams.get('directorate') || 'all');
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -169,7 +169,7 @@ function NewsPageContent() {
 
   // Paginated fetch for flat views (non-organized)
   useEffect(() => {
-    if (activeView === 'organized') return;
+    
 
     const fetchPaginated = async () => {
       setLoading(true);
@@ -199,7 +199,6 @@ function NewsPageContent() {
   // View tabs - use only main departments (featured directorates), not all individual directorates
   const viewTabs = useMemo(() => {
     const tabs = [
-      { key: 'organized', label: t('news_organized_view'), icon: LayoutGrid },
       { key: 'all', label: t('news_all'), icon: LayoutGrid },
       { key: 'central', label: t('news_central_admin'), icon: Landmark },
     ];
@@ -217,7 +216,7 @@ function NewsPageContent() {
     let result = [...allNews];
 
     // View filter
-    if (activeView !== 'organized' && activeView !== 'all' && activeView !== 'central') {
+    if (activeView !== 'all' && activeView !== 'central') {
       result = result.filter(item => String((item as any).directorate_id) === activeView);
     }
 
@@ -538,22 +537,22 @@ function NewsPageContent() {
             tabs={viewTabs}
             activeTab={activeView}
             onTabChange={(k) => { setActiveView(k); setVisibleCount(12); setCurrentPage(1); }}
-            showDateFilter={activeView !== 'organized'}
+            showDateFilter={true}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
             onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setVisibleCount(12); }}
-            onSearch={activeView !== 'organized' ? (q) => setSearchQuery(q) : undefined}
+            onSearch={ (q) => setSearchQuery(q) : undefined}
             searchValue={searchQuery}
-            totalCount={activeView === 'organized' ? allNews.length : totalItems}
+            totalCount={totalItems}
             countLabel={t('news_article_count')}
             className="mb-8"
           />
 
           {/* Content */}
-          {activeView === 'organized' ? renderOrganizedView() : renderFlatView()}
+          {renderFlatView()}
 
           {/* FAQ Section */}
-          {activeView !== 'organized' && (
+          {(
             <div className="mt-16 bg-white dark:bg-dm-surface rounded-2xl p-8 border border-gray-100 dark:border-gov-border/15">
               <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-6">
                 {t('news_faq_title')}

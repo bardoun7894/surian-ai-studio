@@ -19,6 +19,32 @@ const socialMediaLinks = [
 ];
 
 const Footer: React.FC = () => {
+
+  // Fetch social media links from admin settings
+  const [socialLinks, setSocialLinks] = useState(socialMediaLinks);
+  useEffect(() => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api/v1";
+    fetch(`${API_BASE}/public/settings/group/social_media`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && typeof data === "object") {
+          const iconMap: Record<string, any> = { facebook: Facebook, twitter: Twitter, instagram: Instagram, youtube: Youtube };
+          const links = Object.entries(data)
+            .filter(([, v]) => v && typeof v === "string" && (v as string).startsWith("http"))
+            .map(([k, v]) => {
+              const key = k.replace("_url", "").toLowerCase();
+              return {
+                icon: iconMap[key] || Send,
+                label: { ar: key, en: key.charAt(0).toUpperCase() + key.slice(1) },
+                href: v as string,
+              };
+            });
+          if (links.length > 0) setSocialLinks(links);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const { t, language } = useLanguage();
   const { fontSize, setFontSize, toggleHighContrast } = useTheme();
   const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
@@ -79,7 +105,7 @@ const Footer: React.FC = () => {
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-6 md:w-8 h-1 bg-gov-forest dark:bg-gov-teal rounded-full`}></span>
             </h4>
             <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-gov-forest/70 dark:text-white/70 transition-colors">
-              {socialMediaLinks.map((social) => {
+              {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
                   <li key={social.href}>

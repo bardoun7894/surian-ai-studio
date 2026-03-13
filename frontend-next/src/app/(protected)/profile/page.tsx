@@ -21,6 +21,7 @@ import {
     AlertCircle,
     Heart,
     ChevronDown,
+    ChevronUp,
     ArrowRight,
     ArrowLeft,
     FileText,
@@ -54,7 +55,9 @@ export default function ProfilePage() {
     const [mySuggestions, setMySuggestions] = useState<Suggestion[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
     const [myFavorites, setMyFavorites] = useState<Favorite[]>([]);
-    const [favoritesLoading, setFavoritesLoading] = useState(false);
+    const [favoritesLoading, setFavoritesLoading] = useState(false)
+    const [expandedComplaintId, setExpandedComplaintId] = useState<number | string | null>(null)
+    const [expandedSuggestionId, setExpandedSuggestionId] = useState<number | string | null>(null);
 
     // Email edit state
     const [emailEditMode, setEmailEditMode] = useState<'view' | 'input' | 'verify'>('view');
@@ -994,7 +997,7 @@ export default function ProfilePage() {
                                         return (
                                             <div
                                                 key={complaint.id}
-                                                onClick={() => router.push(`/complaints/${complaint.tracking_number || complaint.id}`)}
+                                                onClick={() => setExpandedComplaintId(expandedComplaintId === complaint.id ? null : complaint.id)}
                                                 className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md hover:border-gov-teal/30 group"
                                             >
                                                 <div className="flex flex-col sm:flex-row justify-between gap-3">
@@ -1026,11 +1029,22 @@ export default function ProfilePage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center shrink-0">
-                                                        <span className="text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                                                        <span className="text-gov-teal">
+                                                            {expandedComplaintId === complaint.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                                         </span>
                                                     </div>
                                                 </div>
+                                                {expandedComplaintId === complaint.id && (
+                                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gov-border/15 text-sm space-y-2">
+                                                        {complaint.description && <p className="text-gray-600 dark:text-white/70">{complaint.description}</p>}
+                                                        {complaint.admin_notes && (
+                                                            <div className="bg-gov-teal/5 dark:bg-gov-teal/10 p-3 rounded-xl">
+                                                                <p className="text-xs font-bold text-gov-teal mb-1">{language === 'ar' ? 'ملاحظات' : 'Notes'}</p>
+                                                                <p className="text-gray-700 dark:text-white/80">{complaint.admin_notes}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -1082,7 +1096,7 @@ export default function ProfilePage() {
                                         return (
                                             <div
                                                 key={suggestion.id}
-                                                onClick={() => router.push(`/suggestions?track=${suggestion.tracking_number}`)}
+                                                onClick={() => setExpandedSuggestionId(expandedSuggestionId === suggestion.id ? null : suggestion.id)}
                                                 className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gov-border/15 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md hover:border-gov-teal/30 group"
                                             >
                                                 <div className="flex flex-col sm:flex-row justify-between gap-3">
@@ -1114,11 +1128,22 @@ export default function ProfilePage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center shrink-0">
-                                                        <span className="text-gov-teal opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                                                        <span className="text-gov-teal">
+                                                            {expandedSuggestionId === suggestion.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                                         </span>
                                                     </div>
                                                 </div>
+                                                {expandedSuggestionId === suggestion.id && (
+                                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gov-border/15 text-sm space-y-2">
+                                                        <p className="text-gray-600 dark:text-white/70">{suggestion.description}</p>
+                                                        {suggestion.response && (
+                                                            <div className="bg-gov-gold/5 dark:bg-gov-gold/10 p-3 rounded-xl">
+                                                                <p className="text-xs font-bold text-gov-gold mb-1">{language === 'ar' ? 'الرد' : 'Response'}</p>
+                                                                <p className="text-gray-700 dark:text-white/80">{suggestion.response}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

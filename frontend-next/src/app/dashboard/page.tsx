@@ -96,8 +96,8 @@ export default function UserDashboard() {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [expandedComplaintIds, setExpandedComplaintIds] = useState<Set<number | string>>(new Set());
-  const [expandedSuggestionIds, setExpandedSuggestionIds] = useState<Set<number | string>>(new Set());
+  const [expandedComplaintId, setExpandedComplaintId] = useState<number | string | null>(null);
+  const [expandedSuggestionId, setExpandedSuggestionId] = useState<number | string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
@@ -313,6 +313,22 @@ export default function UserDashboard() {
         toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رمز خاص' : 'Password must contain a special character');
         return;
       }
+      if (!/[A-Z]/.test(profileData.password)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' : 'Password must contain at least one uppercase letter');
+        return;
+      }
+      if (!/[a-z]/.test(profileData.password)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' : 'Password must contain at least one lowercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(profileData.password)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' : 'Password must contain at least one number');
+        return;
+      }
+      if (!/[!@#$%^&*]/.test(profileData.password)) {
+        toast.error(language === 'ar' ? 'كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل' : 'Password must contain at least one special character');
+        return;
+      }
       if (profileData.password !== profileData.password_confirmation) {
         toast.error(language === 'ar' ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
         return;
@@ -361,8 +377,12 @@ export default function UserDashboard() {
       } else if (errorData?.errors?.password) {
         const pwErrors = Array.isArray(errorData.errors.password) ? errorData.errors.password.join(', ') : errorData.errors.password;
         toast.error(pwErrors);
+      } else if (errorData?.errors?.email) {
+        toast.error(language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل' : 'Email is already in use');
+      } else if (errorData?.errors?.phone) {
+        toast.error(language === 'ar' ? 'رقم الهاتف غير صالح أو مستخدم بالفعل' : 'Phone number is invalid or already in use');
       } else {
-        const msg = e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
+        const msg = errorData?.message || e?.message || (language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'Error updating profile');
         toast.error(msg);
       }
     } finally {
@@ -645,24 +665,6 @@ export default function UserDashboard() {
                             <p className="text-2xl sm:text-4xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
                             <p className="text-sm font-bold text-gov-stone dark:text-white/70 uppercase tracking-wide">{stat.label}</p>
                           </div>
-                          {expandedComplaintId === complaint.id && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15 text-sm space-y-2">
-                              {complaint.description && (
-                                <p className="text-gray-600 dark:text-white/70">{complaint.description}</p>
-                              )}
-                              <div className="flex flex-wrap gap-4 text-gray-500 dark:text-white/50">
-                                {complaint.directorate_name && <span>{language === 'ar' ? 'الجهة: ' : 'Dept: '}{complaint.directorate_name}</span>}
-                                {complaint.priority && <span>{language === 'ar' ? 'الأولوية: ' : 'Priority: '}{complaint.priority}</span>}
-                                {complaint.updated_at && <span>{language === 'ar' ? 'آخر تحديث: ' : 'Updated: '}{new Date(complaint.updated_at).toLocaleDateString('ar-SY-u-nu-latn')}</span>}
-                              </div>
-                              {complaint.admin_notes && (
-                                <div className="bg-gov-teal/5 dark:bg-gov-teal/10 p-3 rounded-lg">
-                                  <p className="text-xs font-bold text-gov-teal mb-1">{language === 'ar' ? 'ملاحظات' : 'Notes'}</p>
-                                  <p className="text-gray-700 dark:text-white/80">{complaint.admin_notes}</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -934,6 +936,25 @@ export default function UserDashboard() {
                               )}
                             </div>
                           </div>
+                          {expandedComplaintId === complaint.id && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gov-border/15 text-sm space-y-3 w-full">
+                              {complaint.description && (
+                                <p className="text-gray-600 dark:text-white/70">{complaint.description}</p>
+                              )}
+                              <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-white/50">
+                                {typeof complaint.directorate === "object" && complaint.directorate && (
+                                  <span className="flex items-center gap-1"><MapPin size={12} />{language === "ar" ? (complaint.directorate.name_ar || complaint.directorate.name) : (complaint.directorate.name_en || complaint.directorate.name)}</span>
+                                )}
+                                {complaint.updated_at && <span>{language === "ar" ? "آخر تحديث: " : "Updated: "}{new Date(complaint.updated_at).toLocaleDateString(language === "ar" ? "ar-SY-u-nu-latn" : "en-US")}</span>}
+                              </div>
+                              {complaint.admin_notes && (
+                                <div className="bg-gov-teal/5 dark:bg-gov-teal/10 p-3 rounded-xl">
+                                  <p className="text-xs font-bold text-gov-teal mb-1">{language === "ar" ? "ملاحظات" : "Notes"}</p>
+                                  <p className="text-gray-700 dark:text-white/80">{complaint.admin_notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </motion.div>
                       ))}
                     </div>

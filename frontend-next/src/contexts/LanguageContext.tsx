@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { setCachedLanguage } from '@/lib/api';
 
 type Language = 'ar' | 'en';
 type Direction = 'rtl' | 'ltr';
@@ -1132,6 +1133,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem('gov_lang', language);
+    setCachedLanguage(language);
     document.documentElement.setAttribute('dir', direction);
     document.documentElement.setAttribute('lang', language);
 

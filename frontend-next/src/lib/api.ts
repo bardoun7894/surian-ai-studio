@@ -10,19 +10,47 @@ const API_URL = '/api/v1';
 // Token storage key
 const TOKEN_KEY = 'auth_token';
 
+// Module-level cache for language to avoid localStorage reads on every API call
+let _cachedLang: string = typeof window !== 'undefined'
+  ? localStorage.getItem('gov_lang') || 'ar'
+  : 'ar';
+
+// Module-level cache for XSRF token with TTL to avoid cookie parsing on every non-GET request
+let _cachedXsrfToken: string | null = null;
+let _xsrfTokenTimestamp = 0;
+const XSRF_CACHE_TTL = 5000; // 5 seconds
+
+/** Called by LanguageContext when language changes to keep cache in sync */
+export function setCachedLanguage(lang: string): void {
+  _cachedLang = lang;
+}
+
+/** Invalidate XSRF token cache (called after getCsrfCookie) */
+function invalidateXsrfCache(): void {
+  _cachedXsrfToken = null;
+  _xsrfTokenTimestamp = 0;
+}
+
 // Get CSRF cookie from Laravel Sanctum
 export async function getCsrfCookie(): Promise<void> {
   await fetch(`/sanctum/csrf-cookie`, {
     method: 'GET',
     credentials: 'include',
   });
+  invalidateXsrfCache();
 }
 
-// Get XSRF token from cookies
+// Get XSRF token from cookies (with cache)
 function getXsrfToken(): string | null {
   if (typeof document === 'undefined') return null;
+  const now = Date.now();
+  if (_cachedXsrfToken && now - _xsrfTokenTimestamp < XSRF_CACHE_TTL) {
+    return _cachedXsrfToken;
+  }
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  _cachedXsrfToken = match ? decodeURIComponent(match[1]) : null;
+  _xsrfTokenTimestamp = now;
+  return _cachedXsrfToken;
 }
 
 // Token management functions
@@ -58,10 +86,8 @@ async function apiFetch<T>(
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
-  // Get current language from localStorage
-  const lang = typeof window !== 'undefined'
-    ? localStorage.getItem('gov_lang') || 'ar'
-    : 'ar';
+  // Use cached language (avoids localStorage read per API call)
+  const lang = _cachedLang;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

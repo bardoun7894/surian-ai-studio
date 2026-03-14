@@ -22,6 +22,7 @@ const nextConfig = {
   // Allow useSearchParams() without Suspense boundary (pre-existing across all pages)
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 
   // Allow dev access from public IP

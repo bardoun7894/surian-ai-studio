@@ -202,7 +202,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
         // Add event listener specifically to the eagle circle wrapper
         const eagleEl = eagleRef.current;
         if (eagleEl) {
-          eagleEl.addEventListener('mousemove', handleMouseMove);
+          eagleEl.addEventListener('mousemove', handleMouseMove, { passive: true });
           eagleEl.addEventListener('mouseleave', handleMouseLeave);
         }
 
@@ -250,7 +250,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
       });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 

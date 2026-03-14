@@ -99,7 +99,7 @@ const NewsSection: React.FC = () => {
     // Initial check
     setTimeout(updateScrollButtons, 100);
     // Update on scroll
-    el.addEventListener('scroll', updateScrollButtons);
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
     // Also update after resize
     window.addEventListener('resize', updateScrollButtons);
     return () => {

@@ -56,15 +56,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (!user) return;
 
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      window.addEventListener(event, updateActivity);
-    });
+    const activeEvents = ['mousedown', 'keydown'];
+    const passiveEvents = ['scroll', 'touchstart'];
+    activeEvents.forEach(e => window.addEventListener(e, updateActivity));
+    passiveEvents.forEach(e => window.addEventListener(e, updateActivity, { passive: true }));
 
     return () => {
-      events.forEach(event => {
-        window.removeEventListener(event, updateActivity);
-      });
+      activeEvents.forEach(e => window.removeEventListener(e, updateActivity));
+      passiveEvents.forEach(e => window.removeEventListener(e, updateActivity));
     };
   }, [user, updateActivity]);
 

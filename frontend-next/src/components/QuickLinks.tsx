@@ -120,7 +120,7 @@ const QuickLinks: React.FC<QuickLinksProps> = ({ section = 'homepage', directora
     const el = scrollContainerRef.current;
     if (!el) return;
     setTimeout(updateScrollButtons, 100);
-    el.addEventListener('scroll', updateScrollButtons);
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
     window.addEventListener('resize', updateScrollButtons);
     return () => {
       el.removeEventListener('scroll', updateScrollButtons);

@@ -358,7 +358,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 {/* Related Items */}
                 {relatedItems && relatedItems.length > 0 && (
                     <div className="mt-16 print:hidden">
-                        <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-white mb-8 border-r-4 border-gov-gold pr-4">
+                        <h2 className="text-lg md:text-2xl font-display font-bold text-gov-forest dark:text-white mb-8 border-r-4 border-gov-gold pr-4">
                             {lang === 'ar' ? 'مواضيع ذات صلة' : 'Related Topics'}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

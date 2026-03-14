@@ -71,7 +71,7 @@ const SubDirectorateDetail = () => {
         return (
             <div className="min-h-screen flex flex-col justify-center items-center bg-gov-beige dark:bg-dm-bg text-gov-charcoal dark:text-white">
                 <Building2 size={64} className="mb-4 text-gov-sand opacity-50" />
-                <h2 className="text-2xl font-bold mb-2">{t('ui_no_results')}</h2>
+                <h2 className="text-lg md:text-2xl font-bold mb-2">{t('ui_no_results')}</h2>
                 <button
                     onClick={() => router.back()}
                     className="mt-4 px-6 py-2 bg-gov-teal text-white rounded-lg hover:bg-gov-emerald transition-colors"

@@ -143,7 +143,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({
             <span className="inline-block px-3 py-1 rounded-full bg-black/20 text-white text-xs font-bold mb-4 border border-white/10">
               {badge}
             </span>
-            <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+            <h3 className="text-lg md:text-2xl font-bold text-white mb-2">{title}</h3>
             {description && (
               <p className="text-white/80 text-sm">{description}</p>
             )}

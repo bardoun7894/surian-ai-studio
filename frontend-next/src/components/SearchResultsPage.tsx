@@ -650,7 +650,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery = ''
                                 <div className="w-20 h-20 bg-gray-100 dark:bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                     <Search size={32} className="text-gray-300 dark:text-white/70" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
+                                <h3 className="text-lg md:text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
                                     {language === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching results'}
                                 </h3>
                                 <p className="text-gray-500 dark:text-white/60 max-w-md mx-auto mb-6">

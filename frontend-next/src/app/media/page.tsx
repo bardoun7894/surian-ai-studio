@@ -714,12 +714,12 @@ export default function MediaPage() {
                                 handlePlayInline(item, e);
                               }
                             }}
-                            className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-20 cursor-pointer"
+                            className="absolute inset-0 w-full h-full flex items-center justify-center z-20 cursor-pointer"
                           >
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
                               <Play
-                                size={28}
-                                className="text-gov-forest"
+                                size={24}
+                                className="text-gov-forest ms-0.5"
                                 fill="currentColor"
                               />
                             </div>

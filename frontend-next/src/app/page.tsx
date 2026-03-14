@@ -142,15 +142,22 @@ export default function HomePage() {
   ]);
 
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting && entry.target.id) {
-            const newHash = `#${entry.target.id}`;
-            if (window.location.hash !== newHash) {
-              window.history.replaceState(null, '', newHash);
-            }
-            sessionStorage.setItem('homepage-section', entry.target.id);
+            const sectionId = entry.target.id;
+            // Debounce hash updates to avoid excessive replaceState calls
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+              const newHash = `#${sectionId}`;
+              if (window.location.hash !== newHash) {
+                window.history.replaceState(null, '', newHash);
+              }
+              sessionStorage.setItem('homepage-section', sectionId);
+            }, 100);
           }
         }
       },
@@ -167,6 +174,7 @@ export default function HomePage() {
 
     return () => {
       clearTimeout(timer);
+      if (debounceTimer) clearTimeout(debounceTimer);
       observer.disconnect();
     };
   }, []);

@@ -386,6 +386,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+.animate-ticker-rtl, .animate-ticker-ltr {
+  contain: layout style paint;
+}
+
 .animate-ticker-rtl {
   animation-name: ticker-scroll-rtl;
   animation-timing-function: linear;

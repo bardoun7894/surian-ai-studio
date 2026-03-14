@@ -220,38 +220,45 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hasBreakingNews = false, onNe
     return () => ctx.revert();
   }, [loading]);
 
-  // Update Eagle Parallax to be smoother and follow cursor
+  // Update Eagle Parallax to be smoother and follow cursor (throttled with rAF)
   useEffect(() => {
     if (typeof window === 'undefined' || !eagleRef.current || !eagleContentRef.current) return;
 
+    let rafId: number | null = null;
+
     const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
+      if (rafId) return; // Skip if a frame is already pending
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const { clientX, clientY } = e;
+        const { innerWidth, innerHeight } = window;
 
-      // Calculate normalized position (-1 to 1)
-      const x = (clientX / innerWidth - 0.5) * 2;
-      const y = (clientY / innerHeight - 0.5) * 2;
+        const x = (clientX / innerWidth - 0.5) * 2;
+        const y = (clientY / innerHeight - 0.5) * 2;
 
-      gsap.to(eagleContentRef.current, {
-        rotationY: x * 15, // Rotate based on X
-        rotationX: -y * 15, // Rotate based on Y
-        x: x * 20, // Move slightly
-        y: y * 20,
-        duration: 1,
-        ease: "power2.out"
-      });
+        gsap.to(eagleContentRef.current, {
+          rotationY: x * 15,
+          rotationX: -y * 15,
+          x: x * 20,
+          y: y * 20,
+          duration: 1,
+          ease: "power2.out"
+        });
 
-      // Move the shadow/glow in opposite direction for depth
-      gsap.to(eagleRef.current?.querySelector('.eagle-glow'), {
-        x: -x * 30,
-        y: -y * 30,
-        duration: 1.5,
-        ease: "power2.out"
+        gsap.to(eagleRef.current?.querySelector('.eagle-glow'), {
+          x: -x * 30,
+          y: -y * 30,
+          duration: 1.5,
+          ease: "power2.out"
+        });
       });
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Loading skeleton

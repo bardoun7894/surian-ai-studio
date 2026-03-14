@@ -12,8 +12,8 @@ import ExternalLinkModal from '@/components/ExternalLinkModal';
 import dynamic from 'next/dynamic';
 import { Toaster } from 'sonner';
 
-const UserSatisfactionIndicator = dynamic(() => import('@/components/UserSatisfactionIndicator'), { ssr: false });
-const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false });
+const UserSatisfactionIndicator = dynamic(() => import('@/components/UserSatisfactionIndicator'), { ssr: false, loading: () => null });
+const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false, loading: () => null });
 
 interface ProvidersProps {
   children: ReactNode;

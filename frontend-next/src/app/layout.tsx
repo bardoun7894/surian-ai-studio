@@ -93,6 +93,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <link rel="preload" href="/fonts/itfQomraArabic-Regular.otf" as="font" type="font/otf" crossOrigin="anonymous" />
+            <link rel="preload" href="/fonts/itfQomraArabic-Bold.otf" as="font" type="font/otf" crossOrigin="anonymous" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="icon" href="/assets/logo/11.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />

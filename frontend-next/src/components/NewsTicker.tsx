@@ -117,8 +117,8 @@ const NewsTicker: React.FC<NewsTickerProps> = ({
 
   if (breakingNews.length === 0) return null;
 
-  // Triple the items to ensure it feels "longer" and has plenty of content to scroll through
-  const items = [...breakingNews, ...breakingNews, ...breakingNews];
+  // Double the items for seamless infinite scroll (2x instead of 3x to reduce DOM nodes)
+  const items = [...breakingNews, ...breakingNews];
   // Increase multiplier from 2.8 to 6.0 to make it significantly slower
   const animationDuration = Math.max(30, items.length * 6.0);
 

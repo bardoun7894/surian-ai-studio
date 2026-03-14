@@ -105,7 +105,6 @@ const SubDirectorateDetail = () => {
         );
     }
 
-    const isAr = language === 'ar';
     const name = typeof subDirectorate.name === 'string' ? subDirectorate.name : (isAr ? subDirectorate.name.ar : subDirectorate.name.en);
     const description = typeof (subDirectorate as any).description === 'string' ? (subDirectorate as any).description : (isAr ? (subDirectorate as any).description?.ar : (subDirectorate as any).description?.en);
     const parentName = typeof parentDirectorate.name === 'string' ? parentDirectorate.name : (isAr ? parentDirectorate.name.ar : parentDirectorate.name.en);

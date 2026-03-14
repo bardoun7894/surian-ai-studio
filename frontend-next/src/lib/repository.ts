@@ -664,6 +664,9 @@ class ApiComplaintRepository implements IComplaintRepository {
     if (data.email) formData.append('email', data.email);
     if (data.dob) formData.append('dob', data.dob);
     if (data.recaptcha_token) formData.append('recaptcha_token', data.recaptcha_token);
+    if ((data as any).hasPreviousComplaint) {
+      formData.append('has_previous_complaint', '1');
+    }
     if (data.previousTrackingNumber) formData.append('previous_tracking_number', data.previousTrackingNumber);
 
     // Template fields
@@ -759,7 +762,9 @@ class ApiComplaintRepository implements IComplaintRepository {
       let backendMessage = '';
       try {
         const payload = await res.json();
-        if (typeof payload?.message === 'string') {
+        if (typeof payload?.error === 'string') {
+          backendMessage = payload.error;
+        } else if (typeof payload?.message === 'string') {
           backendMessage = payload.message;
         } else if (payload?.errors && typeof payload.errors === 'object') {
           const errorLines = Object.values(payload.errors as Record<string, string[]>).flat();
@@ -1620,17 +1625,17 @@ export interface AlbumData {
 }
 
 export interface IMediaRepository {
-  getAll(): Promise<MediaItem[]>;
-  getByType(type: string): Promise<MediaItem[]>;
-  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>>;
-  getAlbumPhotos(id: string): Promise<AlbumData>;
+  getAll(lang?: string): Promise<MediaItem[]>;
+  getByType(type: string, lang?: string): Promise<MediaItem[]>;
+  getPaginated(page: number, perPage: number, type?: string, month?: number | null, year?: number | null, lang?: string): Promise<PaginatedResponse<MediaItem>>;
+  getAlbumPhotos(id: string, lang?: string): Promise<AlbumData>;
 }
 
 class MockMediaRepository implements IMediaRepository {
-  async getAll(): Promise<MediaItem[]> {
+  async getAll(_lang?: string): Promise<MediaItem[]> {
     return new Promise(resolve => setTimeout(() => resolve(MOCK_MEDIA), 400));
   }
-  async getByType(type: string): Promise<MediaItem[]> {
+  async getByType(type: string, _lang?: string): Promise<MediaItem[]> {
     return new Promise(resolve => {
       setTimeout(() => {
         if (type === 'all') resolve(MOCK_MEDIA);
@@ -1638,7 +1643,7 @@ class MockMediaRepository implements IMediaRepository {
       }, 300);
     });
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, _lang?: string): Promise<PaginatedResponse<MediaItem>> {
     const all = type && type !== 'all' ? MOCK_MEDIA.filter(m => m.type === type) : MOCK_MEDIA;
     const start = (page - 1) * perPage;
     const data = all.slice(start, start + perPage);
@@ -1650,7 +1655,7 @@ class MockMediaRepository implements IMediaRepository {
       total: all.length,
     };
   }
-  async getAlbumPhotos(id: string): Promise<AlbumData> {
+  async getAlbumPhotos(id: string, _lang?: string): Promise<AlbumData> {
     const album = MOCK_MEDIA.find(m => m.id === id && m.type === 'photo' && m.count);
     if (!album) throw new Error('Album not found');
     const photos = Array.from({ length: album.count || 12 }).map((_, i) => ({
@@ -1674,27 +1679,36 @@ class MockMediaRepository implements IMediaRepository {
 }
 
 class ApiMediaRepository implements IMediaRepository {
-  async getAll(): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/media`);
+  async getAll(lang?: string): Promise<MediaItem[]> {
+    const params = new URLSearchParams();
+    if (lang) params.append('lang', lang);
+    const qs = params.toString();
+    const res = await fetch(`${API_BASE_URL}/public/media${qs ? `?${qs}` : ''}`);
     if (!res.ok) return [];
     return res.json();
   }
-  async getByType(type: string): Promise<MediaItem[]> {
-    const res = await fetch(`${API_BASE_URL}/public/media?type=${type}`);
+  async getByType(type: string, lang?: string): Promise<MediaItem[]> {
+    const params = new URLSearchParams({ type });
+    if (lang) params.append('lang', lang);
+    const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return [];
     return res.json();
   }
-  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null): Promise<PaginatedResponse<MediaItem>> {
+  async getPaginated(page: number = 1, perPage: number = 12, type?: string, month?: number | null, year?: number | null, lang?: string): Promise<PaginatedResponse<MediaItem>> {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (type && type !== 'all') params.append('type', type);
     if (month !== null && month !== undefined) params.append('month', String(month));
     if (year !== null && year !== undefined) params.append('year', String(year));
+    if (lang) params.append('lang', lang);
     const res = await fetch(`${API_BASE_URL}/public/media?${params.toString()}`);
     if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: perPage, total: 0 };
     return res.json();
   }
-  async getAlbumPhotos(id: string): Promise<AlbumData> {
-    const res = await fetch(`${API_BASE_URL}/public/media/${id}/photos`);
+  async getAlbumPhotos(id: string, lang?: string): Promise<AlbumData> {
+    const params = new URLSearchParams();
+    if (lang) params.append('lang', lang);
+    const qs = params.toString();
+    const res = await fetch(`${API_BASE_URL}/public/media/${id}/photos${qs ? `?${qs}` : ''}`);
     if (!res.ok) throw new Error('Album not found');
     return res.json();
   }
@@ -2831,9 +2845,12 @@ export const API = {
   // --- Search Autocomplete ---
   searchAutocomplete: {
     // M7.1: Accept lang parameter to return suggestions in the correct language
+    // Bug fix: Allow single-character Arabic queries (matching backend behavior)
     async suggest(query: string, lang?: string): Promise<AutocompleteSuggestion[]> {
       try {
-        if (query.length < 2) return [];
+        const isArabic = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(query);
+        const minLength = isArabic ? 1 : 2;
+        if (query.length < minLength) return [];
         const params = new URLSearchParams({ q: query });
         if (lang) params.append('lang', lang);
         const res = await fetch(`${API_BASE_URL}/public/search/autocomplete?${params.toString()}`, {
@@ -2843,6 +2860,107 @@ export const API = {
         const data = await res.json();
         return data.suggestions || [];
       } catch { return []; }
+    },
+  },
+
+  // --- Government Partners ---
+  governmentPartners: {
+    async getAll(): Promise<any[]> {
+      try {
+        const res = await fetch(`${API_BASE_URL}/public/government-partners`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || [];
+      } catch { return []; }
+    },
+    async adminList(params?: { search?: string }): Promise<{ data: any[]; total: number }> {
+      try {
+        const searchParams = new URLSearchParams();
+        if (params?.search) searchParams.append('search', params.search);
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        const xsrfToken = getXsrfToken();
+        const headers: Record<string, string> = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+        const res = await fetch(`${API_BASE_URL}/admin/government-partners?${searchParams.toString()}`, {
+          credentials: 'include',
+          headers,
+        });
+        if (!res.ok) return { data: [], total: 0 };
+        const data = await res.json();
+        return { data: data.data || [], total: data.total || 0 };
+      } catch { return { data: [], total: 0 }; }
+    },
+    async create(formData: FormData): Promise<any> {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to create partner');
+      }
+      return res.json();
+    },
+    async update(id: number, formData: FormData): Promise<any> {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}`, {
+        method: 'POST', // POST for FormData with file upload
+        credentials: 'include',
+        headers,
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to update partner');
+      }
+      return res.json();
+    },
+    async delete(id: number): Promise<void> {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers,
+      });
+      if (!res.ok) throw new Error('Failed to delete partner');
+    },
+    async toggleActive(id: number): Promise<any> {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const xsrfToken = getXsrfToken();
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
+      const res = await fetch(`${API_BASE_URL}/admin/government-partners/${id}/toggle-active`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers,
+      });
+      if (!res.ok) throw new Error('Failed to toggle status');
+      return res.json();
     },
   },
 };

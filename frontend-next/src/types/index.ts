@@ -150,6 +150,9 @@ export interface MediaItem {
   title: string;
   title_ar?: string;
   title_en?: string;
+  description?: string;
+  description_ar?: string;
+  description_en?: string;
   type: 'video' | 'photo' | 'infographic';
   thumbnailUrl: string;
   url?: string;

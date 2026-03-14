@@ -39,6 +39,10 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
     const { t, language } = useLanguage();
     const isAr = language === 'ar';
 
+    const [directorate, setDirectorate] = useState<Directorate | null>(null);
+    const [loading, setLoading] = useState(true);
+    usePageLoading(loading);
+
   // Set breadcrumb to actual directorate name
   React.useEffect(() => {
     if (directorate) {
@@ -51,10 +55,6 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
       if (directorate) clearLabel("/directorates/" + directorate.id);
     };
   }, [directorate, isAr, setLabel, clearLabel]);
-
-    const [directorate, setDirectorate] = useState<Directorate | null>(null);
-    const [loading, setLoading] = useState(true);
-    usePageLoading(loading);
 
 
     // News & Announcements

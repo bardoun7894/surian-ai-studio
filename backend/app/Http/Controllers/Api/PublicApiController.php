@@ -347,7 +347,16 @@ class PublicApiController extends Controller
             ->orderBy('published_at', 'desc');
 
         if ($request->has('directorate_id')) {
-            $query->where('directorate_id', $request->directorate_id);
+            if ($request->directorate_id === 'central') {
+                // Central admin: exclude featured directorates (they have their own tabs)
+                $featuredIds = \App\Models\Directorate::where('featured', true)
+                    ->where('is_active', true)
+                    ->pluck('id')
+                    ->toArray();
+                $query->whereNotIn('directorate_id', $featuredIds);
+            } else {
+                $query->where('directorate_id', $request->directorate_id);
+            }
         }
 
         // Support server-side pagination
@@ -760,7 +769,9 @@ class PublicApiController extends Controller
             $query->whereYear('published_at', (int) $request->year);
         }
 
-        $formatMedia = function($m) {
+        $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'ar';
+
+        $formatMedia = function($m) use ($lang) {
             $mediaType = $m->metadata['media_type'] ?? 'photo';
             // For photo/infographic types, use actual attachment count if metadata count is not set
             $count = $m->metadata['count'] ?? null;
@@ -773,11 +784,23 @@ class PublicApiController extends Controller
                     $count = $attachmentCount;
                 }
             }
+
+            // Locale-aware title: prefer requested language, fall back to the other
+            $title = $lang === 'en'
+                ? ($m->title_en ?: $m->title_ar)
+                : ($m->title_ar ?: $m->title_en);
+            $descEn = $m->seo_description_en ?? mb_substr(strip_tags($m->content_en ?? ''), 0, 200);
+            $descAr = $m->seo_description_ar ?? mb_substr(strip_tags($m->content_ar), 0, 200);
+            $description = $lang === 'en'
+                ? ($descEn ?: $descAr)
+                : ($descAr ?: $descEn);
+
             return [
                 'id' => (string) $m->id,
-                'title' => $m->title_ar,
+                'title' => $title,
                 'title_ar' => $m->title_ar,
                 'title_en' => $m->title_en,
+                'description' => $description,
                 'description_ar' => $m->seo_description_ar ?? mb_substr(strip_tags($m->content_ar), 0, 200),
                 'description_en' => $m->seo_description_en ?? mb_substr(strip_tags($m->content_en ?? ''), 0, 200),
                 'type' => $mediaType,
@@ -810,7 +833,7 @@ class PublicApiController extends Controller
     /**
      * Get album photos by media content ID
      */
-    public function albumPhotos(string $id): JsonResponse
+    public function albumPhotos(string $id, Request $request): JsonResponse
     {
         $content = Content::where('category', 'media')
             ->where('status', 'published')
@@ -821,22 +844,33 @@ class PublicApiController extends Controller
             return response()->json(['error' => 'Album not found'], 404);
         }
 
+        $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'ar';
+
         $attachments = $content->attachments()
             ->where('is_public', true)
             ->where('file_type', 'image')
             ->get()
-            ->map(fn($a) => [
-                'id' => (string) $a->id,
-                'url' => $a->getUrl(),
-                'title' => $a->title_ar ?? $a->title_en ?? $a->file_name,
-                'title_ar' => $a->title_ar,
-                'title_en' => $a->title_en,
-                'file_name' => $a->file_name,
-            ]);
+            ->map(function ($a) use ($lang) {
+                $title = $lang === 'en'
+                    ? ($a->title_en ?? $a->title_ar ?? $a->file_name)
+                    : ($a->title_ar ?? $a->title_en ?? $a->file_name);
+                return [
+                    'id' => (string) $a->id,
+                    'url' => $a->getUrl(),
+                    'title' => $title,
+                    'title_ar' => $a->title_ar,
+                    'title_en' => $a->title_en,
+                    'file_name' => $a->file_name,
+                ];
+            });
+
+        $albumTitle = $lang === 'en'
+            ? ($content->title_en ?: $content->title_ar)
+            : ($content->title_ar ?: $content->title_en);
 
         return response()->json([
             'id' => (string) $content->id,
-            'title' => $content->title_ar,
+            'title' => $albumTitle,
             'title_ar' => $content->title_ar,
             'title_en' => $content->title_en,
             'date' => $content->published_at?->format('Y-m-d'),

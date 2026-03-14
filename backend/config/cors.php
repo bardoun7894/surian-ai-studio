@@ -25,6 +25,7 @@ return [
             env('APP_URL'),
             'http://localhost:3000',
             'http://localhost:3002',
+            'http://localhost:3120',
             'http://localhost:8080',
             'http://127.0.0.1:3000',
             'http://frontend-next:3000',
@@ -35,7 +36,7 @@ return [
 
     'allowed_origins_patterns' => [
         // Allow any subdomain of your production domain
-        '/^https?:\/\/.*\.gov\.sy$/',
+        '/^https:\/\/[a-zA-Z0-9\-]+\.gov\.sy$/',
         // Allow public IP access on any port
         '/^https?:\/\/91\.230\.110\.187(:\d+)?$/',
     ],

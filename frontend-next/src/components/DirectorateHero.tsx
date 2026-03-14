@@ -202,10 +202,19 @@ const DirectorateHero: React.FC<DirectorateHeroProps> = ({ directorate, hasSubDi
                 {directorate.logo && directorate.logo.trim() !== '' && !imageError ? (
                   <Image
                     id="directorate-logo"
-                    src={directorate.logo.startsWith('http') ? directorate.logo : directorate.logo.startsWith('/storage') ? (process.env.NEXT_PUBLIC_BACKEND_URL || '') + directorate.logo : directorate.logo}
+                    src={(() => {
+                      const logo = directorate.logo;
+                      if (logo.startsWith('http')) return logo;
+                      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+                      if (logo.startsWith('/storage')) return backendUrl + logo;
+                      if (logo.startsWith('/')) return logo;
+                      // Bare filename or relative path - assume storage
+                      return backendUrl + '/storage/' + logo;
+                    })()}
                     alt={loc(directorate, 'name')}
                     fill
                     priority
+                    unoptimized
                     sizes="(max-width: 768px) 224px, 320px"
                     className="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:scale-105 transition-transform duration-500"
                     onError={() => setImageError(true)}

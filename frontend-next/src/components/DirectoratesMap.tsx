@@ -133,6 +133,15 @@ function DirectoratesMap() {
       </div>
 
       <div ref={mapContainerRef} className="relative h-[350px] md:h-[500px] w-full bg-gray-50 dark:bg-dm-bg group">
+        {/* Mobile: tap-to-dismiss overlay when a directorate is selected */}
+        {selectedDirectorate && (
+          <button
+            className="md:hidden absolute inset-0 z-10"
+            onClick={() => setSelectedDirectorate(null)}
+            aria-label={isArabic ? "إغلاق التفاصيل" : "Close details"}
+          />
+        )}
+
         {loading && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 dark:bg-dm-bg/50 backdrop-blur-sm">
             <div className="w-10 h-10 border-4 border-gov-gold border-t-transparent rounded-full animate-spin" />
@@ -360,7 +369,8 @@ function DirectoratesMap() {
         <div className="md:hidden relative bg-white dark:bg-dm-surface border-t border-gray-100 dark:border-gov-border/20 p-4 animate-in fade-in duration-300">
           <button
             onClick={() => setSelectedDirectorate(null)}
-            className="absolute top-3 ltr:right-3 rtl:left-3 w-6 h-6 rounded-full bg-gray-100 dark:bg-gov-border/20 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gov-border/30 transition-colors"
+            className="absolute top-3 ltr:right-3 rtl:left-3 w-7 h-7 rounded-full bg-gray-200 dark:bg-gov-border/30 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gov-border/40 transition-colors text-gray-600 dark:text-white/70 z-10"
+            aria-label={isArabic ? "إغلاق" : "Close"}
           >
             &times;
           </button>

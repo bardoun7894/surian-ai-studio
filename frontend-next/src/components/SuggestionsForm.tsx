@@ -766,7 +766,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                             </p>
                         </div>
 
-                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                        <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-6">
                             <fieldset disabled={isSubmitting} className="space-y-6">
                             {formStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
@@ -956,6 +956,20 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                                 {errors.description}
                                             </p>
                                         )}
+                                        <div className="flex items-center justify-between mt-1">
+                                            <p className={"text-xs " + (formData.description.trim().length >= 10 ? "text-green-500 dark:text-green-400" : "text-gray-400 dark:text-white/40")}>
+                                                {formData.description.trim().length < 10
+                                                    ? (isAr
+                                                        ? `يتبقى ${10 - formData.description.trim().length} حرف للحد الأدنى (الحد الأدنى: 10 أحرف)`
+                                                        : `${10 - formData.description.trim().length} more characters needed (Minimum: 10 characters)`)
+                                                    : (isAr
+                                                        ? `${formData.description.trim().length}/10 حرف ✓`
+                                                        : `${formData.description.trim().length}/10 characters ✓`)}
+                                            </p>
+                                            {formData.description.trim().length >= 10 && (
+                                                <CheckCircle size={14} className="text-green-500 dark:text-green-400" />
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* File Upload */}
@@ -1091,7 +1105,7 @@ const SuggestionPortal: React.FC<SuggestionPortalProps> = ({
                                 <p className="text-gray-500 dark:text-white/70">{t('suggestion_track_subtitle')}</p>
                             </div>
 
-                            <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-10 space-y-4">
+                            <form onSubmit={handleTrack} noValidate className="max-w-lg mx-auto mb-10 space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-white/70 mb-1">{t('suggestion_tracking_number')}</label>
                                     <input

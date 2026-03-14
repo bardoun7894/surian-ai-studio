@@ -579,10 +579,10 @@ export default function UserDashboard() {
             className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 sm:mb-8"
           >
             <div>
-              <h1 className="text-2xl sm:text-4xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-2">
                 {language === 'ar' ? `مرحباً، ${authUser?.first_name || 'مستخدم'}` : `Welcome, ${authUser?.first_name || 'User'}`}
               </h1>
-              <p className="text-gov-stone dark:text-white/70 text-sm sm:text-lg">
+              <p className="text-gov-stone dark:text-white/70 text-xs sm:text-sm">
                 {language === 'ar' ? 'إدارة شكاواك واقتراحاتك وإعدادات حسابك' : 'Manage your complaints, suggestions, and account settings'}
               </p>
             </div>
@@ -640,7 +640,7 @@ export default function UserDashboard() {
                 <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-10">
                   {/* Complaint Stats */}
                   <motion.div variants={itemVariants}>
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-4 flex items-center gap-2">
                       <TrendingUp className="text-gov-gold" />
                       {language === 'ar' ? 'إحصائيات الشكاوى' : 'Complaint Stats'}
                     </h3>
@@ -655,7 +655,7 @@ export default function UserDashboard() {
                             {stat.icon}
                           </div>
                           <div>
-                            <p className="text-2xl sm:text-4xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
+                            <p className="text-xl sm:text-2xl font-display font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
                             <p className="text-sm font-bold text-gov-stone dark:text-white/70 uppercase tracking-wide">{stat.label}</p>
                           </div>
                         </motion.div>
@@ -665,7 +665,7 @@ export default function UserDashboard() {
 
                   {/* Suggestion Stats */}
                   <motion.div variants={itemVariants}>
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-4 flex items-center gap-2">
                       <Lightbulb className="text-gov-gold" />
                       {language === 'ar' ? 'إحصائيات الاقتراحات' : 'Suggestion Stats'}
                     </h3>
@@ -685,7 +685,7 @@ export default function UserDashboard() {
                             {stat.icon}
                           </div>
                           <div>
-                            <p className="text-2xl font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
+                            <p className="text-xl font-bold text-gov-charcoal dark:text-white">{stat.value}</p>
                             <p className="text-xs font-bold text-gov-stone dark:text-white/70">{stat.label}</p>
                           </div>
                         </motion.div>
@@ -695,7 +695,7 @@ export default function UserDashboard() {
 
                   {/* Quick Actions */}
                   <motion.div variants={itemVariants}>
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-6">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-4">
                       {language === 'ar' ? 'إجراءات سريعة' : 'Quick Actions'}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -708,7 +708,7 @@ export default function UserDashboard() {
                             <FileText size={24} />
                           </div>
                           <div>
-                            <span className="block font-bold text-lg">{language === 'ar' ? 'تقديم شكوى' : 'Submit Complaint'}</span>
+                            <span className="block font-bold text-sm">{language === 'ar' ? 'تقديم شكوى' : 'Submit Complaint'}</span>
                             <span className="text-xs text-white/80">{language === 'ar' ? 'رفع بلاغ جديد' : 'Report a new issue'}</span>
                           </div>
                         </motion.div>
@@ -722,7 +722,7 @@ export default function UserDashboard() {
                             <Lightbulb size={24} />
                           </div>
                           <div>
-                            <span className="block font-bold text-lg">{language === 'ar' ? 'تقديم اقتراح' : 'Submit Suggestion'}</span>
+                            <span className="block font-bold text-sm">{language === 'ar' ? 'تقديم اقتراح' : 'Submit Suggestion'}</span>
                             <span className="text-xs text-gov-forest/80">{language === 'ar' ? 'شاركنا أفكارك' : 'Share your ideas'}</span>
                           </div>
                         </motion.div>
@@ -736,7 +736,7 @@ export default function UserDashboard() {
                             <Eye size={24} />
                           </div>
                           <div>
-                            <span className="block font-bold text-lg text-gov-charcoal dark:text-white">{language === 'ar' ? 'تتبع الحالة' : 'Track Status'}</span>
+                            <span className="block font-bold text-sm text-gov-charcoal dark:text-white">{language === 'ar' ? 'تتبع الحالة' : 'Track Status'}</span>
                             <span className="text-xs text-gray-500 dark:text-white/70">{language === 'ar' ? 'تابع شكاواك' : 'Follow up on complaints'}</span>
                           </div>
                         </motion.div>
@@ -747,7 +747,7 @@ export default function UserDashboard() {
                   {/* Recent Complaints */}
                   <motion.div variants={itemVariants}>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-display font-bold text-gov-charcoal dark:text-white">
+                      <h3 className="text-base font-display font-bold text-gov-charcoal dark:text-white">
                         {language === 'ar' ? 'آخر الشكاوى' : 'Recent Complaints'}
                       </h3>
                       <button
@@ -778,7 +778,7 @@ export default function UserDashboard() {
                             className="group flex items-center justify-between p-5 bg-white/60 dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-gov-gold/50 transition-colors shadow-sm"
                           >
                             <div className="flex-1">
-                              <p className="font-bold text-lg text-gov-charcoal dark:text-white mb-1 group-hover:text-gov-teal transition-colors">{complaint.subject}</p>
+                              <p className="font-bold text-sm text-gov-charcoal dark:text-white mb-1 group-hover:text-gov-teal transition-colors">{complaint.subject}</p>
                               <p className="text-sm text-gray-500 font-mono">#{complaint.tracking_number}</p>
                             </div>
                             <div className="flex items-center gap-4">
@@ -796,7 +796,7 @@ export default function UserDashboard() {
                   {/* Recent Favorites */}
                   <motion.div variants={itemVariants}>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
+                      <h3 className="text-base font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
                         <Heart size={20} className="text-gov-gold fill-gov-gold" />
                         {language === 'ar' ? 'المفضلة' : 'Favorites'}
                         {favorites.length > 0 && (
@@ -867,7 +867,7 @@ export default function UserDashboard() {
               {activeTab === 'complaints' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white">
                       {language === 'ar' ? 'جميع الشكاوى' : 'All Complaints'}
                     </h3>
                     <Link href="/complaints" className="flex items-center gap-2 px-5 py-2.5 bg-gov-teal text-white rounded-xl font-bold hover:bg-gov-emerald transition-colors shadow-lg shadow-gov-teal/20">
@@ -883,7 +883,7 @@ export default function UserDashboard() {
                   ) : complaints.length === 0 ? (
                     <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <FileText size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-sm font-bold">
                         {language === 'ar' ? 'لم تقم بتقديم أي شكاوى بعد' : 'You haven\'t submitted any complaints yet'}
                       </p>
                     </div>
@@ -897,7 +897,7 @@ export default function UserDashboard() {
                         >
                           <div className="flex-1 mb-4 md:mb-0">
                             <div className="flex items-center gap-3 mb-1">
-                              <p className="font-bold text-lg text-gov-charcoal dark:text-white">{complaint.subject}</p>
+                              <p className="font-bold text-sm text-gov-charcoal dark:text-white">{complaint.subject}</p>
                               {complaint.is_urgent && (
                                 <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-bold">
                                   {language === 'ar' ? 'عاجل' : 'Urgent'}
@@ -959,7 +959,7 @@ export default function UserDashboard() {
               {activeTab === 'suggestions' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white">
                       {language === 'ar' ? 'جميع الاقتراحات' : 'All Suggestions'}
                     </h3>
                     <Link href="/suggestions" className="flex items-center gap-2 px-5 py-2.5 bg-gov-gold text-gov-forest rounded-xl font-bold hover:bg-gov-sand transition-colors shadow-lg shadow-gov-gold/20">
@@ -975,7 +975,7 @@ export default function UserDashboard() {
                   ) : suggestions.length === 0 ? (
                     <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <Lightbulb size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-sm font-bold">
                         {language === 'ar' ? 'لم تقم بتقديم أي اقتراحات بعد' : 'You haven\'t submitted any suggestions yet'}
                       </p>
                     </div>
@@ -988,7 +988,7 @@ export default function UserDashboard() {
                           className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white dark:bg-gov-card/10 rounded-2xl border border-gray-100 dark:border-gov-border/15 hover:border-gov-gold/50 transition-all shadow-sm hover:shadow-md"
                         >
                           <div className="flex-1 mb-4 md:mb-0">
-                            <p className="font-bold text-lg text-gov-charcoal dark:text-white mb-2 line-clamp-1">
+                            <p className="font-bold text-sm text-gov-charcoal dark:text-white mb-2 line-clamp-1">
                               {suggestion.description}
                             </p>
                             <div className="flex items-center gap-5 text-sm text-gray-500 dark:text-white/70">
@@ -1031,7 +1031,7 @@ export default function UserDashboard() {
               {activeTab === 'favorites' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white flex items-center gap-2">
                       <Heart className="text-gov-gold fill-gov-gold" size={24} />
                       {language === 'ar' ? 'المفضلة' : 'My Favorites'}
                     </h3>
@@ -1048,7 +1048,7 @@ export default function UserDashboard() {
                   ) : favorites.length === 0 ? (
                     <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <Heart size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-sm font-bold">
                         {language === 'ar' ? 'قائمة المفضلة فارغة حالياً' : 'Your favorites list is currently empty'}
                       </p>
                       <p className="text-sm text-gray-400 dark:text-white/50 mt-2 max-w-md mx-auto">
@@ -1096,7 +1096,7 @@ export default function UserDashboard() {
                             </div>
 
                             {/* Title */}
-                            <h4 className="font-bold text-lg text-gov-charcoal dark:text-white mb-2 line-clamp-2 group-hover:text-gov-teal transition-colors">
+                            <h4 className="font-bold text-sm text-gov-charcoal dark:text-white mb-2 line-clamp-2 group-hover:text-gov-teal transition-colors">
                               {getFavoriteTitle(fav)}
                             </h4>
 
@@ -1133,7 +1133,7 @@ export default function UserDashboard() {
               {activeTab === 'notifications' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white">
+                    <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white">
                       {language === 'ar' ? 'الإشعارات' : 'Notifications'}
                     </h3>
                     {notifications.some(n => !n.read) && (
@@ -1153,7 +1153,7 @@ export default function UserDashboard() {
                   ) : notifications.length === 0 ? (
                     <div className="text-center py-16 bg-white/50 dark:bg-gov-card/10 rounded-3xl border border-gray-100 dark:border-gov-border/15">
                       <Bell size={64} className="mx-auto text-gov-gold/40 mb-4" />
-                      <p className="text-gray-500 dark:text-white/70 text-lg font-bold">
+                      <p className="text-gray-500 dark:text-white/70 text-sm font-bold">
                         {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications'}
                       </p>
                     </div>
@@ -1174,7 +1174,7 @@ export default function UserDashboard() {
                                 <Bell size={20} />
                               </div>
                               <div>
-                                <p className={`font-bold text-lg ${notification.read ? 'text-gray-700 dark:text-white/70' : 'text-gov-charcoal dark:text-white'}`}>{notification.title}</p>
+                                <p className={`font-bold text-sm ${notification.read ? 'text-gray-700 dark:text-white/70' : 'text-gov-charcoal dark:text-white'}`}>{notification.title}</p>
                                 <p className="text-gray-600 dark:text-white/70 mt-1 leading-relaxed">{notification.message}</p>
                                 <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
                                   <Clock size={12} />
@@ -1214,7 +1214,7 @@ export default function UserDashboard() {
               {/* Settings Tab */}
               {activeTab === 'settings' && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
-                  <h3 className="text-2xl font-display font-bold text-gov-charcoal dark:text-white mb-8">
+                  <h3 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-6">
                     {language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'}
                   </h3>
                   <div className="max-w-xl mx-auto space-y-8 bg-white/50 dark:bg-gov-card/10 p-8 rounded-3xl border border-gray-100 dark:border-gov-border/15">
@@ -1358,7 +1358,7 @@ export default function UserDashboard() {
                     )}
                     {/* Password Change Section */}
                     <div className="pt-6 border-t border-gray-200 dark:border-gov-border/15">
-                      <h4 className="text-lg font-display font-bold text-gov-charcoal dark:text-white mb-4">
+                      <h4 className="text-base font-display font-bold text-gov-charcoal dark:text-white mb-4">
                         {language === 'ar' ? 'تغيير كلمة المرور' : 'Change Password'}
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-white/50 mb-4">
@@ -1469,7 +1469,7 @@ export default function UserDashboard() {
                     </motion.button>
                     {/* Notification Preferences */}
                     <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gov-border/15">
-                      <h4 className="text-xl font-display font-bold text-gov-charcoal dark:text-white mb-6 flex items-center gap-2">
+                      <h4 className="text-base font-display font-bold text-gov-charcoal dark:text-white mb-4 flex items-center gap-2">
                         <Bell size={20} className="text-gov-gold" />
                         {language === 'ar' ? 'تفضيلات الإشعارات' : 'Notification Preferences'}
                       </h4>
@@ -1543,7 +1543,7 @@ export default function UserDashboard() {
                   <AlertTriangle className="text-red-500" size={28} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gov-charcoal dark:text-white">
+                  <h3 className="text-base font-bold text-gov-charcoal dark:text-white">
                     {language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
@@ -1554,7 +1554,7 @@ export default function UserDashboard() {
 
               {deleteModal.complaint && (
                 <div className="bg-gray-50 dark:bg-gov-card/10 rounded-2xl p-5 mb-8 border border-gray-100 dark:border-white/5">
-                  <p className="font-bold text-gov-charcoal dark:text-white text-lg">
+                  <p className="font-bold text-gov-charcoal dark:text-white text-sm">
                     {deleteModal.complaint.subject}
                   </p>
                   <p className="text-xs text-gray-500 mt-2 font-mono">

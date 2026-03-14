@@ -383,7 +383,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
     useEffect(() => {
         if (isAuthenticatedTracker && user?.national_id) {
             setTrackNationalId(user.national_id);
-            // Force identified mode for authenticated users
+            // Pre-fill identified mode for authenticated users (they can still switch to anonymous)
             setTrackMode('identified');
         }
     }, [isAuthenticatedTracker, user?.national_id]);
@@ -662,6 +662,15 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             return;
         }
 
+        // Validate previous tracking number when user indicated a related complaint
+        if (formData.hasPreviousComplaint && !formData.previousTrackingNumber?.trim()) {
+            setTouched(prev => ({ ...prev, previousTrackingNumber: true }));
+            const prevError = isAr ? 'رقم الشكوى السابقة مطلوب' : 'Previous complaint number is required';
+            setSubmitError(prevError);
+            toast.error(prevError);
+            return;
+        }
+
         if (selectedFiles.length > MAX_ATTACHMENT_COUNT) {
             toast.error(
                 isAr
@@ -689,7 +698,11 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                 staged_attachment_ids: selectedFiles.length > 0 ? selectedFiles.map(f => stagedIds[`${f.name}:${f.size}:${f.lastModified}`]).filter(Boolean) : undefined,
                 template_id: selectedTemplateId || undefined,
                 template_fields: Object.keys(templateFieldValues).length > 0 ? templateFieldValues : undefined,
+                has_previous_complaint: formData.hasPreviousComplaint || false,
+                previous_tracking_number: formData.previousTrackingNumber || undefined,
             };
+            delete submitData.hasPreviousComplaint;
+            delete submitData.previousTrackingNumber;
             // Card 540: Strip personal fields for anonymous submissions so backend doesn't reject
             if (isAnonymous) {
                 delete submitData.nationalId;
@@ -910,6 +923,25 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
             'الرجاء المحاولة مرة أخرى': 'Please try again.',
             'رمز التحقق غير صالح': 'Invalid verification code.',
             'انتهت صلاحية رمز التحقق': 'Verification code has expired.',
+            // Complaint tracking error translations
+            'لم يتم العثور على شكوى بهذا الرقم': 'No complaint found with this number.',
+            'الرقم الوطني مطلوب لتتبع هذه الشكوى': 'National ID is required to track this complaint.',
+            'الرقم الوطني لا يتطابق مع الشكوى المسجلة': 'National ID does not match the registered complaint.',
+            'هذه شكوى مجهولة': 'This is an anonymous complaint. Please use anonymous tracking mode.',
+            // Backend validation error translations
+            'الاسم الكامل مطلوب': 'Full name is required.',
+            'الاسم يجب أن يتكون من 3 أحرف على الأقل': 'Name must be at least 3 characters.',
+            'الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط': 'National ID must be exactly 11 digits.',
+            'الرقم الوطني يجب أن يحتوي على أرقام فقط': 'National ID must contain only digits.',
+            'رقم الهاتف غير صالح': 'Invalid phone number.',
+            'يرجى تحديد الجهة المختصة': 'Please select the relevant directorate.',
+            'الجهة المختصة غير موجودة': 'The selected directorate does not exist.',
+            'وصف الشكوى مطلوب': 'Complaint description is required.',
+            'وصف الشكوى يجب أن يتكون من 10 أحرف على الأقل': 'Complaint description must be at least 10 characters.',
+            'وصف الشكوى يجب ألا يتجاوز 5000 حرف': 'Complaint description must not exceed 5000 characters.',
+            'غير مصرح': 'Unauthorized. Please verify your national ID.',
+            'لا يمكن حذف الشكوى': 'Cannot delete complaint. Only new or received complaints can be deleted.',
+            'لا يمكن تغيير الحالة': 'Invalid status transition. Please follow the correct sequence.',
         };
         for (const [ar, en] of Object.entries(translations)) {
             if (msg.includes(ar)) return en;
@@ -1086,7 +1118,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                             <p className="text-gray-600 dark:text-white/70">{t('complaint_subtitle')}</p>
                         </div>
 
-                        <form ref={formRef} onSubmit={handleSubmit}>
+                        <form ref={formRef} onSubmit={handleSubmit} noValidate>
                             <fieldset disabled={isSubmitting} className="space-y-6 md:space-y-8">
 
 
@@ -1214,7 +1246,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                                             <h4 className={`font-bold mb-1 text-sm ${isSelected ? 'text-gov-forest dark:text-gov-teal' : 'text-gov-charcoal dark:text-white'}`}>
                                                                                 {isAr ? tmpl.name : (tmpl.name_en || tmpl.name)}
                                                                             </h4>
-                                                                            {(tmpl.description || tmpl.description_en) && (
+                                                                            {true && (tmpl.description || tmpl.description_en) && (
                                                                                 <p className="text-xs text-gray-500 dark:text-white/70 line-clamp-2">
                                                                                     {isAr ? tmpl.description : (tmpl.description_en || tmpl.description)}
                                                                                 </p>
@@ -1249,7 +1281,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 </div>
 
                                 {/* T027: Display receiving entity/department with full hierarchy */}
-                                {(() => {
+                                {true && (() => {
                                     const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                     if (!selectedTmpl) return null;
 
@@ -1291,7 +1323,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 })()}
 
                                 {/* Dynamic Template Fields */}
-                                {(() => {
+                                {true && (() => {
                                     const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                     const fields = selectedTmpl?.fields;
                                     if (!selectedTmpl || !Array.isArray(fields) || fields.length === 0) return null;
@@ -1303,7 +1335,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 <FileText size={16} />
                                                 {isAr ? 'بيانات النموذج' : 'Form Fields'}
                                             </h3>
-                                            {(fields as Array<{ key?: string; label: string; label_en?: string; type: string; required?: boolean; placeholder?: string; placeholder_en?: string; options?: Array<{ value: string; label: string; label_en?: string }> }>).map((field, idx) => {
+                                            {true && (fields as Array<{ key?: string; label: string; label_en?: string; type: string; required?: boolean; placeholder?: string; placeholder_en?: string; options?: Array<{ value: string; label: string; label_en?: string }> }>).map((field, idx) => {
                                                 const fieldKey = field.key || `field_${idx}`;
                                                 const fieldLabel = isAr ? field.label : (field.label_en || field.label);
                                                 const fieldPlaceholder = isAr ? (field.placeholder || '') : (field.placeholder_en || field.placeholder || '');
@@ -1604,7 +1636,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 )}
 
                                 {/* Description - Only visible for "open" complaint template (T020) */}
-                                {(() => {
+                                {true && (() => {
                                     const selectedTmpl = complaintTemplates.find(t => t.id === selectedTemplateId);
                                     return (!selectedTemplateId || selectedTmpl?.type === 'open');
                                 })() && (
@@ -1619,11 +1651,20 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 placeholder={isAr ? 'يرجى كتابة تفاصيل الشكوى هنا...' : 'Please write the complaint details here...'}
                                                 containerClassName="bg-white dark:bg-gov-card/10 p-4 rounded-xl border border-gray-100 dark:border-gov-border/15"
                                             />
-                                            <p className={`text-xs mt-1 ${formData.details.length < 20 ? 'text-gray-400 dark:text-white/50' : 'text-green-500 dark:text-emerald-400'}`}>
-                                                {isAr
-                                                    ? `${formData.details.length}/20 حرف (الحد الأدنى 20 حرف)`
-                                                    : `${formData.details.length}/20 characters (minimum 20 characters)`}
-                                            </p>
+                                            <div className="flex items-center justify-between mt-1">
+                                                <p className={`text-xs ${formData.details.length < 20 ? 'text-gray-400 dark:text-white/50' : 'text-green-500 dark:text-emerald-400'}`}>
+                                                    {formData.details.length < 20
+                                                        ? (isAr
+                                                            ? `يتبقى ${20 - formData.details.length} حرف للحد الأدنى (الحد الأدنى: 20 حرف)`
+                                                            : `${20 - formData.details.length} more characters needed (Minimum: 20 characters)`)
+                                                        : (isAr
+                                                            ? `${formData.details.length}/20 حرف ✓`
+                                                            : `${formData.details.length}/20 characters ✓`)}
+                                                </p>
+                                                {formData.details.length >= 20 && (
+                                                    <CheckCircle2 size={14} className="text-green-500 dark:text-emerald-400" />
+                                                )}
+                                            </div>
                                         </>
                                     )}
 
@@ -1654,14 +1695,19 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                                 <div className="relative">
                                                     <input
                                                         type="text"
-                                                        required={formData.hasPreviousComplaint}
                                                         value={formData.previousTrackingNumber || ''}
                                                         onChange={(e) => setFormData({ ...formData, previousTrackingNumber: e.target.value })}
+                                                        onBlur={() => setTouched(prev => ({ ...prev, previousTrackingNumber: true }))}
                                                         placeholder={t('complaint_prev_ticket_placeholder')}
-                                                        className="w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono"
+                                                        className={`w-full py-3 px-4 pl-12 rtl:pl-4 rtl:pr-12 rounded-xl bg-white dark:bg-white/10 border ${touched.previousTrackingNumber && formData.hasPreviousComplaint && !formData.previousTrackingNumber?.trim() ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-gov-border/25'} text-gov-charcoal dark:text-white focus:border-gov-forest dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-forest/20 transition-all outline-none font-mono`}
                                                     />
                                                     <History className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                 </div>
+                                                {touched.previousTrackingNumber && formData.hasPreviousComplaint && !formData.previousTrackingNumber?.trim() && (
+                                                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                                                        {isAr ? 'هذا الحقل مطلوب' : 'This field is required'}
+                                                    </p>
+                                                )}
                                                 <p className="text-xs text-gray-500 dark:text-white/70 mt-2">
                                                     {t('complaint_prev_ticket_hint')}
                                                 </p>
@@ -1765,14 +1811,18 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                 <p className="text-gray-500 dark:text-white/70">{t('complaint_track_subtitle')}</p>
                             </div>
 
-                            <form onSubmit={handleTrack} className="max-w-lg mx-auto mb-8 md:mb-10 space-y-4">
-                                {/* Hide mode selector for authenticated users - they always track with national ID */}
-                                {!isAuthenticatedTracker && (
+                            <form onSubmit={handleTrack} noValidate className="max-w-lg mx-auto mb-8 md:mb-10 space-y-4">
+                                {/* Show mode selector - authenticated users can also track anonymous complaints */}
+                                {true && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setTrackMode('identified');
+                                                // Re-fill national ID from profile for authenticated users
+                                                if (isAuthenticatedTracker && user?.national_id) {
+                                                    setTrackNationalId(user.national_id);
+                                                }
                                                 setTrackError(null);
                                                 setTrackingResult(null);
                                                 setTrackIdTouched(false);
@@ -1942,7 +1992,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                             </div>
                                         )}
 
-                                        {(trackingResult.full_name || trackingResult.phone || trackingResult.email) && (
+                                        {true && (trackingResult.full_name || trackingResult.phone || trackingResult.email) && (
                                             <div className="bg-gov-beige/50 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/15 rounded-lg p-3 space-y-2">
                                                 <h4 className="text-xs font-bold text-gov-forest dark:text-gov-teal">{isAr ? 'بيانات مقدم الشكوى (مخفية جزئياً)' : 'Complainant Details (Partially Masked)'}</h4>
                                                 {trackingResult.full_name && (
@@ -2019,7 +2069,7 @@ const ComplaintPortal: React.FC<ComplaintPortalProps> = ({
                                         />
 
                                         {/* FR-22: Delete button for "pending/new" status */}
-                                        {(trackingResult.status === 'new' || trackingResult.status === 'received') && (
+                                        {true && (trackingResult.status === 'new' || trackingResult.status === 'received') && (
                                             <button
                                                 onClick={handleDeleteComplaint}
                                                 disabled={isDeleting}

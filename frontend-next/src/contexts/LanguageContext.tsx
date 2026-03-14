@@ -76,7 +76,8 @@ const translations: Record<string, Record<Language, string>> = {
   'news_breaking': { ar: 'آخر المستجدات', en: 'Latest Updates' },
   // External Link Modal
   'external_link_warning_title': { ar: 'تنبيه مغادرة الموقع', en: 'Leaving Website Warning' },
-  'external_link_warning_desc': { ar: 'سيتم توجيهك إلى موقع خارجي. هل ترغب في المتابعة؟', en: 'You will be redirected to an external website. Do you wish to continue?' },
+  'external_link_warning_desc': { ar: 'سيتم توجيهك إلى موقع خارجي', en: 'You will be redirected to an external site' },
+  'external_link_warning_confirm': { ar: 'هل ترغب في المتابعة؟', en: 'Do you wish to continue?' },
   'external_link_stay': { ar: 'البقاء في الموقع', en: 'Stay Here' },
   'external_link_continue': { ar: 'متابعة', en: 'Continue' },
   'read_more': { ar: 'اقرأ المزيد', en: 'Read More' },

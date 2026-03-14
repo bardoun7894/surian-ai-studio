@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     title: "الأخبار | وزارة الاقتصاد والصناعة",
     description: "آخر الأخبار والمستجدات من وزارة الاقتصاد والصناعة في الجمهورية العربية السورية",
     url: '/news',
+    siteName: "وزارة الاقتصاد والصناعة",
+    locale: "ar_SY",
     type: "website",
     images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
   },
@@ -14,6 +16,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "الأخبار | وزارة الاقتصاد والصناعة",
     description: "آخر الأخبار والمستجدات من وزارة الاقتصاد والصناعة",
+    images: ['/assets/logo/og-image.png'],
   },
   alternates: { canonical: '/news' },
 };

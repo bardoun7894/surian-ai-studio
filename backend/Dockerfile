@@ -34,5 +34,11 @@ COPY . /var/www
 # Permissions
 RUN chown -R www-data:www-data /var/www
 
+# Create non-root user for security
+RUN groupadd -g 1000 appuser && useradd -u 1000 -g appuser -s /bin/sh appuser
+RUN chown -R appuser:appuser /var/www
+
+USER appuser
+
 EXPOSE 9000
 CMD ["php-fpm"]

@@ -17,6 +17,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${name} | وزارة الاقتصاد والصناعة`,
       description: desc,
       url: `/directorates/${id}`,
+      siteName: "وزارة الاقتصاد والصناعة",
+      locale: "ar_SY",
       type: 'website',
       images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: name }],
     },
@@ -24,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: 'summary',
       title: `${name} | وزارة الاقتصاد والصناعة`,
       description: desc,
+      images: ['/assets/logo/og-image.png'],
     },
     alternates: { canonical: `/directorates/${id}` },
   };

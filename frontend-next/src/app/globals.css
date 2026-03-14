@@ -478,6 +478,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
+/* --- Global Responsive Font Scaling for Mobile --- */
+@media (max-width: 640px) {
+  h1 { font-size: clamp(1.125rem, 4vw, 1.5rem) !important; }
+  h2 { font-size: clamp(1rem, 3.5vw, 1.25rem) !important; }
+  h3 { font-size: clamp(0.875rem, 3vw, 1.125rem) !important; }
+  h4 { font-size: clamp(0.8125rem, 2.5vw, 1rem) !important; }
+
+  /* Dashboard & card stat values */
+  .font-display {
+    font-size: inherit;
+  }
+}
+
 /* --- Reduced Motion Support --- */
 @media (prefers-reduced-motion: reduce) {
 
@@ -494,6 +507,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     animation-duration: 30s !important;
     animation-iteration-count: infinite !important;
   }
+}
+
+
+/* Utility: force LTR direction (for phone numbers in RTL context) */
+.dir-ltr {
+  direction: ltr !important;
+  unicode-bidi: embed !important;
 }
 
 /* ============================================================
@@ -887,6 +907,47 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     font-size: 7pt !important;
     color: #aaa !important;
     margin-top: 4pt !important;
+  }
+
+
+  /* --- Fix news article print layout: prevent text behind images --- */
+  .relative:has(> img[data-nimg]),
+  .relative:has(> [data-nimg]) {
+    position: relative !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure gradient overlays are hidden in print */
+  .bg-gradient-to-t,
+  .bg-gradient-to-b,
+  .bg-gradient-to-r,
+  .bg-gradient-to-l,
+  [class*="from-black"],
+  [class*="to-transparent"] {
+    background: transparent !important;
+    background-image: none !important;
+  }
+
+  /* Article prose content: ensure proper flow */
+  .prose {
+    position: relative !important;
+    z-index: 1 !important;
+    float: none !important;
+    clear: both !important;
+  }
+
+  .prose p {
+    page-break-inside: avoid !important;
+    orphans: 3 !important;
+    widows: 3 !important;
+  }
+
+  /* Ensure article containers are block-level in print */
+  article > div {
+    position: static !important;
+    float: none !important;
+    clear: both !important;
   }
 
   /* --- Status Badge Print Overrides --- */

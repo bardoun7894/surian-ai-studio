@@ -105,7 +105,7 @@ Route::prefix('v1')->group(function () {
         Route::get('search', [\App\Http\Controllers\Api\PublicApiController::class, 'search']);
 
         // T070: Search Autocomplete
-        Route::get('search/autocomplete', [\App\Http\Controllers\Api\SearchAutocompleteController::class, 'autocomplete'])->middleware('throttle:30,1');
+        Route::get('search/autocomplete', [\App\Http\Controllers\Api\SearchAutocompleteController::class, 'autocomplete']);
 
         // FR-36: Semantic Search with Filters
         Route::get('search/semantic', [\App\Http\Controllers\Api\PublicApiController::class, 'semanticSearch']);
@@ -160,6 +160,9 @@ Route::prefix('v1')->group(function () {
             Route::get('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'show']);
         });
 
+        // Government Partners (Public)
+        Route::get('government-partners', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'index']);
+
         // Newsletter Routes
         Route::prefix('newsletter')->group(function () {
             Route::post('subscribe', [\App\Http\Controllers\Api\NewsletterController::class, 'subscribe'])->middleware('throttle:5,1');
@@ -189,7 +192,7 @@ Route::prefix('v1')->group(function () {
     // Chat Routes (Public - FR-31 to FR-35)
     Route::prefix('chat')->group(function () {
         Route::post('message', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
-        Route::get('history/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);
+        Route::get('history/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'getHistory'])->middleware('throttle:30,1');
         Route::delete('session/{sessionId}', [\App\Http\Controllers\Api\ChatController::class, 'clearSession']);
         Route::post('handoff', [\App\Http\Controllers\Api\ChatController::class, 'requestHandoff']); // FR-35
     });
@@ -376,6 +379,17 @@ Route::prefix('v1')->group(function () {
                 Route::delete('{id}', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'destroy']);
                 Route::patch('{id}/toggle-active', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'toggleActive']);
                 Route::post('reorder', [\App\Http\Controllers\Api\PromotionalSectionController::class, 'reorder']);
+            });
+
+            // Government Partners Management (Admin)
+            Route::prefix('government-partners')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'adminIndex']);
+                Route::get('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'show']);
+                Route::post('/', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'store']);
+                Route::post('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'update']); // POST for FormData with file
+                Route::delete('{id}', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'destroy']);
+                Route::patch('{id}/toggle-active', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'toggleActive']);
+                Route::post('reorder', [\App\Http\Controllers\Api\GovernmentPartnerController::class, 'reorder']);
             });
         });
 

@@ -74,7 +74,7 @@ export default function InvestmentPage() {
             <Navbar />
             <main className="flex-grow pt-0">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white py-24 px-4 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal text-white pt-20 pb-12 md:pt-32 md:pb-24 px-4 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
                     </div>

@@ -109,7 +109,7 @@ export default function ContactPage() {
 
             <main className="flex-grow pt-0">
                 {/* Header */}
-                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white py-10 md:py-16 px-4">
+                <div className="bg-gov-forest dark:bg-gov-forest/90 text-white pt-20 pb-10 md:pt-32 md:pb-16 px-4">
                     <div className="max-w-7xl mx-auto text-center">
                         <h1 className="text-2xl md:text-4xl font-display font-bold mb-3 md:mb-4">
                             {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
@@ -134,7 +134,7 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gov-forest dark:text-gov-gold mb-1">{language === 'ar' ? 'الخط الساخن' : 'Hotline'}</h3>
-                                    <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-3xl font-display font-bold text-gov-forest dark:text-white/70 hover:text-gov-gold dark:hover:text-gov-gold transition-colors">{phone}</a>
+                                    <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-3xl font-display font-bold text-gov-forest dark:text-white/70 hover:text-gov-gold dark:hover:text-gov-gold transition-colors" dir="ltr" style={{ direction: "ltr", unicodeBidi: "embed" }}>{phone}</a>
                                     <p className="text-xs text-gray-500 mt-1">{language === 'ar' ? 'متاح 24/7' : 'Available 24/7'}</p>
                                 </div>
                             </div>

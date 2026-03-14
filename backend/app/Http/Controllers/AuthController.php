@@ -324,9 +324,9 @@ class AuthController extends Controller
         // Send password reset email
         try {
             Mail::to($user->email)->send(new PasswordResetMail($resetUrl));
-            Log::info("Password reset email sent to {$user->email}");
+            Log::info("Password reset email sent");
         } catch (\Exception $e) {
-            Log::error("Failed to send password reset email to {$user->email}: " . $e->getMessage());
+            Log::error("Failed to send password reset email: " . $e->getMessage());
             // Still return success to not reveal email existence
         }
 
@@ -408,7 +408,7 @@ class AuthController extends Controller
                     ]
                 );
 
-                Log::warning("Security alert: Multiple lockouts from IP {$ip} for email {$email}");
+                Log::warning("Security alert: Multiple lockouts from IP {$ip}");
 
                 // Reset counter after alerting (or keep it for continued monitoring)
                 Cache::put($cacheKey, 0, now()->addHour());

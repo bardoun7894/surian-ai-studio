@@ -39,12 +39,17 @@ class BackupController extends Controller
             putenv("PGPASSWORD={$password}");
 
             // Create backup using pg_dump
+            // Exclude sensitive tables from backup
+            $excludeTables = ['personal_access_tokens', 'password_reset_tokens', 'sessions', 'failed_jobs'];
+            $excludeArgs = implode(' ', array_map(fn($t) => '--exclude-table=' . escapeshellarg($t), $excludeTables));
+            
             $command = sprintf(
-                'pg_dump -h %s -p %s -U %s -d %s -F p > %s 2>&1',
+                'pg_dump -h %s -p %s -U %s -d %s %s -F p > %s 2>&1',
                 escapeshellarg($host),
                 escapeshellarg($port),
                 escapeshellarg($username),
                 escapeshellarg($database),
+                $excludeArgs,
                 escapeshellarg($backupPath)
             );
 
@@ -223,8 +228,12 @@ class BackupController extends Controller
 
         $sql = "-- Backup created at " . now()->toIso8601String() . "\n\n";
 
+        $sensitiveTableNames = ['users', 'personal_access_tokens', 'password_reset_tokens', 'sessions', 'failed_jobs'];
         foreach ($tables as $table) {
             $tableName = $table->tablename;
+            if (in_array($tableName, $sensitiveTableNames)) {
+                continue;
+            }
             $rows = DB::table($tableName)->get();
 
             if ($rows->isNotEmpty()) {

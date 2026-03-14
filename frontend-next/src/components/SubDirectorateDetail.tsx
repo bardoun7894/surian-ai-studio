@@ -19,6 +19,7 @@ import {
     Users
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const SubDirectorateDetail = () => {
     const { id, subId } = useParams();
@@ -92,6 +93,27 @@ return (
             {/* Header */}
             <div className="bg-gov-forest dark:bg-gov-charcoal text-white pt-32 pb-12 relative overflow-hidden">
                 {/* Background Pattern */}
+                                {/* Cover Image - use cover_image if available, else fall back to parent directorate logo */}
+                {(() => {
+                    const coverSrc = (subDirectorate as any)?.cover_image
+                        || (parentDirectorate as any)?.cover_image
+                        || parentDirectorate?.logo;
+                    if (!coverSrc) return null;
+                    // Build full URL: if relative /storage path, prepend backend URL
+                    const imgSrc = coverSrc.startsWith('http') ? coverSrc
+                        : coverSrc.startsWith('/storage') ? (process.env.NEXT_PUBLIC_BACKEND_URL || '') + coverSrc
+                        : coverSrc;
+                    return (
+                        <Image
+                            src={imgSrc}
+                            alt={name}
+                            fill
+                            className="object-cover opacity-30"
+                            priority
+                            unoptimized
+                        />
+                    );
+                })()}
                 <div className="absolute inset-0 bg-pattern-islamic bg-repeat opacity-10 pointer-events-none mix-blend-overlay"></div>
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -238,7 +260,7 @@ return (
                                     </div>
                                     <div>
                                         <span className="text-xs text-gov-sand font-bold uppercase block mb-1">{t('contact_info')}</span>
-                                        <p className="text-sm text-gov-charcoal dark:text-white font-medium dir-ltr">
+                                        <p className="text-sm text-gov-charcoal dark:text-white font-medium" dir="ltr" style={{ direction: "ltr", unicodeBidi: "embed" }}>
                                             <a href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`} className="hover:text-gov-teal transition-colors text-lg font-bold">
                                                 {contactPhone}
                                             </a>

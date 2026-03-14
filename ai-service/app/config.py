@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:8080", "http://localhost:5173"]
 
+    # API Key for endpoint authentication
+    API_KEY: str = ""
+    
     # Rate limiting
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60  # seconds

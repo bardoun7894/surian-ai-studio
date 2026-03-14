@@ -57,7 +57,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         return (
             <div className="min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg">
                 <Navbar />
-                <main className="flex-grow pt-0 pb-20">
+                <main className="flex-grow pt-20 md:pt-32 pb-20">
                     <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                         <div className="max-w-5xl mx-auto">
                             {/* Article Skeleton */}
@@ -154,7 +154,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     return (
         <div className={`min-h-screen flex flex-col bg-gov-beige dark:bg-dm-bg ${expired ? 'opacity-60' : ''}`}>
             <Navbar />
-            <main className="flex-grow pt-0 print:pt-0">
+            <main className="flex-grow pt-20 md:pt-32 print:pt-0">
                 <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
                     {/* Expired Banner */}
                     {expired && (

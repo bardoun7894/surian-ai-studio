@@ -19,7 +19,10 @@ class StoreComplaintRequest extends FormRequest
      */
     public function rules(): array
     {
+        $hasPreviousComplaint = $this->boolean('has_previous_complaint');
+
         return [
+            'is_anonymous' => 'nullable|boolean',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'father_name' => 'nullable|string|max:100',
@@ -28,12 +31,19 @@ class StoreComplaintRequest extends FormRequest
             'phone' => 'required|string|regex:/^09[0-9]{8}$/',
             'email' => 'nullable|email|max:255',
             'directorate_id' => 'nullable|exists:directorates,id',
+            'template_id' => 'nullable|exists:complaint_templates,id',
             'subject' => 'required|string|max:500',
             'body' => 'required|string|min:20|max:5000',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'otp_verified' => 'nullable|boolean',
             'recaptcha_token' => 'nullable|string',
+            'has_previous_complaint' => 'nullable|boolean',
+            'previous_tracking_number' => [
+                $hasPreviousComplaint ? 'required' : 'nullable',
+                'string',
+                'exists:complaints,tracking_number',
+            ],
         ];
     }
 
@@ -56,6 +66,9 @@ class StoreComplaintRequest extends FormRequest
             'attachments.max' => 'الحد الأقصى للمرفقات هو 5 ملفات',
             'attachments.*.max' => 'حجم الملف يجب ألا يتجاوز 5 ميغابايت',
             'attachments.*.mimes' => 'صيغة الملف غير مدعومة',
+            'template_id.exists' => 'نموذج الشكوى المحدد غير موجود',
+            'previous_tracking_number.required' => 'رقم الشكوى السابقة مطلوب عند تحديد وجود شكوى سابقة مرتبطة',
+            'previous_tracking_number.exists' => 'رقم الشكوى السابقة غير موجود في النظام',
         ];
     }
 
@@ -76,6 +89,8 @@ class StoreComplaintRequest extends FormRequest
             'subject' => 'الموضوع',
             'body' => 'التفاصيل',
             'attachments' => 'المرفقات',
+            'template_id' => 'نموذج الشكوى',
+            'previous_tracking_number' => 'رقم الشكوى السابقة',
         ];
     }
 }

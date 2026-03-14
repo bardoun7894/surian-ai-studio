@@ -186,7 +186,7 @@ export default function Breadcrumbs() {
             href="/"
             className="inline-flex items-center gap-1.5 text-gov-forest dark:text-gov-gold hover:underline transition-colors"
           >
-            <span className="shrink-0 inline-flex items-center" style={{position: "relative", top: "-2.5px"}}><HomeIcon size={12} /></span>
+            <span className="shrink-0 inline-flex items-center relative -top-[2.5px]"><HomeIcon size={12} /></span>
             <span className="font-semibold">{isAr ? 'الرئيسية' : 'Home'}</span>
           </Link>
         </li>

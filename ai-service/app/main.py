@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
@@ -9,6 +9,8 @@ from app.config import settings
 import os
 import json
 import logging
+import re
+
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +26,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Card 21: Input sanitization
+def sanitize_input(text: str, max_length: int = 4000) -> str:
+    """Sanitize user input to prevent prompt injection."""
+    if not text:
+        return text
+    # Truncate to max length
+    text = text[:max_length]
+    return text
 
 
 # Dependency injection for AI Provider
@@ -102,7 +114,8 @@ async def list_providers():
 async def chat(request: ChatRequest, provider: AIProvider = Depends(get_ai_provider)):
     """Chat with AI assistant."""
     try:
-        messages = [Message(role="user", content=request.prompt)]
+        sanitized_prompt = sanitize_input(request.prompt)
+        messages = [Message(role="user", content=sanitized_prompt)]
         system = settings.CHAT_SYSTEM_PROMPT
         response = await provider.chat(
             messages,
@@ -116,7 +129,7 @@ async def chat(request: ChatRequest, provider: AIProvider = Depends(get_ai_provi
         }
     except Exception as e:
         logger.error(f"Chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Chat service temporarily unavailable")
 
 
 @app.post("/api/v1/ai/analyze-complaint")
@@ -142,7 +155,7 @@ async def analyze_complaint(
         }
     except Exception as e:
         logger.error(f"Analyze complaint error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Complaint analysis service temporarily unavailable")
 
 
 @app.post("/api/v1/ai/summarize")
@@ -165,7 +178,7 @@ async def summarize(
         }
     except Exception as e:
         logger.error(f"Summarize error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Summarization service temporarily unavailable")
 
 
 @app.post("/api/v1/ai/suggest-title")
@@ -181,7 +194,7 @@ async def suggest_title(
         }
     except Exception as e:
         logger.error(f"Suggest title error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Title suggestion service temporarily unavailable")
 
 
 @app.post("/api/v1/ai/proofread")
@@ -194,18 +207,34 @@ async def proofread(
         return {**result, "provider": settings.AI_PROVIDER}
     except Exception as e:
         logger.error(f"Proofread error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Proofread service temporarily unavailable")
 
 
 @app.post("/api/v1/ai/ocr")
 async def ocr(
-    file: UploadFile = File(...), provider: AIProvider = Depends(get_ai_provider)
+    file: UploadFile = File(...),
+    provider: AIProvider = Depends(get_ai_provider),
 ):
     """Extract text from image using Gemini vision (with pytesseract fallback)."""
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
-    content = await file.read()
+    # Card 22: Validate file type and size
+    allowed_mimes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp", "image/tiff", "application/pdf"]
+    if file.content_type and file.content_type not in allowed_mimes:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    file_content = await file.read()
+    
+    # Max 10MB
+    if len(file_content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+    # Validate magic bytes for images
+    if file_content[:4] not in [b"\x89PNG", b"\xff\xd8\xff\xe0", b"\xff\xd8\xff\xe1", b"GIF8", b"RIFF", b"II*\x00", b"MM\x00*", b"%PDF"]:
+        if not file_content[:4].startswith((b"\x89PNG", b"\xff\xd8", b"GIF8", b"RIFF", b"%PDF")):
+            raise HTTPException(status_code=400, detail="Invalid file content")
+
     mime_type = file.content_type or "image/png"
 
     # Try Gemini vision first for better Arabic OCR
@@ -214,13 +243,13 @@ async def ocr(
         from app.providers.gemini import GeminiProvider
 
         if isinstance(provider, GeminiProvider):
-            text = await provider.ocr_with_vision(content, mime_type)
+            text = await provider.ocr_with_vision(file_content, mime_type)
     except Exception as e:
         logger.warning(f"Gemini vision OCR failed, falling back to tesseract: {e}")
 
     # Fallback to pytesseract if Gemini vision returned nothing
     if not text.strip():
-        text = OCRService.extract_text(content)
+        text = OCRService.extract_text(file_content)
 
     return {"text": text}
 
@@ -244,7 +273,7 @@ async def generate_embeddings(
     except Exception as e:
         logger.error(f"Embedding error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate embedding: {str(e)}"
+            status_code=500, detail="Embedding service temporarily unavailable"
         )
 
 
@@ -284,7 +313,7 @@ Text to translate:
         }
     except Exception as e:
         logger.error(f"Translation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Translation service temporarily unavailable")
 
 
 if __name__ == "__main__":

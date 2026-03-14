@@ -16,6 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${title} | وزارة الاقتصاد والصناعة`,
       description: desc,
       url: `/news/${id}`,
+      siteName: "وزارة الاقتصاد والصناعة",
+      locale: "ar_SY",
       type: 'article',
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },

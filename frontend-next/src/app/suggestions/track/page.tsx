@@ -47,6 +47,20 @@ const statusConfig: Record<string, { label: string; labelEn: string; color: stri
         color: 'text-red-600 dark:text-red-400',
         bg: 'bg-red-100 dark:bg-red-900/30',
         icon: <XCircle size={24} />
+    },
+    completed: {
+        label: 'مكتمل',
+        labelEn: 'Completed',
+        color: 'text-green-600 dark:text-green-400',
+        bg: 'bg-green-100 dark:bg-green-900/30',
+        icon: <CheckCircle size={24} />
+    },
+    responded: {
+        label: 'تم الرد',
+        labelEn: 'Responded',
+        color: 'text-blue-600 dark:text-blue-400',
+        bg: 'bg-blue-100 dark:bg-blue-900/30',
+        icon: <FileText size={24} />
     }
 };
 

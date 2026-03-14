@@ -93,7 +93,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   // Fetch search suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (debouncedSearchTerm.length < 2) {
+      // Allow single-character Arabic queries (matching backend behavior)
+      const isArabic = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(debouncedSearchTerm);
+      const minLength = isArabic ? 1 : 2;
+      if (debouncedSearchTerm.length < minLength) {
         setSuggestions([]);
         setShowSuggestions(false);
         return;

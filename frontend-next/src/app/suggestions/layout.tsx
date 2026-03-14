@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     title: "المقترحات | وزارة الاقتصاد والصناعة",
     description: "تقديم مقترحاتكم لتحسين خدمات وزارة الاقتصاد والصناعة",
     url: '/suggestions',
+    siteName: "وزارة الاقتصاد والصناعة",
+    locale: "ar_SY",
     type: "website",
     images: [{ url: '/assets/logo/og-image.png', width: 1200, height: 630, alt: 'وزارة الاقتصاد والصناعة' }],
   },
@@ -14,6 +16,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: "المقترحات | وزارة الاقتصاد والصناعة",
     description: "تقديم مقترحاتكم لتحسين خدمات وزارة الاقتصاد والصناعة",
+    images: ['/assets/logo/og-image.png'],
   },
   alternates: { canonical: '/suggestions' },
 };

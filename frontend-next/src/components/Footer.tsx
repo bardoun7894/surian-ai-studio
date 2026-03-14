@@ -134,7 +134,7 @@ const Footer: React.FC = () => {
                 <Phone size={16} className="text-gov-forest dark:text-gov-teal mt-0.5 md:mt-1 w-4 h-4 md:w-4 md:h-4" />
                 <div>
                   <span className="block text-xs text-gov-forest/70 dark:text-gov-teal/70">{t('contact_center')}</span>
-                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors hover:text-gov-gold dir-ltr">{phone}</a>
+                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors hover:text-gov-gold" dir="ltr" style={{ direction: "ltr", unicodeBidi: "embed" }}>{phone}</a>
                 </div>
               </li>
               <li className="flex items-center gap-2 md:gap-3">

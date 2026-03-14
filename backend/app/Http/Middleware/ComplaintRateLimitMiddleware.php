@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 
 class ComplaintRateLimitMiddleware
@@ -32,18 +33,20 @@ class ComplaintRateLimitMiddleware
         // Determine rate limit key (user ID or IP address)
         $key = $this->getRateLimitKey($request);
 
-        // Check if limit exceeded (3 complaints per day)
-        if (RateLimiter::tooManyAttempts($key, 3)) {
-            $availableAt = RateLimiter::availableIn($key);
-            $hours = ceil($availableAt / 3600);
+        // Calculate seconds remaining until midnight (calendar day reset)
+        $secondsUntilMidnight = Carbon::now()->diffInSeconds(Carbon::tomorrow());
 
+        // Check if limit exceeded (3 complaints per calendar day per user)
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $availableAt = $secondsUntilMidnight;
+            $hours = ceil($availableAt / 3600);
 
             $isSuggestion = str_contains($request->path(), 'suggestion');
             $label = $isSuggestion ? 'اقتراحات' : 'شكاوى';
 
             return response()->json([
                 'error' => "تم تجاوز الحد المسموح من ال{$label} اليومية",
-                'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
+                'message' => "لقد تجاوزت الحد المسموح (3 {$label} في اليوم). يرجى المحاولة بعد منتصف الليل.",
                 'retry_after' => $availableAt,
             ], 429);
         }
@@ -53,8 +56,8 @@ class ComplaintRateLimitMiddleware
 
         // If complaint was successfully created, increment the counter
         if ($response->getStatusCode() === 201 || $response->getStatusCode() === 200) {
-            // Hit the rate limiter (expires in 24 hours)
-            RateLimiter::hit($key, 86400); // 24 hours in seconds
+            // Hit the rate limiter (expires at midnight - calendar day reset)
+            RateLimiter::hit($key, $secondsUntilMidnight);
         }
 
         return $response;
@@ -73,7 +76,13 @@ class ComplaintRateLimitMiddleware
             return $prefix . '_user_' . $request->user()->id;
         }
 
-        // Fall back to IP address for guests
+        // Fall back to national_id for guest submissions (per-user limiting)
+        $nationalId = $request->input('national_id');
+        if ($nationalId) {
+            return $prefix . '_nid_' . $nationalId;
+        }
+
+        // Last resort: fall back to IP address for anonymous guests
         return $prefix . '_ip_' . $request->ip();
     }
 }

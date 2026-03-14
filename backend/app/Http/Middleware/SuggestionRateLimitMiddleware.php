@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 
 class SuggestionRateLimitMiddleware
@@ -27,13 +28,15 @@ class SuggestionRateLimitMiddleware
 
         $key = $this->getRateLimitKey($request);
 
+        // Calculate seconds remaining until midnight (calendar day reset)
+        $secondsUntilMidnight = Carbon::now()->diffInSeconds(Carbon::tomorrow());
+
         if (RateLimiter::tooManyAttempts($key, 3)) {
-            $availableAt = RateLimiter::availableIn($key);
-            $hours = ceil($availableAt / 3600);
+            $availableAt = $secondsUntilMidnight;
 
             return response()->json([
                 'error' => 'تم تجاوز الحد المسموح من المقترحات اليومية',
-                'message' => "لقد تجاوزت الحد المسموح (3 مقترحات في اليوم). يرجى المحاولة بعد {$hours} ساعة.",
+                'message' => "لقد تجاوزت الحد المسموح (3 مقترحات في اليوم). يرجى المحاولة بعد منتصف الليل.",
                 'retry_after' => $availableAt,
             ], 429);
         }
@@ -41,7 +44,8 @@ class SuggestionRateLimitMiddleware
         $response = $next($request);
 
         if ($response->getStatusCode() === 201 || $response->getStatusCode() === 200) {
-            RateLimiter::hit($key, 86400);
+            // Hit the rate limiter (expires at midnight - calendar day reset)
+            RateLimiter::hit($key, $secondsUntilMidnight);
         }
 
         return $response;

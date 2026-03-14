@@ -51,10 +51,12 @@ services:
       - DB_PORT=5432
       - DB_DATABASE=surian_db
       - DB_USERNAME=surian_user
-      - DB_PASSWORD=surian_pass
+      - DB_PASSWORD=41cgpYNYxLm3cqkEUqJHBMyGWY1mlziI
       - REDIS_HOST=redis
-      - REDIS_PASSWORD=null
+      - REDIS_PASSWORD=jQod4GBn7bRXWr9Vcfzp6aOI
       - REDIS_PORT=6379
+      - APP_DEBUG=false
+      - APP_ENV=production
       - SANCTUM_STATEFUL_DOMAINS=localhost:3110,localhost:3120,localhost:3002,localhost:8080,localhost:8002,frontend-next:3000,91.230.110.187:8002,91.230.110.187:3110,91.230.110.187:3120,91.230.110.187:3002
       - SESSION_DOMAIN=null
     depends_on:
@@ -68,16 +70,16 @@ services:
     environment:
       - POSTGRES_DB=surian_db
       - POSTGRES_USER=surian_user
-      - POSTGRES_PASSWORD=surian_pass
+      - POSTGRES_PASSWORD=41cgpYNYxLm3cqkEUqJHBMyGWY1mlziI
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Port 5432 not exposed externally for security
     restart: always
 
   # Cache (Redis)
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass jQod4GBn7bRXWr9Vcfzp6aOI
     volumes:
       - redis_data:/data
     restart: always

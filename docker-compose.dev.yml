@@ -6,6 +6,7 @@ services:
     command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0 --port 3000"
     ports:
       - "3110:3000"
+      - "3120:3000"
     volumes:
       - ./frontend-next:/app
       - /app/node_modules  # Exclude node_modules from mount
@@ -53,11 +54,11 @@ services:
       - DB_PORT=5432
       - DB_DATABASE=surian_db
       - DB_USERNAME=surian_user
-      - DB_PASSWORD=surian_pass
+      - DB_PASSWORD=41cgpYNYxLm3cqkEUqJHBMyGWY1mlziI
       - REDIS_HOST=redis
-      - REDIS_PASSWORD=null
+      - REDIS_PASSWORD=jQod4GBn7bRXWr9Vcfzp6aOI
       - REDIS_PORT=6379
-      - SANCTUM_STATEFUL_DOMAINS=localhost:3110,localhost:3002,localhost:8080,localhost:8002,frontend-next:3000,91.230.110.187:8002,91.230.110.187:3110,91.230.110.187:3002
+      - SANCTUM_STATEFUL_DOMAINS=localhost:3110,localhost:3002,localhost:8080,localhost:8002,frontend-next:3000,91.230.110.187:8002,91.230.110.187:3110,91.230.110.187:3120,91.230.110.187:3002
       - SESSION_DOMAIN=null
       - CACHE_DRIVER=array
       - CONFIG_CACHE=false
@@ -71,7 +72,7 @@ services:
     environment:
       - POSTGRES_DB=surian_db
       - POSTGRES_USER=surian_user
-      - POSTGRES_PASSWORD=surian_pass
+      - POSTGRES_PASSWORD=41cgpYNYxLm3cqkEUqJHBMyGWY1mlziI
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
@@ -80,6 +81,7 @@ services:
   # Cache (Redis)
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass jQod4GBn7bRXWr9Vcfzp6aOI
     volumes:
       - redis_data:/data
 
@@ -94,7 +96,7 @@ services:
     env_file:
       - ./ai-service/.env
     environment:
-      - CORS_ORIGINS=["http://localhost:8080","http://localhost:3110","http://localhost:3002","http://frontend-next:3000","http://91.230.110.187:3110","http://91.230.110.187:3002","http://91.230.110.187:8002"]
+      - CORS_ORIGINS=["http://localhost:8080","http://localhost:3110","http://localhost:3002","http://frontend-next:3000","http://91.230.110.187:3110","http://91.230.110.187:3120","http://91.230.110.187:3002","http://91.230.110.187:8002"]
     ports:
       - "8001:8000"
 

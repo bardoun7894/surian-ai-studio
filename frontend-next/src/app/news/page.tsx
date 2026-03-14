@@ -357,35 +357,32 @@ function NewsPageContent() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
                 {/* Main featured article - spans 2 columns, matching home page card proportions */}
                 <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
-                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[240px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
+                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[280px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
                     {featuredNews.imageUrl ? (
                       <Image
                         src={featuredNews.imageUrl}
                         alt={featuredNews.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                         priority
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
 
-                    {/* Featured/Breaking badges at top */}
-                    <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-10">
                       {featuredNews.isUrgent && (
-                        <span className="inline-block px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                        <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
                           {t('ui_breaking')}
                         </span>
                       )}
                       {(featuredNews as any).directorate_name && (
-                        <span className="inline-block px-2 py-0.5 bg-gov-gold/80 text-gov-forest text-[10px] font-bold rounded-full">
+                        <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
                           {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                         </span>
                       )}
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                      <h3 className="text-base md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                      <h3 className="text-lg md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
                         {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                       </h3>
                       <p className="text-white/70 text-xs md:text-base max-w-2xl line-clamp-2 mb-4">

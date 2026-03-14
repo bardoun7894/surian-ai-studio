@@ -26,13 +26,16 @@ const ExternalLinkModal: React.FC<ExternalLinkModalProps> = ({ isOpen, url, onCl
                 </div>
 
                 <div className="p-6">
-                    <p className="text-gray-600 dark:text-white/70 mb-4 leading-relaxed">
+                    <p className="text-gray-600 dark:text-white/70 mb-4 leading-relaxed text-base font-semibold">
                         {t('external_link_warning_desc')}
                     </p>
-                    <div className="bg-gray-50 dark:bg-gov-card/10 p-3 rounded-xl border border-gray-100 dark:border-gov-border/15 mb-6 flex items-center gap-2 text-sm text-gov-teal break-all">
+                    <div className="bg-gray-50 dark:bg-gov-card/10 p-3 rounded-xl border border-gray-100 dark:border-gov-border/15 mb-4 flex items-center gap-2 text-sm text-gov-teal break-all">
                         <ExternalLink size={16} className="shrink-0" />
                         <span dir="ltr">{url}</span>
                     </div>
+                    <p className="text-gray-600 dark:text-white/70 mb-6 leading-relaxed">
+                        {t('external_link_warning_confirm')}
+                    </p>
 
                     <div className="flex gap-3">
                         <button

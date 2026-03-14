@@ -111,7 +111,7 @@ const NewsSection: React.FC = () => {
   return (
     <>
       <section className="py-8 md:py-20 bg-gradient-to-b from-gray-50 to-white dark:from-dm-bg dark:to-dm-bg transition-colors" id="news-section">
-        <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           {/* Header with prev/next + View All */}
           <div className="flex items-end justify-between mb-4 md:mb-10">
             <div>
@@ -163,7 +163,7 @@ const NewsSection: React.FC = () => {
             /* Horizontal scroll carousel */
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-6 px-6 sm:-mx-6 sm:px-6 scrollbar-hide"
+              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {allNews.map((item) => (

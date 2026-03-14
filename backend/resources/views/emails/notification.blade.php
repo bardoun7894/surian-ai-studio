@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Arial', 'Tahoma', sans-serif;
-            background-color: #f4f4f4;
+            background-color: #edebe0;
             margin: 0;
             padding: 0;
             direction: rtl;
@@ -16,100 +16,113 @@
             max-width: 600px;
             margin: 30px auto;
             background-color: #ffffff;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 24px rgba(9, 66, 57, 0.12);
         }
         .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a7b 100%);
+            background: linear-gradient(135deg, #094239 0%, #0d5c50 50%, #094239 100%);
             color: #ffffff;
-            padding: 30px 20px;
+            padding: 36px 24px;
             text-align: center;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #b9a779, #d4af37, #b9a779);
         }
         .header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
+            letter-spacing: 0.5px;
         }
         .header .ministry-name {
-            margin-top: 10px;
-            font-size: 14px;
-            opacity: 0.9;
+            margin-top: 8px;
+            font-size: 13px;
+            opacity: 0.85;
+            color: #b9a779;
         }
         .content {
-            padding: 30px 20px;
+            padding: 32px 24px;
         }
         .notification-box {
-            background-color: #f8f9fa;
-            border-right: 4px solid #1e3a5f;
-            padding: 20px;
+            background: linear-gradient(135deg, #f8f7f3 0%, #edebe0 100%);
+            border-right: 4px solid #094239;
+            padding: 24px;
             margin: 20px 0;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .notification-title {
             font-size: 20px;
             font-weight: bold;
-            color: #1e3a5f;
-            margin-bottom: 15px;
+            color: #094239;
+            margin-bottom: 12px;
+        }
+        .gold-divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #b9a779, #d4af37);
+            margin: 0 0 16px 0;
+            border-radius: 2px;
         }
         .notification-body {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #333333;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #3d3a3b;
             margin-bottom: 20px;
         }
         .notification-data {
             background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 15px 0;
+            border: 1px solid #edebe0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
         }
         .data-row {
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 0;
+            border-bottom: 1px solid #f4f3ef;
         }
         .data-row:last-child {
             border-bottom: none;
         }
         .data-label {
             font-weight: bold;
-            color: #1e3a5f;
+            color: #094239;
             display: inline-block;
             min-width: 150px;
         }
         .data-value {
-            color: #555555;
+            color: #3d3a3b;
         }
         .action-button {
             display: inline-block;
-            background-color: #1e3a5f;
+            background: linear-gradient(135deg, #094239 0%, #0d5c50 100%);
             color: #ffffff !important;
-            padding: 12px 30px;
+            padding: 14px 36px;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 10px;
             font-weight: bold;
             margin: 20px 0;
             text-align: center;
-        }
-        .action-button:hover {
-            background-color: #2d5a7b;
+            box-shadow: 0 4px 12px rgba(9, 66, 57, 0.25);
         }
         .footer {
-            background-color: #f8f9fa;
-            padding: 20px;
+            background-color: #094239;
+            padding: 24px;
             text-align: center;
             font-size: 12px;
-            color: #666666;
-            border-top: 1px solid #e0e0e0;
+            color: rgba(255, 255, 255, 0.7);
         }
         .footer a {
-            color: #1e3a5f;
+            color: #b9a779;
             text-decoration: none;
-        }
-        .logo {
-            max-width: 120px;
-            margin-bottom: 15px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -125,6 +138,7 @@
         <div class="content">
             <div class="notification-box">
                 <div class="notification-title">{{ $title }}</div>
+                <div class="gold-divider"></div>
                 <div class="notification-body">{!! nl2br(e($body)) !!}</div>
 
                 @if(!empty($data) && is_array($data))
@@ -147,16 +161,17 @@
                 @endif
             </div>
 
-            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+            <p style="color: #3d3a3b; font-size: 13px; margin-top: 24px;">
                 هذا البريد الإلكتروني تم إرساله تلقائياً من نظام وزارة الاقتصاد والصناعة. يرجى عدم الرد على هذا البريد.
             </p>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p>
-                © {{ date('Y') }} وزارة الاقتصاد والصناعة - الجمهورية العربية السورية<br>
-                <a href="{{ config('app.url') }}">زيارة الموقع الرسمي</a>
+            <div style="width: 40px; height: 2px; background: #b9a779; margin: 0 auto 12px;"></div>
+            <p style="margin: 0;">
+                &copy; {{ date('Y') }} وزارة الاقتصاد والصناعة - الجمهورية العربية السورية<br>
+                <a href="{{ config('app.frontend_url', config('app.url')) }}">زيارة الموقع الرسمي</a>
             </p>
         </div>
     </div>

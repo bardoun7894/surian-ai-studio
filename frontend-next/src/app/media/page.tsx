@@ -523,7 +523,7 @@ export default function MediaPage() {
       <main className="flex-grow pt-0">
         <div className="min-h-screen bg-gov-beige dark:bg-dm-bg pb-20">
           {/* Header */}
-          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-4 md:px-6">
+          <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-5 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
                 {t("media_center_title")}
@@ -714,12 +714,12 @@ export default function MediaPage() {
                                 handlePlayInline(item, e);
                               }
                             }}
-                            className="absolute inset-0 w-full h-full flex items-center justify-center z-20 cursor-pointer"
+                            className="absolute inset-0 w-full h-full grid place-items-center z-20 cursor-pointer"
                           >
-                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-white/90 group-hover:scale-110 group-hover:bg-white">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full grid place-items-center shadow-2xl transition-all duration-300 bg-white/90 will-change-transform md:group-hover:scale-110 md:group-hover:bg-white">
                               <Play
                                 size={24}
-                                className="text-gov-forest ms-0.5"
+                                className="text-gov-forest translate-x-[1px]"
                                 fill="currentColor"
                               />
                             </div>

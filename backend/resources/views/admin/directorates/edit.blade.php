@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">تعديل بيانات المديرية</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">تحديث معلومات مديرية: {{ $directorate->name }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">تحديث معلومات مديرية: {{ $directorate->name_ar }}</p>
         </div>
         <a href="{{ route('admin.directorates.index') }}" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm font-medium text-sm">
             <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -26,9 +26,9 @@
                 <!-- Name -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم المديرية</label>
-                    <input type="text" name="name" value="{{ old('name', $directorate->name) }}" required 
+                    <input type="text" name="name_ar" value="{{ old('name_ar', $directorate->name_ar) }}" required
                         class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400">
-                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('name_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Description -->
@@ -92,6 +92,15 @@
                         class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
                         placeholder="https://...">
                     @error('website') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Google Maps URL -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رابط خرائط غوغل</label>
+                    <input type="url" name="google_maps_url" value="{{ old('google_maps_url', $directorate->google_maps_url) }}" dir="ltr"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="https://maps.google.com/...">
+                    @error('google_maps_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

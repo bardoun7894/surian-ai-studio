@@ -4,16 +4,21 @@ services:
     build:
       context: ./frontend-next
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=
+        - NEXT_PUBLIC_BACKEND_URL=http://91.230.110.187:8002
+        - NEXT_PUBLIC_AI_SERVICE_URL=http://91.230.110.187:8001
+        - NEXT_PUBLIC_SESSION_TIMEOUT=15
     ports:
       - "3120:3000"
     environment:
       # Runtime env vars for server-side rewrites
       - BACKEND_URL=http://backend-web
       - AI_SERVICE_URL=http://ai-service:8000
-      # Build-time env vars for client-side code
-      - NEXT_PUBLIC_API_URL=http://backend-web/api/v1
-      - NEXT_PUBLIC_BACKEND_URL=http://backend-web
-      - NEXT_PUBLIC_AI_SERVICE_URL=http://ai-service:8000
+      # Build-time env vars for client-side code (public IP for browser access)
+      - NEXT_PUBLIC_API_URL=
+      - NEXT_PUBLIC_BACKEND_URL=http://91.230.110.187:8002
+      - NEXT_PUBLIC_AI_SERVICE_URL=http://91.230.110.187:8001
       - NEXT_PUBLIC_SESSION_TIMEOUT=15
     depends_on:
       - backend-web

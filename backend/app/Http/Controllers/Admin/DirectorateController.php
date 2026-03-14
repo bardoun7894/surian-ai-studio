@@ -22,7 +22,7 @@ class DirectorateController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:directorates,name',
+            'name_ar' => 'required|string|max:255|unique:directorates,name_ar',
             'description' => 'nullable|string',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
@@ -31,6 +31,7 @@ class DirectorateController extends Controller
             'website' => 'nullable|string|max:255',
             'working_hours_ar' => 'nullable|string|max:255',
             'working_hours_en' => 'nullable|string|max:255',
+            'google_maps_url' => 'nullable|url|max:1024',
         ]);
         
         Directorate::create($validated);
@@ -46,7 +47,7 @@ class DirectorateController extends Controller
     public function update(Request $request, Directorate $directorate)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:directorates,name,' . $directorate->id,
+            'name_ar' => 'required|string|max:255|unique:directorates,name_ar,' . $directorate->id,
             'description' => 'nullable|string',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
@@ -55,6 +56,7 @@ class DirectorateController extends Controller
             'website' => 'nullable|string|max:255',
             'working_hours_ar' => 'nullable|string|max:255',
             'working_hours_en' => 'nullable|string|max:255',
+            'google_maps_url' => 'nullable|url|max:1024',
         ]);
         
         $directorate->update($validated);

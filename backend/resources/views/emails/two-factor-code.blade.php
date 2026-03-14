@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Arial', 'Tahoma', sans-serif;
-            background-color: #f4f4f4;
+            background-color: #edebe0;
             margin: 0;
             padding: 0;
             direction: rtl;
@@ -16,77 +16,114 @@
             max-width: 600px;
             margin: 30px auto;
             background-color: #ffffff;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 24px rgba(9, 66, 57, 0.12);
         }
         .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a7b 100%);
+            background: linear-gradient(135deg, #094239 0%, #0d5c50 50%, #094239 100%);
             color: #ffffff;
-            padding: 30px 20px;
+            padding: 36px 24px;
             text-align: center;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #b9a779, #d4af37, #b9a779);
         }
         .header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
+            letter-spacing: 0.5px;
         }
         .header .ministry-name {
-            margin-top: 10px;
-            font-size: 14px;
-            opacity: 0.9;
+            margin-top: 8px;
+            font-size: 13px;
+            opacity: 0.85;
+            color: #b9a779;
         }
         .content {
-            padding: 30px 20px;
+            padding: 32px 24px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #161616;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .message {
+            font-size: 15px;
+            color: #3d3a3b;
+            line-height: 1.7;
+            margin-bottom: 24px;
         }
         .otp-box {
-            background-color: #f8f9fa;
-            border: 2px solid #1e3a5f;
-            border-radius: 8px;
-            padding: 30px;
-            margin: 20px 0;
+            background: linear-gradient(135deg, #f8f7f3 0%, #edebe0 100%);
+            border: 1px solid #b9a779;
+            border-radius: 12px;
+            padding: 32px;
+            margin: 24px 0;
             text-align: center;
         }
         .otp-label {
-            font-size: 16px;
-            color: #555555;
-            margin-bottom: 15px;
+            font-size: 14px;
+            color: #3d3a3b;
+            margin-bottom: 12px;
+        }
+        .gold-divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #b9a779, #d4af37);
+            margin: 12px auto 16px;
+            border-radius: 2px;
         }
         .otp-code {
-            font-size: 36px;
+            font-size: 40px;
             font-weight: bold;
-            color: #1e3a5f;
-            letter-spacing: 8px;
+            color: #094239;
+            letter-spacing: 10px;
             font-family: 'Courier New', monospace;
             direction: ltr;
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            border: 2px dashed #b9a779;
         }
         .expiry-notice {
-            background-color: #fff3cd;
-            border-right: 4px solid #ffc107;
+            background-color: #fdf8e8;
+            border-right: 4px solid #b9a779;
             padding: 12px 16px;
             margin: 20px 0;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
-            color: #856404;
+            color: #7a6a3a;
         }
         .security-notice {
-            color: #666666;
+            color: #3d3a3b;
             font-size: 13px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #edebe0;
+            line-height: 1.6;
         }
         .footer {
-            background-color: #f8f9fa;
-            padding: 20px;
+            background-color: #094239;
+            padding: 24px;
             text-align: center;
             font-size: 12px;
-            color: #666666;
-            border-top: 1px solid #e0e0e0;
+            color: rgba(255, 255, 255, 0.7);
         }
         .footer a {
-            color: #1e3a5f;
+            color: #b9a779;
             text-decoration: none;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -100,34 +137,36 @@
 
         <!-- Content -->
         <div class="content">
-            <p style="font-size: 16px; color: #333333;">مرحباً،</p>
-            <p style="font-size: 16px; color: #333333; line-height: 1.6;">
-                تم طلب رمز تحقق لتسجيل الدخول إلى حسابك. يرجى استخدام الرمز التالي:
+            <p class="greeting">مرحباً،</p>
+            <p class="message">
+                تم طلب رمز تحقق لتسجيل الدخول إلى حسابك في بوابة وزارة الاقتصاد والصناعة. يرجى استخدام الرمز التالي:
             </p>
 
             <div class="otp-box">
                 <div class="otp-label">رمز التحقق الخاص بك</div>
+                <div class="gold-divider"></div>
                 <div class="otp-code">{{ $otp }}</div>
             </div>
 
             <div class="expiry-notice">
-                ⏱ هذا الرمز صالح لمدة <strong>15 دقيقة</strong> فقط.
+                &#9201; هذا الرمز صالح لمدة <strong>15 دقيقة</strong> فقط.
             </div>
 
             <div class="security-notice">
-                <p>إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد الإلكتروني. قد يكون شخص ما قد أدخل بريدك الإلكتروني عن طريق الخطأ.</p>
-                <p>لا تشارك هذا الرمز مع أي شخص. لن يطلب منك موظفونا أبداً هذا الرمز.</p>
+                <p style="margin: 0 0 8px 0;">إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد الإلكتروني. قد يكون شخص ما قد أدخل بريدك الإلكتروني عن طريق الخطأ.</p>
+                <p style="margin: 0;"><strong>لا تشارك هذا الرمز مع أي شخص. لن يطلب منك موظفونا أبداً هذا الرمز.</strong></p>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p>
+            <p style="margin: 0 0 8px 0;">
                 هذا البريد الإلكتروني تم إرساله تلقائياً من نظام وزارة الاقتصاد والصناعة. يرجى عدم الرد على هذا البريد.
             </p>
-            <p>
-                © {{ date('Y') }} وزارة الاقتصاد والصناعة - الجمهورية العربية السورية<br>
-                <a href="{{ config('app.url') }}">زيارة الموقع الرسمي</a>
+            <div style="width: 40px; height: 2px; background: #b9a779; margin: 12px auto;"></div>
+            <p style="margin: 0;">
+                &copy; {{ date('Y') }} وزارة الاقتصاد والصناعة - الجمهورية العربية السورية<br>
+                <a href="{{ config('app.frontend_url', config('app.url')) }}">زيارة الموقع الرسمي</a>
             </p>
         </div>
     </div>

@@ -25,10 +25,10 @@
                 <!-- Name -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم المديرية</label>
-                    <input type="text" name="name" value="{{ old('name') }}" required 
+                    <input type="text" name="name_ar" value="{{ old('name_ar') }}" required
                         class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
                         placeholder="مثال: مديرية الاقتصاد في دمشق">
-                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('name_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Description -->
@@ -58,6 +58,15 @@
                             placeholder="011-xxxxxxx">
                         @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                </div>
+
+                <!-- Google Maps URL -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رابط خرائط غوغل</label>
+                    <input type="url" name="google_maps_url" value="{{ old('google_maps_url') }}" dir="ltr"
+                        class="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white focus:ring-primary focus:border-primary placeholder:text-slate-400"
+                        placeholder="https://maps.google.com/...">
+                    @error('google_maps_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
 

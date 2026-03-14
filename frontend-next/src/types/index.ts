@@ -65,6 +65,7 @@ export interface Directorate {
   website?: string;
   working_hours_ar?: string;
   working_hours_en?: string;
+  google_maps_url?: string;
 }
 
 export interface Service {
@@ -150,9 +151,6 @@ export interface MediaItem {
   title: string;
   title_ar?: string;
   title_en?: string;
-  description?: string;
-  description_ar?: string;
-  description_en?: string;
   type: 'video' | 'photo' | 'infographic';
   thumbnailUrl: string;
   url?: string;

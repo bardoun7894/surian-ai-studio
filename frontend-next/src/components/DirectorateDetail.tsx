@@ -13,13 +13,13 @@ import {
     Calendar,
     ArrowRight,
     ArrowLeft,
+    MapPin,
 } from 'lucide-react';
 import { API } from '@/lib/repository';
 import { Directorate, NewsItem, FAQ, Service } from '@/types';
 import { Announcement } from '@/lib/repository';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';
 import DirectorateHero from '@/components/DirectorateHero';
@@ -37,25 +37,10 @@ interface DirectorateDetailProps {
 
 const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) => {
     const { t, language } = useLanguage();
-    const { setLabel, clearLabel } = useBreadcrumb();
     const isAr = language === 'ar';
-
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
     usePageLoading(loading);
-
-  // Set breadcrumb to actual directorate name
-  React.useEffect(() => {
-    if (directorate) {
-      const name = isAr ? (directorate.name_ar || directorate.name) : (directorate.name_en || directorate.name_ar || directorate.name);
-      if (name) {
-        setLabel("/directorates/" + directorate.id, name);
-      }
-    }
-    return () => {
-      if (directorate) clearLabel("/directorates/" + directorate.id);
-    };
-  }, [directorate, isAr, setLabel, clearLabel]);
 
 
     // News & Announcements
@@ -124,7 +109,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             <div className="w-20 h-20 rounded-2xl bg-gov-gold/10 dark:bg-gov-gold/20 flex items-center justify-center mb-6">
                 <Building2 className="text-gov-gold" size={40} />
             </div>
-            <h2 className="text-lg md:text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
+            <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white mb-3">
                 {isAr ? 'لم يتم العثور على الجهة' : 'Directorate Not Found'}
             </h2>
             <p className="text-gray-500 dark:text-white/60 mb-8 max-w-md">
@@ -252,7 +237,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                                 <Newspaper className="text-gov-forest dark:text-gov-gold" size={20} />
                             </div>
                             <div>
-                                <h2 className="text-lg md:text-2xl font-bold text-gov-charcoal dark:text-white">
+                                <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                                     {isAr ? 'الأخبار الرئيسية' : 'Featured News'}
                                 </h2>
                                 <p className="text-sm text-gray-500 dark:text-white/60">
@@ -348,7 +333,7 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
                             <div className="w-10 h-10 rounded-xl bg-gov-gold/10 flex items-center justify-center">
                                 <Megaphone className="text-gov-gold" size={20} />
                             </div>
-                            <h2 className="text-lg md:text-2xl font-bold text-gov-charcoal dark:text-white">
+                            <h2 className="text-2xl font-bold text-gov-charcoal dark:text-white">
                                 {isAr ? 'الإعلانات' : 'Announcements'}
                             </h2>
                         </div>
@@ -432,6 +417,26 @@ const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) 
             {/* ═══════════════════════════════════════════════════ */}
             {/* 10. CONTACT FORM (same as homepage) */}
             {/* ═══════════════════════════════════════════════════ */}
+            {/* ═══════════════════════════════════════════════════ */}
+            {/* 9. GOOGLE MAPS LINK */}
+            {/* ═══════════════════════════════════════════════════ */}
+            {directorate?.google_maps_url && (
+                <section className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    <a
+                        href={directorate.google_maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-gov-forest/5 dark:bg-gov-gold/10 border border-gov-forest/10 dark:border-gov-gold/20 hover:bg-gov-forest/10 dark:hover:bg-gov-gold/20 transition-colors group"
+                    >
+                        <MapPin size={20} className="text-gov-forest dark:text-gov-gold" />
+                        <span className="font-bold text-gov-forest dark:text-gov-gold">
+                            {isAr ? 'عرض الموقع على خرائط غوغل' : 'View Location on Google Maps'}
+                        </span>
+                        <ExternalLink size={16} className="text-gov-forest/50 dark:text-gov-gold/50 group-hover:text-gov-forest dark:group-hover:text-gov-gold transition-colors" />
+                    </a>
+                </section>
+            )}
+
             <ContactSection contactOverrides={{
                 phone: directorate?.phone || undefined,
                 email: directorate?.email || undefined,

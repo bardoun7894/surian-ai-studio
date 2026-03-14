@@ -10,44 +10,19 @@ import NewsletterSignup from './NewsletterSignup';
 
 import { useTheme } from '@/contexts/ThemeContext';
 
-const socialMediaLinks = [
-  { icon: Facebook, label: { ar: 'فيسبوك', en: 'Facebook' }, href: 'https://facebook.com/MoEI.Syria' },
-  { icon: Twitter, label: { ar: 'إكس (تويتر)', en: 'X (Twitter)' }, href: 'https://x.com/MoEI_Syria' },
-  { icon: Instagram, label: { ar: 'إنستغرام', en: 'Instagram' }, href: 'https://instagram.com/MoEI.Syria' },
-  { icon: Youtube, label: { ar: 'يوتيوب', en: 'YouTube' }, href: 'https://youtube.com/@MoEI_Syria' },
-  { icon: Send, label: { ar: 'تيليغرام', en: 'Telegram' }, href: 'https://t.me/MoEI_Syria' },
+const defaultSocialLinks = [
+  { icon: Facebook, label: { ar: 'فيسبوك', en: 'Facebook' }, key: 'social_facebook', fallback: 'https://facebook.com/MoEI.Syria' },
+  { icon: Twitter, label: { ar: 'إكس (تويتر)', en: 'X (Twitter)' }, key: 'social_twitter', fallback: 'https://x.com/MoEI_Syria' },
+  { icon: Instagram, label: { ar: 'إنستغرام', en: 'Instagram' }, key: 'social_instagram', fallback: 'https://instagram.com/MoEI.Syria' },
+  { icon: Youtube, label: { ar: 'يوتيوب', en: 'YouTube' }, key: 'social_youtube', fallback: 'https://youtube.com/@MoEI_Syria' },
+  { icon: Send, label: { ar: 'تيليغرام', en: 'Telegram' }, key: 'social_telegram', fallback: 'https://t.me/MoEI_Syria' },
 ];
 
 const Footer: React.FC = () => {
-
-  // Fetch social media links from admin settings
-  const [socialLinks, setSocialLinks] = useState(socialMediaLinks);
-  useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api/v1";
-    fetch(`${API_BASE}/public/settings/group/social_media`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && typeof data === "object") {
-          const iconMap: Record<string, any> = { facebook: Facebook, twitter: Twitter, instagram: Instagram, youtube: Youtube };
-          const links = Object.entries(data)
-            .filter(([, v]) => v && typeof v === "string" && (v as string).startsWith("http"))
-            .map(([k, v]) => {
-              const key = k.replace("_url", "").toLowerCase();
-              return {
-                icon: iconMap[key] || Send,
-                label: { ar: key, en: key.charAt(0).toUpperCase() + key.slice(1) },
-                href: v as string,
-              };
-            });
-          if (links.length > 0) setSocialLinks(links);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   const { t, language } = useLanguage();
   const { fontSize, setFontSize, toggleHighContrast } = useTheme();
   const [contactInfo, setContactInfo] = useState<Record<string, string>>({});
+  const [socialSettings, setSocialSettings] = useState<Record<string, string>>({});
 
   const handleIncreaseFont = () => {
     setFontSize(Math.min(fontSize + 10, 150));
@@ -62,10 +37,22 @@ const Footer: React.FC = () => {
   };
 
   useEffect(() => {
-    API.settings.getByGroup('contact')
-      .then(data => setContactInfo(data as Record<string, string>))
+    Promise.all([
+      API.settings.getByGroup('contact'),
+      API.settings.getByGroup('social'),
+    ])
+      .then(([contactData, socialData]) => {
+        setContactInfo(contactData as Record<string, string>);
+        setSocialSettings(socialData as Record<string, string>);
+      })
       .catch(() => { });
   }, []);
+
+  const socialMediaLinks = defaultSocialLinks.map(link => ({
+    icon: link.icon,
+    label: link.label,
+    href: (socialSettings[link.key] as string) || link.fallback,
+  }));
 
   const phone = contactInfo.contact_phone || '+963 11 222 9800';
   const email = contactInfo.contact_email || 'info@moe.gov.sy';
@@ -105,10 +92,10 @@ const Footer: React.FC = () => {
               <span className={`absolute -bottom-2 ${language === 'ar' ? 'right-0' : 'left-0'} w-6 md:w-8 h-1 bg-gov-forest dark:bg-gov-teal rounded-full`}></span>
             </h4>
             <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-gov-forest/70 dark:text-white/70 transition-colors">
-              {socialLinks.map((social) => {
+              {socialMediaLinks.map((social) => {
                 const Icon = social.icon;
                 return (
-                  <li key={social.href}>
+                  <li key={social.label.en}>
                     <a
                       href={social.href}
                       target="_blank"
@@ -134,7 +121,7 @@ const Footer: React.FC = () => {
                 <Phone size={16} className="text-gov-forest dark:text-gov-teal mt-0.5 md:mt-1 w-4 h-4 md:w-4 md:h-4" />
                 <div>
                   <span className="block text-xs text-gov-forest/70 dark:text-gov-teal/70">{t('contact_center')}</span>
-                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors hover:text-gov-gold" dir="ltr" style={{ direction: "ltr", unicodeBidi: "embed" }}>{phone}</a>
+                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-bold text-gov-forest dark:text-gov-teal text-lg transition-colors hover:text-gov-gold dir-ltr">{phone}</a>
                 </div>
               </li>
               <li className="flex items-center gap-2 md:gap-3">

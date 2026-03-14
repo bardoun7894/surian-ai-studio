@@ -29,8 +29,8 @@ class ServiceController extends Controller
 
     public function create()
     {
-        $directorates = Directorate::orderBy('name_ar')->get();
-        return view('admin.services.create', compact('directorates'));
+        $groupedDirectorates = $this->getGroupedDirectorates();
+        return view('admin.services.create', compact('groupedDirectorates'));
     }
 
     public function store(Request $request)
@@ -61,8 +61,8 @@ class ServiceController extends Controller
 
     public function edit(Service $service)
     {
-        $directorates = Directorate::orderBy('name_ar')->get();
-        return view('admin.services.edit', compact('service', 'directorates'));
+        $groupedDirectorates = $this->getGroupedDirectorates();
+        return view('admin.services.edit', compact('service', 'groupedDirectorates'));
     }
 
     public function update(Request $request, Service $service)
@@ -95,5 +95,36 @@ class ServiceController extends Controller
     {
         $service->delete();
         return redirect()->route('admin.services.index')->with('success', 'تم حذف الخدمة بنجاح');
+    }
+
+    private function getGroupedDirectorates(): array
+    {
+        $directorates = Directorate::orderBy('name_ar')->get();
+
+        $groupOrder = [
+            'الإدارة المركزية' => 1,
+            'الإدارات العامة' => 2,
+            'المديريات' => 3,
+            'الهيئات' => 4,
+            'المراكز' => 5,
+            'المؤسسات والشركات' => 6,
+        ];
+
+        $grouped = [];
+        foreach ($directorates as $d) {
+            $name = $d->name_ar;
+            if (str_starts_with($name, 'الإدارة العامة')) $group = 'الإدارات العامة';
+            elseif (str_starts_with($name, 'الإدارة المركزية')) $group = 'الإدارة المركزية';
+            elseif (str_starts_with($name, 'مديرية')) $group = 'المديريات';
+            elseif (str_starts_with($name, 'هيئة')) $group = 'الهيئات';
+            elseif (str_starts_with($name, 'مركز')) $group = 'المراكز';
+            else $group = 'المؤسسات والشركات';
+
+            $grouped[$group][] = $d;
+        }
+
+        uksort($grouped, fn($a, $b) => ($groupOrder[$a] ?? 99) <=> ($groupOrder[$b] ?? 99));
+
+        return $grouped;
     }
 }

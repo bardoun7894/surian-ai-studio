@@ -69,20 +69,16 @@
                 </div>
 
                 <!-- directorate_id -->
-                <div class="col-span-2 md:col-span-1">
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المديرية</label>
-                    <div class="relative">
-                        <select name="directorate_id"
-                            class="w-full appearance-none bg-background-light dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg h-10 pr-3 pl-8 text-sm text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer">
-                            <option value="">-- اختر المديرية --</option>
-                            @foreach($directorates as $directorate)
-                                <option value="{{ $directorate->id }}" {{ (old('directorate_id', $service->directorate_id)) == $directorate->id ? 'selected' : '' }}>{{ $directorate->name_ar }}</option>
-                            @endforeach
-                        </select>
-                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 pointer-events-none text-[20px]">expand_more</span>
-                    </div>
-                    @error('directorate_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+                @include('admin.partials.searchable-select', [
+                    'name' => 'directorate_id',
+                    'label' => 'المديرية',
+                    'grouped' => $groupedDirectorates,
+                    'valueField' => 'id',
+                    'labelField' => 'name_ar',
+                    'labelFieldFallback' => 'name_en',
+                    'selected' => old('directorate_id', $service->directorate_id),
+                    'placeholder' => '-- اختر المديرية --',
+                ])
 
                 <!-- icon -->
                 <div class="col-span-2 md:col-span-1">

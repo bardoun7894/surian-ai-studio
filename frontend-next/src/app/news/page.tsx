@@ -49,9 +49,7 @@ function NewsPageContent() {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [visibleCount, setVisibleCount] = useState(12);
-
-  // Pagination state for flat views
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -167,10 +165,8 @@ function NewsPageContent() {
     fetchData();
   }, []);
 
-  // Paginated fetch for flat views (non-organized)
+  // Paginated fetch for all views
   useEffect(() => {
-    
-
     const fetchPaginated = async () => {
       setLoading(true);
       try {
@@ -200,7 +196,7 @@ function NewsPageContent() {
   const viewTabs = useMemo(() => {
     const tabs = [
       { key: 'all', label: t('news_all'), icon: LayoutGrid },
-      { key: 'central', label: t('news_central_admin'), icon: Landmark },
+      { key: 'd_central', label: t('news_central_admin'), icon: Landmark },
     ];
     // Only show the main departments (featured directorates) as tabs
     filteredGroupedNews.forEach(group => {
@@ -211,12 +207,12 @@ function NewsPageContent() {
     return tabs;
   }, [filteredGroupedNews, language, isAr, t]);
 
-  // Filtered flat news (for non-organized views)
+  // Filtered flat news
   const filteredFlatNews = useMemo(() => {
     let result = [...allNews];
 
-    // View filter
-    if (activeView !== 'all' && activeView !== 'central') {
+    // View filter (for specific directorate tabs only - "all" shows everything)
+    if (activeView !== 'all') {
       result = result.filter(item => String((item as any).directorate_id) === activeView);
     }
 
@@ -333,16 +329,30 @@ function NewsPageContent() {
     </div>
   );
 
-  // Organized view: Hero + Per-Directorate + All
-  const renderOrganizedView = () => {
+  // Flat filtered view (for all tabs)
+  const renderFlatView = () => {
     if (loading) {
       return <SkeletonGrid cards={8} />;
     }
 
+    if (filteredFlatNews.length === 0) {
+      return (
+        <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
+          <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
+          <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
+            {t('news_no_results')}
+          </h3>
+          <p className="text-gray-500 dark:text-white/70 text-sm">
+            {t('news_no_results_desc')}
+          </p>
+        </div>
+      );
+    }
+
     return (
-      <div className="space-y-16">
-        {/* 1. Featured / Hero News - Main article + 3 recent */}
-        {featuredNews && (
+      <div className="space-y-12">
+        {/* Featured News Section - show only on "all" tab, first page, no search/date filter active */}
+        {activeView === 'all' && currentPage === 1 && !searchQuery && selectedMonth === null && selectedYear === null && featuredNews && (
           <ScrollAnimation>
             <section>
               <div className="flex items-center gap-3 mb-6">
@@ -355,40 +365,43 @@ function NewsPageContent() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-                {/* Main featured article - spans 2 columns, matching home page card proportions */}
+                {/* Main featured article */}
                 <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
-                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[280px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
+                  <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[200px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
                     {featuredNews.imageUrl ? (
                       <Image
                         src={featuredNews.imageUrl}
                         alt={featuredNews.title}
                         fill
-                        className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                         priority
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-10">
+                    {/* Badges at top */}
+                    <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
                       {featuredNews.isUrgent && (
-                        <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full mb-3">
+                        <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
                           {t('ui_breaking')}
                         </span>
                       )}
                       {(featuredNews as any).directorate_name && (
-                        <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full mb-3 ltr:ml-2 rtl:mr-2">
+                        <span className="inline-block px-3 py-1 bg-gov-gold/80 text-gov-forest text-xs font-bold rounded-full">
                           {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
                         </span>
                       )}
-                      <h3 className="text-lg md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 group-hover:text-gov-gold transition-colors leading-tight">
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-10">
+                      <h3 className="text-lg md:text-3xl lg:text-4xl font-display font-bold text-white mb-2 md:mb-3 group-hover:text-gov-gold transition-colors leading-tight line-clamp-3 md:line-clamp-none">
                         {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
                       </h3>
-                      <p className="text-white/70 text-xs md:text-base max-w-2xl line-clamp-2 mb-4">
+                      <p className="text-white/70 text-xs md:text-base max-w-2xl line-clamp-2 mb-3 md:mb-4 hidden md:block">
                         {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
                       </p>
-                      <div className="flex items-center gap-4 text-white/60 text-sm">
+                      <div className="flex items-center gap-4 text-white/60 text-xs md:text-sm">
                         <span className="flex items-center gap-1">
                           <Calendar size={14} />
                           {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
@@ -398,7 +411,7 @@ function NewsPageContent() {
                   </div>
                 </Link>
 
-                {/* 3 Recent articles stacked on the right - matching home page layout */}
+                {/* 3 Recent articles stacked on the right */}
                 <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
                   {recentNews.map((item) => (
                     <Link
@@ -437,148 +450,8 @@ function NewsPageContent() {
           </ScrollAnimation>
         )}
 
-        {/* All News (directly below featured) */}
-        <ScrollAnimation>
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gov-teal/10 dark:bg-gov-teal/20 flex items-center justify-center">
-                <LayoutGrid size={20} className="text-gov-teal dark:text-gov-teal" />
-              </div>
-              <h2 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold">
-                {t('news_all')}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {allNews.slice(0, visibleCount).map((item, idx) => (
-                <NewsCard key={`all-${item.id}-${idx}`} item={item} index={idx} />
-              ))}
-            </div>
-
-            {visibleCount < allNews.length && (
-              <div className="mt-10 mb-6 flex justify-center">
-                <button
-                  onClick={() => { setActiveView('all'); setCurrentPage(1); }}
-                  className="px-10 py-3.5 bg-gov-forest dark:bg-gov-gold text-white dark:text-gov-forest font-bold rounded-xl hover:bg-gov-emerald dark:hover:bg-white transition-all shadow-lg hover:shadow-xl"
-                >
-                  {t('news_view_all')}
-                </button>
-              </div>
-            )}
-          </section>
-        </ScrollAnimation>
-      </div>
-    );
-  };
-
-  // Flat filtered view (for specific directorate/central/all tabs)
-  const renderFlatView = () => {
-    if (loading) {
-      return <SkeletonGrid cards={8} />;
-    }
-
-    if (filteredFlatNews.length === 0) {
-      return (
-        <div className="text-center py-20 bg-white dark:bg-gov-card/10 rounded-2xl border border-dashed border-gray-300 dark:border-gov-border/25">
-          <Search size={40} className="mx-auto text-gray-300 dark:text-white/50 mb-4" />
-          <h3 className="text-lg font-bold text-gov-charcoal dark:text-white mb-2">
-            {t('news_no_results')}
-          </h3>
-          <p className="text-gray-500 dark:text-white/70 text-sm">
-            {t('news_no_results_desc')}
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        {/* Featured Hero Section - show on "all" tab, first page only */}
-        {activeView === 'all' && currentPage === 1 && featuredNews && (
-          <div className="mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-              {/* Main featured article */}
-              <Link href={`/news/${featuredNews.id}`} className="block group lg:col-span-7 h-full">
-                <div className="relative rounded-2xl overflow-hidden bg-gov-forest min-h-[240px] md:min-h-[420px] h-full border border-white/10 shadow-lg transition-all duration-500 hover:shadow-gov-gold/20">
-                  {featuredNews.imageUrl ? (
-                    <Image
-                      src={featuredNews.imageUrl}
-                      alt={featuredNews.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      priority
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-gov-forest to-gov-teal" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute top-0 left-0 p-4 z-10 flex flex-wrap gap-2">
-                    {featuredNews.isUrgent && (
-                      <span className="inline-block px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
-                        {t('ui_breaking')}
-                      </span>
-                    )}
-                    {(featuredNews as any).directorate_name && (
-                      <span className="inline-block px-2 py-0.5 bg-gov-gold/80 text-gov-forest text-[10px] font-bold rounded-full">
-                        {isAr ? (featuredNews as any).directorate_name : ((featuredNews as any).directorate_name_en || (featuredNews as any).directorate_name)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-                    <div className="flex items-center gap-2 text-white/60 text-xs mb-2">
-                      <Calendar size={14} />
-                      {formatRelativeTime(featuredNews.date, language as 'ar' | 'en')}
-                    </div>
-                    <h3 className="text-base md:text-xl font-display font-bold text-white mb-1.5 group-hover:text-gov-gold transition-colors leading-tight">
-                      {isAr ? ((featuredNews as any).title_ar || featuredNews.title) : ((featuredNews as any).title_en || featuredNews.title)}
-                    </h3>
-                    <p className="text-white/60 text-[11px] md:text-xs max-w-2xl line-clamp-2">
-                      {isAr ? ((featuredNews as any).summary_ar || featuredNews.summary) : ((featuredNews as any).summary_en || featuredNews.summary)}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-
-              {/* 3 Recent articles stacked */}
-              <div className="lg:col-span-5 flex flex-col gap-3 md:gap-4">
-                {recentNews.map((item) => (
-                  <Link
-                    key={`hero-recent-${item.id}`}
-                    href={`/news/${item.id}`}
-                    className="group flex gap-3 md:gap-4 bg-white dark:bg-dm-surface rounded-xl border border-gray-100 dark:border-gov-border/15 p-2.5 md:p-3 hover:shadow-md hover:border-gov-gold/30 hover:-translate-y-0.5 transition-all duration-300 flex-1"
-                  >
-                    {item.imageUrl && (
-                      <div className="relative w-24 h-20 md:w-32 md:h-28 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={item.imageUrl}
-                          alt={isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      {(item as any).directorate_name && (
-                        <span className="text-[10px] md:text-xs text-gov-gold font-bold mb-1">
-                          {isAr ? (item as any).directorate_name : ((item as any).directorate_name_en || (item as any).directorate_name)}
-                        </span>
-                      )}
-                      <h3 className="text-sm md:text-base font-bold text-gov-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-gov-teal transition-colors">
-                        {isAr ? ((item as any).title_ar || item.title) : ((item as any).title_en || item.title)}
-                      </h3>
-                      <span className="text-[10px] md:text-xs text-gray-400 dark:text-white/50 mt-1 flex items-center gap-1">
-                        <Calendar size={10} className="text-gov-gold" />
-                        {formatRelativeTime(item.date, language as 'ar' | 'en')}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* News Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {filteredFlatNews.map((item, index) => (
             <ScrollAnimation key={`${item.id}-${index}`} delay={index * 0.05}>
               <NewsCard item={item} index={index} />
@@ -592,7 +465,7 @@ function NewsPageContent() {
           perPage={perPage}
           onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
-      </>
+      </div>
     );
   };
 
@@ -601,13 +474,13 @@ function NewsPageContent() {
       <Navbar />
 
       <main className="flex-grow pt-0">
-        {/* Hero Header */}
-        <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-12 md:pt-32 md:pb-16 px-4">
+        {/* Hero Header - reduced spacing */}
+        <div className="bg-gradient-to-br from-gov-forest via-gov-emerald to-gov-teal dark:from-gov-forest dark:via-gov-forest dark:to-gov-emerald/30 text-white pt-20 pb-8 md:pt-28 md:pb-12 px-4">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
               {t('news_page_title')}
             </h1>
-            <p className="text-white/70 mb-6">
+            <p className="text-white/70">
               {t('news_page_subtitle')}
             </p>
           </div>
@@ -618,11 +491,11 @@ function NewsPageContent() {
           <ContentFilter
             tabs={viewTabs}
             activeTab={activeView}
-            onTabChange={(k) => { setActiveView(k); setVisibleCount(12); setCurrentPage(1); }}
-            showDateFilter={true}
+            onTabChange={(k) => { setActiveView(k); setCurrentPage(1); }}
+            showDateFilter
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
-            onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setVisibleCount(12); }}
+            onDateChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setCurrentPage(1); }}
             onSearch={(q) => setSearchQuery(q)}
             searchValue={searchQuery}
             totalCount={totalItems}

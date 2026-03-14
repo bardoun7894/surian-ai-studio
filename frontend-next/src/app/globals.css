@@ -128,6 +128,9 @@ body {
   transition: background-color 0.3s, color 0.3s;
   overflow-wrap: break-word;
   word-break: break-word;
+  /* Safe-area padding for notched / curved-edge phones (Samsung Edge, iPhone X+) */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Glass Card Effect - Updated with new color scheme */
@@ -265,6 +268,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   /* Target gov-gold (#b9a779) */
   filter: invert(80%) sepia(20%) saturate(400%) hue-rotate(10deg);
+}
+
+/* Safe-area for fixed elements (navbar, modals) on notched/edge devices */
+@supports (padding: env(safe-area-inset-left)) {
+  .fixed {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 /* RTL Support */
@@ -487,12 +498,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
    Global Responsive Font Scaling for Mobile
    Arabic-optimised: Arabic glyphs are wider, so we can go
    smaller than Latin-only sites while keeping readability.
-   Base: 13px on mobile (vs 16px desktop).
+   Base: 14px on mobile (vs 16px desktop).
    ============================================================ */
 @media (max-width: 640px) {
   /* ── Base font (no !important — lets accessibility --font-scale multiply) ── */
   html {
-    font-size: calc(13px * var(--font-scale));
+    font-size: calc(14px * var(--font-scale));
   }
 
   /* ── Arabic line-height — wider glyphs need more vertical space ── */
@@ -501,11 +512,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 
   /* ── Headings ── */
-  h1 { font-size: 1.375rem !important; line-height: 1.3 !important; }   /* ~18px */
-  h2 { font-size: 1.2rem !important;   line-height: 1.35 !important; }  /* ~16px */
-  h3 { font-size: 1.075rem !important; line-height: 1.4 !important; }   /* ~14px */
-  h4 { font-size: 1rem !important;     line-height: 1.4 !important; }   /* ~13px */
-  h5, h6 { font-size: 0.9375rem !important; }                           /* ~12px */
+  h1 { font-size: 1.5rem !important;   line-height: 1.3 !important; }   /* ~21px */
+  h2 { font-size: 1.3rem !important;   line-height: 1.35 !important; }  /* ~18px */
+  h3 { font-size: 1.15rem !important;  line-height: 1.4 !important; }   /* ~16px */
+  h4 { font-size: 1.05rem !important;  line-height: 1.4 !important; }   /* ~15px */
+  h5, h6 { font-size: 1rem !important; }                                /* ~14px */
 
   /* ── Body & paragraph ── */
   p, li, td, th, span, label, a, input, textarea, select, button {
@@ -513,16 +524,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 
   /* ── Tailwind text-* overrides (scale down large sizes) ── */
-  .text-9xl { font-size: 2.5rem !important; }     /* 80px → 32.5px */
-  .text-8xl { font-size: 2.25rem !important; }    /* 72px → 29px */
-  .text-7xl { font-size: 2rem !important; }       /* 60px → 26px */
-  .text-6xl { font-size: 1.75rem !important; }    /* 48px → 23px */
-  .text-5xl { font-size: 1.5rem !important; }     /* 36px → 19.5px */
-  .text-4xl { font-size: 1.375rem !important; }   /* 32px → 18px */
-  .text-3xl { font-size: 1.25rem !important; }    /* 28px → 16px */
-  .text-2xl { font-size: 1.125rem !important; }   /* 24px → 14.6px */
-  .text-xl  { font-size: 1rem !important; }       /* 20px → 13px */
-  .text-lg  { font-size: 0.9375rem !important; }  /* 18px → 12px */
+  .text-9xl { font-size: 2.75rem !important; }    /* 80px → 38.5px */
+  .text-8xl { font-size: 2.5rem !important; }     /* 72px → 35px */
+  .text-7xl { font-size: 2.25rem !important; }    /* 60px → 31.5px */
+  .text-6xl { font-size: 2rem !important; }       /* 48px → 28px */
+  .text-5xl { font-size: 1.75rem !important; }    /* 36px → 24.5px */
+  .text-4xl { font-size: 1.5rem !important; }     /* 32px → 21px */
+  .text-3xl { font-size: 1.375rem !important; }   /* 28px → 19px */
+  .text-2xl { font-size: 1.25rem !important; }    /* 24px → 17.5px */
+  .text-xl  { font-size: 1.125rem !important; }   /* 20px → 15.75px */
+  .text-lg  { font-size: 1rem !important; }       /* 18px → 14px */
 
   /* ── Tiny labels: 10px is too small on phone — bump to 11px min ── */
   .text-\[10px\] { font-size: 11px !important; }
@@ -530,43 +541,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
   /* ── Component-level overrides ── */
   .font-display { font-size: inherit; }
-  .title-main   { font-size: 1.25rem !important; }
-  .subtitle      { font-size: 0.9375rem !important; }
+  .title-main   { font-size: 1.375rem !important; }
+  .subtitle      { font-size: 1rem !important; }
 
-  /* ============================================================
-     Mobile Spacing — reduce large padding/margin/gap
-     Desktop py-24 (96px) wastes ~40% of a mobile screen.
-     Scale: ≥16 → halved, 10-15 → ~60%, small stays.
-     ============================================================ */
-
-  /* ── Vertical section padding ── */
-  .py-24 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }       /* 96→40px */
-  .py-20 { padding-top: 2rem !important; padding-bottom: 2rem !important; }            /* 80→32px */
-  .py-16 { padding-top: 1.75rem !important; padding-bottom: 1.75rem !important; }      /* 64→28px */
-  .pt-32 { padding-top: 5rem !important; }                                              /* 128→80px */
-  .pt-24 { padding-top: 2.5rem !important; }                                            /* 96→40px */
-  .pb-20 { padding-bottom: 2rem !important; }                                            /* 80→32px */
-  .pb-24 { padding-bottom: 2.5rem !important; }                                         /* 96→40px */
-
-  /* ── Section padding (medium) ── */
-  .py-12 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }        /* 48→24px */
-  .p-12  { padding: 1.25rem !important; }                                                /* 48→20px */
-  .p-10  { padding: 1rem !important; }                                                   /* 40→16px */
-
-  /* ── Vertical margins ── */
-  .mt-24 { margin-top: 2.5rem !important; }                                              /* 96→40px */
-  .mt-12 { margin-top: 1.5rem !important; }                                              /* 48→24px */
-  .mb-16 { margin-bottom: 1.5rem !important; }                                           /* 64→24px */
-  .mb-12 { margin-bottom: 1.25rem !important; }                                          /* 48→20px */
-  .mb-10 { margin-bottom: 1rem !important; }                                              /* 40→16px */
-
-  /* ── Gaps ── */
-  .gap-12 { gap: 1.5rem !important; }                                                    /* 48→24px */
-  .gap-16 { gap: 2rem !important; }                                                      /* 64→32px */
-
-  /* ── Horizontal padding — keep comfortable touch targets ── */
-  .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }               /* 32→16px */
-  .px-6 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }         /* 24→12px */
 }
 
 /* --- Reduced Motion Support --- */
@@ -1200,6 +1177,43 @@ body.high-contrast {
 
 .high-contrast svg path:hover {
   fill: #FFFF00 !important;
+}
+
+/* Aspect-ratio fallback for older iOS Safari (<15) / Android browsers */
+@supports not (aspect-ratio: 16 / 9) {
+  .aspect-video {
+    padding-bottom: 56.25%;
+    height: 0;
+    position: relative;
+  }
+  .aspect-video > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .aspect-square {
+    padding-bottom: 100%;
+    height: 0;
+    position: relative;
+  }
+  .aspect-square > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .aspect-\[3\/4\] {
+    padding-bottom: 133.33%;
+    height: 0;
+    position: relative;
+  }
+  .aspect-\[3\/4\] > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 /* Lenis Smooth Scroll */

@@ -288,12 +288,12 @@ const VideoModal: React.FC<{
                         : videoRef.current.play();
                     }
                   }}
-                  className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/20 grid place-items-center text-white hover:bg-white/30 transition-colors"
                 >
                   {isPlaying ? (
                     <Pause size={18} />
                   ) : (
-                    <Play size={18} className="ms-0.5" />
+                    <Play size={18} className="translate-x-[1px]" />
                   )}
                 </button>
                 <button
@@ -594,9 +594,9 @@ export default function VideoCard({
             {!youtubeActive && (
               <>
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                    <Play size={24} className="text-white ms-0.5" fill="white" />
+                <div className="absolute inset-0 grid place-items-center z-10">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-red-600 rounded-full grid place-items-center shadow-lg will-change-transform md:group-hover:scale-110 transition-transform">
+                    <Play size={24} className="text-white translate-x-[1px]" fill="white" />
                   </div>
                 </div>
               </>
@@ -686,9 +686,9 @@ export default function VideoCard({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             {!isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                  <Play size={24} className="text-gov-forest ms-0.5" />
+              <div className="absolute inset-0 grid place-items-center">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-white/90 rounded-full grid place-items-center shadow-lg will-change-transform md:group-hover:scale-110 transition-transform">
+                  <Play size={24} className="text-gov-forest translate-x-[1px]" />
                 </div>
               </div>
             )}

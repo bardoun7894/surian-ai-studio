@@ -106,7 +106,7 @@ const PromotionalCard: React.FC<PromotionalCardProps> = ({
             posterUrl={section.image || undefined}
             // title removed
             aspectRatio="video"
-            className="h-full min-h-[220px] rounded-[2rem]"
+            className="h-full md:min-h-[220px] rounded-[2rem]"
             autoPlayOnHover={true}
           />
           {/* Badge overlay - M6.10: hide on mobile when video is playing */}

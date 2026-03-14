@@ -509,7 +509,7 @@ const RegisterPage = () => {
 
                     {/* Header */}
                     <div className="mb-4 relative">
-                        <h1 className="text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-1">
+                        <h1 className="text-xl sm:text-2xl font-display font-bold text-gov-forest dark:text-gov-gold mb-1">
                             {t('auth_register_title')}
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-white/70">
@@ -518,7 +518,7 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-start justify-center gap-1 sm:gap-3 mb-4 px-2">
+                    <div className="flex items-start justify-center gap-1 sm:gap-3 mb-3 sm:mb-4 px-1 sm:px-2">
                         {steps.map((step, index) => (
                             <React.Fragment key={step.num}>
                                 <div className="flex flex-col items-center cursor-pointer min-w-[3.5rem] md:min-w-[4.5rem]" onClick={() => step.num < currentStep && (setCurrentStep(step.num), setError(null))}>
@@ -544,7 +544,7 @@ const RegisterPage = () => {
                     </div>
 
                     {/* Register Card */}
-                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-4 sm:p-6 md:p-8 overflow-visible">
+                    <div className="bg-white dark:bg-dm-surface rounded-2xl shadow-xl border border-gray-100 dark:border-gov-border/15 p-3 sm:p-5 md:p-8 overflow-visible">
                         {error && (
                             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
@@ -552,11 +552,11 @@ const RegisterPage = () => {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-3">
+                        <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
 
                             {/* Step 1: Identity */}
                             {currentStep === 1 && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-2.5 sm:space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* National ID */}
                                     <NationalIdField
                                         value={formData.nationalId}
@@ -580,7 +580,7 @@ const RegisterPage = () => {
 
                                     {/* Birth Date */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('reg_birth_date')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -644,10 +644,10 @@ const RegisterPage = () => {
 
                             {/* Step 2: Personal Information */}
                             {currentStep === 2 && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-2.5 sm:space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* First Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {language === 'ar' ? 'الاسم الأول' : 'First Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -656,7 +656,7 @@ const RegisterPage = () => {
                                                 value={formData.firstName}
                                                 onChange={(e) => { setFormData({ ...formData, firstName: e.target.value }); if (fieldErrors.firstName && isValidName(e.target.value.trim())) { setFieldErrors(prev => { const n = {...prev}; delete n.firstName; return n; }); } }}
                                                 placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'}
-                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.firstName ? 'border-red-500 dark:border-red-400' : formData.firstName && isValidName(formData.firstName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
+                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-2.5 sm:py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.firstName ? 'border-red-500 dark:border-red-400' : formData.firstName && isValidName(formData.firstName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
@@ -683,7 +683,7 @@ const RegisterPage = () => {
 
                                     {/* Father Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {language === 'ar' ? 'اسم الأب' : 'Father Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -692,7 +692,7 @@ const RegisterPage = () => {
                                                 value={formData.fatherName}
                                                 onChange={(e) => { setFormData({ ...formData, fatherName: e.target.value }); if (fieldErrors.fatherName && isValidName(e.target.value.trim())) { setFieldErrors(prev => { const n = {...prev}; delete n.fatherName; return n; }); } }}
                                                 placeholder={language === 'ar' ? 'اسم الأب' : 'Father Name'}
-                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.fatherName ? 'border-red-500 dark:border-red-400' : formData.fatherName && isValidName(formData.fatherName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
+                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-2.5 sm:py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.fatherName ? 'border-red-500 dark:border-red-400' : formData.fatherName && isValidName(formData.fatherName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
@@ -719,7 +719,7 @@ const RegisterPage = () => {
 
                                     {/* Last Name */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {language === 'ar' ? 'الكنية' : 'Last Name'} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -728,7 +728,7 @@ const RegisterPage = () => {
                                                 value={formData.lastName}
                                                 onChange={(e) => { setFormData({ ...formData, lastName: e.target.value }); if (fieldErrors.lastName && isValidName(e.target.value.trim())) { setFieldErrors(prev => { const n = {...prev}; delete n.lastName; return n; }); } }}
                                                 placeholder={language === 'ar' ? 'الكنية' : 'Last Name'}
-                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.lastName ? 'border-red-500 dark:border-red-400' : formData.lastName && isValidName(formData.lastName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
+                                                className={`w-full pl-12 rtl:pl-4 rtl:pr-12 pr-4 py-2.5 sm:py-3 bg-gov-beige/20 dark:bg-white/10 border border-gov-gold/20 dark:border-gov-border/25 rounded-xl text-gov-charcoal dark:text-white placeholder:text-gray-400 dark:placeholder:text-gov-teal/30 focus:outline-none focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20 transition-all duration-200 ${fieldErrors.lastName ? 'border-red-500 dark:border-red-400' : formData.lastName && isValidName(formData.lastName.trim()) ? 'border-green-500 dark:border-green-400' : ''}`}
                                                 required
                                             />
                                             <User className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-gov-sand dark:text-gov-teal/50 group-focus-within:text-gov-teal dark:group-focus-within:text-gov-gold transition-colors" size={20} />
@@ -755,14 +755,14 @@ const RegisterPage = () => {
 
                                     {/* Governorate */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('reg_governorate')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
                                             <select
                                                 value={formData.governorate}
                                                 onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
-                                                className={`w-full py-3.5 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
+                                                className={`w-full py-2.5 sm:py-3 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white focus:outline-none transition-all appearance-none
                                                     ${formData.governorate
                                                         ? 'border-green-500 dark:border-green-400 focus:border-green-500 dark:focus:border-green-400 focus:ring-2 focus:ring-green-500/20 dark:focus:ring-green-400/20'
                                                         : 'border-gov-gold/20 dark:border-gov-border/15 focus:border-gov-teal dark:focus:border-gov-gold focus:ring-2 focus:ring-gov-teal/20 dark:focus:ring-gov-gold/20'
@@ -792,10 +792,10 @@ const RegisterPage = () => {
 
                             {/* Step 3: Contact Information */}
                             {currentStep === 3 && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-2.5 sm:space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* Email */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('auth_email')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -809,7 +809,7 @@ const RegisterPage = () => {
                                                     }
                                                 }}
                                                 placeholder="example@email.com"
-                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                className={`w-full py-2.5 sm:py-3 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.email
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.email && /^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/.test(formData.email)
@@ -844,7 +844,7 @@ const RegisterPage = () => {
 
                                     {/* Phone */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('auth_phone')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -878,10 +878,10 @@ const RegisterPage = () => {
 
                             {/* Step 4: Password */}
                             {currentStep === 4 && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-2.5 sm:space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
                                     {/* Password */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('auth_password')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -890,7 +890,7 @@ const RegisterPage = () => {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 placeholder={t('reg_password_placeholder')}
-                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-16 rtl:pr-12 rtl:pl-16 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                className={`w-full py-2.5 sm:py-3 px-4 ltr:pl-12 ltr:pr-16 rtl:pr-12 rtl:pl-16 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.password
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.password && isPasswordValid(formData.password)
@@ -923,7 +923,7 @@ const RegisterPage = () => {
 
                                     {/* Confirm Password */}
                                     <div>
-                                        <label className="block text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-2">
+                                        <label className="block text-xs sm:text-sm font-bold text-gov-charcoal dark:text-gov-teal mb-1.5 sm:mb-2">
                                             {t('reg_confirm_password')} <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <div className="relative group">
@@ -932,7 +932,7 @@ const RegisterPage = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                                 placeholder={t('reg_reenter_password')}
-                                                className={`w-full py-3.5 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
+                                                className={`w-full py-2.5 sm:py-3 px-4 ltr:pl-12 ltr:pr-10 rtl:pr-12 rtl:pl-10 rounded-xl bg-gov-beige/20 dark:bg-white/10 border text-gov-charcoal dark:text-white placeholder:text-gov-sand focus:outline-none transition-all
                                                     ${fieldErrors.confirmPassword
                                                         ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:focus:ring-red-400/20'
                                                         : formData.confirmPassword && formData.confirmPassword === formData.password && isPasswordValid(formData.password)
@@ -1012,7 +1012,7 @@ const RegisterPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setCurrentStep(currentStep - 1)}
-                                        className="flex-1 py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors text-sm"
+                                        className="flex-1 py-2.5 sm:py-3 bg-gray-100 dark:bg-white/10 text-gov-charcoal dark:text-white font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors text-sm"
                                     >
                                         {t('reg_previous')}
                                     </button>
@@ -1020,7 +1020,7 @@ const RegisterPage = () => {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`flex-1 py-3 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 group hover:-translate-y-1 text-sm`}
+                                    className={`flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 group hover:-translate-y-1 text-sm`}
                                 >
                                     {isLoading ? (
                                         <div className="w-5 h-5 border-2 border-gov-forest/30 border-t-gov-forest rounded-full animate-spin" />

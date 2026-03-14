@@ -299,7 +299,7 @@ const TwoFactorContent = () => {
             </div>
 
             {/* Right Panel - 2FA Form (Pushed by fixed left panel on desktop) */}
-            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8">
+            <div className="w-full lg:w-1/2 lg:ml-[50%] rtl:lg:ml-0 rtl:lg:mr-[50%] bg-gov-beige dark:bg-dm-surface flex items-center justify-center py-4 sm:py-8 px-3 sm:px-6 md:px-8 overflow-x-hidden min-h-screen">
                 <div className="w-full max-w-md">
                     {/* Back Button */}
                     <Link
@@ -374,7 +374,7 @@ const TwoFactorContent = () => {
                             </div>
                         )}
 
-                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                        <form ref={formRef} onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
                             {/* OTP Code Input */}
                             <div>
                                 <label className="block text-sm font-medium text-gov-charcoal dark:text-white mb-3 text-center">
@@ -393,7 +393,7 @@ const TwoFactorContent = () => {
                                             onChange={(e) => handleInputChange(index, e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(index, e)}
                                             disabled={isLoading || isLockedOut}
-                                            className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold rounded-xl bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-gov-border/25 text-gov-charcoal dark:text-white focus:outline-none focus:border-gov-teal focus:ring-2 focus:ring-gov-teal/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
                                     ))}
                                 </div>
@@ -403,7 +403,7 @@ const TwoFactorContent = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading || !isCodeComplete || isLockedOut}
-                                className="w-full py-4 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-3 sm:py-4 bg-gradient-to-r from-gov-gold to-gov-sand text-gov-forest font-bold rounded-xl hover:from-gov-sand hover:to-gov-gold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <Loader2 size={20} className="animate-spin" />

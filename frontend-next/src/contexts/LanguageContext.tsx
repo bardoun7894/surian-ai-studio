@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { setCachedLanguage } from '@/lib/api';
 
 type Language = 'ar' | 'en';
@@ -1144,16 +1144,23 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, [language, direction, hydrated]);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = useCallback(() => {
     setLanguage(prev => prev === 'ar' ? 'en' : 'ar');
-  };
+  }, []);
 
   const t = (key: string) => {
     return translations[key]?.[language] || key;
   };
 
+  const value = useMemo(() => ({
+    language,
+    direction,
+    toggleLanguage,
+    t,
+  }), [language, direction, toggleLanguage, t]);
+
   return (
-    <LanguageContext.Provider value={{ language, direction, toggleLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

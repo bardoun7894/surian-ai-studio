@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import auth, { User, LoginCredentials, RegisterData, AuthResponse, TwoFactorVerifyData, TwoFactorResendData } from '@/lib/auth';
 
 interface AuthContextType {
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchUser();
   }, []);
 
-  const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await auth.login(credentials);
     // If 2FA is required, don't set the user yet
     if (!response.require_2fa && response.user) {
@@ -124,22 +124,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLastActivity(Date.now());
     }
     return response;
-  };
+  }, []);
 
-  const verify2fa = async (data: TwoFactorVerifyData): Promise<AuthResponse> => {
+  const verify2fa = useCallback(async (data: TwoFactorVerifyData): Promise<AuthResponse> => {
     const response = await auth.verify2fa(data);
     if (response.user) {
       setUser(response.user);
       setLastActivity(Date.now());
     }
     return response;
-  };
+  }, []);
 
-  const resend2fa = async (data: TwoFactorResendData): Promise<{ message: string }> => {
+  const resend2fa = useCallback(async (data: TwoFactorResendData): Promise<{ message: string }> => {
     return auth.resend2fa(data);
-  };
+  }, []);
 
-  const register = async (data: RegisterData): Promise<AuthResponse> => {
+  const register = useCallback(async (data: RegisterData): Promise<AuthResponse> => {
     const response = await auth.register(data);
     // If 2FA is required, don't set the user yet
     if (!response.require_2fa && response.user) {
@@ -147,29 +147,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLastActivity(Date.now());
     }
     return response;
-  };
+  }, []);
 
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     await auth.logout();
     setUser(null);
     // Redirect to login page
     window.location.href = '/login';
-  };
+  }, []);
 
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     const currentUser = await auth.getUser();
     setUser(currentUser);
-  };
+  }, []);
 
-  const hasRole = (roleName: string): boolean => {
+  const hasRole = useCallback((roleName: string): boolean => {
     return auth.hasRole(user, roleName);
-  };
+  }, [user]);
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = useCallback((permission: string): boolean => {
     return auth.hasPermission(user, permission);
-  };
+  }, [user]);
 
-  const value: AuthContextType = {
+  const isAdmin = useMemo(() => auth.isAdmin(user), [user]);
+  const isStaff = useMemo(() => auth.isStaff(user), [user]);
+
+  const value: AuthContextType = useMemo(() => ({
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -181,9 +184,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refreshUser,
     hasRole,
     hasPermission,
-    isAdmin: auth.isAdmin(user),
-    isStaff: auth.isStaff(user),
-  };
+    isAdmin,
+    isStaff,
+  }), [user, isLoading, login, verify2fa, resend2fa, register, logout, refreshUser, hasRole, hasPermission, isAdmin, isStaff]);
 
   return (
     <AuthContext.Provider value={value}>

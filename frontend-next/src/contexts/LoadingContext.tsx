@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useMemo,
   useRef,
   ReactNode,
 } from "react";
@@ -50,17 +51,17 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  const value = useMemo(() => ({
+    isLoading,
+    startLoading,
+    stopLoading,
+    registerPageLoad,
+    completePageLoad,
+    isPageDataLoading,
+  }), [isLoading, startLoading, stopLoading, registerPageLoad, completePageLoad, isPageDataLoading]);
+
   return (
-    <LoadingContext.Provider
-      value={{
-        isLoading,
-        startLoading,
-        stopLoading,
-        registerPageLoad,
-        completePageLoad,
-        isPageDataLoading,
-      }}
-    >
+    <LoadingContext.Provider value={value}>
       {children}
     </LoadingContext.Provider>
   );

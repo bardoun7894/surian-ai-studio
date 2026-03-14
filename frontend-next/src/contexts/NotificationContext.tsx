@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { getAuthToken } from '@/lib/api';
 
@@ -43,7 +43,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!isAuthenticated) return;
 
     setIsLoading(true);
@@ -67,9 +67,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
     try {
       const token = getAuthToken();
       const response = await fetch(`/api/v1/notifications/${id}/read`, {
@@ -89,9 +89,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       const token = getAuthToken();
       const response = await fetch('/api/v1/notifications/read-all', {
@@ -111,9 +111,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
-  };
+  }, []);
 
-  const deleteNotification = async (id: string) => {
+  const deleteNotification = useCallback(async (id: string) => {
     try {
       const token = getAuthToken();
       const response = await fetch(`/api/v1/notifications/${id}`, {
@@ -131,7 +131,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
-  };
+  }, []);
 
   // Fetch notifications on mount and when user logs in
   // Pause polling when tab is hidden to save CPU/network
@@ -180,20 +180,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
   }, [isAuthenticated, user]);
 
-  const unreadCount = notifications.filter(n => !n.read_at).length;
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read_at).length, [notifications]);
+
+  const value = useMemo(() => ({
+    notifications,
+    unreadCount,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    fetchNotifications,
+  }), [notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification, fetchNotifications]);
 
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        isLoading,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        fetchNotifications,
-      }}
-    >
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );

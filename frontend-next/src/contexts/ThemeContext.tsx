@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -85,36 +85,38 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     document.documentElement.style.setProperty('--font-scale', String(nextSize / 100));
   }, [fontSize, mounted]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setThemeState(prev => prev === 'light' ? 'dark' : 'light');
-  };
+  }, []);
 
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     const colors = themeColors[newTheme];
     document.documentElement.style.setProperty('--background', colors.background);
     document.documentElement.style.setProperty('--foreground', colors.foreground);
-  };
+  }, []);
 
-  const toggleHighContrast = () => {
+  const toggleHighContrast = useCallback(() => {
     setIsHighContrast(prev => !prev);
-  };
+  }, []);
 
-  const setFontSize = (size: number) => {
+  const setFontSize = useCallback((size: number) => {
     const nextSize = Math.min(Math.max(size, 80), 150);
     setFontSizeState(nextSize);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    theme,
+    toggleTheme,
+    setTheme,
+    isHighContrast,
+    toggleHighContrast,
+    fontSize,
+    setFontSize,
+  }), [theme, toggleTheme, setTheme, isHighContrast, toggleHighContrast, fontSize, setFontSize]);
 
   return (
-    <ThemeContext.Provider value={{
-      theme,
-      toggleTheme,
-      setTheme,
-      isHighContrast,
-      toggleHighContrast,
-      fontSize,
-      setFontSize
-    }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

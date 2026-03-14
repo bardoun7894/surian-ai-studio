@@ -1,4 +1,4 @@
-import { Directorate, Service, NewsItem, DIRECTORATES, KEY_SERVICES, API_BASE_URL, USE_MOCK_DATA } from './_shared';
+import { Directorate, Service, NewsItem, DIRECTORATES, KEY_SERVICES, OFFICIAL_NEWS, API_BASE_URL, USE_MOCK_DATA } from './_shared';
 
 export interface IDirectorateRepository {
   getAll(): Promise<Directorate[]>;

@@ -1,4 +1,4 @@
-import { MediaItem, MOCK_MEDIA, API_BASE_URL, getXsrfToken } from './_shared';
+import { MediaItem, MOCK_MEDIA, API_BASE_URL, getXsrfToken, PaginatedResponse } from './_shared';
 
 // --- Media Repository ---
 export interface AlbumPhoto {

@@ -1,4 +1,4 @@
-import { SearchResults, API_BASE_URL, USE_MOCK_DATA } from './_shared';
+import { SearchResults, SearchResult, API_BASE_URL, USE_MOCK_DATA } from './_shared';
 
 export interface ISearchRepository {
   search(query: string, type?: string, dateFrom?: string, dateTo?: string, entity?: string, lang?: string): Promise<SearchResults>;

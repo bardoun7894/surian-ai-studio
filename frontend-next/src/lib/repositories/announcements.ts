@@ -1,4 +1,4 @@
-import { API_BASE_URL, USE_MOCK_DATA, getXsrfToken } from './_shared';
+import { API_BASE_URL, USE_MOCK_DATA, getXsrfToken, PaginatedResponse } from './_shared';
 
 export interface Announcement {
   id: string;

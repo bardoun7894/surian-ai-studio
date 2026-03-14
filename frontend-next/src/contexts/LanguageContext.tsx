@@ -1152,9 +1152,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     return translations[key]?.[language] || key;
   };
 
-  const value = useMemo(() => ({
+  const value: LanguageContextType = useMemo(() => ({
     language,
-    direction,
+    direction: direction as Direction,
     toggleLanguage,
     t,
   }), [language, direction, toggleLanguage, t]);

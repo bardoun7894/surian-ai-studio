@@ -1,4 +1,4 @@
-import { Service, API_BASE_URL, USE_MOCK_DATA } from './_shared';
+import { Service, API_BASE_URL, USE_MOCK_DATA, PaginatedResponse, KEY_SERVICES } from './_shared';
 
 // --- Services Repository ---
 export interface IServicesRepository {

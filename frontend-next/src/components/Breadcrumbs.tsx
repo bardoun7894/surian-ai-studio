@@ -111,6 +111,7 @@ const excludedPaths = ['/', '', '/login', '/register', '/forgot-password', '/res
 export default function Breadcrumbs() {
   const pathname = usePathname();
   const { language, direction } = useLanguage();
+  const { overrides } = useBreadcrumb();
   const isAr = language === 'ar';
   const isRtl = direction === 'rtl';
   // Don't render on homepage or excluded paths

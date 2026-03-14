@@ -311,30 +311,30 @@ const TwoFactorContent = () => {
                     </Link>
 
                     {/* Mobile Logo */}
-                    <div className="hidden sm:block lg:hidden text-center mb-4">
+                    <div className="hidden sm:block lg:hidden text-center mb-3">
                         <Image
                             src="/assets/logo/Asset-15@2x.png"
                             alt="Logo"
-                            width={112}
-                            height={112}
-                            className="mx-auto mb-4 max-w-[112px] max-h-[112px]"
+                            width={80}
+                            height={80}
+                            className="mx-auto mb-3 max-w-[80px] max-h-[80px]"
                             style={{ width: 'auto', height: 'auto' }}
                         />
                     </div>
 
                     {/* Header */}
-                    <div className="mb-4 sm:mb-8 text-center">
-                        <div className="w-16 h-16 bg-gov-teal/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Shield size={32} className="text-gov-teal" />
+                    <div className="mb-3 sm:mb-6 text-center">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gov-teal/10 rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-4">
+                            <Shield size={24} className="text-gov-teal sm:hidden" /><Shield size={32} className="text-gov-teal hidden sm:block" />
                         </div>
-                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-2">
+                        <h1 className="text-xl sm:text-3xl font-display font-bold text-gov-forest dark:text-white mb-1 sm:mb-2">
                             {t('twofa_title')}
                         </h1>
-                        <p className="text-gray-500 dark:text-white/70">
+                        <p className="text-sm sm:text-base text-gray-500 dark:text-white/70">
                             {t('twofa_subtitle')}
                         </p>
                         {email && (
-                            <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gov-teal">
+                            <div className="flex items-center justify-center gap-2 mt-2 sm:mt-3 text-xs sm:text-sm text-gov-teal">
                                 <Mail size={14} />
                                 <span dir="ltr">{email}</span>
                             </div>

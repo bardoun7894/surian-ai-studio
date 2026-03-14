@@ -19,12 +19,15 @@ import {
     Users
 } from 'lucide-react';
 import Link from 'next/link';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import Image from 'next/image';
 
 const SubDirectorateDetail = () => {
     const { id, subId } = useParams();
     const router = useRouter();
     const { t, language } = useLanguage();
+    const { setLabel, clearLabel } = useBreadcrumb();
+    const isAr = language === 'ar';
     const [subDirectorate, setSubDirectorate] = useState<SubDirectorate | null>(null);
     const [parentDirectorate, setParentDirectorate] = useState<Directorate | null>(null);
     const [ministryContact, setMinistryContact] = useState<Record<string, string>>({});
@@ -58,6 +61,26 @@ const SubDirectorateDetail = () => {
 
         fetchData();
     }, [id, subId]);
+
+    // Set breadcrumb labels to actual directorate names
+    React.useEffect(() => {
+        if (parentDirectorate && id) {
+            const parentName = isAr
+                ? (parentDirectorate.name_ar || parentDirectorate.name)
+                : (parentDirectorate.name_en || parentDirectorate.name_ar || parentDirectorate.name);
+            if (parentName) setLabel("/directorates/" + id, parentName);
+        }
+        if (subDirectorate && id && subId) {
+            const subName = isAr
+                ? (subDirectorate.name_ar || subDirectorate.name)
+                : (subDirectorate.name_en || subDirectorate.name_ar || subDirectorate.name);
+            if (subName) setLabel("/directorates/" + id + "/" + subId, subName);
+        }
+        return () => {
+            if (id) clearLabel("/directorates/" + id);
+            if (id && subId) clearLabel("/directorates/" + id + "/" + subId);
+        };
+    }, [parentDirectorate, subDirectorate, id, subId, isAr, setLabel, clearLabel]);
 
     if (loading) {
         return (

@@ -6,6 +6,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { BreadcrumbProvider } from '@/contexts/BreadcrumbContext';
 import { LoadingProvider, useLoading } from '@/contexts/LoadingContext';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
 import dynamic from 'next/dynamic';
@@ -96,6 +97,7 @@ export function Providers({ children }: ProvidersProps) {
       <LanguageProvider>
         <AuthProvider>
           <NotificationProvider>
+            <BreadcrumbProvider>
             <LoadingProvider>
               <LinkClickHandler>
                 {children}
@@ -115,6 +117,7 @@ export function Providers({ children }: ProvidersProps) {
             />
             <UserSatisfactionIndicator />
             <ChatBot />
+            </BreadcrumbProvider>
           </NotificationProvider>
         </AuthProvider>
       </LanguageProvider>

@@ -34,22 +34,55 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLastActivity(Date.now());
   }, []);
 
-  // Check session timeout
+  // Check session timeout - pause when tab is hidden to save CPU
   useEffect(() => {
     if (!user) return;
 
-    const checkTimeout = setInterval(() => {
+    let checkInterval: ReturnType<typeof setInterval> | null = null;
+
+    const doCheck = () => {
       const now = Date.now();
       if (now - lastActivity > SESSION_TIMEOUT) {
-        // Session expired
         auth.logout().then(() => {
           setUser(null);
           window.location.href = '/login?expired=true';
         });
       }
-    }, 60000); // Check every minute
+    };
 
-    return () => clearInterval(checkTimeout);
+    const startChecking = () => {
+      if (!checkInterval) {
+        checkInterval = setInterval(doCheck, 60000);
+      }
+    };
+
+    const stopChecking = () => {
+      if (checkInterval) {
+        clearInterval(checkInterval);
+        checkInterval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Reset activity timestamp on tab return to prevent false timeout
+        setLastActivity(Date.now());
+        startChecking();
+      } else {
+        stopChecking();
+      }
+    };
+
+    if (document.visibilityState === 'visible') {
+      startChecking();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopChecking();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user, lastActivity]);
 
   // Track activity on user interactions

@@ -134,16 +134,50 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   };
 
   // Fetch notifications on mount and when user logs in
+  // Pause polling when tab is hidden to save CPU/network
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchNotifications();
-
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    } else {
+    if (!isAuthenticated) {
       setNotifications([]);
+      return;
     }
+
+    fetchNotifications();
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (!intervalId) {
+        intervalId = setInterval(fetchNotifications, 30000);
+      }
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications(); // Fetch immediately on tab return
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    // Start polling only if tab is visible
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [isAuthenticated, user]);
 
   const unreadCount = notifications.filter(n => !n.read_at).length;

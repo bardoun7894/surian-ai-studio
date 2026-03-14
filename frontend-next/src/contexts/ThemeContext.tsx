@@ -77,12 +77,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [isHighContrast, mounted]);
 
-  // Persist font size and update DOM
+  // Persist font size and update DOM via CSS variable (works with mobile base)
   useEffect(() => {
     if (!mounted) return;
     const nextSize = Math.min(Math.max(fontSize, 80), 150);
     localStorage.setItem('gov_font_size', String(nextSize));
-    document.documentElement.style.fontSize = `${nextSize}%`;
+    document.documentElement.style.setProperty('--font-scale', String(nextSize / 100));
   }, [fontSize, mounted]);
 
   const toggleTheme = () => {

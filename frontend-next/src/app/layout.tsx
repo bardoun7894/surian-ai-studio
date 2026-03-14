@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo, Noto_Sans_Arabic, Noto_Kufi_Arabic } from "next/font/google";
+import { Cairo, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import LayoutExtras from "@/components/LayoutExtras";
@@ -16,12 +16,6 @@ const cairo = Cairo({
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-noto-sans-arabic",
-  display: "swap",
-});
-
-const notoKufiArabic = Noto_Kufi_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-noto-kufi-arabic",
   display: "swap",
 });
 
@@ -119,7 +113,7 @@ export default function RootLayout({
                     var parsedSize = parseInt(fs, 10);
                     if (!isNaN(parsedSize)) {
                       var clampedSize = Math.min(Math.max(parsedSize, 80), 150);
-                      document.documentElement.style.fontSize = clampedSize + '%';
+                      document.documentElement.style.setProperty('--font-scale', String(clampedSize / 100));
                     }
                   }
                   if (localStorage.getItem('gov_high_contrast') === 'true') {
@@ -135,7 +129,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${cairo.variable} ${notoSansArabic.variable} ${notoKufiArabic.variable} font-sans antialiased text-gov-charcoal dark:text-gov-beige selection:bg-gov-gold selection:text-gov-forest overflow-x-hidden`}
+        className={`${cairo.variable} ${notoSansArabic.variable} font-sans antialiased text-gov-charcoal dark:text-gov-beige selection:bg-gov-gold selection:text-gov-forest overflow-x-hidden`}
         suppressHydrationWarning
       >
         <Providers>

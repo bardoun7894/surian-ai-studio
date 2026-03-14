@@ -19,6 +19,7 @@ import { Directorate, NewsItem, FAQ, Service } from '@/types';
 import { Announcement } from '@/lib/repository';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ScrollAnimation from '@/components/ui/ScrollAnimation';
 import DirectorateHero from '@/components/DirectorateHero';
@@ -37,6 +38,20 @@ interface DirectorateDetailProps {
 const DirectorateDetail: React.FC<DirectorateDetailProps> = ({ directorateId }) => {
     const { t, language } = useLanguage();
     const isAr = language === 'ar';
+
+  // Set breadcrumb to actual directorate name
+  React.useEffect(() => {
+    if (directorate) {
+      const name = isAr ? (directorate.name_ar || directorate.name) : (directorate.name_en || directorate.name_ar || directorate.name);
+      if (name) {
+        setLabel("/directorates/" + directorate.id, name);
+      }
+    }
+    return () => {
+      if (directorate) clearLabel("/directorates/" + directorate.id);
+    };
+  }, [directorate, isAr, setLabel, clearLabel]);
+
     const [directorate, setDirectorate] = useState<Directorate | null>(null);
     const [loading, setLoading] = useState(true);
     usePageLoading(loading);

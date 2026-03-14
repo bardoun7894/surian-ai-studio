@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 // Inline SVG icons to avoid Lucide SSR hydration mismatch
@@ -128,7 +129,10 @@ export default function Breadcrumbs() {
     const isLast = index === segments.length - 1;
 
     let label: string;
-    if (routeLabels[segment]) {
+    // Check BreadcrumbContext overrides first
+    if (overrides[path]) {
+      label = overrides[path];
+    } else if (routeLabels[segment]) {
       // Known named route
       label = isAr ? routeLabels[segment].ar : routeLabels[segment].en;
     } else if (isDynamicSegment(segment)) {
